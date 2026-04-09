@@ -1,0 +1,86 @@
+.solarwire-view {
+  height: 100%;
+  overflow: auto;
+  padding: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.solarwire-view::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.solarwire-view::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.solarwire-view::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.solarwire-view::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.solarwire-view::-webkit-scrollbar-corner {
+  background: var(--bg-primary);
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.page-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.page-card {
+  padding: 15px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.page-card:hover {
+  border-color: var(--accent-color);
+}
+
+.page-name {
+  margin: 0 0 5px 0;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.page-type {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.solarwire-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}

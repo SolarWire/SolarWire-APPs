@@ -1,0 +1,101 @@
+import React from 'react';
+import { useFileStore } from '../../stores/fileStore';
+import FileTree from '../editor/FileTree';
+import './FileView.css';
+
+const FileView: React.FC = () => {
+  const {
+    fileTree,
+    selectedFile,
+    currentPath,
+    expandedDirectories,
+    toggleDirectory,
+    openFileAtPath,
+    openDirectoryAtPath
+  } = useFileStore();
+
+  const handleOpen = async (): Promise<void> => {
+    try {
+      const api = (window as any).api;
+      if (!api || !api.openFileDialog) {
+        console.warn('File dialog not available in current environment');
+        alert('File dialog is only available in the Electron app');
+        return;
+      }
+
+      const paths: string[] = await api.openFileDialog({
+        properties: ['openFile', 'openDirectory', 'multiSelections'],
+      });
+
+      if (paths && paths.length > 0) {
+        const path = paths[0];
+
+        try {
+          if (openDirectoryAtPath) {
+            await openDirectoryAtPath(path);
+          }
+        } catch (err) {
+          if (openFileAtPath) {
+            try {
+              await openFileAtPath(path);
+            } catch (fileErr) {
+              console.error('Failed to open as file or directory', fileErr);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Open dialog failed', err);
+    }
+  };
+
+  const handleSelectFile = async (file: any) => {
+    if (openFileAtPath) {
+      await openFileAtPath(file.path);
+    }
+  };
+
+  const renderFileTree = () => {
+    if (fileTree.length === 0 && !selectedFile) {
+      return (
+        <div className="file-tree-container">
+          <div className="file-tree-header">
+            <h3>Files</h3>
+            <button className="open-button small" onClick={handleOpen}>Open</button>
+          </div>
+          <div className="file-tree">
+            <div className="file-view-empty">
+              <div className="empty-icon">📁</div>
+              <div className="empty-text">Open a file or folder to get started</div>
+              <button className="open-button" onClick={handleOpen}>Open File</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="file-tree-container">
+        <div className="file-tree-header">
+          <h3>Files</h3>
+          <button className="open-button small" onClick={handleOpen}>Open</button>
+        </div>
+        <FileTree
+          nodes={fileTree}
+          expandedDirectories={expandedDirectories}
+          selectedFile={selectedFile}
+          onToggleDirectory={toggleDirectory!}
+          onSelectFile={handleSelectFile}
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className="file-view">
+      {renderFileTree()}
+    </div>
+  );
+};
+
+export default FileView;
