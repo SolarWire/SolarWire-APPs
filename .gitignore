@@ -1,0 +1,10 @@
+node_modules/
+plan/
+chrome-win64/
+chrome-win64.zip
+SKILL-v1-backup.md
+test-note-parser.js
+.DS_Store
+*.log
+dist/
+build/
