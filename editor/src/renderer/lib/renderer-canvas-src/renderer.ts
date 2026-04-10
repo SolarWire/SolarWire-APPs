@@ -16,6 +16,7 @@ interface NoteInfo {
   number: number;
   note: string;
   bounds: ElementBounds;
+  elementId: string; // 添加elementId字段
 }
 
 export interface CanvasRenderOptions {
@@ -33,9 +34,17 @@ export interface ViewBox {
   height: number;
 }
 
+export interface NoteBadgeInfo {
+  elementId: string;
+  x: number;
+  y: number;
+  radius: number;
+}
+
 export interface CanvasRenderResult {
   viewBox: ViewBox;
   elementBoundsMap: Map<string, ElementBounds>;
+  noteBadges: NoteBadgeInfo[];
 }
 
 function wrapText(text: string, maxWidth: number, fontSize: number): string[] {
@@ -288,6 +297,7 @@ export function renderToCanvas(
   
   const elementResults: Array<{ bounds: ElementBounds; id: string; note?: string }> = [];
   const notes: NoteInfo[] = [];
+  const noteBadges: NoteBadgeInfo[] = [];
   let noteNumber = 1;
   
   ast.elements.forEach((element, index) => {
@@ -302,7 +312,8 @@ export function renderToCanvas(
         notes.push({
           number: noteNumber++,
           note,
-          bounds
+          bounds,
+          elementId: id // 保存elementId
         });
       }
       
@@ -354,6 +365,15 @@ export function renderToCanvas(
   if (options.showNotes && notes.length > 0) {
     notes.forEach(noteInfo => {
       renderNoteBadge(ctx, noteInfo.number, noteInfo.bounds, context.primaryColor);
+      const badgeX = noteInfo.bounds.x + noteInfo.bounds.width - 8;
+      const badgeY = noteInfo.bounds.y - 8;
+      const badgeRadius = 10;
+      noteBadges.push({
+        elementId: noteInfo.elementId, // 直接使用保存的elementId
+        x: badgeX,
+        y: badgeY,
+        radius: badgeRadius
+      });
     });
     
     const extraNoteSpacing = 20;
@@ -374,7 +394,8 @@ export function renderToCanvas(
   // 返回空的 viewBox，因为我们不再使用它
   return { 
     viewBox: { x: 0, y: 0, width: 0, height: 0 }, 
-    elementBoundsMap: context.elementBoundsMap 
+    elementBoundsMap: context.elementBoundsMap,
+    noteBadges
   };
 }
 
