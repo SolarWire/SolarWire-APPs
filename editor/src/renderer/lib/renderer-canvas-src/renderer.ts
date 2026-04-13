@@ -266,7 +266,7 @@ export function renderToCanvas(
 ): CanvasRenderResult {
   const ctx = canvas.getContext('2d');
   if (!ctx) {
-    return { viewBox: { x: 0, y: 0, width: 400, height: 300 }, elementBoundsMap: new Map() };
+    return { viewBox: { x: 0, y: 0, width: 400, height: 300 }, elementBoundsMap: new Map(), noteBadges: [] };
   }
   
   const dpr = window.devicePixelRatio || 1;

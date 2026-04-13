@@ -14,7 +14,7 @@ interface ColorPickerProps {
 }
 
 function ColorPicker({ label, value, onChange }: ColorPickerProps): JSX.Element {
-  const { favoriteColors, addFavoriteColor, removeFavoriteColor } = useSettingsStore();
+  const { favoriteColors, addFavoriteColor, removeFavoriteColor, resetFavoriteColors } = useSettingsStore();
   const [showMenu, setShowMenu] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -84,6 +84,14 @@ function ColorPicker({ label, value, onChange }: ColorPickerProps): JSX.Element 
                 }}
               >
                 Add Current Color
+              </button>
+              <button
+                className="color-picker-reset"
+                onClick={() => {
+                  resetFavoriteColors();
+                }}
+              >
+                Reset to Default
               </button>
             </div>
           )}
@@ -243,16 +251,37 @@ function PropertyPanel(): JSX.Element {
   const type = el.type;
   const attrs = el.attributes || {};
   
-  const coords = el.coordinates;
   let x = 0;
   let y = 0;
   
-  if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
-    x = coords.x.value;
-    y = coords.y.value;
+  if (type === 'line') {
+    // 线段元素：从 start 属性中读取起点坐标
+    if (el.start && el.start.x && el.start.y) {
+      if (el.start.x.type === 'absolute') {
+        x = el.start.x.value;
+      } else {
+        x = parseInt(attrs.x || '0');
+      }
+      if (el.start.y.type === 'absolute') {
+        y = el.start.y.value;
+      } else {
+        y = parseInt(attrs.y || '0');
+      }
+    } else {
+      // 回退到从 attributes 中读取
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
+    }
   } else {
-    x = parseInt(attrs.x || '0');
-    y = parseInt(attrs.y || '0');
+    // 其他元素：正常读取坐标
+    const coords = el.coordinates;
+    if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
+      x = coords.x.value;
+      y = coords.y.value;
+    } else {
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
+    }
   }
 
   const text = el.text || '';
@@ -325,10 +354,10 @@ function PropertyPanel(): JSX.Element {
             <PropertyGroupTitle>Line End</PropertyGroupTitle>
             <PropertyPair
               label1="X2"
-              value1={attrs.x2 || ''}
+              value1={el.end.type === 'relative' ? el.end.dx : (el.end.x.type === 'absolute' ? el.end.x.value : '')}
               onChange1={(v) => handleChange('x2', v)}
               label2="Y2"
-              value2={attrs.y2 || ''}
+              value2={el.end.type === 'relative' ? el.end.dy : (el.end.y.type === 'absolute' ? el.end.y.value : '')}
               onChange2={(v) => handleChange('y2', v)}
             />
             <PropertyRow label="Style">
@@ -464,11 +493,42 @@ function PropertyPanel(): JSX.Element {
 
         {type === 'image' && (
           <PropertyRow label="URL">
-            <input
-              type="text"
-              value={el.url || ''}
-              onChange={(e) => handleChange('url', e.target.value)}
-            />
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={el.url || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    const filePaths = await (window as any).api.openFileDialog({
+                      properties: ['openFile'],
+                      filters: [
+                        { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'] },
+                        { name: 'All Files', extensions: ['*'] }
+                      ]
+                    });
+                    if (filePaths && filePaths.length > 0) {
+                      handleChange('url', filePaths[0]);
+                    }
+                  } catch (error) {
+                    console.error('Error opening file dialog:', error);
+                  }
+                }}
+                style={{
+                  padding: '4px 8px',
+                  backgroundColor: '#f0f0f0',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Browse
+              </button>
+            </div>
           </PropertyRow>
         )}
       </div>

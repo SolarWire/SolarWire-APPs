@@ -21,6 +21,7 @@ export interface SettingsState {
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
+  resetFavoriteColors: () => void;
   loadSettings: () => void;
   saveSettings: () => void;
 }
@@ -68,6 +69,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const normalizedColor = color.toUpperCase();
     const newColors = favoriteColors.filter(c => c.toUpperCase() !== normalizedColor);
     set({ favoriteColors: newColors });
+    get().saveSettings();
+  },
+
+  resetFavoriteColors: () => {
+    set({ favoriteColors: defaultFavoriteColors });
     get().saveSettings();
   },
 

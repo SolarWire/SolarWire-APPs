@@ -112,20 +112,35 @@ function buildNestedStructure(elementsWithIndent: any[], input: string, lineMap:
 
     element.location = { line: lineNum };
 
-    while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
-      const popped = stack.pop();
-      if (popped.element.type === 'table-row') {
-        lastTableRowIndent = null;
-      }
-      if (popped.element.type === 'table') {
-        lastTableIndent = null;
-      }
+    // 对于 table-row 元素，我们需要特殊处理，确保不会弹出父 table 元素
+    // 检查是否是新的 table-row 元素，如果是，重置 lastTableRowIndent
+    if (element.type === 'table-row') {
+      lastTableRowIndent = null;
     }
 
+    // 对于 table-row 元素，我们需要特殊处理，确保不会弹出父 table 元素
     if (element.type === 'table-row') {
-      if (lastTableIndent === null || indent <= lastTableIndent) {
-        const message = `Table-row element must be indented more than the table element. Current indent: ${indent} spaces, table indent: ${lastTableIndent} spaces.`;
+      // 检查是否有父 table 元素
+      const tableElement = stack.find(item => item.element.type === 'table');
+      if (!tableElement) {
+        const message = `Table-row element must be inside a table element.`;
+        throw new Error(formatError(message, input, lineNum, indent + 1, 'table element', 'table-row element outside table'));
+      }
+      // 检查缩进
+      if (indent <= tableElement.indent) {
+        const message = `Table-row element must be indented more than the table element. Current indent: ${indent} spaces, table indent: ${tableElement.indent} spaces.`;
         throw new Error(formatError(message, input, lineNum, indent + 1, 'table-row with more indentation', 'insufficient indentation'));
+      }
+    } else {
+      // 对于其他元素，使用正常的堆栈处理
+      while (stack.length > 0 && stack[stack.length - 1].indent >= indent) {
+        const popped = stack.pop();
+        if (popped.element.type === 'table-row') {
+          lastTableRowIndent = null;
+        }
+        if (popped.element.type === 'table') {
+          lastTableIndent = null;
+        }
       }
     }
 
@@ -137,12 +152,24 @@ function buildNestedStructure(elementsWithIndent: any[], input: string, lineMap:
     if (stack.length === 0) {
       result.push(element);
     } else {
-      const parent = stack[stack.length - 1].element;
-      if (isContainer(parent.type)) {
-        if (!parent.children) {
-          parent.children = [];
+      if (element.type === 'table-row') {
+        // 对于 table-row 元素，找到最近的 table 元素作为父元素
+        const tableElement = stack.find(item => item.element.type === 'table');
+        if (tableElement) {
+          if (!tableElement.element.children) {
+            tableElement.element.children = [];
+          }
+          tableElement.element.children.push(element);
         }
-        parent.children.push(element);
+      } else {
+        // 对于其他元素，使用正常的父元素
+        const parent = stack[stack.length - 1].element;
+        if (isContainer(parent.type)) {
+          if (!parent.children) {
+            parent.children = [];
+          }
+          parent.children.push(element);
+        }
       }
     }
 
@@ -174,7 +201,7 @@ function isBlankLine(line: string): boolean {
 
 function isCommentLine(line: string): boolean {
   const trimmed = line.trim();
-  return trimmed.startsWith('//');
+  return trimmed.startsWith('//') || (trimmed.startsWith('#') && !trimmed.startsWith('# '));
 }
 
 function isDeclarationLine(line: string): boolean {
@@ -187,6 +214,13 @@ export function parse(input: string): Document {
     throw new Error(
       'Parser not generated. Please run: npm run build'
     );
+  }
+
+  if (!input || !input.trim()) {
+    return {
+      declarations: [],
+      elements: []
+    };
   }
 
   try {
@@ -228,8 +262,10 @@ export function parse(input: string): Document {
         return;
       }
       
+      const trimmedLine = line.trim();
       const isElementLine = !isBlankLine(line) && !isCommentLine(line) && !isDeclarationLine(line);
-      if (isElementLine) {
+      const isTableLine = trimmedLine.startsWith('##') || trimmedLine.startsWith('#');
+      if (isElementLine || isTableLine) {
         for (let i = 0; i < line.length; i++) {
           if (line[i] === '\\' && i + 1 < line.length) {
             i++;

@@ -227,6 +227,10 @@ Attribute
   {
     return { key: key, value: value };
   }
+  / key:Identifier _* "=" _*
+  {
+    return { key: key, value: '' };
+  }
   / key:Identifier
   {
     return { key: key, value: 'true' };
@@ -278,7 +282,7 @@ SimpleValue
   }
 
 Number
-  = [0-9]+ ("." [0-9]+)?
+  = "-"? [0-9]+ (" . " [0-9]+)?
   {
     return parseFloat(text());
   }
