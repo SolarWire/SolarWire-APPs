@@ -26,6 +26,7 @@ interface GitState {
   branches: GitBranch[];
   currentBranch: string;
   loading: boolean;
+  error: string | null;
   selectedCommit: GitCommit | null;
   // 版本对比相关
   isDiffMode: boolean;
@@ -49,6 +50,7 @@ interface GitState {
   checkoutCommit: (hash: string) => Promise<void>;
   getFileDiff: (filePath: string) => Promise<string>;
   selectCommit: (commit: GitCommit | null) => void;
+  clearError: () => void;
   // 版本对比相关方法
   enterDiffMode: () => void;
   exitDiffMode: () => void;
@@ -59,7 +61,53 @@ interface GitState {
   loadFileDiff: (filePath: string, commitHash1: string, commitHash2: string) => Promise<void>;
 }
 
-const api = (window as any).api?.git;
+// 每次需要时获取 api，以便在测试中可以 mock
+function getApi() {
+  return (window as any).api?.git;
+}
+
+// Git 操作并发锁 - 防止多个 Git 操作同时执行导致状态不一致
+let gitOperationLock = false;
+
+/**
+ * 获取 Git 操作锁，如果锁已被占用则抛出错误
+ */
+function acquireGitLock(): void {
+  if (gitOperationLock) {
+    throw new Error('Git operation in progress, please wait');
+  }
+  gitOperationLock = true;
+}
+
+/**
+ * 释放 Git 操作锁
+ */
+function releaseGitLock(): void {
+  gitOperationLock = false;
+}
+
+/**
+ * 带重试的异步操作工具函数
+ * 指数退避策略：1s, 2s, 4s...
+ */
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  maxRetries = 3,
+  baseDelay = 1000
+): Promise<T> {
+  let lastError: Error | undefined;
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      if (i === maxRetries - 1) break;
+      const delay = baseDelay * Math.pow(2, i);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  throw lastError ?? new Error('Unknown error');
+}
 
 export const useGitStore = create<GitState>((set, get) => ({
   isInitialized: false,
@@ -68,6 +116,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   branches: [],
   currentBranch: 'main',
   loading: false,
+  error: null,
   selectedCommit: null,
   isDiffMode: false,
   leftCommit: null,
@@ -77,6 +126,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   fileDiff: '',
 
   initGit: async (repoPath: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       await api.init(repoPath);
@@ -90,6 +140,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   refreshStatus: async () => {
+    const api = getApi();
     if (!api) return;
     try {
       const status = await api.getStatus();
@@ -100,6 +151,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   refreshHistory: async (filePath?: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       const history = await api.getLog(filePath);
@@ -110,6 +162,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   refreshBranches: async () => {
+    const api = getApi();
     if (!api) return;
     try {
       const branches = await api.getBranches();
@@ -121,6 +174,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   stageFile: async (filePath: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       await api.stageFile(filePath);
@@ -131,6 +185,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   unstageFile: async (filePath: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       await api.unstageFile(filePath);
@@ -141,6 +196,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   stageAllModified: async () => {
+    const api = getApi();
     if (!api) return;
     try {
       await api.stageAllModified();
@@ -151,68 +207,120 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   commit: async (message: string) => {
+    const api = getApi();
     if (!api) return;
+    set({ loading: true, error: null });
+    acquireGitLock();
     try {
-      await api.commit(message);
-      await get().refreshStatus();
-      await get().refreshHistory();
-    } catch (error) {
-      console.error('Failed to commit:', error);
+      await withRetry(() => api.commit(message));
+      await Promise.all([
+        get().refreshStatus(),
+        get().refreshHistory()
+      ]);
+    } catch (error: any) {
+      const msg = error.message || 'Commit failed';
+      set({ error: msg });
+      throw error;
+    } finally {
+      releaseGitLock();
+      set({ loading: false });
     }
   },
 
+  clearError: () => {
+    set({ error: null });
+  },
+
   checkoutBranch: async (branchName: string) => {
+    const api = getApi();
     if (!api) return;
+    set({ loading: true, error: null });
+    acquireGitLock();
     try {
-      await api.checkoutBranch(branchName);
-      await get().refreshStatus();
-      await get().refreshBranches();
-    } catch (error) {
-      console.error('Failed to checkout branch:', error);
+      await withRetry(() => api.checkoutBranch(branchName));
+      await Promise.all([
+        get().refreshStatus(),
+        get().refreshBranches()
+      ]);
+    } catch (error: any) {
+      set({ error: error.message || 'Checkout branch failed' });
+      throw error;
+    } finally {
+      releaseGitLock();
+      set({ loading: false });
     }
   },
 
   push: async () => {
+    const api = getApi();
     if (!api) return;
+    set({ loading: true, error: null });
+    acquireGitLock();
     try {
-      await api.push();
+      await withRetry(() => api.push());
       await get().refreshStatus();
-    } catch (error) {
-      console.error('Failed to push:', error);
+    } catch (error: any) {
+      set({ error: error.message || 'Push failed' });
+      throw error;
+    } finally {
+      releaseGitLock();
+      set({ loading: false });
     }
   },
 
   pull: async () => {
+    const api = getApi();
     if (!api) return;
+    set({ loading: true, error: null });
+    acquireGitLock();
     try {
-      await api.pull();
+      await withRetry(() => api.pull());
       await get().refreshStatus();
-    } catch (error) {
-      console.error('Failed to pull:', error);
+    } catch (error: any) {
+      set({ error: error.message || 'Pull failed' });
+      throw error;
+    } finally {
+      releaseGitLock();
+      set({ loading: false });
     }
   },
 
   fetch: async () => {
+    const api = getApi();
     if (!api) return;
+    set({ loading: true, error: null });
+    acquireGitLock();
     try {
-      await api.fetch();
+      await withRetry(() => api.fetch());
       await get().refreshStatus();
-    } catch (error) {
-      console.error('Failed to fetch:', error);
+    } catch (error: any) {
+      set({ error: error.message || 'Fetch failed' });
+      throw error;
+    } finally {
+      releaseGitLock();
+      set({ loading: false });
     }
   },
 
   checkoutCommit: async (hash: string) => {
+    const api = getApi();
     if (!api) return;
+    set({ loading: true, error: null });
+    acquireGitLock();
     try {
-      await api.checkoutCommit(hash);
+      await withRetry(() => api.checkoutCommit(hash));
       await get().refreshStatus();
-    } catch (error) {
-      console.error('Failed to checkout commit:', error);
+    } catch (error: any) {
+      set({ error: error.message || 'Checkout commit failed' });
+      throw error;
+    } finally {
+      releaseGitLock();
+      set({ loading: false });
     }
   },
 
   getFileDiff: async (filePath: string): Promise<string> => {
+    const api = getApi();
     if (!api) return '';
     try {
       return await api.getFileDiff(filePath);
@@ -250,6 +358,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   loadLeftFileContent: async (filePath: string, commitHash: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       const content = await api.getFileContentAtCommit(filePath, commitHash);
@@ -260,6 +369,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   loadRightFileContent: async (filePath: string, commitHash: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       const content = await api.getFileContentAtCommit(filePath, commitHash);
@@ -270,6 +380,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   },
 
   loadFileDiff: async (filePath: string, commitHash1: string, commitHash2: string) => {
+    const api = getApi();
     if (!api) return;
     try {
       const diff = await api.getFileDiffBetweenCommits(filePath, commitHash1, commitHash2);

@@ -184,6 +184,10 @@ export interface RenderContext {
   isFirstElement: boolean;
   globalDefaults: GlobalDefaults;
   sourceInput?: string;
+  elementIdCounter: number;
+  defs: string[];
+  selectedElementIds: string[];
+  primaryColor: string;
 }
 
 export function createRenderContext(declarations: DocumentDeclaration[] = [], sourceInput?: string): RenderContext {
@@ -207,6 +211,10 @@ export function createRenderContext(declarations: DocumentDeclaration[] = [], so
     isFirstElement: true,
     globalDefaults,
     sourceInput,
+    elementIdCounter: 1,
+    defs: [],
+    selectedElementIds: [],
+    primaryColor: '#000000',
   };
 }
 
@@ -218,6 +226,10 @@ export function createChildContext(parentContext: RenderContext, offsetX: number
     isFirstElement: true,
     globalDefaults: parentContext.globalDefaults,
     sourceInput: parentContext.sourceInput,
+    elementIdCounter: parentContext.elementIdCounter,
+    defs: parentContext.defs,
+    selectedElementIds: parentContext.selectedElementIds,
+    primaryColor: parentContext.primaryColor,
   };
 }
 

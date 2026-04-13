@@ -17,36 +17,92 @@ interface SolarWireSnippet {
   snippetIndex?: number;
 }
 
+// 项目根目录（用户通过文件对话框选择的目录）
+let allowedRootPath: string | null = null;
+
+/**
+ * 设置允许访问的根目录
+ */
+export function setAllowedRoot(rootPath: string): void {
+  allowedRootPath = path.resolve(rootPath);
+}
+
+/**
+ * 获取当前允许的根目录
+ */
+export function getAllowedRoot(): string | null {
+  return allowedRootPath;
+}
+
+/**
+ * 验证请求的路径是否在允许的根目录下
+ * 防止 Path Traversal 攻击
+ */
+export function validatePath(requestedPath: string): boolean {
+  if (!allowedRootPath) {
+    // 如果未设置根目录，拒绝所有访问
+    throw new Error('Access denied: No project root set. Please open a folder first.');
+  }
+
+  const normalized = path.normalize(requestedPath);
+  const resolved = path.resolve(normalized);
+
+  // 确保解析后的路径在允许的根目录下
+  if (!resolved.startsWith(allowedRootPath)) {
+    console.error(`[Security] Blocked access to path outside project root:`, {
+      requested: requestedPath,
+      resolved,
+      allowedRoot: allowedRootPath,
+    });
+    throw new Error('Access denied: Path outside project directory');
+  }
+
+  return true;
+}
+
 export async function readFile(filePath: string): Promise<string> {
   try {
+    validatePath(filePath);
     const content = await fs.readFile(filePath, 'utf-8');
     return content;
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
     throw new Error(`Failed to read file: ${filePath}`);
   }
 }
 
 export async function writeFile(filePath: string, content: string): Promise<void> {
   try {
+    validatePath(filePath);
     const dir = path.dirname(filePath);
     await fs.mkdir(dir, { recursive: true });
     await fs.writeFile(filePath, content, 'utf-8');
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
     throw new Error(`Failed to write file: ${filePath}`);
   }
 }
 
 export async function listFiles(dirPath: string): Promise<string[]> {
   try {
+    validatePath(dirPath);
     const files = await fs.readdir(dirPath);
     return files;
   } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
     throw new Error(`Failed to list files: ${dirPath}`);
   }
 }
 
 export async function getFileTree(dirPath: string, depth = 3): Promise<FileNode[]> {
   try {
+    validatePath(dirPath);
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
     const tree: FileNode[] = [];
 

@@ -16,6 +16,8 @@ export interface ElementBounds {
   y: number;
   width: number;
   height: number;
+  x2?: number;
+  y2?: number;
 }
 
 export interface CanvasRenderContext {
