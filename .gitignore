@@ -8,6 +8,12 @@ test-note-parser.js
 *.log
 dist/
 build/
+editor/releases/
+editor/dist/
+editor/node_modules/
+
+
+
 
 # 敏感信息和配置文件
 private.md
@@ -25,6 +31,7 @@ secrets.json
 *.swp
 *.swo
 *~
+.lingma/
 
 # 操作系统文件
 Thumbs.db
