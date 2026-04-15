@@ -1,0 +1,186 @@
+.version-view {
+  height: 100%;
+  overflow: auto;
+  padding: 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.version-view::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.version-view::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.version-view::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.version-view::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.version-view::-webkit-scrollbar-corner {
+  background: var(--bg-primary);
+}
+
+.version-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 13px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  box-sizing: border-box;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  background: rgba(79, 195, 247, 0.1);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 4px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.selected-file-info .file-name {
+  font-size: 13px;
+  color: var(--accent-color);
+  font-weight: 500;
+}
+
+.commit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commit-item {
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.commit-item:hover {
+  border-color: var(--text-muted);
+}
+
+.commit-item.selected {
+  border-color: var(--accent-color);
+  background: var(--bg-secondary);
+}
+
+.commit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.commit-hash {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  color: var(--accent-color);
+  background: rgba(79, 195, 247, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.commit-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.commit-message {
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.commit-author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.author-label {
+  color: var(--text-muted);
+}
+
+.author-name {
+  color: var(--accent-color);
+}
+
+.commit-actions {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  gap: 8px;
+}
+
+.compare-button {
+  flex: 1;
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-color);
+  border-radius: 4px;
+  color: var(--accent-color);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.compare-button:hover {
+  background: rgba(79, 195, 247, 0.15);
+}
+
+.checkout-button {
+  flex: 1;
+  padding: 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.checkout-button:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--text-muted);
+}

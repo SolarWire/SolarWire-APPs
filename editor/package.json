@@ -4,10 +4,11 @@
   "description": "SolarWire Editor - A complete document workspace",
   "main": "dist/main/index.js",
   "scripts": {
-    "dev": "npm run vite & npm run electron:dev",
-    "dev:win": "start npm run vite && timeout /t 3 && npm run electron:dev",
+    "dev": "concurrently --kill-others-on-fail --prefix-colors green,blue --prefix \"[{name}]\" --names \"vite,electron\" \"npm run vite\" \"npm run electron:dev\"",
+    "dev:win": "concurrently --kill-others-on-fail --prefix-colors green,blue --prefix \"[{name}]\" --names \"vite,electron\" \"npm run vite\" \"npm run electron:dev\" ",
     "vite": "vite",
-    "electron:dev": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && electron --disable-gpu dist/main/index.js",
+    "electron:dev": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && node src/main/wait-for-vite.js && electron --disable-gpu dist/main/index.js",
+
     "build": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && tsc -p tsconfig.app.json && vite build && electron-builder",
     "preview": "vite preview"
   },

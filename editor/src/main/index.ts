@@ -94,7 +94,7 @@ function createWindow(): void {
       mainWindow?.loadURL('http://localhost:3000');
     });
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
+    mainWindow.loadFile(path.join(__dirname, '../app/index.html'));
   }
 }
 
