@@ -11,8 +11,8 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "outDir": "./dist/renderer"
+    "outDir": "./dist/app"
   },
-  "include": ["src/renderer/**/*", "src/shared/**/*"],
+  "include": ["src/app/**/*", "src/shared/**/*"],
   "exclude": ["node_modules", "dist", "**/__tests__/**/*", "**/*.test.ts"]
 }

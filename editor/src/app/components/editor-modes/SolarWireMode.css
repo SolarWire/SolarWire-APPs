@@ -1,0 +1,229 @@
+.solarwire-mode {
+  display: flex;
+  height: 100%;
+  background: var(--bg-primary);
+  padding-bottom: 4px;
+}
+
+.code-panel {
+  min-width: 0;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.preview-panel {
+  min-width: 0;
+  background: var(--bg-primary);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.floating-toolbar.center {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-wrap: wrap;
+  max-width: calc(100% - 32px);
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.selection-section {
+  min-width: 80px;
+}
+
+.display-section {
+  min-width: 120px;
+  justify-content: center;
+}
+
+.elements-section {
+  min-width: 260px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+}
+
+.selection-tools {
+  display: flex;
+  gap: 4px;
+}
+
+.selection-tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.selection-tool-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.selection-tool-button.active {
+  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  border-color: var(--accent-color);
+}
+
+.tool-icon {
+  font-size: 16px;
+}
+
+.note-toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.note-toggle-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.note-toggle-button.active {
+  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  border-color: var(--accent-color);
+}
+
+.pan-tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.pan-tool-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.pan-tool-button.active {
+  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  border-color: var(--accent-color);
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoom-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.zoom-button {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.15s ease;
+}
+
+.zoom-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.preview-content {
+  padding: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.preview-content::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.preview-content::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+.preview-content::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+.preview-content::-webkit-scrollbar-corner {
+  background: var(--bg-primary);
+}
+
+.preview-content svg {
+  width: 100%;
+  height: auto;
+}
+
+.sidebar-panel {
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.sidebar-panel > * {
+  flex-shrink: 0;
+}
+
+.sidebar-panel > *:last-child {
+  flex: 1;
+  overflow: auto;
+}
