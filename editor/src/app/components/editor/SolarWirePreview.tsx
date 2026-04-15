@@ -430,12 +430,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             selectElements([elementId]);
           }
         } else if (currentTool === 'box-inclusive') {
-          // box-inclusive 模式下，点击空白处开始框选（使用屏幕坐标，在整个预览窗口内可用）
+          // box-inclusive 模式下，点击空白处开始框选（使用SVG坐标）
+          const svgCoords = getSVGCoords(e.clientX, e.clientY);
           setBoxSelection({
-            startX: e.clientX,
-            startY: e.clientY,
-            currentX: e.clientX,
-            currentY: e.clientY
+            startX: svgCoords.x,
+            startY: svgCoords.y,
+            currentX: svgCoords.x,
+            currentY: svgCoords.y
           });
         } else {
           // select 模式下，点击空白处拖动画布
@@ -603,10 +604,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
 
     if (boxSelection) {
+      // 使用SVG坐标更新框选框
+      const svgCoords = getSVGCoords(e.clientX, e.clientY);
       setBoxSelection({
         ...boxSelection,
-        currentX: e.clientX,
-        currentY: e.clientY
+        currentX: svgCoords.x,
+        currentY: svgCoords.y
       });
     } else {
       // 更新悬停元素
@@ -709,18 +712,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const width = Math.abs(boxSelection.currentX - boxSelection.startX);
     const height = Math.abs(boxSelection.currentY - boxSelection.startY);
 
-    if (!containerRef.current) return null;
-    const rect = containerRef.current.getBoundingClientRect();
-
     return (
       <rect
-        x={x - rect.left}
-        y={y - rect.top}
+        x={x}
+        y={y}
         width={width}
         height={height}
         fill="rgba(252, 165, 6, 0.1)"
         stroke={primaryColor}
-        strokeWidth={2}
+        strokeWidth={2 / scale}
         strokeDasharray="4,4"
         style={{ pointerEvents: 'none' }}
       />

@@ -55,7 +55,6 @@
   min-width: 0;
   background: var(--bg-primary);
   border-left: 1px solid var(--border-color);
-  padding: 20px;
   overflow: auto;
   /* 使用统一的滚动条样式 */
   height: 100%;
