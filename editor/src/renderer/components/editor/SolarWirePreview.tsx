@@ -1,10 +1,12 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { debounce, throttle } from 'lodash-es';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { parse } from '../../lib/parser-src';
 import { render, RenderResultWithMeta } from '../../lib/renderer-svg-src';
 import { updateLineAttribute } from '../../utils/solarwire-utils';
+import LoadingSpinner from '../ui/LoadingSpinner';
 import type { Document, Element as SolarWireElement } from '../../lib/parser-src/types';
 import './SolarWirePreview.css';
 
@@ -27,13 +29,16 @@ interface DragElementState {
 
 interface ResizeHandleState {
   elementId: string;
-  handle: 'nw' | 'ne' | 'sw' | 'se';
+  handle: 'nw' | 'ne' | 'sw' | 'se' | 'start' | 'end';
   startX: number;
   startY: number;
   elementX: number;
   elementY: number;
   elementW: number;
   elementH: number;
+  elementX2?: number;
+  elementY2?: number;
+  isLine?: boolean;
 }
 
 interface SolarWirePreviewProps {
@@ -63,28 +68,85 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
+  const [pendingContent, setPendingContent] = useState<string | null>(null);
+  const [isRendering, setIsRendering] = useState(false);
+  const [dragCoords, setDragCoords] = useState<{ x: number; y: number } | null>(null);
 
-  const { svg, ast, viewBox } = useMemo(() => {
-    try {
-      setError(null);
-      const safeContent = content || '';
-      if (!safeContent.trim()) {
-        return { svg: '', ast: null, viewBox: null };
-      }
-      const parsedAST = parse(safeContent);
-      const renderedResult = render(parsedAST, {
-        disableNotes: !showNotes,
-        selectedElementIds: selectedElements,
-        primaryColor,
-        sourceInput: safeContent
-      }, true) as RenderResultWithMeta;
-      return { svg: renderedResult.svg, ast: parsedAST, viewBox: renderedResult.viewBox };
-    } catch (e: any) {
-      console.error('Parse/Render error:', e);
-      setError(e.message || String(e));
-      return { svg: '', ast: null, viewBox: null };
-    }
-  }, [content, selectedElements, primaryColor, showNotes]);
+  // 节流的 setContent（100ms）- 用于拖拽/调整大小时减少频繁更新
+  const throttledSetContent = useMemo(
+    () => throttle((newContent: string) => {
+      setContent(newContent);
+    }, 100),
+    [setContent]
+  );
+
+  // SVG 渲染结果状态
+  const [svg, setSvg] = useState<string>('');
+  const [ast, setAst] = useState<Document | null>(null);
+  const [viewBox, setViewBox] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+
+  // 创建防抖的解析渲染函数 (300ms)
+  const debouncedRender = useMemo(
+    () =>
+      debounce(
+        (
+          text: string,
+          options: {
+            disableNotes: boolean;
+            selectedElementIds: string[];
+            primaryColor: string;
+            sourceInput: string;
+          }
+        ) => {
+          setIsRendering(true);
+          try {
+            if (!text.trim()) {
+              setSvg('');
+              setAst(null);
+              setViewBox(null);
+              setError(null);
+              return;
+            }
+
+            const parsedAST = parse(text);
+            const renderedResult = render(parsedAST, options, true) as RenderResultWithMeta;
+
+            setSvg(renderedResult.svg);
+            setAst(parsedAST);
+            setViewBox(renderedResult.viewBox);
+            setError(null);
+          } catch (e: any) {
+            console.error('Parse/Render error:', e);
+            setError(e.message || String(e));
+            setSvg('');
+            setAst(null);
+            setViewBox(null);
+          } finally {
+            setIsRendering(false);
+          }
+        },
+        300
+      ),
+    []
+  );
+
+  // 清理防抖函数
+  useEffect(() => {
+    return () => {
+      debouncedRender.cancel();
+    };
+  }, [debouncedRender]);
+
+  // 当内容或依赖项变化时触发防抖渲染
+  useEffect(() => {
+    const safeContent = content || '';
+    debouncedRender(safeContent, {
+      disableNotes: !showNotes,
+      selectedElementIds: selectedElements,
+      primaryColor,
+      sourceInput: safeContent,
+    });
+  }, [content, selectedElements, primaryColor, showNotes, debouncedRender]);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -214,7 +276,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
         const lineHeight = parseInt(attrs['line-height'] || '22');
         const declaredWidth = parseInt(attrs.w || '0');
-        w = declaredWidth || (lines.length > 0 ? Math.max(...lines.map(l => l.length * fontSize * 0.6)) : 100);
+        w = declaredWidth || (lines.length > 0 ? Math.max(...lines.map((l: string) => l.length * fontSize * 0.6)) : 100);
         h = lines.length > 0 ? lines.length * lineHeight : fontSize;
         break;
       case 'line':
@@ -316,13 +378,16 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             
             setResizeHandleState({
               elementId,
-              handle: handleAttr as 'start' | 'end',
+              handle: handleAttr as any,
               startX: e.clientX,
               startY: e.clientY,
               elementX: x1,
               elementY: y1,
+              elementW: 0,
+              elementH: 0,
               elementX2: x2,
-              elementY2: y2
+              elementY2: y2,
+              isLine: true
             });
             return;
           }
@@ -331,7 +396,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           const bounds = getElementBounds(elementId);
           setResizeHandleState({
             elementId,
-            handle: handleAttr as 'nw' | 'ne' | 'sw' | 'se',
+            handle: handleAttr as any,
             startX: e.clientX,
             startY: e.clientY,
             elementX: bounds.x,
@@ -460,7 +525,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               }
               
               lines[lineNum - 1] = line;
-              setContent(lines.join('\n'));
+              // 只更新本地状态，不立即 setContent
+              setPendingContent(lines.join('\n'));
             }
           }
           return;
@@ -473,18 +539,18 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       switch (resizeHandleState.handle) {
         case 'nw':
-          newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
-          newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
+          newX = Math.round(resizeHandleState.elementX + dx);
+          newY = Math.round(resizeHandleState.elementY + dy);
           newW = Math.round(resizeHandleState.elementW - dx);
           newH = Math.round(resizeHandleState.elementH - dy);
           break;
         case 'ne':
-          newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
+          newY = Math.round(resizeHandleState.elementY + dy);
           newW = Math.round(resizeHandleState.elementW + dx);
           newH = Math.round(resizeHandleState.elementH - dy);
           break;
         case 'sw':
-          newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
+          newX = Math.round(resizeHandleState.elementX + dx);
           newW = Math.round(resizeHandleState.elementW - dx);
           newH = Math.round(resizeHandleState.elementH + dy);
           break;
@@ -494,14 +560,44 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           break;
       }
 
-      // 确保新的坐标不会导致元素超出边界
-      if (newX < 0) {
-        newW += newX;
-        newX = 0;
-      }
-      if (newY < 0) {
-        newH += newY;
-        newY = 0;
+      // 网格吸附（10px 网格）
+      const GRID_SIZE = 10;
+      newX = Math.round(newX / GRID_SIZE) * GRID_SIZE;
+      newY = Math.round(newY / GRID_SIZE) * GRID_SIZE;
+      newW = Math.round(newW / GRID_SIZE) * GRID_SIZE;
+      newH = Math.round(newH / GRID_SIZE) * GRID_SIZE;
+
+      // 确保最小尺寸
+      if (newW < 10) newW = 10;
+      if (newH < 10) newH = 10;
+
+      // 边界检查：使用 viewBox 作为最大边界
+      if (viewBox) {
+        if (newX < 0) {
+          newW += newX;
+          newX = 0;
+        }
+        if (newY < 0) {
+          newH += newY;
+          newY = 0;
+        }
+        // 限制右下角不超出 viewBox
+        if (newX + newW > viewBox.width) {
+          newW = viewBox.width - newX;
+        }
+        if (newY + newH > viewBox.height) {
+          newH = viewBox.height - newY;
+        }
+      } else {
+        // 如果没有 viewBox，至少限制非负
+        if (newX < 0) {
+          newW += newX;
+          newX = 0;
+        }
+        if (newY < 0) {
+          newH += newY;
+          newY = 0;
+        }
       }
 
       if (newW >= 10 && newH >= 10) {
@@ -511,7 +607,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
           newContent = updateLineAttribute(newContent, lineNum, 'w', newW);
           newContent = updateLineAttribute(newContent, lineNum, 'h', newH);
-          setContent(newContent);
+          // 只更新本地状态，不立即 setContent
+          setPendingContent(newContent);
         }
       }
       return;
@@ -523,17 +620,40 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       // 获取起始鼠标在SVG坐标系中的位置
       const startCoords = getSVGCoords(dragElementState.startX, dragElementState.startY);
       
-      const dx = currentCoords.x - startCoords.x;
-      const dy = currentCoords.y - startCoords.y;
+      let dx = currentCoords.x - startCoords.x;
+      let dy = currentCoords.y - startCoords.y;
       
-      const newX = Math.max(0, Math.round(dragElementState.elementX + dx));
-      const newY = Math.max(0, Math.round(dragElementState.elementY + dy));
+      // 网格吸附（10px 网格）
+      const GRID_SIZE = 10;
+      dx = Math.round(dx / GRID_SIZE) * GRID_SIZE;
+      dy = Math.round(dy / GRID_SIZE) * GRID_SIZE;
+      
+      let newX = Math.round(dragElementState.elementX + dx);
+      let newY = Math.round(dragElementState.elementY + dy);
+      
+      // 边界检查：使用真实元素尺寸而非估算值
+      const bounds = getElementBounds(dragElementState.elementId);
+      const elementWidth = bounds.w || 50;
+      const elementHeight = bounds.h || 50;
+      
+      if (viewBox) {
+        newX = Math.max(0, Math.min(newX, viewBox.width - elementWidth));
+        newY = Math.max(0, Math.min(newY, viewBox.height - elementHeight));
+      } else {
+        // 如果没有 viewBox，至少限制非负
+        newX = Math.max(0, newX);
+        newY = Math.max(0, newY);
+      }
+
+      // 更新坐标提示
+      setDragCoords({ x: newX, y: newY });
 
       const lineNum = parseInt(dragElementState.elementId);
       if (!isNaN(lineNum)) {
         let newContent = updateLineAttribute(content, lineNum, 'x', newX);
         newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-        setContent(newContent);
+        // 只更新本地状态，不立即 setContent
+        setPendingContent(newContent);
       }
       return;
     }
@@ -558,13 +678,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       return;
     }
 
-    if (resizeHandleState) {
+    if (resizeHandleState || dragElementState) {
+      // 提交 pending 的内容更新（使用节流）
+      if (pendingContent) {
+        throttledSetContent(pendingContent);
+        setPendingContent(null);
+      }
       setResizeHandleState(null);
-      return;
-    }
-
-    if (dragElementState) {
       setDragElementState(null);
+      setDragCoords(null);
       return;
     }
 
@@ -787,7 +909,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     if (!error) return null;
     
     return (
-      <div className="error-overlay">
+      <div className="error-overlay" role="alert" aria-label="Parse error">
         <div className="error-content">
           <div className="error-title">⚠️ Parse Error</div>
           <pre className="error-message">{error}</pre>
@@ -822,7 +944,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       onMouseLeave={handleMouseUp}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onSelectStart={(e) => e.preventDefault()}
       style={{ 
         cursor,
         userSelect: 'none'
@@ -838,10 +959,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             left: 0,
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
             transformOrigin: '0 0',
-            userSelect: 'none'
+            userSelect: 'none',
+            opacity: dragElementState || resizeHandleState ? 0.5 : 1,
+            transition: 'opacity 0.1s'
           }}
           dangerouslySetInnerHTML={{ __html: svg }}
-          onSelectStart={(e) => e.preventDefault()}
         />
       )}
 
@@ -897,6 +1019,21 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       {renderError()}
       {renderEmpty()}
+
+      {/* 渲染状态指示器 */}
+      {isRendering && (
+        <div className="rendering-indicator">
+          <LoadingSpinner size="small" />
+          <span>Rendering...</span>
+        </div>
+      )}
+
+      {/* 拖拽坐标提示 */}
+      {dragCoords && (
+        <div className="drag-coordinate-tooltip">
+          x: {dragCoords.x}, y: {dragCoords.y}
+        </div>
+      )}
     </div>
   );
 }

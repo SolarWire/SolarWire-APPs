@@ -148,7 +148,7 @@ export const useFileStore = create<FileState>((set, get) => ({
         // 替换对应的 solarwire 代码块
         contentToSave = replaceSolarWireSnippetInMarkdown(
           originalContent,
-          currentSnippet.snippetIndex,
+          currentSnippet!.snippetIndex!,
           editorState.content
         );
         console.log('Modified content length:', contentToSave.length);

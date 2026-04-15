@@ -291,7 +291,11 @@ export function updateLineAttribute(
   if (attributeName === 'bold' || attributeName === 'italic') {
     const attrPattern = new RegExp(`\\s+${attributeName}(?:=[^\\s]+)?`);
     
-    if (attributeValue === true || attributeValue === 'true') {
+    // 检查是否应该启用属性（处理字符串、数字和布尔值）
+    const shouldEnable = attributeValue === 'true' || attributeValue === 1 || 
+                         String(attributeValue) === 'true';
+    
+    if (shouldEnable) {
       if (!attrPattern.test(line)) {
         const notePattern = /\s+note=/;
         const noteMatch = line.match(notePattern);
@@ -733,5 +737,5 @@ export function hasDoubleQuoteNotes(content: string): boolean {
 }
 
 export function convertDoubleQuoteNotesToTriple(content: string): string {
-  return content.replace(/note="([^"]*)"/g, 'note="""$1"""');
+  return content.replace(/note="(?!")([^"]*)"/g, 'note="""$1"""');
 }

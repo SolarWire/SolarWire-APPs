@@ -5,9 +5,10 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { parse } from '../../lib/parser-src';
 import { 
   renderToCanvas, 
-  ElementBounds 
+  ElementBounds,
+  NoteBadgeInfo
 } from '../../lib/renderer-canvas-src';
-import { updateLineAttribute } from '../../utils/solarwire-utils';
+import { updateLineAttribute, updateLineCoords } from '../../utils/solarwire-utils';
 import type { Document, Element as SolarWireElement } from '../../lib/parser-src/types';
 import './SolarWireCanvas.css';
 
@@ -16,6 +17,9 @@ interface DragElementState {
     id: string;
     originalX: number;
     originalY: number;
+    originalX2?: number;
+    originalY2?: number;
+    isLine?: boolean;
   }>;
   startX: number;
   startY: number;
@@ -102,6 +106,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
   const [resizeHandleState, setResizeHandleState] = useState<ResizeHandleState | null>(null);
   const [boxSelection, setBoxSelection] = useState<BoxSelectionState | null>(null);
   const [elementBoundsMap, setElementBoundsMap] = useState<Map<string, ElementBounds>>(new Map());
+  const [noteBadges, setNoteBadges] = useState<NoteBadgeInfo[]>([]);
   const [viewBox, setViewBox] = useState({ x: 0, y: 0, width: 400, height: 300 });
   const [isShiftPressed, setIsShiftPressed] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
@@ -143,6 +148,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       });
       
       setElementBoundsMap(result.elementBoundsMap);
+      setNoteBadges(result.noteBadges);
       // 不再使用 viewBox 限制，而是让视口自由移动
       // setViewBox(result.viewBox);
       setRenderError(null);
@@ -236,42 +242,84 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
     const elementData = getElementData(elementId);
     if (!elementData) return { x: 0, y: 0, w: 0, h: 0, r: 0, x2: 0, y2: 0, type: '' };
     const attrs = elementData.attributes || {};
-    const coords = elementData.coordinates;
     const type = elementData.type;
     
     let x = 0, y = 0, w = 0, h = 0, r = 0, x2 = 0, y2 = 0;
     
-    if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
-      x = coords.x.value;
-      y = coords.y.value;
-    } else {
-      x = parseInt(attrs.x || '0');
-      y = parseInt(attrs.y || '0');
-    }
-    
-    switch (type) {
-      case 'circle':
-        w = parseInt(attrs.w || '100');
-        h = parseInt(attrs.h || '40');
-        if (attrs.r) {
-          const radius = parseInt(attrs.r);
-          w = h = radius * 2;
+    if (type === 'line') {
+      // 线段特殊处理：从 start 和 end 中读取坐标
+      const el = elementData as any;
+      
+      // 读取起点坐标（绝对坐标优先）
+      if (el.start && el.start.x && el.start.x.type === 'absolute') {
+        x = el.start.x.value;
+      } else {
+        x = parseInt(attrs.x || '0');
+      }
+      
+      if (el.start && el.start.y && el.start.y.type === 'absolute') {
+        y = el.start.y.value;
+      } else {
+        y = parseInt(attrs.y || '0');
+      }
+      
+      // 读取终点坐标（绝对坐标优先）
+      if (el.end) {
+        if (el.end.type === 'relative') {
+          // 相对坐标
+          x2 = x + (el.end.dx || 100);
+          y2 = y + (el.end.dy || 0);
+        } else {
+          // 绝对坐标
+          if (el.end.x && el.end.x.type === 'absolute') {
+            x2 = el.end.x.value;
+          } else {
+            x2 = parseInt(attrs.x2 || String(x + 100));
+          }
+          
+          if (el.end.y && el.end.y.type === 'absolute') {
+            y2 = el.end.y.value;
+          } else {
+            y2 = parseInt(attrs.y2 || String(y));
+          }
         }
-        break;
-      case 'text':
-        w = parseInt(attrs.w || '100');
-        h = 20;
-        break;
-      case 'line':
+      } else {
+        // 没有 end 属性，从 attributes 读取
         x2 = parseInt(attrs.x2 || String(x + 100));
         y2 = parseInt(attrs.y2 || String(y));
-        w = Math.abs(x2 - x);
-        h = Math.abs(y2 - y) || 2;
-        break;
-      default:
-        w = parseInt(attrs.w || '100');
-        h = parseInt(attrs.h || '50');
-        r = parseInt(attrs.r || '0');
+      }
+      
+      w = Math.abs(x2 - x);
+      h = Math.abs(y2 - y) || 2;
+    } else {
+      // 其他元素正常处理
+      const coords = elementData.coordinates;
+      if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
+        x = coords.x.value;
+        y = coords.y.value;
+      } else {
+        x = parseInt(attrs.x || '0');
+        y = parseInt(attrs.y || '0');
+      }
+      
+      switch (type) {
+        case 'circle':
+          w = parseInt(attrs.w || '100');
+          h = parseInt(attrs.h || '40');
+          if (attrs.r) {
+            const radius = parseInt(attrs.r);
+            w = h = radius * 2;
+          }
+          break;
+        case 'text':
+          w = parseInt(attrs.w || '100');
+          h = 20;
+          break;
+        default:
+          w = parseInt(attrs.w || '100');
+          h = parseInt(attrs.h || '50');
+          r = parseInt(attrs.r || '0');
+      }
     }
     
     return { x, y, w, h, r, x2, y2, type, width: w, height: h };
@@ -311,6 +359,14 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
   const getElementAtPosition = useCallback((x: number, y: number): string | null => {
     if (!ast) return null;
     
+    // 优先检查 note badge 的点击
+    for (const badge of noteBadges) {
+      const dist = Math.sqrt((x - badge.x) ** 2 + (y - badge.y) ** 2);
+      if (dist <= badge.radius + 4) {
+        return badge.elementId;
+      }
+    }
+    
     for (let i = ast.elements.length - 1; i >= 0; i--) {
       const element = ast.elements[i];
       const id = (element as any).id || element.location?.line?.toString();
@@ -319,26 +375,23 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       const bounds = elementBoundsMap.get(id);
       if (!bounds) continue;
       
-      // First check if mouse is within element bounds
       const elementWidth = bounds.width || (bounds as any).w || 0;
       const elementHeight = bounds.height || (bounds as any).h || 0;
       
       if (x >= bounds.x && x <= bounds.x + elementWidth && y >= bounds.y && y <= bounds.y + elementHeight) {
         if (element.type === 'line') {
-          // For lines, calculate distance to line
           const lineBounds = getElementBounds(id);
           const dist = pointToLineDistance(x, y, lineBounds.x, lineBounds.y, lineBounds.x2 || lineBounds.x + 100, lineBounds.y2 || lineBounds.y);
           if (dist < 10) {
             return id;
           }
         } else {
-          // For other elements, just return the id
           return id;
         }
       }
     }
     return null;
-  }, [ast, elementBoundsMap, getElementBounds, pointToLineDistance]);
+  }, [ast, elementBoundsMap, getElementBounds, pointToLineDistance, noteBadges]);
   
   const getLineHandleAtPosition = useCallback((x: number, y: number, bounds: { x: number; y: number; x2: number; y2: number }): 'start' | 'end' | null => {
     const handleSize = 12 / scale;
@@ -361,19 +414,23 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       return getLineHandleAtPosition(x, y, { x: lineBounds.x, y: lineBounds.y, x2: lineBounds.x2, y2: lineBounds.y2 });
     }
     
-    const corners = [
+    const handles = [
       { x: bounds.x, y: bounds.y, handle: 'nw' },
       { x: bounds.x + bounds.width, y: bounds.y, handle: 'ne' },
       { x: bounds.x, y: bounds.y + bounds.height, handle: 'sw' },
-      { x: bounds.x + bounds.width, y: bounds.y + bounds.height, handle: 'se' }
+      { x: bounds.x + bounds.width, y: bounds.y + bounds.height, handle: 'se' },
+      { x: bounds.x + bounds.width / 2, y: bounds.y, handle: 'n' },
+      { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height, handle: 's' },
+      { x: bounds.x, y: bounds.y + bounds.height / 2, handle: 'w' },
+      { x: bounds.x + bounds.width, y: bounds.y + bounds.height / 2, handle: 'e' }
     ];
     
-    for (const corner of corners) {
+    for (const handle of handles) {
       if (
-        Math.abs(x - corner.x) < handleSize &&
-        Math.abs(y - corner.y) < handleSize
+        Math.abs(x - handle.x) < handleSize &&
+        Math.abs(y - handle.y) < handleSize
       ) {
-        return corner.handle;
+        return handle.handle;
       }
     }
     
@@ -451,8 +508,107 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
     const elementId = getElementAtPosition(coords.x, coords.y);
     
     if (elementId) {
-      // 如果点击到了元素，选中该元素
-      selectElements([elementId]);
+      // 检查是否点击到了调整大小的句柄
+      const elementData = getElementData(elementId);
+      const elementBounds = getElementBounds(elementId);
+      
+      let handle;
+      if (elementData?.type === 'line') {
+        // 对于线段，使用专门的句柄检测
+        handle = getLineHandleAtPosition(coords.x, coords.y, { 
+          x: elementBounds.x, 
+          y: elementBounds.y, 
+          x2: elementBounds.x2 || elementBounds.x + 100, 
+          y2: elementBounds.y2 || elementBounds.y 
+        });
+      } else {
+        // 其他元素使用通用句柄检测
+        const bounds: ElementBounds = {
+          x: elementBounds.x,
+          y: elementBounds.y,
+          width: elementBounds.w,
+          height: elementBounds.h
+        };
+        handle = getHandleAtPosition(coords.x, coords.y, bounds, elementData?.type || '');
+      }
+      
+      if (handle) {
+        // 开始调整大小，使用 elementBoundsMap 确保准确性
+        const accurateBounds = elementBoundsMap.get(elementId) || { x: 0, y: 0, width: 0, height: 0 };
+        
+        setResizeHandleState({
+          elementId,
+          handle: handle as any,
+          startX: coords.x,
+          startY: coords.y,
+          elementX: accurateBounds.x,
+          elementY: accurateBounds.y,
+          elementW: accurateBounds.width,
+          elementH: accurateBounds.height,
+          elementX2: (accurateBounds as any).x2,
+          elementY2: (accurateBounds as any).y2,
+          isLine: elementData?.type === 'line'
+        });
+      } else {
+        // 如果点击到了元素但不是句柄，开始拖动
+        const elementsToDrag: any[] = [];
+        
+        // 检查是否有多个元素被选中，并且当前点击的元素在选中列表中
+        if (selectedElements.length > 1 && selectedElements.includes(elementId)) {
+          // 拖动所有选中的元素
+          selectedElements.forEach((id: string) => {
+            // 直接使用 elementBoundsMap（从 renderToCanvas 来的，最准确！）
+            const elBounds = elementBoundsMap.get(id);
+            const elData = getElementData(id);
+            
+            const dragElement: any = {
+              id,
+              originalX: elBounds?.x || 0,
+              originalY: elBounds?.y || 0,
+              isLine: elData?.type === 'line'
+            };
+            
+            if (elData?.type === 'line' && elBounds?.x2 !== undefined && elBounds?.y2 !== undefined) {
+              dragElement.originalX2 = elBounds.x2;
+              dragElement.originalY2 = elBounds.y2;
+            }
+            
+            elementsToDrag.push(dragElement);
+          });
+        } else {
+          // 只拖动当前点击的单个元素
+          // 直接使用 elementBoundsMap（从 renderToCanvas 来的，最准确！）
+          const accurateBounds = elementBoundsMap.get(elementId);
+          
+          if (elementData?.type === 'line') {
+            console.log('[线段拖动] elementId:', elementId, 'accurateBounds:', JSON.stringify(accurateBounds));
+          }
+          
+          const dragElement: any = {
+            id: elementId,
+            originalX: accurateBounds?.x || 0,
+            originalY: accurateBounds?.y || 0,
+            isLine: elementData?.type === 'line'
+          };
+          
+          // 如果是线段，同时保存终点坐标（从 elementBoundsMap 获取）
+          if (elementData?.type === 'line' && accurateBounds?.x2 !== undefined && accurateBounds?.y2 !== undefined) {
+            dragElement.originalX2 = accurateBounds.x2;
+            dragElement.originalY2 = accurateBounds.y2;
+            console.log('[线段拖动] 保存终点坐标:', accurateBounds.x2, accurateBounds.y2);
+          } else if (elementData?.type === 'line') {
+            console.log('[线段拖动] 警告：没有找到终点坐标！accurateBounds:', JSON.stringify(accurateBounds));
+          }
+          
+          elementsToDrag.push(dragElement);
+        }
+        
+        setDragElementState({
+          elements: elementsToDrag,
+          startX: coords.x,
+          startY: coords.y
+        });
+      }
     } else {
       // 如果没有点击到元素，开始框选（始终使用包含框选）
       setBoxSelection({
@@ -462,7 +618,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
         currentY: coords.y
       });
     }
-  }, [currentPanMode, getCanvasCoords, position, getElementAtPosition, selectElements]);
+  }, [currentPanMode, getCanvasCoords, position, getElementAtPosition, selectElements, getElementData, getElementBounds, getHandleAtPosition, getLineHandleAtPosition, elementBoundsMap, selectedElements]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     // 如果处于视角移动模式，只处理画布拖动，不更新悬停状态
@@ -496,8 +652,193 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
         currentX: coords.x,
         currentY: coords.y
       });
+      return;
     }
-  }, [currentPanMode, isDraggingCanvas, dragStart, position, boxSelection, getCanvasCoords, getElementAtPosition]);
+    
+    if (dragElementState) {
+      const { elements, startX, startY } = dragElementState;
+      let deltaX = coords.x - startX;
+      let deltaY = coords.y - startY;
+      
+      // Shift 键约束：只允许水平或垂直方向拖动
+      if (isShiftPressed) {
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+          deltaY = 0; // 只水平移动
+        } else {
+          deltaX = 0; // 只垂直移动
+        }
+      }
+      
+      // 处理元素拖动 - 使用临时变量累积所有更新，只调用一次 setContent
+      let tempContent = content;
+      elements.forEach(({ id, originalX, originalY, originalX2, originalY2, isLine }) => {
+        const lineNum = parseInt(id);
+        if (!isNaN(lineNum)) {
+          
+          if (isLine) {
+            // 线段拖动：直接使用保存的原始坐标，不调用任何 get 函数
+            const newX = Math.round(originalX + deltaX);
+            const newY = Math.round(originalY + deltaY);
+            const finalX2 = originalX2 !== undefined ? originalX2 : originalX + 100;
+            const finalY2 = originalY2 !== undefined ? originalY2 : originalY;
+            const newX2 = Math.round(finalX2 + deltaX);
+            const newY2 = Math.round(finalY2 + deltaY);
+            
+            console.log('[线段拖动] 移动:', { 
+              originalX, originalY, originalX2, originalY2, 
+              deltaX, deltaY, 
+              newX, newY, newX2, newY2 
+            });
+            
+            // 累积更新到 tempContent
+            tempContent = updateLineCoords(tempContent, lineNum, newX, newY, newX2, newY2);
+          } else {
+            // 其他元素拖动
+            const newX = Math.round(originalX + deltaX);
+            const newY = Math.round(originalY + deltaY);
+            tempContent = updateLineAttribute(tempContent, lineNum, 'x', newX);
+            tempContent = updateLineAttribute(tempContent, lineNum, 'y', newY);
+          }
+        }
+      });
+      
+      // 只调用一次 setContent，将所有累积的更新一次性应用
+      setContent(tempContent);
+      return;
+    }
+    
+    if (resizeHandleState) {
+      const { elementId, handle, startX, startY, elementX, elementY, elementW, elementH, elementX2, elementY2, isLine } = resizeHandleState;
+      const deltaX = coords.x - startX;
+      const deltaY = coords.y - startY;
+      
+      let newX = elementX;
+      let newY = elementY;
+      let newW = elementW;
+      let newH = elementH;
+      let newX2 = elementX2 || elementX + elementW;
+      let newY2 = elementY2 || elementY;
+      
+      if (isLine) {
+        // 线段调整逻辑
+        let finalX = elementX;
+        let finalY = elementY;
+        let finalX2 = elementX2 as number;
+        let finalY2 = elementY2 as number;
+        
+        if (handle === 'start') {
+          finalX = elementX + deltaX;
+          finalY = elementY + deltaY;
+        } else if (handle === 'end') {
+          finalX2 = (elementX2 as number) + deltaX;
+          finalY2 = (elementY2 as number) + deltaY;
+        }
+        
+        // Shift 键约束：直线角度
+        if (isShiftPressed) {
+          const { dx, dy } = snapToAngle(finalX2 - finalX, finalY2 - finalY);
+          finalX2 = finalX + dx;
+          finalY2 = finalY + dy;
+        }
+        
+        // 更新线段 - 使用新的 updateLineCoords 函数
+        const lineNum = parseInt(elementId);
+        if (!isNaN(lineNum)) {
+          const newContent = updateLineCoords(
+            content, 
+            lineNum, 
+            Math.round(finalX), 
+            Math.round(finalY), 
+            Math.round(finalX2), 
+            Math.round(finalY2)
+          );
+          setContent(newContent);
+        }
+      } else {
+        // 其他元素调整逻辑
+        const nonLineHandle = handle as 'nw' | 'ne' | 'sw' | 'se' | 'n' | 's' | 'w' | 'e';
+        switch (nonLineHandle) {
+          case 'nw':
+            newX = elementX + deltaX;
+            newY = elementY + deltaY;
+            newW = elementW - deltaX;
+            newH = elementH - deltaY;
+            break;
+          case 'ne':
+            newY = elementY + deltaY;
+            newW = elementW + deltaX;
+            newH = elementH - deltaY;
+            break;
+          case 'sw':
+            newX = elementX + deltaX;
+            newW = elementW - deltaX;
+            newH = elementH + deltaY;
+            break;
+          case 'se':
+            newW = elementW + deltaX;
+            newH = elementH + deltaY;
+            break;
+          case 'n':
+            newY = elementY + deltaY;
+            newH = elementH - deltaY;
+            break;
+          case 's':
+            newH = elementH + deltaY;
+            break;
+          case 'w':
+            newX = elementX + deltaX;
+            newW = elementW - deltaX;
+            break;
+          case 'e':
+            newW = elementW + deltaX;
+            break;
+        }
+        
+        // 确保尺寸为正数
+        if (newW < 10) newW = 10;
+        if (newH < 10) newH = 10;
+        
+        // Shift 键约束
+        if (isShiftPressed) {
+          const elementData = getElementData(elementId);
+          if (elementData?.type === 'circle') {
+            // 正圆约束
+            const minSize = Math.min(newW, newH);
+            newW = newH = minSize;
+          } else if (nonLineHandle === 'nw' || nonLineHandle === 'ne' || nonLineHandle === 'sw' || nonLineHandle === 'se') {
+            // 保持比例约束
+            const aspectRatio = elementW / elementH;
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+              newH = newW / aspectRatio;
+            } else {
+              newW = newH * aspectRatio;
+            }
+          } else if (nonLineHandle === 'n' || nonLineHandle === 's') {
+            // 垂直约束：只允许改变高度，不改变宽度
+            newW = elementW;
+            // 保持 x 坐标不变
+            newX = elementX;
+          } else if (nonLineHandle === 'w' || nonLineHandle === 'e') {
+            // 水平约束：只允许改变宽度，不改变高度
+            newH = elementH;
+            // 保持 y 坐标不变
+            newY = elementY;
+          }
+        }
+        
+        // 更新元素
+        const lineNum = parseInt(elementId);
+        if (!isNaN(lineNum)) {
+          let newContent = content;
+          newContent = updateLineAttribute(newContent, lineNum, 'x', Math.round(newX));
+          newContent = updateLineAttribute(newContent, lineNum, 'y', Math.round(newY));
+          newContent = updateLineAttribute(newContent, lineNum, 'w', Math.round(newW));
+          newContent = updateLineAttribute(newContent, lineNum, 'h', Math.round(newH));
+          setContent(newContent);
+        }
+      }
+    }
+  }, [currentPanMode, isDraggingCanvas, dragStart, position, boxSelection, getCanvasCoords, getElementAtPosition, resizeHandleState, content, setContent, isShiftPressed, getElementData]);
   
   const handleMouseUp = useCallback(() => {
     if (isDraggingCanvas) {
@@ -514,7 +855,15 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       );
       setBoxSelection(null);
     }
-  }, [isDraggingCanvas, boxSelection, testBoxSelection]);
+    
+    if (resizeHandleState) {
+      setResizeHandleState(null);
+    }
+    
+    if (dragElementState) {
+      setDragElementState(null);
+    }
+  }, [isDraggingCanvas, boxSelection, testBoxSelection, resizeHandleState, dragElementState]);
   
   const handleMouseLeave = useCallback(() => {
     setHoveredElement(null);
@@ -671,9 +1020,54 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
                 filter: `drop-shadow(0 0 4px ${primaryColor}) drop-shadow(0 0 8px ${primaryColor})`
               }}
             />
-            {['nw', 'ne', 'sw', 'se'].map(handle => {
-              const hx = handle === 'nw' || handle === 'sw' ? bounds.x : bounds.x + bounds.w;
-              const hy = handle === 'nw' || handle === 'ne' ? bounds.y : bounds.y + bounds.h;
+            {['nw', 'ne', 'sw', 'se', 'n', 's', 'w', 'e'].map(handle => {
+              let hx, hy, cursor;
+              switch (handle) {
+                case 'nw':
+                  hx = bounds.x;
+                  hy = bounds.y;
+                  cursor = 'nwse-resize';
+                  break;
+                case 'ne':
+                  hx = bounds.x + bounds.w;
+                  hy = bounds.y;
+                  cursor = 'nesw-resize';
+                  break;
+                case 'sw':
+                  hx = bounds.x;
+                  hy = bounds.y + bounds.h;
+                  cursor = 'nesw-resize';
+                  break;
+                case 'se':
+                  hx = bounds.x + bounds.w;
+                  hy = bounds.y + bounds.h;
+                  cursor = 'nwse-resize';
+                  break;
+                case 'n':
+                  hx = bounds.x + bounds.w / 2;
+                  hy = bounds.y;
+                  cursor = 'ns-resize';
+                  break;
+                case 's':
+                  hx = bounds.x + bounds.w / 2;
+                  hy = bounds.y + bounds.h;
+                  cursor = 'ns-resize';
+                  break;
+                case 'w':
+                  hx = bounds.x;
+                  hy = bounds.y + bounds.h / 2;
+                  cursor = 'ew-resize';
+                  break;
+                case 'e':
+                  hx = bounds.x + bounds.w;
+                  hy = bounds.y + bounds.h / 2;
+                  cursor = 'ew-resize';
+                  break;
+                default:
+                  hx = 0;
+                  hy = 0;
+                  cursor = 'default';
+              }
               return (
                 <rect
                   key={handle}
@@ -684,7 +1078,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
                   fill="white"
                   stroke={primaryColor}
                   strokeWidth={2 / scale}
-                  style={{ cursor: `${handle}-resize`, pointerEvents: 'auto' }}
+                  style={{ cursor, pointerEvents: 'auto' }}
                 />
               );
             })}

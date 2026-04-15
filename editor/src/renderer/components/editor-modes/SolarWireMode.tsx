@@ -8,7 +8,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useSolarWireUIStore } from '../../stores/solarWireUIStore';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { getElementRelatedLines, updateLineAttribute } from '../../utils/solarwire-utils';
+import { getElementRelatedLines, updateLineAttribute, updateLineCoords } from '../../utils/solarwire-utils';
 import './SolarWireMode.css';
 
 function SolarWireMode(): JSX.Element {
@@ -50,27 +50,30 @@ function SolarWireMode(): JSX.Element {
     const isEditing = activeElement && (
       activeElement.tagName === 'INPUT' ||
       activeElement.tagName === 'TEXTAREA' ||
-      activeElement.isContentEditable ||
+      (activeElement as HTMLElement).isContentEditable ||
       (activeElement as any).classList?.contains('monaco-editor')
     );
     
     if (isEditing || selectedElements.length === 0) return;
 
+    // 检查是否按住 shift 键
+    const step = e.shiftKey ? 10 : 1;
+    
     let dx = 0;
     let dy = 0;
 
     switch (e.key) {
       case 'ArrowUp':
-        dy = -1;
+        dy = -step;
         break;
       case 'ArrowDown':
-        dy = 1;
+        dy = step;
         break;
       case 'ArrowLeft':
-        dx = -1;
+        dx = -step;
         break;
       case 'ArrowRight':
-        dx = 1;
+        dx = step;
         break;
       default:
         return;
@@ -84,11 +87,20 @@ function SolarWireMode(): JSX.Element {
       if (!isNaN(elementLine)) {
         const elementData = getElementDataFromContent(newContent, elementLine);
         if (elementData) {
-          if (dx !== 0) {
-            newContent = updateLineAttribute(newContent, elementLine, 'x', elementData.x + dx);
-          }
-          if (dy !== 0) {
-            newContent = updateLineAttribute(newContent, elementLine, 'y', elementData.y + dy);
+          if (elementData.isLine && elementData.x2 !== null && elementData.y2 !== null) {
+            // 线段：使用 updateLineCoords 一次性更新所有坐标
+            newContent = updateLineCoords(
+              newContent, elementLine,
+              elementData.x + dx, elementData.y + dy,
+              elementData.x2 + dx, elementData.y2 + dy
+            );
+          } else {
+            if (dx !== 0) {
+              newContent = updateLineAttribute(newContent, elementLine, 'x', elementData.x + dx);
+            }
+            if (dy !== 0) {
+              newContent = updateLineAttribute(newContent, elementLine, 'y', elementData.y + dy);
+            }
           }
         }
       }
@@ -102,20 +114,47 @@ function SolarWireMode(): JSX.Element {
     const line = lines[lineNum - 1];
     let x = 0;
     let y = 0;
+    let x2: number | null = null;
+    let y2: number | null = null;
+    let isLine = false;
 
-    const coordPattern = /@\((\d+),\s*(\d+)\)/;
-    const match = line.match(coordPattern);
-    if (match) {
-      x = parseInt(match[1]);
-      y = parseInt(match[2]);
-    } else {
-      const xMatch = line.match(/x=(\d+)/);
-      const yMatch = line.match(/y=(\d+)/);
-      if (xMatch) x = parseInt(xMatch[1]);
-      if (yMatch) y = parseInt(yMatch[1]);
+    // 检查是否是线段元素：以 -- 开头
+    if (line.trimStart().startsWith('--')) {
+      isLine = true;
     }
 
-    return { x, y };
+    // 尝试匹配 @(x1,y1)->(x2,y2) 格式
+    const lineCoordPattern = /@\((\d+),\s*(\d+)\)->\((\d+),\s*(\d+)\)/;
+    const lineMatch = line.match(lineCoordPattern);
+    if (lineMatch) {
+      x = parseInt(lineMatch[1]);
+      y = parseInt(lineMatch[2]);
+      x2 = parseInt(lineMatch[3]);
+      y2 = parseInt(lineMatch[4]);
+    } else {
+      // 尝试匹配 @(x1,y1) 格式（只有起点）
+      const coordPattern = /@\((\d+),\s*(\d+)\)/;
+      const match = line.match(coordPattern);
+      if (match) {
+        x = parseInt(match[1]);
+        y = parseInt(match[2]);
+      } else {
+        const xMatch = line.match(/x=(\d+)/);
+        const yMatch = line.match(/y=(\d+)/);
+        if (xMatch) x = parseInt(xMatch[1]);
+        if (yMatch) y = parseInt(yMatch[1]);
+      }
+      
+      // 如果是线段，也获取 x2 和 y2
+      if (isLine) {
+        const x2Match = line.match(/x2=(\d+)/);
+        const y2Match = line.match(/y2=(\d+)/);
+        if (x2Match) x2 = parseInt(x2Match[1]);
+        if (y2Match) y2 = parseInt(y2Match[1]);
+      }
+    }
+
+    return { x, y, x2, y2, isLine };
   };
 
   // 处理空格键事件，实现临时激活视角移动状态

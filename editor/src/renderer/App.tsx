@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { useAppStore } from './stores/appStore';
 import { useFileStore } from './stores/fileStore';
 import { useSettingsStore } from './stores/settingsStore';
@@ -41,9 +42,11 @@ function App(): JSX.Element {
   }, [currentPath]);
 
   return (
-    <div className="app">
-      <AppLayout />
-    </div>
+    <ErrorBoundary>
+      <div className="app">
+        <AppLayout />
+      </div>
+    </ErrorBoundary>
   );
 }
 
