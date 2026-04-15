@@ -59,6 +59,7 @@ export const useFileStore = create<FileState>((set, get) => ({
   setCurrentPath: (path: string) => set({ currentPath: path }),
   setFileTree: (tree: FileNode[]) => set({ fileTree: tree }),
   setSelectedFile: (file: FileNode | null) => set({ selectedFile: file, currentSnippet: null }),
+  setCurrentSnippet: (snippet: SolarWireSnippet | null) => set({ currentSnippet: snippet }),
   setFileContent: (content: string) => {
     set({ fileContent: content });
     useEditorStore.getState().setContent(content);

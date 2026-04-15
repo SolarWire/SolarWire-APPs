@@ -84,15 +84,15 @@ with multiline note
 --Connect-- @(200, 200)->(400, 200) color=black
 
 // 表格元素
-## @(100, 400) width=800 height=300
-# @(100, 450) height=50
-[Header 1] @(150, 450) width=200
-[Header 2] @(350, 450) width=200
-[Header 3] @(550, 450) width=200
-# @(100, 500) height=50
-[Cell 1] @(150, 500) width=200
-[Cell 2] @(350, 500) width=200
-[Cell 3] @(550, 500) width=200
+## @(100, 400) w=800 h=300
+  #
+    [Header 1]
+    [Header 2]
+    [Header 3] 
+  #
+    [Cell 1]
+    [Cell 2]
+    [Cell 3]
 ```
 
 ## 技术选型

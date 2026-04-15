@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import MonacoEditor from '../editor/MonacoEditor';
-import ResizableDivider from '../ui/ResizableDivider';
 import MarkdownPreview from '../editor/MarkdownPreview';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
@@ -9,7 +8,7 @@ import './MarkdownMode.css';
 function MarkdownMode(): JSX.Element {
   const { content, setContent } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet, updateFileContent } = useFileStore();
-  const [editorPanelWidth, setEditorPanelWidth] = useState(300);
+  const [activeTab, setActiveTab] = useState<'preview' | 'editor'>('preview');
 
   // 加载选中文件的内容
   useEffect(() => {
@@ -26,29 +25,37 @@ function MarkdownMode(): JSX.Element {
     }
   };
 
-  const handleEditorPanelResize = (newWidth: number) => {
-    setEditorPanelWidth(newWidth);
-  };
-
   return (
-    <div className="markdown-mode" style={{ height: '100%' }}>
-      <div className="editor-panel" style={{ width: `${editorPanelWidth}px`, height: '100%' }}>
-        <MonacoEditor
-          language="markdown"
-          value={content}
-          onChange={handleChange}
-          height="100%"
-        />
+    <div className="markdown-mode" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="markdown-tabs">
+        <button 
+          className={`markdown-tab ${activeTab === 'preview' ? 'active' : ''}`}
+          onClick={() => setActiveTab('preview')}
+          title="预览"
+        >
+          <span className="tab-icon">{/* 眼睛图标 */}</span>
+          预览
+        </button>
+        <button 
+          className={`markdown-tab ${activeTab === 'editor' ? 'active' : ''}`}
+          onClick={() => setActiveTab('editor')}
+          title="编辑器"
+        >
+          <span className="tab-icon">{/* 代码图标 */}</span>
+          编辑器
+        </button>
       </div>
-      <ResizableDivider
-        orientation="vertical"
-        onResize={handleEditorPanelResize}
-        currentSize={editorPanelWidth}
-        minSize={200}
-        maxSize={800}
-      />
-      <div className="preview-panel" style={{ height: '100%' }}>
-        <MarkdownPreview />
+      <div className="markdown-content" style={{ flex: 1, overflow: 'auto' }}>
+        {activeTab === 'editor' ? (
+          <MonacoEditor
+            language="markdown"
+            value={content}
+            onChange={handleChange}
+            height="100%"
+          />
+        ) : (
+          <MarkdownPreview />
+        )}
       </div>
     </div>
   );

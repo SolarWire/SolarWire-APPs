@@ -47,7 +47,7 @@
 
 .page-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
@@ -64,13 +64,19 @@
   border-color: var(--accent-color);
 }
 
-.page-name {
+.page-card-selected {
+  border-color: var(--accent-color);
+  border-width: 2px;
+}
+
+.page-title {
   margin: 0 0 5px 0;
-  font-size: 13px;
+  font-size: 14px;
+  font-weight: bold;
   color: var(--text-primary);
 }
 
-.page-type {
+.page-subtitle {
   font-size: 11px;
   color: var(--text-muted);
 }

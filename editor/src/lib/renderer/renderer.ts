@@ -294,20 +294,6 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   });
   
   if (!disableNotes) {
-    notes.forEach(note => {
-      const badgeX = note.bounds.x + note.bounds.width - 8;
-      const badgeY = note.bounds.y - 8;
-      const badgeRadius = 10;
-      
-      svgParts.push(`  <defs>`);
-      svgParts.push(`    <filter id="badge-shadow-${note.number}" x="-50%" y="-50%" width="200%" height="200%">`);
-      svgParts.push(`      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="black" flood-opacity="0.7"/>`);
-      svgParts.push(`    </filter>`);
-      svgParts.push(`  </defs>`);
-      
-      svgParts.push(`  <path d="M${badgeX} ${badgeY - badgeRadius} C${badgeX + badgeRadius} ${badgeY - badgeRadius} ${badgeX + badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX} ${badgeY + badgeRadius * 1.5} C${badgeX - badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX - badgeRadius} ${badgeY - badgeRadius} ${badgeX} ${badgeY - badgeRadius} Z" fill="#70B603" stroke="white" stroke-width="1" filter="url(#badge-shadow-${note.number})"/>`);
-      svgParts.push(`  <text x="${badgeX}" y="${badgeY + 2}" text-anchor="middle" class="note-badge-text">${note.number}</text>`);
-    });
     
     if (notes.length > 0) {
       const notesY = maxY + margin + extraNoteSpacing;
@@ -343,7 +329,7 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         const cardHeight = cardHeights[index];
         
         // 找到对应的元素ID
-        const elementIndex = notes[index].elementIndex;
+        const elementIndex = note.elementIndex;
         let elementId = '';
         if (elementIndex !== undefined) {
           const element = ast.elements[elementIndex];
@@ -354,12 +340,22 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         const isSelected = elementId && selectedElementIds.includes(elementId);
         const cardClass = isSelected ? 'note-card-selected' : 'note-card';
         
+        // 为note的水滴型标记添加data-note-element-id属性
+        const badgeX = note.bounds.x + note.bounds.width - 8;
+        const badgeY = note.bounds.y - 8;
+        const badgeRadius = 10;
+        
+        svgParts.push(`  <g data-note-element-id="${elementId}" pointer-events="all">`);
+        svgParts.push(`    <path d="M${badgeX} ${badgeY - badgeRadius} C${badgeX + badgeRadius} ${badgeY - badgeRadius} ${badgeX + badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX} ${badgeY + badgeRadius * 1.5} C${badgeX - badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX - badgeRadius} ${badgeY - badgeRadius} ${badgeX} ${badgeY - badgeRadius} Z" fill="#70B603" stroke="white" stroke-width="1" filter="url(#badge-shadow-${note.number})"/>`);
+        svgParts.push(`    <text x="${badgeX}" y="${badgeY + 2}" text-anchor="middle" class="note-badge-text">${note.number}</text>`);
+        svgParts.push(`  </g>`);
+        
         svgParts.push(`  <g data-note-element-id="${elementId}" pointer-events="all">`);
         svgParts.push(`    <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="8" class="${cardClass}"/>`);
         
-        const badgeX = cardX + 12;
-        const badgeY = cardY + 12;
-        const badgeRadius = 8;
+        const cardBadgeX = cardX + 12;
+        const cardBadgeY = cardY + 12;
+        const cardBadgeRadius = 8;
         
         svgParts.push(`  <defs>`);
         svgParts.push(`    <filter id="card-badge-shadow-${index}" x="-50%" y="-50%" width="200%" height="200%">`);
@@ -367,8 +363,8 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         svgParts.push(`    </filter>`);
         svgParts.push(`  </defs>`);
         
-        svgParts.push(`  <circle cx="${badgeX}" cy="${badgeY}" r="${badgeRadius}" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow-${index})"/>`);
-        svgParts.push(`  <text x="${badgeX}" y="${badgeY + 3}" text-anchor="middle" class="note-card-badge-text">${note.number}</text>`);
+        svgParts.push(`  <circle cx="${cardBadgeX}" cy="${cardBadgeY}" r="${cardBadgeRadius}" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow-${index})"/>`);
+        svgParts.push(`  <text x="${cardBadgeX}" y="${cardBadgeY + 3}" text-anchor="middle" class="note-card-badge-text">${note.number}</text>`);
         
         const textX = cardX + 28;
         const textY = cardY + cardPadding;

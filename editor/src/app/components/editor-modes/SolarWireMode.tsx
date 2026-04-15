@@ -1,24 +1,48 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import MonacoEditor from '../editor/MonacoEditor';
-import ResizableDivider from '../ui/ResizableDivider';
 import SolarWirePreview from '../editor/SolarWirePreview';
 import PropertyPanel from '../editor/PropertyPanel';
+import ElementLibrary from '../editor/ElementLibrary';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useSolarWireUIStore } from '../../stores/solarWireUIStore';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { getElementRelatedLines, updateLineAttribute } from '../../../shared/utils/solarwire-utils';
+import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements } from '../../../shared/utils/solarwire-utils';
 import './SolarWireMode.css';
 
 function SolarWireMode(): JSX.Element {
   const { content, setContent, undo } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
-  const { selectedElements, selectionTool, isPanMode } = useSolarWireStore();
+  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode } = useSolarWireStore();
   const { showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed } = useSolarWireUIStore();
   const { primaryColor } = useSettingsStore();
-  const [codePanelWidth, setCodePanelWidth] = useState(300);
-  const [previewPanelWidth, setPreviewPanelWidth] = useState(250);
+  const [activeTab, setActiveTab] = useState<'code' | 'visual'>('visual');
+
+  const selectionTools = [
+    { id: 'select', label: 'Select', icon: '🖱️', description: 'Click to select, Shift+Click to multi-select' },
+    { id: 'box-inclusive', label: 'Box Select', icon: '📦', description: 'Drag to box select (inclusive)' }
+  ];
+
+  const handleBringToFront = () => {
+    if (selectedElements.length === 0) return;
+    const newContent = bringElementsToFront(content, selectedElements);
+    setContent(newContent);
+  };
+
+  const handleAlign = (alignmentType: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom') => {
+    if (selectedElements.length < 2) return;
+    const newContent = alignElements(content, selectedElements, alignmentType);
+    setContent(newContent);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 10, 200));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 10, 25));
+  };
 
   // 将选中的元素ID转换为行号，包括note的多行内容
   const highlightLines = React.useMemo(() => {
@@ -59,18 +83,21 @@ function SolarWireMode(): JSX.Element {
     let dx = 0;
     let dy = 0;
 
+    // 检查是否按住了Shift键，如果是，则每次移动10px
+    const step = e.shiftKey ? 10 : 1;
+
     switch (e.key) {
       case 'ArrowUp':
-        dy = -1;
+        dy = -step;
         break;
       case 'ArrowDown':
-        dy = 1;
+        dy = step;
         break;
       case 'ArrowLeft':
-        dx = -1;
+        dx = -step;
         break;
       case 'ArrowRight':
-        dx = 1;
+        dx = step;
         break;
       default:
         return;
@@ -86,9 +113,17 @@ function SolarWireMode(): JSX.Element {
         if (elementData) {
           if (dx !== 0) {
             newContent = updateLineAttribute(newContent, elementLine, 'x', elementData.x + dx);
+            // 如果是线段元素，同时更新终点x坐标
+            if (elementData.x2) {
+              newContent = updateLineAttribute(newContent, elementLine, 'x2', elementData.x2 + dx);
+            }
           }
           if (dy !== 0) {
             newContent = updateLineAttribute(newContent, elementLine, 'y', elementData.y + dy);
+            // 如果是线段元素，同时更新终点y坐标
+            if (elementData.y2) {
+              newContent = updateLineAttribute(newContent, elementLine, 'y2', elementData.y2 + dy);
+            }
           }
         }
       }
@@ -102,6 +137,8 @@ function SolarWireMode(): JSX.Element {
     const line = lines[lineNum - 1];
     let x = 0;
     let y = 0;
+    let x2 = 0;
+    let y2 = 0;
 
     const coordPattern = /@\((\d+),\s*(\d+)\)/;
     const match = line.match(coordPattern);
@@ -115,7 +152,20 @@ function SolarWireMode(): JSX.Element {
       if (yMatch) y = parseInt(yMatch[1]);
     }
 
-    return { x, y };
+    // 检查是否是线段元素，获取终点坐标
+    const lineEndPattern = /->\((\d+),\s*(\d+)\)/;
+    const lineEndMatch = line.match(lineEndPattern);
+    if (lineEndMatch) {
+      x2 = parseInt(lineEndMatch[1]);
+      y2 = parseInt(lineEndMatch[2]);
+    } else {
+      const x2Match = line.match(/x2=(\d+)/);
+      const y2Match = line.match(/y2=(\d+)/);
+      if (x2Match) x2 = parseInt(x2Match[1]);
+      if (y2Match) y2 = parseInt(y2Match[1]);
+    }
+
+    return { x, y, x2, y2 };
   };
 
   // 处理空格键事件，实现临时激活视角移动状态
@@ -148,55 +198,178 @@ function SolarWireMode(): JSX.Element {
     };
   }, [undo, handleKeyDown]);
 
-  const handleCodePanelResize = (newWidth: number) => {
-    setCodePanelWidth(newWidth);
-  };
-
-  const handlePreviewPanelResize = (newWidth: number) => {
-    setPreviewPanelWidth(newWidth);
-  };
-
   return (
-    <div className="solarwire-mode" style={{ height: '100%' }}>
-      <div className="code-panel" style={{ width: `${codePanelWidth}px`, height: '100%' }}>
-        <MonacoEditor
-          language="solarwire"
-          value={content}
-          onChange={setContent}
-          height="100%"
-          highlightLines={highlightLines}
-          primaryColor={primaryColor}
-        />
-      </div>
-      <ResizableDivider
-        orientation="vertical"
-        onResize={handleCodePanelResize}
-        currentSize={codePanelWidth}
-        minSize={200}
-        maxSize={600}
-      />
-      <div className="preview-panel" style={{ flex: 1, minWidth: '200px', height: '100%', position: 'relative' }}>
-        <div className="preview-content" style={{ height: '100%' }}>
-          <SolarWirePreview 
-            zoomLevel={zoomLevel}
-            selectionTool={selectionTool}
-            showNotes={showNotes}
-            onZoomChange={setZoomLevel}
-            isPanMode={isPanMode}
-            isSpacePressed={isSpacePressed}
-          />
+    <div className="solarwire-mode" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div className="solarwire-header">
+        <div className="solarwire-tabs">
+          <button 
+            className={`solarwire-tab ${activeTab === 'code' ? 'active' : ''}`}
+            onClick={() => setActiveTab('code')}
+            title="代码编辑器"
+          >
+            <span className="tab-icon">{/* 代码图标 */}</span>
+            代码编辑
+          </button>
+          <button 
+            className={`solarwire-tab ${activeTab === 'visual' ? 'active' : ''}`}
+            onClick={() => setActiveTab('visual')}
+            title="可视化编辑器"
+          >
+            <span className="tab-icon">{/* 眼睛图标 */}</span>
+            可视化编辑
+          </button>
         </div>
       </div>
-      <ResizableDivider
-        orientation="vertical"
-        onResize={handlePreviewPanelResize}
-        currentSize={previewPanelWidth}
-        minSize={200}
-        maxSize={400}
-        reverse={true}
-      />
-      <div className="sidebar-panel" style={{ width: `${previewPanelWidth}px`, height: '100%' }}>
-        <PropertyPanel />
+      
+      <div className="solarwire-content" style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+        {activeTab === 'code' ? (
+          <div className="code-panel" style={{ flex: 1, height: '100%' }}>
+            <MonacoEditor
+              language="solarwire"
+              value={content}
+              onChange={setContent}
+              height="100%"
+              highlightLines={highlightLines}
+              primaryColor={primaryColor}
+            />
+          </div>
+        ) : (
+          <div style={{ flex: 1, height: '100%', position: 'relative' }}>
+            <div className="preview-panel" style={{ flex: 1, height: '100%', position: 'relative' }}>
+              <div className="preview-content" style={{ height: '100%' }}>
+                <SolarWirePreview 
+                  zoomLevel={zoomLevel}
+                  selectionTool={selectionTool}
+                  showNotes={showNotes}
+                  onZoomChange={setZoomLevel}
+                  isPanMode={isPanMode}
+                  isSpacePressed={isSpacePressed}
+                />
+              </div>
+            </div>
+            
+            {/* 悬浮工具栏 */}
+            <div className="solarwire-toolbar-floating" style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1000 }}>
+              <div className="solarwire-toolbar">
+                <div className="toolbar-section pan-section">
+                  <button
+                    className={`pan-tool-button ${(isPanMode || isSpacePressed) ? 'active' : ''}`}
+                    onClick={() => setIsPanMode(!isPanMode)}
+                    title="Pan Mode: Hold space or click to toggle"
+                  >
+                    <span className="tool-icon">👆</span>
+                  </button>
+                </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section selection-section">
+                  <div className="selection-tools">
+                    {selectionTools.map(tool => (
+                      <button
+                        key={tool.id}
+                        className={`selection-tool-button ${selectionTool === tool.id && !isPanMode && !isSpacePressed ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectionTool(tool.id as 'select' | 'box-inclusive');
+                          setIsPanMode(false);
+                        }}
+                        title={tool.description}
+                      >
+                        <span className="tool-icon">{tool.icon}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section display-section">
+                  <button
+                    className={`note-toggle-button ${showNotes ? 'active' : ''}`}
+                    onClick={() => setShowNotes(!showNotes)}
+                    title={showNotes ? 'Hide Notes' : 'Show Notes'}
+                  >
+                    {showNotes ? '👁️' : '🙈'}
+                  </button>
+                  <div className="zoom-controls">
+                    <button className="zoom-button" onClick={handleZoomOut}>-</button>
+                    <span className="zoom-label">{zoomLevel}%</span>
+                    <button className="zoom-button" onClick={handleZoomIn}>+</button>
+                  </div>
+                </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section actions-section">
+                  <button
+                    className="action-button"
+                    onClick={handleBringToFront}
+                    disabled={selectedElements.length === 0}
+                    title="Bring to Front"
+                  >
+                    <span className="tool-icon">⬆️</span>
+                  </button>
+                </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section align-section">
+                  <button
+                    className="action-button"
+                    onClick={() => handleAlign('left')}
+                    disabled={selectedElements.length < 2}
+                    title="Align Left"
+                  >
+                    <span className="tool-icon">⬅️</span>
+                  </button>
+                  <button
+                    className="action-button"
+                    onClick={() => handleAlign('center-h')}
+                    disabled={selectedElements.length < 2}
+                    title="Align Center Horizontally"
+                  >
+                    <span className="tool-icon">↔️</span>
+                  </button>
+                  <button
+                    className="action-button"
+                    onClick={() => handleAlign('right')}
+                    disabled={selectedElements.length < 2}
+                    title="Align Right"
+                  >
+                    <span className="tool-icon">➡️</span>
+                  </button>
+                  <button
+                    className="action-button"
+                    onClick={() => handleAlign('top')}
+                    disabled={selectedElements.length < 2}
+                    title="Align Top"
+                  >
+                    <span className="tool-icon">⬆️</span>
+                  </button>
+                  <button
+                    className="action-button"
+                    onClick={() => handleAlign('center-v')}
+                    disabled={selectedElements.length < 2}
+                    title="Align Center Vertically"
+                  >
+                    <span className="tool-icon">↕️</span>
+                  </button>
+                  <button
+                    className="action-button"
+                    onClick={() => handleAlign('bottom')}
+                    disabled={selectedElements.length < 2}
+                    title="Align Bottom"
+                  >
+                    <span className="tool-icon">⬇️</span>
+                  </button>
+                </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section elements-section">
+                  <ElementLibrary compact />
+                </div>
+              </div>
+            </div>
+            
+            {/* 悬浮属性面板 */}
+            {selectedElements.length > 0 && (
+              <div className="sidebar-panel-floating" style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, width: '300px', maxHeight: '80vh', overflow: 'auto' }}>
+                <PropertyPanel />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

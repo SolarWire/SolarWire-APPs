@@ -1,4 +1,16 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+
+// 节流函数
+function throttle<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
+  let lastCall = 0;
+  return (...args: Parameters<T>) => {
+    const now = Date.now();
+    if (now - lastCall >= wait) {
+      lastCall = now;
+      func(...args);
+    }
+  };
+}
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
@@ -9,6 +21,44 @@ import type { Document, Element as SolarWireElement } from '../../../lib/parser/
 import './SolarWirePreview.css';
 
 type SelectionTool = 'select' | 'box-inclusive';
+
+// 获取元素数据，包括线段元素的终点坐标
+const getElementDataFromContent = (content: string, lineNum: number) => {
+  const lines = content.split(/\r?\n/);
+  if (lineNum < 1 || lineNum > lines.length) return null;
+  const line = lines[lineNum - 1];
+  let x = 0;
+  let y = 0;
+  let x2 = 0;
+  let y2 = 0;
+
+  const coordPattern = /@\((\d+),\s*(\d+)\)/;
+  const match = line.match(coordPattern);
+  if (match) {
+    x = parseInt(match[1]);
+    y = parseInt(match[2]);
+  } else {
+    const xMatch = line.match(/x=([\d]+)/);
+    const yMatch = line.match(/y=([\d]+)/);
+    if (xMatch) x = parseInt(xMatch[1]);
+    if (yMatch) y = parseInt(yMatch[1]);
+  }
+
+  // 检查是否是线段元素，获取终点坐标
+  const lineEndPattern = /->\((\d+),\s*(\d+)\)/;
+  const lineEndMatch = line.match(lineEndPattern);
+  if (lineEndMatch) {
+    x2 = parseInt(lineEndMatch[1]);
+    y2 = parseInt(lineEndMatch[2]);
+  } else {
+    const x2Match = line.match(/x2=([\d]+)/);
+    const y2Match = line.match(/y2=([\d]+)/);
+    if (x2Match) x2 = parseInt(x2Match[1]);
+    if (y2Match) y2 = parseInt(y2Match[1]);
+  }
+
+  return { x, y, x2, y2 };
+};
 
 interface BoxSelectionState {
   startX: number;
@@ -49,6 +99,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const { selectedElements, selectElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
   const { primaryColor } = useSettingsStore();
+  
+  // 创建节流版本的setContent函数，限制调用频率为100ms
+  const throttledSetContent = useMemo(() => throttle(setContent, 100), [setContent]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgContainerRef = useRef<HTMLDivElement>(null);
@@ -460,7 +513,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               }
               
               lines[lineNum - 1] = line;
-              setContent(lines.join('\n'));
+              throttledSetContent(lines.join('\n'));
             }
           }
           return;
@@ -511,7 +564,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
           newContent = updateLineAttribute(newContent, lineNum, 'w', newW);
           newContent = updateLineAttribute(newContent, lineNum, 'h', newH);
-          setContent(newContent);
+          throttledSetContent(newContent);
         }
       }
       return;
@@ -531,9 +584,20 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       const lineNum = parseInt(dragElementState.elementId);
       if (!isNaN(lineNum)) {
+        // 获取元素数据，检查是否是线段元素
+        const elementData = getElementDataFromContent(content, lineNum);
         let newContent = updateLineAttribute(content, lineNum, 'x', newX);
         newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-        setContent(newContent);
+        
+        // 如果是线段元素，同时更新终点坐标
+        if (elementData && elementData.x2 && elementData.y2) {
+          const newX2 = Math.max(0, Math.round(elementData.x2 + dx));
+          const newY2 = Math.max(0, Math.round(elementData.y2 + dy));
+          newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
+          newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+        }
+        
+        throttledSetContent(newContent);
       }
       return;
     }
@@ -822,7 +886,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       onMouseLeave={handleMouseUp}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
-      onSelectStart={(e) => e.preventDefault()}
+      onSelect={(e) => e.preventDefault()}
       style={{ 
         cursor,
         userSelect: 'none'
@@ -838,10 +902,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             left: 0,
             transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
             transformOrigin: '0 0',
-            userSelect: 'none'
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none'
           }}
           dangerouslySetInnerHTML={{ __html: svg }}
-          onSelectStart={(e) => e.preventDefault()}
+          onSelect={(e) => e.preventDefault()}
         />
       )}
 
@@ -886,7 +953,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             left: 0,
             width: '100%',
             height: '100%',
-            pointerEvents: 'none'
+            pointerEvents: 'none',
+            zIndex: 1000
           }}
         >
           <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>

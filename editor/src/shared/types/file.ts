@@ -24,6 +24,7 @@ export interface FileState {
   setCurrentPath: (path: string) => void;
   setFileTree: (tree: FileNode[]) => void;
   setSelectedFile: (file: FileNode | null) => void;
+  setCurrentSnippet: (snippet: SolarWireSnippet | null) => void;
   setFileContent: (content: string) => void;
   updateFileContent: (file: FileNode | string, content: string) => void;
   openFileAtPath?: (filePath: string) => Promise<void>;

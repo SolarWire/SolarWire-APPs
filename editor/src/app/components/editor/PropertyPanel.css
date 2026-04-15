@@ -259,6 +259,24 @@
   box-sizing: border-box;
   line-height: 1.4;
   white-space: pre-wrap;
+  overflow: auto;
+}
+
+.note-section textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-section textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.note-section textarea::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.note-section textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .note-section textarea:focus {

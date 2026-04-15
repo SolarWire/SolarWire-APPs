@@ -13,11 +13,7 @@ const RightPanel: React.FC = () => {
   const { isDiffMode } = useGitStore();
 
   if (isDiffMode) {
-    return (
-      <div className="right-panel" style={{ height: '100%' }}>
-        <VersionDiffMode />
-      </div>
-    );
+    return <VersionDiffMode />;
   }
 
   const renderEditorMode = () => {
@@ -34,11 +30,7 @@ const RightPanel: React.FC = () => {
     }
   };
 
-  return (
-    <div className="right-panel" style={{ height: '100%' }}>
-      {renderEditorMode()}
-    </div>
-  );
+  return renderEditorMode();
 };
 
 export default RightPanel;

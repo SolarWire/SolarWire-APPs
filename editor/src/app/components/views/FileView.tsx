@@ -1,6 +1,8 @@
 import React from 'react';
 import { useFileStore } from '../../stores/fileStore';
+import { useAppStore } from '../../stores/appStore';
 import FileTree from '../editor/FileTree';
+import { useSelectionStore } from '../../stores/selectionStore';
 import './FileView.css';
 
 const FileView: React.FC = () => {
@@ -13,6 +15,8 @@ const FileView: React.FC = () => {
     openFileAtPath,
     openDirectoryAtPath
   } = useFileStore();
+  
+  const { currentView } = useAppStore();
 
   const handleOpen = async (): Promise<void> => {
     try {
@@ -49,8 +53,12 @@ const FileView: React.FC = () => {
     }
   };
 
+  const { setSelection, getSelectionForView } = useSelectionStore();
+
   const handleSelectFile = async (file: any) => {
     if (openFileAtPath) {
+      // 更新选中记录
+      setSelection('file', file.path);
       await openFileAtPath(file.path);
     }
   };
@@ -83,7 +91,13 @@ const FileView: React.FC = () => {
         <FileTree
           nodes={fileTree}
           expandedDirectories={expandedDirectories}
-          selectedFile={selectedFile}
+          selectedFile={currentView === 'file' ? (selectedFile || (() => {
+            const selectedItem = getSelectionForView('file');
+            if (selectedItem) {
+              return { name: selectedItem.path.split(/[\/]/).pop() || selectedItem.path, path: selectedItem.path, type: 'file' };
+            }
+            return null;
+          })()) : null}
           onToggleDirectory={toggleDirectory!}
           onSelectFile={handleSelectFile}
         />

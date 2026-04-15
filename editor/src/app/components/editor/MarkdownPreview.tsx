@@ -7,6 +7,7 @@ import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { parse } from "../../../lib/parser";
 import { render as renderSvg } from '../../../lib/renderer';
+import { Scrollbar } from '../ui/Scrollbar';
 
 mermaid.initialize({
   startOnLoad: false,
@@ -78,9 +79,9 @@ function MarkdownPreview(): JSX.Element {
   }, [html]);
 
   return (
-    <div className="markdown-preview" ref={previewRef}>
+    <Scrollbar className="markdown-preview" ref={previewRef}>
       <div dangerouslySetInnerHTML={{ __html: html }} />
-    </div>
+    </Scrollbar>
   );
 }
 

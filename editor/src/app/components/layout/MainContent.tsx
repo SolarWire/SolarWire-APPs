@@ -23,7 +23,7 @@ const MainContent: React.FC = () => {
         minSize={150}
         maxSize={600}
       />
-      <div className="right-panel-container">
+      <div className="right-panel">
         <RightPanel />
       </div>
     </div>

@@ -189,11 +189,6 @@ const TopMenuBar: React.FC = () => {
           💾 Save
         </button>
         
-        {/* SolarWire mode toolbar */}
-        {mode === 'solarwire' && (
-          <SolarWireToolbar />
-        )}
-        
         <div className="spacer"></div>
         <button 
           className="theme-toggle-button" 

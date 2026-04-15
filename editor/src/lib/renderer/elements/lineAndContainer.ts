@@ -15,7 +15,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
   
   let svgParts: string[] = [];
   
-  svgParts.push(`<g>`);
+  svgParts.push(`<g pointer-events="bounding-box">`);
 
   let strokeDasharray = '';
   if (style.strokeDasharray) {

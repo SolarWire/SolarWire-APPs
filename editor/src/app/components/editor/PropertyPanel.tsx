@@ -1,97 +1,11 @@
 import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { parse } from "../../../lib/parser";
 import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
 import type { Element } from '../../../lib/parser/types';
+import { ColorPicker } from '../ui/ColorPicker';
 import './PropertyPanel.css';
-
-interface ColorPickerProps {
-  label: string;
-  value: string;
-  onChange: (color: string) => void;
-}
-
-function ColorPicker({ label, value, onChange }: ColorPickerProps): JSX.Element {
-  const { favoriteColors, addFavoriteColor, removeFavoriteColor } = useSettingsStore();
-  const [showMenu, setShowMenu] = useState(false);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  return (
-    <div className="property-group color-picker-group" ref={wrapperRef}>
-      <label>{label}</label>
-      <div className="color-picker-wrapper">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-        <div className="color-picker-dropdown">
-          <button
-            className="color-picker-toggle"
-            onClick={() => setShowMenu(!showMenu)}
-            title="Favorite colors"
-          >
-            ▼
-          </button>
-          {showMenu && (
-            <div className="color-picker-menu" onClick={(e) => e.stopPropagation()}>
-              <div className="color-picker-section">
-                <div className="color-picker-section-title">Favorite Colors</div>
-                <div className="color-picker-grid">
-                  {favoriteColors.map((color, index) => (
-                    <button
-                      key={index}
-                      className="color-picker-swatch"
-                      style={{ backgroundColor: color }}
-                      onClick={(e) => {
-                        if (e.button === 2) {
-                          e.preventDefault();
-                          removeFavoriteColor(color);
-                        } else {
-                          onChange(color);
-                          setShowMenu(false);
-                        }
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        removeFavoriteColor(color);
-                      }}
-                      title={`Click to select, Right click to remove`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="color-picker-divider"></div>
-              <button
-                className="color-picker-add"
-                onClick={() => {
-                  addFavoriteColor(value);
-                }}
-              >
-                Add Current Color
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 interface PropertyRowProps {
   label: string;
@@ -243,16 +157,28 @@ function PropertyPanel(): JSX.Element {
   const type = el.type;
   const attrs = el.attributes || {};
   
-  const coords = el.coordinates;
   let x = 0;
   let y = 0;
   
-  if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
-    x = coords.x.value;
-    y = coords.y.value;
+  if (type === 'line' && el.start) {
+    // 线段元素使用start作为起点坐标
+    if (el.start.x.type === 'absolute' && el.start.y.type === 'absolute') {
+      x = el.start.x.value;
+      y = el.start.y.value;
+    } else {
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
+    }
   } else {
-    x = parseInt(attrs.x || '0');
-    y = parseInt(attrs.y || '0');
+    // 其他元素使用coordinates
+    const coords = el.coordinates;
+    if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
+      x = coords.x.value;
+      y = coords.y.value;
+    } else {
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
+    }
   }
 
   const text = el.text || '';
@@ -280,6 +206,29 @@ function PropertyPanel(): JSX.Element {
   const showLineControls = type === 'line';
   const showAlignControl = type === 'text' || 'text' in element;
   const isTable = type === 'table';
+
+  // 处理线段元素的终点坐标
+  let x2 = 0;
+  let y2 = 0;
+  if (type === 'line' && el.end) {
+    if ('x' in el.end && 'y' in el.end) {
+      // 绝对坐标格式
+      if (el.end.x.type === 'absolute') {
+        x2 = el.end.x.value;
+      }
+      if (el.end.y.type === 'absolute') {
+        y2 = el.end.y.value;
+      }
+    } else if ('dx' in el.end && 'dy' in el.end) {
+      // 相对坐标格式
+      x2 = x + el.end.dx;
+      y2 = y + el.end.dy;
+    }
+  } else {
+    // 回退到属性中的x2和y2
+    x2 = parseInt(attrs.x2 || '0');
+    y2 = parseInt(attrs.y2 || '0');
+  }
 
   return (
     <div className="property-panel">
@@ -325,10 +274,10 @@ function PropertyPanel(): JSX.Element {
             <PropertyGroupTitle>Line End</PropertyGroupTitle>
             <PropertyPair
               label1="X2"
-              value1={attrs.x2 || ''}
+              value1={x2}
               onChange1={(v) => handleChange('x2', v)}
               label2="Y2"
-              value2={attrs.y2 || ''}
+              value2={y2}
               onChange2={(v) => handleChange('y2', v)}
             />
             <PropertyRow label="Style">

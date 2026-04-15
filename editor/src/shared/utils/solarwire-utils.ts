@@ -1,3 +1,7 @@
+/**
+ * 注册SolarWire语言支持
+ * 为Monaco编辑器添加SolarWire语言的语法高亮和配置
+ */
 export function registerSolarWireLanguage(): void {
   const monaco = (window as any).monaco;
   if (!monaco) return;
@@ -34,12 +38,23 @@ export function registerSolarWireLanguage(): void {
   });
 }
 
+/**
+ * 转义note值中的特殊字符
+ * @param value note值
+ * @returns 转义后的note值
+ */
 export function escapeNoteValue(value: string): string {
   return value
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .replace(/\n/g, '\\n');
 }
+
+/**
+ * 反转义note值中的特殊字符
+ * @param value 转义后的note值
+ * @returns 原始note值
+ */
 export function unescapeNoteValue(value: string): string {
   return value
     .replace(/\\n/g, '\n')
@@ -47,6 +62,16 @@ export function unescapeNoteValue(value: string): string {
     .replace(/\\\\/g, '\\');
 }
 
+/**
+ * 更新行的坐标信息
+ * @param content 代码内容
+ * @param lineNum 行号（从1开始）
+ * @param x1 起始x坐标
+ * @param y1 起始y坐标
+ * @param x2 结束x坐标
+ * @param y2 结束y坐标
+ * @returns 更新后的代码内容
+ */
 export function updateLineCoords(
   content: string,
   lineNum: number,
@@ -76,6 +101,14 @@ export function updateLineCoords(
   return lines.join('\n');
 }
 
+/**
+ * 更新行的属性值
+ * @param content 代码内容
+ * @param lineNum 行号（从1开始）
+ * @param attributeName 属性名
+ * @param attributeValue 属性值
+ * @returns 更新后的代码内容
+ */
 export function updateLineAttribute(
   content: string,
   lineNum: number,
@@ -337,6 +370,12 @@ export function updateLineAttribute(
   return lines.join('\n');
 }
 
+/**
+ * 将选中的元素移到代码的最前面
+ * @param content 代码内容
+ * @param selectedElementIds 选中的元素行号数组
+ * @returns 更新后的代码内容
+ */
 export function bringElementsToFront(
   content: string,
   selectedElementIds: string[]
@@ -346,14 +385,6 @@ export function bringElementsToFront(
   // 收集所有选中元素的行和内容，包括note的多行内容和表格的多行内容
   const selectedBlocks: Array<{ startLine: number, endLine: number, content: string[] }> = [];
   const remainingLines: string[] = [];
-  
-  const getIndent = (line: string): number => {
-    let indent = 0;
-    while (indent < line.length && line[indent] === ' ') {
-      indent++;
-    }
-    return indent;
-  };
   
   let i = 0;
   while (i < lines.length) {
@@ -369,85 +400,25 @@ export function bringElementsToFront(
       const isTableElement = trimmedLine.startsWith('##');
       
       if (isTableElement) {
-        // 表格元素：使用新的检测逻辑
-        const tableIndent = getIndent(line);
-        let lastContentLine = i;
-        
-        // 从表格声明行的下一行开始，找到下一个无缩进的元素声明行
-        for (let j = i + 1; j < lines.length; j++) {
-          const nextLine = lines[j];
-          const nextLineTrimmed = nextLine.trim();
-          
-          // 跳过空行
-          if (nextLineTrimmed === '') {
-            continue;
-          }
-          
-          const nextLineIndent = getIndent(nextLine);
-          
-          // 如果缩进不大于表格声明行，说明这是表格外的元素
-          if (nextLineIndent <= tableIndent) {
-            break;
-          }
-          
-          // 这行属于表格内容
-          lastContentLine = j;
-        }
-        
-        // 往前找最后一个非注释、非空行
-        while (lastContentLine > i) {
-          const checkLine = lines[lastContentLine].trim();
-          if (checkLine !== '' && !checkLine.startsWith('#')) {
-            break;
-          }
-          lastContentLine--;
-        }
+        // 使用抽象的表格边界检测函数
+        const { endLine: tableEndLine } = detectTableBounds(content, lineNum);
+        endLine = tableEndLine;
         
         // 收集从表格声明行到最后一行内容之间的所有行
-        for (let j = i + 1; j <= lastContentLine; j++) {
+        for (let j = i + 1; j < endLine; j++) {
           blockLines.push(lines[j]);
         }
-        endLine = lastContentLine + 1;
-        i = lastContentLine + 1;
+        i = endLine;
       } else {
-        // 非表格元素：检查note属性
-        // 检查下一行是否是note=开头
-        if (i + 1 < lines.length) {
-          const nextLine = lines[i + 1];
-          if (nextLine.trim().startsWith('note=')) {
-            // 这是一个note属性，检查是否是三引号包裹的
-            if (nextLine.includes('"""')) {
-              // 三引号包裹的note，需要找到结束的"""
-              blockLines.push(nextLine);
-              endLine = lineNum + 1;
-              i += 2;
-              
-              // 继续收集行，直到找到结束的"""
-              while (i < lines.length) {
-                const noteLine = lines[i];
-                blockLines.push(noteLine);
-                endLine = lineNum + (i - lineNum) + 1;
-                if (noteLine.includes('"""')) {
-                  // 找到结束的"""，停止收集
-                  i++;
-                  break;
-                }
-                i++;
-              }
-            } else {
-              // 单行note，只添加这一行
-              blockLines.push(nextLine);
-              endLine = lineNum + 1;
-              i += 2;
-            }
-          } else {
-            // 没有note属性，只添加当前行
-            i++;
-          }
-        } else {
-          // 没有下一行，只添加当前行
-          i++;
+        // 使用抽象的note边界检测函数
+        const { endLine: noteEndLine } = detectNoteBounds(content, lineNum);
+        endLine = noteEndLine;
+        
+        // 收集从元素行到note结束行之间的所有行
+        for (let j = i + 1; j < endLine; j++) {
+          blockLines.push(lines[j]);
         }
+        i = endLine;
       }
       
       selectedBlocks.push({ startLine: lineNum, endLine, content: blockLines });
@@ -464,6 +435,156 @@ export function bringElementsToFront(
   return newLines.join('\n');
 }
 
+/**
+ * 检测note的第一行和最后一行位置
+ * @param content 代码内容
+ * @param startLine 起始行号（从1开始）
+ * @returns 包含起始行和结束行的对象
+ */
+export function detectNoteBounds(
+  content: string,
+  startLine: number
+): { startLine: number; endLine: number } {
+  const lines = content.split(/\r?\n/);
+  let endLine = startLine;
+  
+  const i = startLine - 1;
+  if (i < 0 || i >= lines.length) {
+    return { startLine, endLine };
+  }
+  
+  const currentLine = lines[i];
+  const noteIndex = currentLine.indexOf('note=');
+  
+  if (noteIndex !== -1) {
+    const noteStart = noteIndex + 5;
+    if (noteStart < currentLine.length) {
+      if (currentLine.substring(noteStart, noteStart + 3) === '"""') {
+        // 三引号开始的note
+        const endQuoteInLine = currentLine.indexOf('"""', noteStart + 3);
+        if (endQuoteInLine === -1) {
+          // 跨行的note，寻找结束的三引号
+          let j = i + 1;
+          while (j < lines.length) {
+            endLine = j + 1;
+            if (lines[j].includes('"""')) {
+              break;
+            }
+            j++;
+          }
+        }
+      } else if (currentLine[noteStart] === '"' || currentLine[noteStart] === "'") {
+        // 单引号或双引号开始的note
+        const quote = currentLine[noteStart];
+        const endQuoteInLine = currentLine.indexOf(quote, noteStart + 1);
+        if (endQuoteInLine === -1) {
+          // 跨行的note，寻找结束的引号
+          let j = i + 1;
+          while (j < lines.length) {
+            endLine = j + 1;
+            if (lines[j].includes(quote)) {
+              break;
+            }
+            j++;
+          }
+        }
+      }
+    }
+  } else {
+    // 检查下一行是否是独立的note=行
+    if (i + 1 < lines.length) {
+      const nextLine = lines[i + 1];
+      if (nextLine.trim().startsWith('note=')) {
+        endLine = startLine + 1;
+        
+        if (nextLine.includes('"""')) {
+          // 三引号note，寻找结束的三引号
+          const endQuoteInLine = nextLine.indexOf('"""', nextLine.indexOf('note=') + 5 + 3);
+          if (endQuoteInLine === -1) {
+            let j = i + 2;
+            while (j < lines.length) {
+              endLine = j + 1;
+              if (lines[j].includes('"""')) {
+                break;
+              }
+              j++;
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  return { startLine, endLine };
+}
+
+/**
+ * 检测表格元素的第一行和最后一行位置
+ * @param content 代码内容
+ * @param startLine 表格起始行号（从1开始）
+ * @returns 包含起始行和结束行的对象
+ */
+export function detectTableBounds(
+  content: string,
+  startLine: number
+): { startLine: number; endLine: number } {
+  const lines = content.split(/\r?\n/);
+  let endLine = startLine;
+  
+  const i = startLine - 1;
+  if (i < 0 || i >= lines.length) {
+    return { startLine, endLine };
+  }
+  
+  const currentLine = lines[i];
+  const trimmedLine = currentLine.trim();
+  
+  if (!trimmedLine.startsWith('##')) {
+    return { startLine, endLine };
+  }
+  
+  const getIndent = (line: string): number => {
+    let indent = 0;
+    while (indent < line.length && line[indent] === ' ') {
+      indent++;
+    }
+    return indent;
+  };
+  
+  const tableIndent = getIndent(currentLine);
+  let nextUnindentedLineIndex = -1;
+  
+  // 从表格声明行的下一行开始，找到下一个无缩进（或缩进不大于表格声明）的元素声明行
+  for (let j = i + 1; j < lines.length; j++) {
+    const line = lines[j];
+    const lineTrimmed = line.trim();
+    
+    // 跳过空行和注释行
+    if (lineTrimmed === '' || lineTrimmed.startsWith('#')) {
+      continue;
+    }
+    
+    const lineIndent = getIndent(line);
+    
+    // 如果缩进不大于表格声明行，说明这是表格外的元素
+    if (lineIndent <= tableIndent) {
+      nextUnindentedLineIndex = j;
+      break;
+    }
+  }
+  
+  // 确定表格的结束索引
+  let lastTableLineIndex = nextUnindentedLineIndex - 1;
+  if (nextUnindentedLineIndex === -1) {
+    // 没有找到下一个无缩进行，说明表格是最后一个元素，取到文件末尾
+    lastTableLineIndex = lines.length - 1;
+  }
+  
+  endLine = lastTableLineIndex + 1;
+  
+  return { startLine, endLine };
+}
+
 export function getElementRelatedLines(
   content: string,
   elementLine: number
@@ -478,105 +599,30 @@ export function getElementRelatedLines(
   const isTableElement = trimmedLine.startsWith('##');
   
   if (isTableElement) {
-    // 表格元素：检测表格声明后下一个无缩进的元素声明行，然后往前找最后一个非注释、非空行
-    const getIndent = (line: string): number => {
-      let indent = 0;
-      while (indent < line.length && line[indent] === ' ') {
-        indent++;
-      }
-      return indent;
-    };
-    
-    const isCommentOrEmpty = (line: string): boolean => {
-      const trimmed = line.trim();
-      return trimmed === '' || trimmed.startsWith('#');
-    };
-    
-    const tableIndent = getIndent(currentLine);
-    let nextUnindentedLineIndex = -1;
-    
-    // 从表格声明行的下一行开始，找到下一个无缩进（或缩进不大于表格声明）的元素声明行
-    for (let j = i + 1; j < lines.length; j++) {
-      const line = lines[j];
-      const lineTrimmed = line.trim();
-      
-      // 跳过空行和注释行
-      if (lineTrimmed === '') {
-        continue;
-      }
-      
-      const lineIndent = getIndent(line);
-      
-      // 如果缩进不大于表格声明行，说明这是表格外的元素
-      if (lineIndent <= tableIndent) {
-        nextUnindentedLineIndex = j;
-        break;
+    // 使用抽象的表格边界检测函数
+    const { startLine, endLine } = detectTableBounds(content, elementLine);
+    for (let j = startLine; j <= endLine; j++) {
+      if (!relatedLines.includes(j)) {
+        relatedLines.push(j);
       }
     }
-    
-    // 从下一个无缩进行往前找，找到最后一个非注释、非空行
-    let lastContentLine = nextUnindentedLineIndex - 1;
-    if (nextUnindentedLineIndex === -1) {
-      // 没有找到下一个无缩进行，说明表格是最后一个元素，取到文件末尾
-      lastContentLine = lines.length - 1;
-    }
-    
-    // 往前找最后一个非注释、非空行
-    while (lastContentLine > i && isCommentOrEmpty(lines[lastContentLine])) {
-      lastContentLine--;
-    }
-    
-    // 添加从表格声明行到最后一行内容之间的所有行
-    for (let j = i; j <= lastContentLine; j++) {
-      if (!relatedLines.includes(j + 1)) {
-        relatedLines.push(j + 1);
-      }
-    }
-    
     return relatedLines.sort((a, b) => a - b);
   }
   
-  // 非表格元素：检查当前行是否包含 note 属性
-  const noteIndex = currentLine.indexOf('note=');
-  if (noteIndex !== -1) {
-    const noteStart = noteIndex + 5;
-    if (noteStart < currentLine.length && 
-        currentLine.substring(noteStart, noteStart + 3) === '"""') {
-      const endQuoteInLine = currentLine.indexOf('"""', noteStart + 3);
-      if (endQuoteInLine === -1) {
-        let j = i + 1;
-        while (j < lines.length) {
-          relatedLines.push(j + 1);
-          if (lines[j].includes('"""')) {
-            break;
-          }
-          j++;
-        }
-      }
-    }
-  } else {
-    if (i + 1 < lines.length) {
-      const nextLine = lines[i + 1];
-      if (nextLine.trim().startsWith('note=')) {
-        relatedLines.push(elementLine + 1);
-        
-        if (nextLine.includes('"""')) {
-          let j = i + 2;
-          while (j < lines.length) {
-            relatedLines.push(j + 1);
-            if (lines[j].includes('"""')) {
-              break;
-            }
-            j++;
-          }
-        }
-      }
+  // 非表格元素：检查是否包含 note 属性
+  const { startLine, endLine } = detectNoteBounds(content, elementLine);
+  for (let j = startLine; j <= endLine; j++) {
+    if (!relatedLines.includes(j)) {
+      relatedLines.push(j);
     }
   }
   
   return relatedLines;
 }
 
+/**
+ * 元素边界接口
+ */
 interface ElementBounds {
   x: number;
   y: number;
@@ -584,8 +630,18 @@ interface ElementBounds {
   height: number;
 }
 
+/**
+ * 对齐类型
+ */
 type AlignmentType = 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom';
 
+/**
+ * 对齐选中的元素
+ * @param content 代码内容
+ * @param selectedElementIds 选中的元素行号数组
+ * @param alignmentType 对齐类型
+ * @returns 更新后的代码内容
+ */
 export function alignElements(
   content: string,
   selectedElementIds: string[],
@@ -663,6 +719,11 @@ export function alignElements(
   return newLines.join('\n');
 }
 
+/**
+ * 获取元素的坐标和边界
+ * @param line 元素行
+ * @returns 包含x、y坐标和边界的对象
+ */
 function getElementCoordsAndBounds(line: string): { x: number; y: number; bounds: ElementBounds } {
   let x = 0;
   let y = 0;
@@ -691,6 +752,13 @@ function getElementCoordsAndBounds(line: string): { x: number; y: number; bounds
   return { x, y, bounds: { x, y, width, height } };
 }
 
+/**
+ * 更新元素的坐标
+ * @param line 元素行
+ * @param newX 新的x坐标
+ * @param newY 新的y坐标
+ * @returns 更新后的元素行
+ */
 function updateElementCoords(line: string, newX: number, newY: number): string {
   // 检查是否有绝对坐标
   const absoluteMatch = line.match(/@\(([\d]+),\s*([\d]+)\)/);
@@ -722,16 +790,35 @@ function updateElementCoords(line: string, newX: number, newY: number): string {
   return updated;
 }
 
+/**
+ * 检查是否存在单引号或双引号包裹的note
+ * @param content 代码内容
+ * @returns 是否存在单引号或双引号包裹的note
+ */
 export function hasDoubleQuoteNotes(content: string): boolean {
   const lines = content.split(/\r?\n/);
   for (const line of lines) {
+    // 检测双引号包裹的note（但不是三引号）
     if (line.includes('note="') && !line.includes('note="""')) {
+      return true;
+    }
+    // 检测单引号包裹的note
+    if (line.includes("note='") && !line.includes("note='''")) {
       return true;
     }
   }
   return false;
 }
 
+/**
+ * 将单引号或双引号包裹的note转换为三引号包裹
+ * @param content 代码内容
+ * @returns 更新后的代码内容
+ */
 export function convertDoubleQuoteNotesToTriple(content: string): string {
-  return content.replace(/note="([^"]*)"/g, 'note="""$1"""');
+  // 先处理双引号包裹的note（但不是三引号）
+  let result = content.replace(/note="([^"]*)"(?!")/g, 'note="""$1"""');
+  // 再处理单引号包裹的note（但不是三引号）
+  result = result.replace(/note='([^']*)'(?!')/g, "note=\"\"\"$1\"\"\"");
+  return result;
 }

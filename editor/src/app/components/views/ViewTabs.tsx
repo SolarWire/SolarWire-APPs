@@ -1,15 +1,18 @@
 import React from 'react';
 import { useAppStore } from '../../stores/appStore';
+import { useFileStore } from '../../stores/fileStore';
 import { ViewType } from '../../types/app';
 import FileView from './FileView';
 import RequirementView from './RequirementView';
 import SolarWireView from './SolarWireView';
 import VersionView from './VersionView';
 import GitView from './GitView';
+import { getSelectedItemForView } from '../../shared/utils/file-utils';
 import './ViewTabs.css';
 
 const ViewTabs: React.FC = () => {
   const { currentView, setCurrentView } = useAppStore();
+  const { setSelectedFile } = useFileStore();
 
   const views: { type: ViewType; label: string; testId: string }[] = [
     { type: 'file', label: 'File', testId: 'view-files' },
@@ -43,7 +46,11 @@ const ViewTabs: React.FC = () => {
             key={view.type}
             className={`view-tab ${currentView === view.type ? 'active' : ''}`}
             data-testid={view.testId}
-            onClick={() => setCurrentView(view.type)}
+            onClick={() => {
+              // 切换视图时不取消之前的选中状态
+              // 而是根据记录去选中相应的项
+              setCurrentView(view.type);
+            }}
           >
             {view.label}
           </div>
