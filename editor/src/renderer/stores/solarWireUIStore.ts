@@ -5,7 +5,7 @@ interface SolarWireUIState {
   zoomLevel: number;
   isSpacePressed: boolean;
   setShowNotes: (show: boolean) => void;
-  setZoomLevel: (zoom: number) => void;
+  setZoomLevel: (zoom: number | ((prev: number) => number)) => void;
   setIsSpacePressed: (pressed: boolean) => void;
 }
 
@@ -14,6 +14,8 @@ export const useSolarWireUIStore = create<SolarWireUIState>((set) => ({
   zoomLevel: 100,
   isSpacePressed: false,
   setShowNotes: (show) => set({ showNotes: show }),
-  setZoomLevel: (zoom) => set({ zoomLevel: zoom }),
+  setZoomLevel: (zoom) => set((state) => ({
+    zoomLevel: typeof zoom === 'function' ? zoom(state.zoomLevel) : zoom
+  })),
   setIsSpacePressed: (pressed) => set({ isSpacePressed: pressed }),
 }));

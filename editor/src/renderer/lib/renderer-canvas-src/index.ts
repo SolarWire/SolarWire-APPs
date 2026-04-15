@@ -1,5 +1,5 @@
 export { renderToCanvas, getElementAtPosition, getElementsInRect } from './renderer';
-export type { CanvasRenderOptions, CanvasRenderResult, ViewBox } from './renderer';
+export type { CanvasRenderOptions, CanvasRenderResult, ViewBox, NoteBadgeInfo } from './renderer';
 
 export { 
   createCanvasRenderContext,

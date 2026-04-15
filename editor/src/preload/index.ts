@@ -30,3 +30,13 @@ contextBridge.exposeInMainWorld('api', {
     getFileDiffBetweenCommits: (filePath: string, commitHash1: string, commitHash2: string) => ipcRenderer.invoke('git:getFileDiffBetweenCommits', filePath, commitHash1, commitHash2),
   },
 });
+
+// 在测试环境中暴露额外 API
+if (process.env.NODE_ENV === 'test') {
+  contextBridge.exposeInMainWorld('testAPI', {
+    setTestDirectory: async (path: string) => {
+      return ipcRenderer.invoke('test:set-directory', path);
+    }
+  });
+}
+

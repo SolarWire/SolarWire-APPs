@@ -195,6 +195,10 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   const selectedElementIds = options?.selectedElementIds || [];
   const primaryColor = options?.primaryColor || '#FCA506';
   
+  // 更新 context 属性
+  context.selectedElementIds = selectedElementIds;
+  context.primaryColor = primaryColor;
+  
   const renderOptions: InternalRenderOptions = {
     disableNotes,
     sourceInput: options?.sourceInput,
@@ -262,6 +266,17 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   }
   svgParts.push(`  .selected-glow { filter: drop-shadow(0 0 2px ${primaryColor}8C) drop-shadow(0 0 4px ${primaryColor}8C); }`);
   svgParts.push(`</style>`);
+  
+  // 添加箭头标记定义和其他 defs
+  svgParts.push(`<defs>`);
+  svgParts.push(`  <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">`);
+  svgParts.push(`    <polygon points="0 0, 10 3.5, 0 7" fill="#333333"/>`);
+  svgParts.push(`  </marker>`);
+  // 添加收集的 defs
+  if (context.defs.length > 0) {
+    svgParts.push(...context.defs);
+  }
+  svgParts.push(`</defs>`);
   
   elementResults.forEach(({ result, id }, index) => {
     const element = ast.elements[index];

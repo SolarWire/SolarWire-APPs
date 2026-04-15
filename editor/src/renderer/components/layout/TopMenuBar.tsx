@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../../stores/appStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -7,7 +7,7 @@ import { useSolarWireUIStore } from '../../stores/solarWireUIStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import SettingsModal from '../ui/SettingsModal';
 import ElementLibrary from '../editor/ElementLibrary';
-import { bringElementsToFront, alignElements } from '../../utils/solarwire-utils';
+import { bringElementsToFront, alignElements, hasDoubleQuoteNotes, convertDoubleQuoteNotesToTriple } from '../../utils/solarwire-utils';
 import './TopMenuBar.css';
 
 interface SolarWireToolbarProps {
@@ -161,10 +161,18 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
 
 const TopMenuBar: React.FC = () => {
   const { theme, setTheme } = useAppStore();
-  const { saveFile } = useFileStore();
-  const { isModified, mode } = useEditorStore();
+  const { saveFile, fileContent, currentSnippet } = useFileStore();
+  const { isModified, mode, content, setContent } = useEditorStore();
   const { isSpacePressed, setIsSpacePressed } = useSolarWireUIStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // 如果有 currentSnippet，使用 snippet 的内容；否则使用 editorStore 的 content
+  const activeContent = currentSnippet ? currentSnippet.code : content;
+
+  const hasOldNotes = useMemo(() => {
+    if (mode !== 'solarwire') return false;
+    return hasDoubleQuoteNotes(activeContent);
+  }, [activeContent, mode]);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -172,6 +180,11 @@ const TopMenuBar: React.FC = () => {
 
   const handleSave = async () => {
     await saveFile();
+  };
+
+  const handleConvertNotes = () => {
+    const newContent = convertDoubleQuoteNotesToTriple(activeContent);
+    setContent(newContent);
   };
 
   return (
@@ -195,6 +208,15 @@ const TopMenuBar: React.FC = () => {
         )}
         
         <div className="spacer"></div>
+        {hasOldNotes && (
+          <button 
+            className="convert-notes-button" 
+            onClick={handleConvertNotes} 
+            title='Convert all note="..." to note="""..."""'
+          >
+            🔄 Fix Notes
+          </button>
+        )}
         <button 
           className="theme-toggle-button" 
           data-testid="theme-toggle"

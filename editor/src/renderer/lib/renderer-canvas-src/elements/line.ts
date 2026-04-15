@@ -53,8 +53,10 @@ export function renderLine(
   ctx.restore();
   
   const bounds: ElementBounds = {
-    x: Math.min(start.x, end.x),
-    y: Math.min(start.y, end.y),
+    x: start.x,
+    y: start.y,
+    x2: end.x,
+    y2: end.y,
     width: Math.abs(end.x - start.x) || 2,
     height: Math.abs(end.y - start.y) || 2,
   };

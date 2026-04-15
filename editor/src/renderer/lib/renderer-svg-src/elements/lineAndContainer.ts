@@ -27,7 +27,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
   svgParts.push(`<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="transparent" stroke-width="${hitAreaWidth}" pointer-events="stroke"/>`);
 
   // 实际显示的线段
-  svgParts.push(`<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${c}" stroke-width="${s}"${strokeDasharray}/>`);
+  svgParts.push(`<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${c}" stroke-width="${s}"${strokeDasharray} marker-end="url(#arrowhead)"/>`);
   
   if (element.label) {
     const midX = (start.x + end.x) / 2;

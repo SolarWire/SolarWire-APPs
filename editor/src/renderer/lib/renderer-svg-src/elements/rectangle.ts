@@ -33,16 +33,55 @@ export function renderRectangle(
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
   
+  // Advanced styles
+  const gradient = element.attributes['gradient'];
+  const shadow = element.attributes['shadow'];
+  const borderColor = getColorAttribute(element.attributes, context.globalDefaults, 'border-color', b);
+  const borderWidth = getNumberAttribute(element.attributes, context.globalDefaults, 'border-width', s);
+  
   let svgParts: string[] = [];
   
-  svgParts.push(`<g>`);
+  const elementId = `element-${context.elementIdCounter++}`;
+  // 检查元素是否被选中（支持不同格式的 ID）
+  const isSelected = context.selectedElementIds.some(id => 
+    id === elementId || 
+    id === element.location?.line?.toString() || 
+    id === (element as any).id
+  );
+  
+  // Add accessibility attributes
+  const ariaLabel = element.text || 'Rectangle';
+  const role = element.attributes['role'] || (element.text === 'Button' ? 'button' : 'region');
+  
+  let groupClass = 'svg-element';
+  if (isSelected) {
+    groupClass += ' selected';
+  }
+  
+  svgParts.push(`<g data-element-id="${elementId}" data-line="${element.line || 1}" class="${groupClass}" role="${role}" aria-label="${escapeHtml(ariaLabel)}" tabindex="0" draggable="true">`);
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   
+  // Handle gradient fill
+  let fill = bg;
+  if (gradient) {
+    const gradientId = `gradient-${elementId}`;
+    context.defs.push(`<linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4CAF50"/><stop offset="100%" stop-color="#2196F3"/></linearGradient>`);
+    fill = `url(#${gradientId})`;
+  }
+  
+  // Handle shadow effect
+  let filterAttr = '';
+  if (shadow) {
+    const filterId = `shadow-${elementId}`;
+    context.defs.push(`<filter id="${filterId}"><feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="rgba(0,0,0,0.3)"/></filter>`);
+    filterAttr = ` filter="url(#${filterId})"`;
+  }
+  
   if (isRounded) {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" rx="${r}" ry="${r}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}/>`);
+    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" rx="${r}" ry="${r}" fill="${fill}" stroke="${borderColor}" stroke-width="${borderWidth}"${opacityAttr}${filterAttr}/>`);
   } else {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}/>`);
+    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${fill}" stroke="${borderColor}" stroke-width="${borderWidth}"${opacityAttr}${filterAttr}/>`);
   }
   
   if (element.text) {
@@ -86,6 +125,24 @@ export function renderRectangle(
     });
     
     svgParts.push('</text>');
+  }
+  
+  // Add resize handles for selected elements
+  if (isSelected) {
+    const handles = [
+      { x: pos.x - 4, y: pos.y - 4, handle: 'nw' },
+      { x: pos.x + w / 2 - 4, y: pos.y - 4, handle: 'n' },
+      { x: pos.x + w - 4, y: pos.y - 4, handle: 'ne' },
+      { x: pos.x + w - 4, y: pos.y + h / 2 - 4, handle: 'e' },
+      { x: pos.x + w - 4, y: pos.y + h - 4, handle: 'se' },
+      { x: pos.x + w / 2 - 4, y: pos.y + h - 4, handle: 's' },
+      { x: pos.x - 4, y: pos.y + h - 4, handle: 'sw' },
+      { x: pos.x - 4, y: pos.y + h / 2 - 4, handle: 'w' },
+    ];
+    
+    handles.forEach(handle => {
+      svgParts.push(`<rect x="${handle.x}" y="${handle.y}" width="8" height="8" fill="${context.primaryColor}" stroke="white" stroke-width="1" data-handle="${handle.handle}" class="resize-handle"/>`);
+    });
   }
   
   const bounds: ElementBounds = {
