@@ -11,6 +11,7 @@ build/
 editor/releases/
 editor/dist/
 editor/node_modules/
+.worktrees/
 
 
 # 敏感信息和配置文件
