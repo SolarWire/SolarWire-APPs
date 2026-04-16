@@ -5,6 +5,7 @@ import { parse } from "../../../lib/parser";
 import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
 import type { Element } from '../../../lib/parser/types';
 import { ColorPicker } from '../ui/ColorPicker';
+import { Scrollbar } from '../ui/Scrollbar';
 import './PropertyPanel.css';
 
 interface PropertyRowProps {
@@ -69,6 +70,15 @@ function PropertyPanel(): JSX.Element {
   const { content, setContent } = useEditorStore();
 
   const [parseError, setParseError] = React.useState<string | null>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  // 自动调整 textarea 高度的函数
+  const adjustTextareaHeight = useCallback((textareaRef: HTMLTextAreaElement | null) => {
+    if (textareaRef) {
+      textareaRef.style.height = 'auto';
+      textareaRef.style.height = `${textareaRef.scrollHeight}px`;
+    }
+  }, []);
 
   const ast = useMemo(() => {
     try {
@@ -192,12 +202,23 @@ function PropertyPanel(): JSX.Element {
   const fontSize = attrs.size || attrs['text-size'] || '12';
   const align = attrs.align || 'c';
   const opacity = attrs.opacity || '1';
+  
   // 处理三引号包裹的 note 内容
-  let note = attrs.note || '';
-  if (typeof note === 'string') {
+  let noteValue = attrs.note || '';
+  if (typeof noteValue === 'string') {
     // 移除可能的三引号包裹
-    note = note.replace(/^"""|"""$/g, '');
+    noteValue = noteValue.replace(/^"""|"""$/g, '');
   }
+
+  // 当 note 内容变化时调整 textarea 高度
+  useEffect(() => {
+    adjustTextareaHeight(textareaRef.current);
+  }, [noteValue, adjustTextareaHeight]);
+
+  // 当组件渲染后调整 textarea 高度
+  useEffect(() => {
+    adjustTextareaHeight(textareaRef.current);
+  }, [adjustTextareaHeight]);
 
   const showSizeControls = type !== 'text' && type !== 'line';
   const showRadiusControl = type === 'rounded-rectangle';
@@ -232,208 +253,214 @@ function PropertyPanel(): JSX.Element {
 
   return (
     <div className="property-panel">
-      <div className="properties-section">
-        <h3>Properties - {type}</h3>
-        
-        <PropertyGroupTitle>Position</PropertyGroupTitle>
-        <PropertyPair
-          label1="X"
-          value1={x}
-          onChange1={(v) => handleChange('x', v)}
-          label2="Y"
-          value2={y}
-          onChange2={(v) => handleChange('y', v)}
-        />
-
-        {showSizeControls && (
-          <>
-            <PropertyGroupTitle>Size</PropertyGroupTitle>
-            <PropertyPair
-              label1="Width"
-              value1={w}
-              onChange1={(v) => handleChange('w', v)}
-              label2="Height"
-              value2={h}
-              onChange2={(v) => handleChange('h', v)}
-            />
-          </>
-        )}
-
-        {showRadiusControl && (
-          <PropertyRow label="Corner Radius">
-            <input
-              type="number"
-              value={r}
-              onChange={(e) => handleChange('r', parseInt(e.target.value) || 0)}
-            />
-          </PropertyRow>
-        )}
-
-        {showLineControls && (
-          <>
-            <PropertyGroupTitle>Line End</PropertyGroupTitle>
-            <PropertyPair
-              label1="X2"
-              value1={x2}
-              onChange1={(v) => handleChange('x2', v)}
-              label2="Y2"
-              value2={y2}
-              onChange2={(v) => handleChange('y2', v)}
-            />
-            <PropertyRow label="Style">
-              <select
-                value={attrs.style || 'solid'}
-                onChange={(e) => handleChange('style', e.target.value)}
-              >
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
-            </PropertyRow>
-            {el.label !== undefined && (
-              <PropertyRow label="Label">
-                <input
-                  type="text"
-                  value={el.label || ''}
-                  onChange={(e) => handleChange('label', e.target.value)}
-                />
-              </PropertyRow>
-            )}
-          </>
-        )}
-
-        <PropertyGroupTitle>Appearance</PropertyGroupTitle>
-        <div className="property-row">
-          <ColorPicker
-            label="Fill"
-            value={bg}
-            onChange={(color) => handleChange('bg', color)}
+      <Scrollbar className="property-panel-scrollbar">
+        <div className="properties-section">
+          <h3>Properties - {type}</h3>
+          
+          <PropertyGroupTitle>Position</PropertyGroupTitle>
+          <PropertyPair
+            label1="X"
+            value1={x}
+            onChange1={(v) => handleChange('x', v)}
+            label2="Y"
+            value2={y}
+            onChange2={(v) => handleChange('y', v)}
           />
-          {showBorderControls && (
-            <ColorPicker
-              label="Border"
-              value={borderColor}
-              onChange={(color) => handleChange('b', color)}
-            />
-          )}
-        </div>
-        
-        {showBorderControls && (
-          <PropertyRow label="Border Width">
-            <input
-              type="number"
-              value={borderSize}
-              onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
-            />
-          </PropertyRow>
-        )}
 
-        {!showLineControls && (
-          <PropertyRow label="Opacity">
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={opacity}
-              onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
-            />
-          </PropertyRow>
-        )}
-
-        {showTextControls && (
-          <>
-            <PropertyGroupTitle>Text</PropertyGroupTitle>
-            {'text' in element && (
-              <PropertyRow label="Content">
-                <input
-                  type="text"
-                  value={text}
-                  onChange={(e) => handleChange('text', e.target.value)}
-                />
-              </PropertyRow>
-            )}
-            <div className="property-row">
-              <ColorPicker
-                label="Color"
-                value={textColor}
-                onChange={(color) => handleChange('c', color)}
+          {showSizeControls && (
+            <>
+              <PropertyGroupTitle>Size</PropertyGroupTitle>
+              <PropertyPair
+                label1="Width"
+                value1={w}
+                onChange1={(v) => handleChange('w', v)}
+                label2="Height"
+                value2={h}
+                onChange2={(v) => handleChange('h', v)}
               />
-              <div className="property-group">
-                <label>Size</label>
-                <input
-                  type="number"
-                  value={fontSize}
-                  onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
-                />
-              </div>
-            </div>
-            {showAlignControl && (
-              <PropertyRow label="Align">
+            </>
+          )}
+
+          {showRadiusControl && (
+            <PropertyRow label="Corner Radius">
+              <input
+                type="number"
+                value={r}
+                onChange={(e) => handleChange('r', parseInt(e.target.value) || 0)}
+              />
+            </PropertyRow>
+          )}
+
+          {showLineControls && (
+            <>
+              <PropertyGroupTitle>Line End</PropertyGroupTitle>
+              <PropertyPair
+                label1="X2"
+                value1={x2}
+                onChange1={(v) => handleChange('x2', v)}
+                label2="Y2"
+                value2={y2}
+                onChange2={(v) => handleChange('y2', v)}
+              />
+              <PropertyRow label="Style">
                 <select
-                  value={align}
-                  onChange={(e) => handleChange('align', e.target.value)}
+                  value={attrs.style || 'solid'}
+                  onChange={(e) => handleChange('style', e.target.value)}
                 >
-                  <option value="l">Left</option>
-                  <option value="c">Center</option>
-                  <option value="r">Right</option>
+                  <option value="solid">Solid</option>
+                  <option value="dashed">Dashed</option>
+                  <option value="dotted">Dotted</option>
                 </select>
               </PropertyRow>
+              {el.label !== undefined && (
+                <PropertyRow label="Label">
+                  <input
+                    type="text"
+                    value={el.label || ''}
+                    onChange={(e) => handleChange('label', e.target.value)}
+                  />
+                </PropertyRow>
+              )}
+            </>
+          )}
+
+          <PropertyGroupTitle>Appearance</PropertyGroupTitle>
+          <div className="property-row">
+            <ColorPicker
+              label="Fill"
+              value={bg}
+              onChange={(color) => handleChange('bg', color)}
+            />
+            {showBorderControls && (
+              <ColorPicker
+                label="Border"
+                value={borderColor}
+                onChange={(color) => handleChange('b', color)}
+              />
             )}
-            <div className="property-row checkbox-row">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={attrs.bold === true || attrs.bold === 'true'}
-                  onChange={(e) => handleChange('bold', e.target.checked)}
+          </div>
+          
+          {showBorderControls && (
+            <PropertyRow label="Border Width">
+              <input
+                type="number"
+                value={borderSize}
+                onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
+              />
+            </PropertyRow>
+          )}
+
+          {!showLineControls && (
+            <PropertyRow label="Opacity">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={opacity}
+                onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
+              />
+            </PropertyRow>
+          )}
+
+          {showTextControls && (
+            <>
+              <PropertyGroupTitle>Text</PropertyGroupTitle>
+              {'text' in element && (
+                <PropertyRow label="Content">
+                  <input
+                    type="text"
+                    value={text}
+                    onChange={(e) => handleChange('text', e.target.value)}
+                  />
+                </PropertyRow>
+              )}
+              <div className="property-row">
+                <ColorPicker
+                  label="Color"
+                  value={textColor}
+                  onChange={(color) => handleChange('c', color)}
                 />
-                Bold
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={attrs.italic === true || attrs.italic === 'true'}
-                  onChange={(e) => handleChange('italic', e.target.checked)}
-                />
-                Italic
-              </label>
-            </div>
-          </>
-        )}
+                <div className="property-group">
+                  <label>Size</label>
+                  <input
+                    type="number"
+                    value={fontSize}
+                    onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
+                  />
+                </div>
+              </div>
+              {showAlignControl && (
+                <PropertyRow label="Align">
+                  <select
+                    value={align}
+                    onChange={(e) => handleChange('align', e.target.value)}
+                  >
+                    <option value="l">Left</option>
+                    <option value="c">Center</option>
+                    <option value="r">Right</option>
+                  </select>
+                </PropertyRow>
+              )}
+              <div className="property-row checkbox-row">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={attrs.bold === true || attrs.bold === 'true'}
+                    onChange={(e) => handleChange('bold', e.target.checked)}
+                  />
+                  Bold
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={attrs.italic === true || attrs.italic === 'true'}
+                    onChange={(e) => handleChange('italic', e.target.checked)}
+                  />
+                  Italic
+                </label>
+              </div>
+            </>
+          )}
 
-        {type === 'text' && (
-          <PropertyRow label="Line Height">
-            <input
-              type="number"
-              value={attrs['line-height'] || '22'}
-              onChange={(e) => handleChange('line-height', parseInt(e.target.value) || 22)}
+          {type === 'text' && (
+            <PropertyRow label="Line Height">
+              <input
+                type="number"
+                value={attrs['line-height'] || '22'}
+                onChange={(e) => handleChange('line-height', parseInt(e.target.value) || 22)}
+              />
+            </PropertyRow>
+          )}
+
+          {type === 'image' && (
+            <PropertyRow label="URL">
+              <input
+                type="text"
+                value={el.url || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
+              />
+            </PropertyRow>
+          )}
+
+          <div className="note-section">
+            <PropertyGroupTitle>Note</PropertyGroupTitle>
+            <textarea
+              ref={textareaRef}
+              value={noteValue}
+              placeholder="Add a note..."
+              onChange={(e) => {
+                handleChange('note', e.target.value);
+                adjustTextareaHeight(textareaRef.current);
+              }}
+              spellCheck={false}
+              autoComplete="off"
+              autoCorrect="off"
+              autoCapitalize="off"
             />
-          </PropertyRow>
-        )}
-
-        {type === 'image' && (
-          <PropertyRow label="URL">
-            <input
-              type="text"
-              value={el.url || ''}
-              onChange={(e) => handleChange('url', e.target.value)}
-            />
-          </PropertyRow>
-        )}
-      </div>
-
-      <div className="note-section">
-        <PropertyGroupTitle>Note</PropertyGroupTitle>
-        <textarea
-          value={note}
-          placeholder="Add a note..."
-          onChange={(e) => handleChange('note', e.target.value)}
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
-        />
-      </div>
+          </div>
+        </div>
+      </Scrollbar>
     </div>
   );
 }

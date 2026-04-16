@@ -6,7 +6,6 @@ import ElementLibrary from '../editor/ElementLibrary';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
-import { useSolarWireUIStore } from '../../stores/solarWireUIStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements } from '../../../shared/utils/solarwire-utils';
 import './SolarWireMode.css';
@@ -14,8 +13,7 @@ import './SolarWireMode.css';
 function SolarWireMode(): JSX.Element {
   const { content, setContent, undo } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
-  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode } = useSolarWireStore();
-  const { showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed } = useSolarWireUIStore();
+  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<'code' | 'visual'>('visual');
 
@@ -37,11 +35,11 @@ function SolarWireMode(): JSX.Element {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 10, 200));
+    setZoomLevel(Math.min(zoomLevel + 10, 200));
   };
 
   const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 10, 25));
+    setZoomLevel(Math.max(zoomLevel - 10, 25));
   };
 
   // 将选中的元素ID转换为行号，包括note的多行内容
@@ -74,7 +72,7 @@ function SolarWireMode(): JSX.Element {
     const isEditing = activeElement && (
       activeElement.tagName === 'INPUT' ||
       activeElement.tagName === 'TEXTAREA' ||
-      activeElement.isContentEditable ||
+      (activeElement as HTMLElement).isContentEditable ||
       (activeElement as any).classList?.contains('monaco-editor')
     );
     
@@ -199,7 +197,7 @@ function SolarWireMode(): JSX.Element {
   }, [undo, handleKeyDown]);
 
   return (
-    <div className="solarwire-mode" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="solarwire-mode">
       <div className="solarwire-header">
         <div className="solarwire-tabs">
           <button 
@@ -221,9 +219,9 @@ function SolarWireMode(): JSX.Element {
         </div>
       </div>
       
-      <div className="solarwire-content" style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+      <div className="solarwire-content">
         {activeTab === 'code' ? (
-          <div className="code-panel" style={{ flex: 1, height: '100%' }}>
+          <div className="code-panel">
             <MonacoEditor
               language="solarwire"
               value={content}
@@ -234,22 +232,18 @@ function SolarWireMode(): JSX.Element {
             />
           </div>
         ) : (
-          <div style={{ flex: 1, height: '100%', position: 'relative' }}>
-            <div className="preview-panel" style={{ flex: 1, height: '100%', position: 'relative' }}>
-              <div className="preview-content" style={{ height: '100%' }}>
-                <SolarWirePreview 
-                  zoomLevel={zoomLevel}
-                  selectionTool={selectionTool}
-                  showNotes={showNotes}
-                  onZoomChange={setZoomLevel}
-                  isPanMode={isPanMode}
-                  isSpacePressed={isSpacePressed}
-                />
-              </div>
-            </div>
+          <>
+            <SolarWirePreview 
+              zoomLevel={zoomLevel}
+              selectionTool={selectionTool}
+              showNotes={showNotes}
+              onZoomChange={setZoomLevel}
+              isPanMode={isPanMode}
+              isSpacePressed={isSpacePressed}
+            />
             
             {/* 悬浮工具栏 */}
-            <div className="solarwire-toolbar-floating" style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1000 }}>
+            <div className="solarwire-toolbar-floating">
               <div className="solarwire-toolbar">
                 <div className="toolbar-section pan-section">
                   <button
@@ -364,11 +358,11 @@ function SolarWireMode(): JSX.Element {
             
             {/* 悬浮属性面板 */}
             {selectedElements.length > 0 && (
-              <div className="sidebar-panel-floating" style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 1000, width: '300px', maxHeight: '80vh', overflow: 'auto' }}>
+              <div className="sidebar-panel-floating">
                 <PropertyPanel />
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

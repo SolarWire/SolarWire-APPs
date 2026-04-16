@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { useCoordinateSystem } from '../../../shared/hooks/useCoordinateSystem';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
@@ -84,7 +85,6 @@ function snapToAngle(dx: number, dy: number): { dx: number; dy: number } {
 
 function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false }: SolarWireCanvasProps): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const interactionLayerRef = useRef<SVGSVGElement>(null);
   
   const { content, setContent } = useEditorStore();
@@ -96,6 +96,13 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
   
   const [scale, setScale] = useState(zoomLevel / 100);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  
+  // 使用坐标系统Hook
+  const { getWorldCoords, getTransform, containerRef } = useCoordinateSystem({
+    position,
+    scale
+  });
+  
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [dragElementState, setDragElementState] = useState<DragElementState | null>(null);
@@ -209,19 +216,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
-  
-  const getCanvasCoords = useCallback((clientX: number, clientY: number) => {
-    if (!containerRef.current) return { x: 0, y: 0 };
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    // 将屏幕坐标转换为世界坐标
-    // 公式：世界坐标 = (屏幕坐标 - 视口偏移) / 缩放比例
-    const x = (clientX - rect.left - position.x) / scale;
-    const y = (clientY - rect.top - position.y) / scale;
-    
-    return { x, y };
-  }, [position, scale]);
-  
+
   const getElementData = useCallback((elementId: string): SolarWireElement | null => {
     if (!ast) return null;
     
@@ -438,7 +433,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (e.button !== 0) return;
     
-    const coords = getCanvasCoords(e.clientX, e.clientY);
+    const coords = getWorldCoords(e.clientX, e.clientY);
     
     // 如果处于视角移动模式，直接进入画布拖动状态
     if (currentPanMode) {
@@ -462,7 +457,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
         currentY: coords.y
       });
     }
-  }, [currentPanMode, getCanvasCoords, position, getElementAtPosition, selectElements]);
+  }, [currentPanMode, getWorldCoords, position, getElementAtPosition, selectElements]);
   
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     // 如果处于视角移动模式，只处理画布拖动，不更新悬停状态
@@ -476,7 +471,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       return;
     }
     
-    const coords = getCanvasCoords(e.clientX, e.clientY);
+    const coords = getWorldCoords(e.clientX, e.clientY);
     
     // 更新悬停元素
     const elementId = getElementAtPosition(coords.x, coords.y);
@@ -497,7 +492,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
         currentY: coords.y
       });
     }
-  }, [currentPanMode, isDraggingCanvas, dragStart, position, boxSelection, getCanvasCoords, getElementAtPosition]);
+  }, [currentPanMode, isDraggingCanvas, dragStart, position, boxSelection, getWorldCoords, getElementAtPosition]);
   
   const handleMouseUp = useCallback(() => {
     if (isDraggingCanvas) {
@@ -534,7 +529,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       if (!jsonData) return;
 
       const elementData = JSON.parse(jsonData);
-      const coords = getCanvasCoords(e.clientX, e.clientY);
+      const coords = getWorldCoords(e.clientX, e.clientY);
       const x = Math.round(coords.x);
       const y = Math.round(coords.y);
 
@@ -575,7 +570,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
     } catch (error) {
       console.error('Drop error:', error);
     }
-  }, [content, setContent, getCanvasCoords]);
+  }, [content, setContent, getWorldCoords]);
   
   // 计算当前光标样式
   const cursor = currentPanMode ? (isDraggingCanvas ? 'grabbing' : 'grab') : 'default';
@@ -727,17 +722,17 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
         style={{
-          cursor,
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-          transformOrigin: '0 0'
-        }}
+            cursor,
+            transform: getTransform(),
+            transformOrigin: '0 0'
+          }}
       />
       
       <svg
         ref={interactionLayerRef}
         className="solarwire-canvas-interaction-layer"
         style={{
-          transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+          transform: getTransform(),
           transformOrigin: '0 0'
         }}
       >

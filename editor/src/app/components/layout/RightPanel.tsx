@@ -1,6 +1,5 @@
 import React from 'react';
 import BlankMode from '../editor-modes/BlankMode';
-import MonacoMode from '../editor-modes/MonacoMode';
 import SolarWireMode from '../editor-modes/SolarWireMode';
 import MarkdownMode from '../editor-modes/MarkdownMode';
 import VersionDiffMode from '../editor-modes/VersionDiffMode';

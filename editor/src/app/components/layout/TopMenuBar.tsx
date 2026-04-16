@@ -3,7 +3,6 @@ import { useAppStore } from '../../stores/appStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
-import { useSolarWireUIStore } from '../../stores/solarWireUIStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import SettingsModal from '../ui/SettingsModal';
 import ElementLibrary from '../editor/ElementLibrary';
@@ -15,9 +14,7 @@ interface SolarWireToolbarProps {
 
 const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
   const { content, setContent } = useEditorStore();
-  const { selectedElements, selectionTool, setSelectionTool } = useSolarWireStore();
-  const { showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed } = useSolarWireUIStore();
-  const { isPanMode, setIsPanMode } = useSolarWireStore();
+  const { selectedElements, selectionTool, setSelectionTool, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, isPanMode, setIsPanMode } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
 
   const selectionTools = [
@@ -38,11 +35,11 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
   };
 
   const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 10, 200));
+    setZoomLevel(Math.min(zoomLevel + 10, 200));
   };
 
   const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 10, 25));
+    setZoomLevel(Math.max(zoomLevel - 10, 25));
   };
 
   return (
@@ -163,7 +160,7 @@ const TopMenuBar: React.FC = () => {
   const { theme, setTheme } = useAppStore();
   const { saveFile } = useFileStore();
   const { isModified, mode } = useEditorStore();
-  const { isSpacePressed, setIsSpacePressed } = useSolarWireUIStore();
+  const { isSpacePressed, setIsSpacePressed } = useSolarWireStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const toggleTheme = () => {

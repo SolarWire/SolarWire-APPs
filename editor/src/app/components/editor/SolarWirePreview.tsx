@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { useCoordinateSystem } from '../../../shared/hooks/useCoordinateSystem';
 
 // 节流函数
 function throttle<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -60,6 +61,78 @@ const getElementDataFromContent = (content: string, lineNum: number) => {
   return { x, y, x2, y2 };
 };
 
+/**
+ * 处理线段拖动
+ * @param content 当前文档内容
+ * @param lineNum 线段编号
+ * @param elementX 原始起点 X 坐标
+ * @param elementY 原始起点 Y 坐标
+ * @param elementX2 原始终点 X 坐标
+ * @param elementY2 原始终点 Y 坐标
+ * @param dx X 轴偏移量
+ * @param dy Y 轴偏移量
+ * @param throttledSetContent 节流版本的 setContent 函数
+ * @returns 更新后的文档内容
+ */
+const handleLineDrag = (
+  content: string,
+  lineNum: number,
+  elementX: number,
+  elementY: number,
+  elementX2: number | undefined,
+  elementY2: number | undefined,
+  dx: number,
+  dy: number,
+  throttledSetContent: (content: string) => void
+): string => {
+  const newX = Math.max(0, Math.round(elementX + dx));
+  const newY = Math.max(0, Math.round(elementY + dy));
+  
+  let newContent = updateLineAttribute(content, lineNum, 'x', newX);
+  newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+  
+  // 如果有终点坐标，同时更新终点
+  if (elementX2 !== undefined && elementY2 !== undefined) {
+    const newX2 = Math.max(0, Math.round(elementX2 + dx));
+    const newY2 = Math.max(0, Math.round(elementY2 + dy));
+    newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
+    newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+  }
+  
+  throttledSetContent(newContent);
+  return newContent;
+};
+
+/**
+ * 处理普通元素拖动
+ * @param content 当前文档内容
+ * @param lineNum 元素编号
+ * @param elementX 原始 X 坐标
+ * @param elementY 原始 Y 坐标
+ * @param dx X 轴偏移量
+ * @param dy Y 轴偏移量
+ * @param throttledSetContent 节流版本的 setContent 函数
+ * @returns 更新后的文档内容
+ */
+const handleElementDrag = (
+  content: string,
+  lineNum: number,
+  elementX: number,
+  elementY: number,
+  dx: number,
+  dy: number,
+  throttledSetContent: (content: string) => void
+): string => {
+  const newX = Math.max(0, Math.round(elementX + dx));
+  const newY = Math.max(0, Math.round(elementY + dy));
+  
+  let newContent = updateLineAttribute(content, lineNum, 'x', newX);
+  newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+  
+  throttledSetContent(newContent);
+  return newContent;
+};
+
 interface BoxSelectionState {
   startX: number;
   startY: number;
@@ -73,17 +146,23 @@ interface DragElementState {
   startY: number;
   elementX: number;
   elementY: number;
+  elementX2?: number;
+  elementY2?: number;
+  isLine?: boolean;
 }
 
 interface ResizeHandleState {
   elementId: string;
-  handle: 'nw' | 'ne' | 'sw' | 'se';
+  handle: 'nw' | 'ne' | 'sw' | 'se' | 'start' | 'end';
   startX: number;
   startY: number;
   elementX: number;
   elementY: number;
-  elementW: number;
-  elementH: number;
+  elementW?: number;
+  elementH?: number;
+  elementX2?: number;
+  elementY2?: number;
+  isLine?: boolean;
 }
 
 interface SolarWirePreviewProps {
@@ -103,11 +182,16 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   // 创建节流版本的setContent函数，限制调用频率为100ms
   const throttledSetContent = useMemo(() => throttle(setContent, 100), [setContent]);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const svgContainerRef = useRef<HTMLDivElement>(null);
-
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  
+  // 使用坐标系统Hook
+  const { getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
+    position,
+    scale
+  });
+
+  const svgContainerRef = useRef<HTMLDivElement>(null);
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [boxSelection, setBoxSelection] = useState<BoxSelectionState | null>(null);
@@ -205,14 +289,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
   }, [scale, position, onZoomChange]);
 
-  const getSVGCoords = useCallback((clientX: number, clientY: number) => {
-    if (!containerRef.current) return { x: 0, y: 0 };
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (clientX - rect.left - position.x) / scale;
-    const y = (clientY - rect.top - position.y) / scale;
-    return { x, y };
-  }, [position, scale]);
-
   const getElementIdFromSVGElement = (element: SVGElement | HTMLElement): string | null => {
     let el: SVGElement | HTMLElement | null = element;
     while (el) {
@@ -267,7 +343,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
         const lineHeight = parseInt(attrs['line-height'] || '22');
         const declaredWidth = parseInt(attrs.w || '0');
-        w = declaredWidth || (lines.length > 0 ? Math.max(...lines.map(l => l.length * fontSize * 0.6)) : 100);
+        w = declaredWidth || (lines.length > 0 ? Math.max(...lines.map((l: string) => l.length * fontSize * 0.6)) : 100);
         h = lines.length > 0 ? lines.length * lineHeight : fontSize;
         break;
       case 'line':
@@ -411,13 +487,44 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         if (elementId) {
           // 点击到元素时，点选
           const bounds = getElementBounds(elementId);
-          setDragElementState({
+          const elementData = getElementData(elementId);
+          const isLine = elementData?.type === 'line';
+          
+          const dragState: DragElementState = {
             elementId,
             startX: e.clientX,
             startY: e.clientY,
             elementX: bounds.x,
             elementY: bounds.y
-          });
+          };
+          
+          // 如果是线段，保存终点坐标
+          if (isLine && elementData) {
+            const lineElement = elementData as any;
+            let x2 = 0, y2 = 0;
+            
+            if (lineElement.end) {
+              if ((lineElement.end as any).x && (lineElement.end as any).y) {
+                if ((lineElement.end as any).x.type === 'absolute') {
+                  x2 = (lineElement.end as any).x.value;
+                }
+                if ((lineElement.end as any).y.type === 'absolute') {
+                  y2 = (lineElement.end as any).y.value;
+                }
+              } else if ((lineElement.end as any).dx !== undefined && (lineElement.end as any).dy !== undefined) {
+                x2 = bounds.x + (lineElement.end as any).dx;
+                y2 = bounds.y + (lineElement.end as any).dy;
+              }
+            }
+            
+            if (x2 !== 0 || y2 !== 0) {
+              dragState.elementX2 = x2;
+              dragState.elementY2 = y2;
+              dragState.isLine = true;
+            }
+          }
+          
+          setDragElementState(dragState);
           if (e.shiftKey) {
             // Shift+Click：切换选中状态
             if (selectedElements.includes(elementId)) {
@@ -431,7 +538,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           }
         } else if (currentTool === 'box-inclusive') {
           // box-inclusive 模式下，点击空白处开始框选（使用SVG坐标）
-          const svgCoords = getSVGCoords(e.clientX, e.clientY);
+          const svgCoords = getSvgCoords(e.clientX, e.clientY);
           setBoxSelection({
             startX: svgCoords.x,
             startY: svgCoords.y,
@@ -461,9 +568,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     if (resizeHandleState) {
       // 获取当前鼠标在SVG坐标系中的位置
-      const currentCoords = getSVGCoords(e.clientX, e.clientY);
+      const currentCoords = getSvgCoords(e.clientX, e.clientY);
       // 获取起始鼠标在SVG坐标系中的位置
-      const startCoords = getSVGCoords(resizeHandleState.startX, resizeHandleState.startY);
+      const startCoords = getSvgCoords(resizeHandleState.startX, resizeHandleState.startY);
       
       const dx = currentCoords.x - startCoords.x;
       const dy = currentCoords.y - startCoords.y;
@@ -572,40 +679,47 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
 
     if (dragElementState) {
-      // 获取当前鼠标在SVG坐标系中的位置
-      const currentCoords = getSVGCoords(e.clientX, e.clientY);
-      // 获取起始鼠标在SVG坐标系中的位置
-      const startCoords = getSVGCoords(dragElementState.startX, dragElementState.startY);
+      // 获取当前鼠标在 SVG 坐标系中的位置
+      const currentCoords = getSvgCoords(e.clientX, e.clientY);
+      // 获取起始鼠标在 SVG 坐标系中的位置
+      const startCoords = getSvgCoords(dragElementState.startX, dragElementState.startY);
       
       const dx = currentCoords.x - startCoords.x;
       const dy = currentCoords.y - startCoords.y;
       
-      const newX = Math.max(0, Math.round(dragElementState.elementX + dx));
-      const newY = Math.max(0, Math.round(dragElementState.elementY + dy));
-
       const lineNum = parseInt(dragElementState.elementId);
       if (!isNaN(lineNum)) {
-        // 获取元素数据，检查是否是线段元素
-        const elementData = getElementDataFromContent(content, lineNum);
-        let newContent = updateLineAttribute(content, lineNum, 'x', newX);
-        newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-        
-        // 如果是线段元素，同时更新终点坐标
-        if (elementData && elementData.x2 && elementData.y2) {
-          const newX2 = Math.max(0, Math.round(elementData.x2 + dx));
-          const newY2 = Math.max(0, Math.round(elementData.y2 + dy));
-          newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
-          newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+        // 根据元素类型调用对应的拖动处理函数
+        if (dragElementState.isLine) {
+          handleLineDrag(
+            content,
+            lineNum,
+            dragElementState.elementX,
+            dragElementState.elementY,
+            dragElementState.elementX2,
+            dragElementState.elementY2,
+            dx,
+            dy,
+            throttledSetContent
+          );
+        } else {
+          handleElementDrag(
+            content,
+            lineNum,
+            dragElementState.elementX,
+            dragElementState.elementY,
+            dx,
+            dy,
+            throttledSetContent
+          );
         }
-        
-        throttledSetContent(newContent);
       }
       return;
     }
 
     if (boxSelection) {
       // 使用SVG坐标更新框选框
-      const svgCoords = getSVGCoords(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       setBoxSelection({
         ...boxSelection,
         currentX: svgCoords.x,
@@ -636,8 +750,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
 
     if (boxSelection) {
-      const startCoords = getSVGCoords(boxSelection.startX, boxSelection.startY);
-      const currentCoords = getSVGCoords(boxSelection.currentX, boxSelection.currentY);
+      const startCoords = getSvgCoords(boxSelection.startX, boxSelection.startY);
+      const currentCoords = getSvgCoords(boxSelection.currentX, boxSelection.currentY);
       testBoxSelection(
         startCoords.x,
         startCoords.y,
@@ -661,7 +775,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (!jsonData) return;
 
       const elementData = JSON.parse(jsonData);
-      const svgCoords = getSVGCoords(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       const x = Math.round(svgCoords.x);
       const y = Math.round(svgCoords.y);
 
@@ -900,7 +1014,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             position: 'absolute',
             top: 0,
             left: 0,
-            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transform: getTransform(),
             transformOrigin: '0 0',
             userSelect: 'none',
             WebkitUserSelect: 'none',
@@ -922,7 +1036,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             width: '100%',
             height: '100%',
             pointerEvents: 'none',
-            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
+            transform: getTransform(),
             transformOrigin: '0 0'
           }}
         >

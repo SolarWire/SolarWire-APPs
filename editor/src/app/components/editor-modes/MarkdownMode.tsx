@@ -26,7 +26,7 @@ function MarkdownMode(): JSX.Element {
   };
 
   return (
-    <div className="markdown-mode" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div className="markdown-mode">
       <div className="markdown-tabs">
         <button 
           className={`markdown-tab ${activeTab === 'preview' ? 'active' : ''}`}
@@ -45,7 +45,7 @@ function MarkdownMode(): JSX.Element {
           编辑器
         </button>
       </div>
-      <div className="markdown-content" style={{ flex: 1, overflow: 'auto' }}>
+      <div className="markdown-content">
         {activeTab === 'editor' ? (
           <MonacoEditor
             language="markdown"

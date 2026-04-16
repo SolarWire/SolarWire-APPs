@@ -18,7 +18,7 @@ const LeftPanel: React.FC = () => {
 
   return (
     <div className="left-panel">
-      <div className="left-panel-top" style={{ height: shouldFillHeight ? '100%' : `${topPanelHeight}px` }}>
+      <div className="left-panel-top" style={{ '--panel-height': shouldFillHeight ? '100%' : `${topPanelHeight}px` } as React.CSSProperties}>
         <ViewTabs />
       </div>
       {shouldShowBottomPanel && (

@@ -13,7 +13,7 @@ const MainContent: React.FC = () => {
 
   return (
     <div className="main-content">
-      <div className="left-panel-container" style={{ width: `${leftPanelWidth}px` }}>
+      <div className="left-panel-container" style={{ '--panel-width': `${leftPanelWidth}px` } as React.CSSProperties}>
         <LeftPanel />
       </div>
       <ResizableDivider
