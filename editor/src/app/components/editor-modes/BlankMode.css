@@ -18,11 +18,11 @@
 .blank-mode-title {
   font-size: 24px;
   font-weight: 600;
-  color: #fff;
+  color: var(--white);
   margin-bottom: 12px;
 }
 
 .blank-mode-text {
   font-size: 14px;
-  color: #969696;
+  color: var(--text-muted);
 }

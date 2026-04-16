@@ -160,7 +160,7 @@
 }
 
 .commit-button:hover:not(:disabled) {
-  background: #e89700;
+  background: var(--accent-hover);
 }
 
 .commit-button:disabled {
@@ -201,8 +201,8 @@
 }
 
 .branch-item.current {
-  background: rgba(106, 153, 85, 0.1);
-  border-left: 3px solid #6a9955;
+  background: rgba(76, 175, 80, 0.1);
+  border-left: 3px solid var(--success-text);
 }
 
 .branch-item-name {

@@ -1,4 +1,4 @@
-/* ColorPicker组件样式 */
+/* ColorPicker 组件样式 */
 .color-picker-group {
   margin-bottom: 16px;
 }
@@ -8,7 +8,7 @@
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: #333;
+  color: var(--text-dark);
 }
 
 .color-picker-wrapper {
@@ -19,7 +19,7 @@
 .color-picker-wrapper input[type="color"] {
   width: 100%;
   height: 32px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-lighter);
   border-radius: 4px;
   cursor: pointer;
 }
@@ -35,8 +35,8 @@
   height: 32px;
   width: 32px;
   border: none;
-  background: #f5f5f5;
-  border-left: 1px solid #ddd;
+  background: var(--bg-light);
+  border-left: 1px solid var(--border-lighter);
   border-radius: 0 4px 4px 0;
   cursor: pointer;
   font-size: 12px;
@@ -46,7 +46,7 @@
 }
 
 .color-picker-toggle:hover {
-  background: #e0e0e0;
+  background: var(--bg-hover);
 }
 
 .color-picker-menu {
@@ -54,8 +54,8 @@
   top: 100%;
   right: 0;
   margin-top: 4px;
-  background: white;
-  border: 1px solid #ddd;
+  background: var(--white);
+  border: 1px solid var(--border-lighter);
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   padding: 8px;
@@ -71,7 +71,7 @@
   font-size: 12px;
   font-weight: 500;
   margin-bottom: 8px;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .color-picker-grid {
@@ -83,32 +83,32 @@
 .color-picker-swatch {
   width: 24px;
   height: 24px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-lighter);
   border-radius: 4px;
   cursor: pointer;
   padding: 0;
 }
 
 .color-picker-swatch:hover {
-  border-color: #333;
+  border-color: var(--text-dark);
 }
 
 .color-picker-divider {
   height: 1px;
-  background: #ddd;
+  background: var(--border-lighter);
   margin: 8px 0;
 }
 
 .color-picker-add {
   width: 100%;
   padding: 4px 8px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--border-lighter);
   border-radius: 4px;
-  background: #f5f5f5;
+  background: var(--bg-light);
   cursor: pointer;
   font-size: 12px;
 }
 
 .color-picker-add:hover {
-  background: #e0e0e0;
+  background: var(--bg-hover);
 }

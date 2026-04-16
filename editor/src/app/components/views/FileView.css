@@ -40,7 +40,7 @@
 }
 
 .open-button:hover {
-  background-color: #e89700;
+  background-color: var(--accent-hover);
 }
 
 .open-button.small {

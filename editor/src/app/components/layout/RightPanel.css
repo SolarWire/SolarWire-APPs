@@ -1,7 +1,7 @@
 .right-panel {
   flex: 1;
   height: 100%;
-  background: #1e1e1e;
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   margin: 0;
@@ -12,28 +12,28 @@
   display: flex;
   gap: 4px;
   padding: 8px;
-  background: #2d2d2d;
-  border-bottom: 1px solid #404040;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-dark);
 }
 
 .mode-tab {
   padding: 6px 16px;
   border: none;
   background: transparent;
-  color: #888;
+  color: var(--text-muted);
   cursor: pointer;
   border-radius: 4px;
   font-size: 13px;
 }
 
 .mode-tab:hover {
-  background: #3d3d3d;
-  color: #ccc;
+  background: var(--bg-hover);
+  color: var(--text-secondary);
 }
 
 .mode-tab.active {
-  background: #0e639c;
-  color: white;
+  background: var(--bg-selected);
+  color: var(--white);
 }
 
 .editor-content {

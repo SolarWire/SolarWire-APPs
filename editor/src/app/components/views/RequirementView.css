@@ -61,12 +61,12 @@
 }
 
 .status-staged {
-  background-color: #2196f3;
+  background-color: var(--status-blue);
   color: var(--white);
 }
 
 .status-committed {
-  background-color: #9e9e9e;
+  background-color: var(--status-gray);
   color: var(--white);
 }
 

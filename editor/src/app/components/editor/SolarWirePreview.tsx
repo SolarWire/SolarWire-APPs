@@ -476,21 +476,41 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     let nearestElement: string | null = null;
     let minDistance = Infinity;
     
+    // 第一遍：优先检测线段（使用点到线段距离）
     ast.elements.forEach((element) => {
       const lineNum = element.location?.line;
       if (!lineNum) return;
       
       if (element.type === 'line') {
-        // 线段元素：使用点到线段距离
-        const { x1, y1, x2, y2 } = getLineCoordinates(element);
-        const actualDistance = pointToLineDistance(svgX, svgY, x1, y1, x2, y2);
-        
-        if (actualDistance <= tolerance && actualDistance < minDistance) {
-          minDistance = actualDistance;
-          nearestElement = lineNum.toString();
+        try {
+          const { x1, y1, x2, y2 } = getLineCoordinates(element);
+          const actualDistance = pointToLineDistance(svgX, svgY, x1, y1, x2, y2);
+          
+          if (actualDistance <= tolerance && actualDistance < minDistance) {
+            minDistance = actualDistance;
+            nearestElement = lineNum.toString();
+          }
+        } catch (e) {
+          // 如果获取线段坐标失败，跳过该元素
+          console.warn('Failed to get line coordinates for element', lineNum, e);
         }
-      } else {
-        // 普通元素：使用边界框检测
+      }
+    });
+    
+    // 如果已经找到线段，直接返回（线段优先级最高）
+    if (nearestElement) {
+      return nearestElement;
+    }
+    
+    // 第二遍：检测其他元素（使用边界框检测）
+    ast.elements.forEach((element) => {
+      const lineNum = element.location?.line;
+      if (!lineNum) return;
+      
+      // 跳过线段元素（已经检测过了）
+      if (element.type === 'line') return;
+      
+      try {
         const bounds = getElementBounds(lineNum.toString());
         const elementLeft = bounds.x;
         const elementRight = bounds.x + bounds.w;
@@ -508,6 +528,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           minDistance = distance;
           nearestElement = lineNum.toString();
         }
+      } catch (e) {
+        // 如果获取边界框失败，跳过该元素
+        console.warn('Failed to get bounds for element', lineNum, e);
       }
     });
     
@@ -526,6 +549,26 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const line = element.location?.line;
       if (!line) return;
       
+      // 线段元素使用特殊的检测逻辑
+      if (element.type === 'line') {
+        try {
+          const { x1: lineX1, y1: lineY1, x2: lineX2, y2: lineY2 } = getLineCoordinates(element);
+          
+          // 检查线段的起点和终点是否都在框选区域内
+          const startInBox = lineX1 >= minX && lineX1 <= maxX && lineY1 >= minY && lineY1 <= maxY;
+          const endInBox = lineX2 >= minX && lineX2 <= maxX && lineY2 >= minY && lineY2 <= maxY;
+          
+          // 框选：线段的起点或终点至少有一个在区域内
+          if (startInBox || endInBox) {
+            selected.push(line.toString());
+          }
+        } catch (e) {
+          console.warn('Failed to get line coordinates for box selection', line, e);
+        }
+        return;
+      }
+      
+      // 普通元素使用边界框检测
       const bounds = getElementBounds(line.toString());
       if (bounds.w === 0 && bounds.h === 0) return;
 
@@ -694,13 +737,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             selectElements([elementId]);
           }
         } else if (currentTool === 'box-inclusive') {
-          // box-inclusive 模式下，点击空白处开始框选（使用SVG坐标）
-          const svgCoords = getSvgCoords(e.clientX, e.clientY);
+          // box-inclusive 模式下，点击空白处开始框选（使用屏幕坐标）
           setBoxSelection({
-            startX: svgCoords.x,
-            startY: svgCoords.y,
-            currentX: svgCoords.x,
-            currentY: svgCoords.y
+            startX: e.clientX,
+            startY: e.clientY,
+            currentX: e.clientX,
+            currentY: e.clientY
           });
         } else {
           // select 模式下，点击空白处拖动画布
@@ -881,12 +923,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
 
     if (boxSelection) {
-      // 使用SVG坐标更新框选框
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      // 使用屏幕坐标更新框选框
       setBoxSelection({
         ...boxSelection,
-        currentX: svgCoords.x,
-        currentY: svgCoords.y
+        currentX: e.clientX,
+        currentY: e.clientY
       });
     } else {
       // 更新悬停元素
@@ -984,8 +1025,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const renderBoxSelection = () => {
     if (!boxSelection) return null;
 
-    const x = Math.min(boxSelection.startX, boxSelection.currentX);
-    const y = Math.min(boxSelection.startY, boxSelection.currentY);
+    if (!containerRef.current) return null;
+    const rect = containerRef.current.getBoundingClientRect();
+
+    const x = Math.min(boxSelection.startX, boxSelection.currentX) - rect.left;
+    const y = Math.min(boxSelection.startY, boxSelection.currentY) - rect.top;
     const width = Math.abs(boxSelection.currentX - boxSelection.startX);
     const height = Math.abs(boxSelection.currentY - boxSelection.startY);
 
@@ -997,7 +1041,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         height={height}
         fill="rgba(252, 165, 6, 0.1)"
         stroke={primaryColor}
-        strokeWidth={2 / scale}
+        strokeWidth={2}
         strokeDasharray="4,4"
         style={{ pointerEvents: 'none' }}
       />
