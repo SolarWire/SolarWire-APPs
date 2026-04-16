@@ -3,6 +3,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { useGitStore } from '../../stores/gitStore';
 import { useAppStore } from '../../stores/appStore';
 import { useSelectionStore } from '../../stores/selectionStore';
+import { Scrollbar } from '../ui/Scrollbar';
 import './RequirementView.css';
 
 interface Requirement {
@@ -141,32 +142,34 @@ function RequirementView(): JSX.Element {
   }
 
   return (
-    <div className="requirement-view">
-      <div className="requirement-cards">
-        {requirements.length === 0 ? (
-          <div className="requirement-empty">No markdown files found in the current folder</div>
-        ) : (
-          requirements.map((req) => {
-            const info = gitInfo.get(req.path) || { hash: 'N/A', date: 'N/A', status: 'C' };
-            return (
-              <div
-                key={req.path}
-                className={`requirement-card ${currentView === 'requirement' && (selectedFile?.path === req.path || getSelectionForView('requirement')?.path === req.path) ? 'requirement-card-selected' : ''}`}
-                onClick={() => handleClick(req)}
-              >
-                <h3 className="requirement-folder-name">{req.folderName || 'Root'}</h3>
-                <div className="requirement-subtitle">
-                  <span>Version: {info.hash}</span>
-                  <span>Date: {info.date}</span>
-                  <span className={`status-badge ${getStatusColor(info.status)}`}>{info.status}</span>
+    <Scrollbar className="requirement-view-scrollbar">
+      <div className="requirement-view">
+        <div className="requirement-cards">
+          {requirements.length === 0 ? (
+            <div className="requirement-empty">No markdown files found in the current folder</div>
+          ) : (
+            requirements.map((req) => {
+              const info = gitInfo.get(req.path) || { hash: 'N/A', date: 'N/A', status: 'C' };
+              return (
+                <div
+                  key={req.path}
+                  className={`requirement-card ${currentView === 'requirement' && (selectedFile?.path === req.path || getSelectionForView('requirement')?.path === req.path) ? 'requirement-card-selected' : ''}`}
+                  onClick={() => handleClick(req)}
+                >
+                  <h3 className="requirement-folder-name">{req.folderName || 'Root'}</h3>
+                  <div className="requirement-subtitle">
+                    <span>Version: {info.hash}</span>
+                    <span>Date: {info.date}</span>
+                    <span className={`status-badge ${getStatusColor(info.status)}`}>{info.status}</span>
+                  </div>
+                  <div className="requirement-filename">{req.name}</div>
                 </div>
-                <div className="requirement-filename">{req.name}</div>
-              </div>
-            );
-          })
-        )}
+              );
+            })
+          )}
+        </div>
       </div>
-    </div>
+    </Scrollbar>
   );
 }
 

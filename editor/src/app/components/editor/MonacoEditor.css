@@ -1,6 +1,17 @@
 .monaco-editor {
   height: 100%;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+}
+
+/* 高亮行样式 - 使用 CSS 变量，由主题色控制 */
+.highlight-line {
+  background-color: var(--accent-opacity-35) !important;
+}
+
+.highlight-line-inline {
+  background-color: var(--accent-opacity-35) !important;
+}
+
+.highlight-line-glyph {
+  border-left: 3px solid var(--accent-color) !important;
 }

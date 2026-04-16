@@ -3,6 +3,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { useAppStore } from '../../stores/appStore';
 import FileTree from '../editor/FileTree';
 import { useSelectionStore } from '../../stores/selectionStore';
+import { Scrollbar } from '../ui/Scrollbar';
 import './FileView.css';
 
 const FileView: React.FC = () => {
@@ -106,9 +107,11 @@ const FileView: React.FC = () => {
   };
 
   return (
-    <div className="file-view">
-      {renderFileTree()}
-    </div>
+    <Scrollbar className="file-view-scrollbar">
+      <div className="file-view">
+        {renderFileTree()}
+      </div>
+    </Scrollbar>
   );
 };
 

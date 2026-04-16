@@ -31,9 +31,9 @@
 }
 
 .element-item:hover {
-  background: var(--border-color);
+  background: var(--accent-opacity-10);
   transform: translateY(-2px);
-  border-color: var(--accent-color);
+  border-color: var(--accent-opacity-50);
 }
 
 .element-item:active {
@@ -71,8 +71,8 @@
 }
 
 .element-item-compact:hover {
-  background: var(--border-color);
-  border-color: var(--accent-color);
+  background: var(--accent-opacity-10);
+  border-color: var(--accent-opacity-50);
   transform: scale(1.1);
 }
 

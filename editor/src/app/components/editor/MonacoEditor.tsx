@@ -9,7 +9,6 @@ interface MonacoEditorProps {
   onChange: (value: string) => void;
   height?: string;
   highlightLines?: number[];
-  primaryColor?: string;
 }
 
 function MonacoEditor({
@@ -17,8 +16,7 @@ function MonacoEditor({
   value,
   onChange,
   height = '100%',
-  highlightLines = [],
-  primaryColor = '#FCA506'
+  highlightLines = []
 }: MonacoEditorProps): JSX.Element {
   const { theme } = useAppStore();
   const editorRef = useRef<any>(null);
@@ -27,13 +25,13 @@ function MonacoEditor({
   const handleEditorDidMount = useCallback((editor: any, monaco: any) => {
     editorRef.current = editor;
     
-    // 手动注册solarwire语言定义
+    // 手动注册 solarwire 语言定义
     if (monaco) {
-      // 检查solarwire语言定义
+      // 检查 solarwire 语言定义
       if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'solarwire')) {
         monaco.languages.register({ id: 'solarwire' });
         
-        // 设置Monarch语法高亮
+        // 设置 Monarch 语法高亮
         monaco.languages.setMonarchTokensProvider('solarwire', {
           tokenizer: {
             root: [
@@ -135,26 +133,7 @@ function MonacoEditor({
     if (highlightLines.length > 0) {
       editorRef.current.revealLineInCenter(highlightLines[0]);
     }
-  }, [highlightLines, primaryColor]);
-  
-  React.useEffect(() => {
-    // 注入CSS样式用于高亮
-    if (typeof window !== 'undefined' && document) {
-      const existingStyle = document.getElementById('monaco-highlight-style');
-      if (existingStyle) {
-        existingStyle.remove();
-      }
-      
-      const style = document.createElement('style');
-      style.id = 'monaco-highlight-style';
-      style.textContent = `
-        .highlight-line {
-          background-color: ${primaryColor}59 !important;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }, [primaryColor]);
+  }, [highlightLines]);
   
   return (
     <div className="monaco-editor">

@@ -32,6 +32,13 @@
   --primary-color: #007bff;
   --status-bar-bg: #007acc;
   
+  /* 主色派生变量 - 统一透明度 */
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+  
   /* 基础色 */
   --white: #ffffff;
   --black: #000000;
@@ -56,7 +63,7 @@
   
   /* 其他常用色 */
   --divider-bg: #666;
-  --divider-horizontal: #FCA506;
+  --divider-horizontal: var(--accent-color);
 }
 
 body.theme-light {
@@ -87,6 +94,13 @@ body.theme-light {
   --primary-color: #007bff;
   --status-bar-bg: #007acc;
   
+  /* 主色派生变量 - 统一透明度 */
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+  
   /* 基础色 */
   --white: #ffffff;
   --black: #000000;
@@ -111,7 +125,7 @@ body.theme-light {
   
   /* 其他常用色 */
   --divider-bg: #666;
-  --divider-horizontal: #FCA506;
+  --divider-horizontal: var(--accent-color);
 }
 
 body {
@@ -325,10 +339,68 @@ body {
     position: static;
   }
 
-  /* 白色背景 */
+  /* 打印样式 */
   body,
   .app {
     background: white !important;
     color: black !important;
   }
+}
+
+/* ========================================
+   主色强调样式
+   ======================================== */
+
+/* 分隔线 - 使用主色强调 */
+.divider-accent {
+  border-color: var(--accent-opacity-50);
+  background: var(--accent-opacity-35);
+}
+
+/* 进度条 */
+.progress-bar {
+  background: var(--accent-color);
+  transition: width 0.3s ease;
+}
+
+.progress-bar-container {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  overflow: hidden;
+  height: 8px;
+}
+
+/* Toast 通知 - 信息类使用主色 */
+.toast-info {
+  border-left: 3px solid var(--accent-color);
+  background: var(--accent-opacity-10);
+}
+
+/* 图标强调色 */
+.icon-accent {
+  color: var(--accent-color);
+}
+
+/* 文本强调色 */
+.text-accent {
+  color: var(--accent-color);
+}
+
+/* 背景强调色 */
+.bg-accent {
+  background: var(--accent-color);
+  color: var(--bg-primary);
+}
+
+.bg-accent-light {
+  background: var(--accent-opacity-10);
+}
+
+/* 边框强调色 */
+.border-accent {
+  border-color: var(--accent-color);
+}
+
+.border-accent-light {
+  border-color: var(--accent-opacity-50);
 }

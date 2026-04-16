@@ -1,8 +1,8 @@
 .file-view {
   height: 100%;
-  overflow: auto;
   background: var(--bg-secondary);
   color: var(--text-primary);
+  overflow: visible; /* 移除 auto，让 Scrollbar 组件处理滚动 */
 }
 
 /* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */

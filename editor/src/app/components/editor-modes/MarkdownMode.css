@@ -15,7 +15,7 @@
 
 .markdown-content {
   flex: 1;
-  overflow: auto;
+  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
 }
 
 .editor-panel {
@@ -29,8 +29,7 @@
   min-width: 0;
   background: var(--bg-primary);
   border-left: 1px solid var(--border-color);
-  overflow: auto;
-  /* 使用统一的滚动条样式 */
+  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
   height: 100%;
 }
 

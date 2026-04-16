@@ -13,11 +13,11 @@
 }
 
 .tree-item:hover {
-  background: var(--bg-tertiary);
+  background: var(--accent-opacity-10);
 }
 
 .tree-item.selected {
-  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  background: var(--accent-opacity-35);
   color: var(--accent-color);
 }
 

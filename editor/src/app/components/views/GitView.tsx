@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGitStore } from '../../stores/gitStore';
+import { Scrollbar } from '../ui/Scrollbar';
 import './GitView.css';
 
 function GitView(): JSX.Element {
@@ -36,58 +37,40 @@ function GitView(): JSX.Element {
   }
 
   return (
-    <div className="git-view">
-      <div className="git-section">
-        <div className="section-title">Commit</div>
-        
-        <div className="git-section">
-          <div className="section-title">Commit Message</div>
-          <textarea
-            className="commit-message"
-            placeholder="Enter commit message..."
-            value={commitMessage}
-            onChange={(e) => setCommitMessage(e.target.value)}
-            rows={3}
-          />
+    <Scrollbar className="git-view-scrollbar">
+      <div className="git-view">
+        <div className="git-header">
+          <h3>Git</h3>
+          <button className="refresh-button" onClick={handleRefresh}>
+            🔄 Refresh
+          </button>
         </div>
 
-        <button 
-          className="action-button" 
-          onClick={handleCommit}
-          disabled={!commitMessage.trim() || !hasChanges || isCommitting}
-        >
-          {isCommitting ? 'Committing...' : 'Commit'}
-        </button>
-
-        <div className="git-section">
-          <div className="section-title">Staged Files ({status.staged.length})</div>
-          {status.staged.length === 0 ? (
-            <div className="empty-section">No staged files</div>
-          ) : (
-            status.staged.map((file) => (
+        {status.modified.length > 0 && (
+          <div className="git-section">
+            <div className="section-title modified">Modified ({status.modified.length})</div>
+            {status.modified.map((file) => (
               <div key={file} className="file-item">
                 <span className="file-name">{file}</span>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
-        <div className="git-section">
-          <div className="section-title">Modified Files ({status.modified.length})</div>
-          {status.modified.length === 0 ? (
-            <div className="empty-section">No modified files</div>
-          ) : (
-            status.modified.map((file) => (
+        {status.staged.length > 0 && (
+          <div className="git-section">
+            <div className="section-title staged">Staged ({status.staged.length})</div>
+            {status.staged.map((file) => (
               <div key={file} className="file-item">
                 <span className="file-name">{file}</span>
               </div>
-            ))
-          )}
-        </div>
+            ))}
+          </div>
+        )}
 
         {status.untracked.length > 0 && (
           <div className="git-section">
-            <div className="section-title">Untracked Files ({status.untracked.length})</div>
+            <div className="section-title untracked">Untracked Files ({status.untracked.length})</div>
             {status.untracked.map((file) => (
               <div key={file} className="file-item">
                 <span className="file-name">{file}</span>
@@ -96,7 +79,7 @@ function GitView(): JSX.Element {
           </div>
         )}
       </div>
-    </div>
+    </Scrollbar>
   );
 }
 

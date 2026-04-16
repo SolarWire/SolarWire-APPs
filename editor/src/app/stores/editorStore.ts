@@ -20,7 +20,6 @@ const sampleContent = `!title="SolarWire Complete Feature Demo"
 "Both Styles" @(350,190) bold italic note="Text with both bold and italic"
 
 [?"Placeholder"] @(50,230) w=200 h=80 note="Placeholder element for missing content"
-<https://example.com/hero.jpg> @(270,230) w=200 h=80 note="Image element with URL - shows placeholder when not loaded"
 
 -- @(50,330)->(950,330) c=gray note="Horizontal divider line separating sections"
 

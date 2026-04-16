@@ -12,6 +12,14 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange
   const { favoriteColors, addFavoriteColor, removeFavoriteColor } = useSettingsStore();
   const [showMenu, setShowMenu] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  
+  // 检查是否是有效的十六进制颜色值
+  const isValidHexColor = (color: string): boolean => {
+    return /^#[0-9A-Fa-f]{6}$/.test(color);
+  };
+  
+  // 如果当前值不是有效的十六进制颜色，使用默认值
+  const colorValue = isValidHexColor(value) ? value : '#000000';
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -32,7 +40,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange
       <div className="color-picker-wrapper">
         <input
           type="color"
-          value={value}
+          value={colorValue}
           onChange={(e) => onChange(e.target.value)}
         />
         <div className="color-picker-dropdown">

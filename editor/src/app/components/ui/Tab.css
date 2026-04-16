@@ -62,5 +62,6 @@
 /* Tab Panel */
 .tab-panel {
   flex: 1;
-  overflow: auto;
+  height: 100%;
+  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
 }

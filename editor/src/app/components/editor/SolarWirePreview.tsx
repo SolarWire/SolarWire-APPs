@@ -295,6 +295,41 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     };
   }, []);
 
+  // 添加非 passive 的 wheel 事件监听器，以支持 preventDefault
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const handleWheelEvent = (e: WheelEvent) => {
+      e.preventDefault();
+      
+      const rect = container.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
+
+      const delta = e.deltaY > 0 ? 0.9 : 1.1;
+      const newScale = Math.max(0.1, Math.min(10, scale * delta));
+
+      const scaleRatio = newScale / scale;
+      const newX = mouseX - (mouseX - position.x) * scaleRatio;
+      const newY = mouseY - (mouseY - position.y) * scaleRatio;
+
+      setScale(newScale);
+      setPosition({ x: newX, y: newY });
+      setIsInitialized(true);
+      
+      if (onZoomChange) {
+        onZoomChange(Math.round(newScale * 100));
+      }
+    };
+
+    container.addEventListener('wheel', handleWheelEvent, { passive: false });
+
+    return () => {
+      container.removeEventListener('wheel', handleWheelEvent);
+    };
+  }, [scale, position, onZoomChange]);
+
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     
@@ -344,29 +379,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   }, [ast]);
 
   /**
-   * 检测鼠标位置是否在线段附近（2px 范围内）
-   * @param mouseX 鼠标 X 坐标（SVG 坐标）
-   * @param mouseY 鼠标 Y 坐标（SVG 坐标）
-   * @param lineElement 线段元素
-   * @param tolerance 容差范围（像素）
-   * @returns 是否在线段附近
-   */
-  const isMouseNearLine = useCallback((
-    mouseX: number,
-    mouseY: number,
-    lineElement: SolarWireElement,
-    tolerance: number = 2
-  ): boolean => {
-    if (lineElement.type !== 'line') return false;
-    
-    const { x1, y1, x2, y2 } = getLineCoordinates(lineElement);
-    
-    // 计算点到线段的最短距离
-    const distance = pointToLineDistance(mouseX, mouseY, x1, y1, x2, y2);
-    return distance <= tolerance;
-  }, [pointToLineDistance]);
-
-  /**
    * 计算点到线段的最短距离
    */
   const pointToLineDistance = (
@@ -408,9 +420,54 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return Math.sqrt(dx * dx + dy * dy);
   };
 
+  /**
+   * 检测鼠标位置是否在线段附近（2px 范围内）
+   * @param mouseX 鼠标 X 坐标（SVG 坐标）
+   * @param mouseY 鼠标 Y 坐标（SVG 坐标）
+   * @param lineElement 线段元素
+   * @param tolerance 容差范围（像素）
+   * @returns 是否在线段附近
+   */
+  const isMouseNearLine = useCallback((
+    mouseX: number,
+    mouseY: number,
+    lineElement: SolarWireElement,
+    tolerance: number = 2
+  ): boolean => {
+    if (lineElement.type !== 'line') return false;
+    
+    const { x1, y1, x2, y2 } = getLineCoordinates(lineElement);
+    
+    // 计算点到线段的最短距离
+    const distance = pointToLineDistance(mouseX, mouseY, x1, y1, x2, y2);
+    return distance <= tolerance;
+  }, [pointToLineDistance]);
+
   const getElementBounds = useCallback((elementId: string) => {
     const elementData = getElementData(elementId);
     if (!elementData) return { x: 0, y: 0, w: 0, h: 0, r: 0 };
+    
+    // 线段元素使用特殊的边界框计算
+    if (elementData.type === 'line') {
+      try {
+        const { x1, y1, x2, y2 } = getLineCoordinates(elementData);
+        const minX = Math.min(x1, x2);
+        const minY = Math.min(y1, y2);
+        const maxX = Math.max(x1, x2);
+        const maxY = Math.max(y1, y2);
+        return {
+          x: minX,
+          y: minY,
+          w: maxX - minX,
+          h: maxY - minY,
+          r: 0
+        };
+      } catch (e) {
+        console.warn('Failed to get line bounds, using fallback', e);
+        // Fall back to attribute-based calculation
+      }
+    }
+    
     const attrs = elementData.attributes || {};
     const coords = elementData.coordinates;
     const type = elementData.type;
@@ -457,7 +514,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
     
     return { x, y, w, h, r };
-  }, [getElementData]);
+  }, [getElementData, getLineCoordinates]);
 
   /**
    * 检测鼠标位置附近的所有元素（包括线段）
@@ -491,7 +548,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             nearestElement = lineNum.toString();
           }
         } catch (e) {
-          // 如果获取线段坐标失败，跳过该元素
           console.warn('Failed to get line coordinates for element', lineNum, e);
         }
       }
@@ -529,7 +585,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           nearestElement = lineNum.toString();
         }
       } catch (e) {
-        // 如果获取边界框失败，跳过该元素
         console.warn('Failed to get bounds for element', lineNum, e);
       }
     });
@@ -1237,7 +1292,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     <div
       ref={containerRef}
       className={`solarwire-preview ${isSpacePressed ? 'pan-mode' : ''}`}
-      onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

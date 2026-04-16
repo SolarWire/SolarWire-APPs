@@ -83,22 +83,13 @@ function CoordinateTypeSelector({
   label = '坐标模式'
 }: CoordinateTypeSelectorProps): JSX.Element {
   return (
-    <div className="coordinate-type-selector" style={{ marginBottom: '8px' }}>
-      <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '8px' }}>{label}</label>
-      <div className="toggle-group" style={{ display: 'inline-flex', gap: '4px' }}>
+    <div className="coordinate-type-selector">
+      <label className="coordinate-type-label">{label}</label>
+      <div className="toggle-group">
         <button
           className={mode === 'absolute' ? 'active' : ''}
           onClick={() => onModeChange('absolute')}
           title="绝对坐标：相对于画布原点 (0, 0)"
-          style={{
-            padding: '4px 8px',
-            fontSize: '11px',
-            border: '1px solid var(--border-light)',
-            borderRadius: '3px',
-            background: mode === 'absolute' ? 'var(--primary-color)' : 'var(--bg-light)',
-            color: mode === 'absolute' ? 'var(--white)' : 'var(--text-dark)',
-            cursor: 'pointer'
-          }}
         >
           绝对
         </button>
@@ -106,15 +97,6 @@ function CoordinateTypeSelector({
           className={mode === 'relative' ? 'active' : ''}
           onClick={() => onModeChange('relative')}
           title="相对坐标：相对于参考点"
-          style={{
-            padding: '4px 8px',
-            fontSize: '11px',
-            border: '1px solid var(--border-light)',
-            borderRadius: '3px',
-            background: mode === 'relative' ? 'var(--primary-color)' : 'var(--bg-light)',
-            color: mode === 'relative' ? 'var(--white)' : 'var(--text-dark)',
-            cursor: 'pointer'
-          }}
         >
           相对
         </button>

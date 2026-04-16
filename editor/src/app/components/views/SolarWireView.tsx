@@ -3,6 +3,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { useAppStore } from '../../stores/appStore';
 import { SolarWireSnippet } from '../../types/file';
 import { useSelectionStore } from '../../stores/selectionStore';
+import { Scrollbar } from '../ui/Scrollbar';
 import './SolarWireView.css';
 
 function SolarWireView(): JSX.Element {
@@ -128,33 +129,35 @@ function SolarWireView(): JSX.Element {
   }
 
   return (
-    <div className="solarwire-view pages-view">
-      <input
-        type="text"
-        className="search-input"
-        placeholder="Search pages..."
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      {loading ? (
-        <div className="solarwire-empty">Loading...</div>
-      ) : filteredPages.length === 0 ? (
-        <div className="solarwire-empty">No SolarWire files found in the current folder</div>
-      ) : (
-        <div className="page-grid">
-          {filteredPages.map((page: any) => (
-            <div
-              key={page.id}
-              className={`page-card ${isSelected(page) ? 'page-card-selected' : ''}`}
-              onClick={() => handleClick(page)}
-            >
-              <h4 className="page-title">{page.displayTitle}</h4>
-              <div className="page-subtitle">{page.subtitle}</div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <Scrollbar className="solarwire-view-scrollbar">
+      <div className="solarwire-view pages-view">
+        <input
+          type="text"
+          className="search-input"
+          placeholder="Search pages..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        {loading ? (
+          <div className="solarwire-empty">Loading...</div>
+        ) : filteredPages.length === 0 ? (
+          <div className="solarwire-empty">No SolarWire files found in the current folder</div>
+        ) : (
+          <div className="page-grid">
+            {filteredPages.map((page: any) => (
+              <div
+                key={page.id}
+                className={`page-card ${isSelected(page) ? 'page-card-selected' : ''}`}
+                onClick={() => handleClick(page)}
+              >
+                <h4 className="page-title">{page.displayTitle}</h4>
+                <div className="page-subtitle">{page.subtitle}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Scrollbar>
   );
 }
 

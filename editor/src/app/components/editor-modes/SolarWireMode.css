@@ -132,7 +132,7 @@
 }
 
 .selection-tool-button.active {
-  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  background: var(--accent-opacity-35);
   border-color: var(--accent-color);
 }
 
@@ -160,7 +160,7 @@
 }
 
 .note-toggle-button.active {
-  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  background: var(--accent-opacity-35);
   border-color: var(--accent-color);
 }
 
@@ -184,7 +184,7 @@
 }
 
 .pan-tool-button.active {
-  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  background: var(--accent-opacity-35);
   border-color: var(--accent-color);
 }
 
@@ -247,7 +247,7 @@
 
 .sidebar-panel > *:last-child {
   flex: 1;
-  overflow: auto;
+  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
 }
 
 .solarwire-toolbar-floating {
@@ -257,12 +257,12 @@
   z-index: 1000;
 }
 
-.sidebar-panel-floating {
+.error-overlay-content {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 1000;
   width: 300px;
   max-height: 80vh;
-  overflow: auto;
+  overflow: visible; /* 移除 auto，保持错误提示完整显示 */
 }

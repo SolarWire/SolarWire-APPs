@@ -59,7 +59,7 @@
 .solarwire-toolbar .selection-tool-button.active,
 .solarwire-toolbar .pan-tool-button.active,
 .solarwire-toolbar .note-toggle-button.active {
-  background: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  background: var(--accent-opacity-35);
   border-color: var(--accent-color);
 }
 
@@ -212,11 +212,11 @@
 .save-button.modified {
   color: var(--accent-color);
   border-color: var(--accent-color);
-  background: rgba(79, 195, 247, 0.05);
+  background: var(--accent-opacity-10);
 }
 
 .save-button.modified:hover {
-  background: rgba(79, 195, 247, 0.1);
+  background: var(--accent-opacity-15);
 }
 
 .save-button:disabled {

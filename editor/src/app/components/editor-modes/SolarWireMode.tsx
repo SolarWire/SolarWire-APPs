@@ -220,7 +220,6 @@ function SolarWireMode(): JSX.Element {
                 onChange={setContent}
                 height="100%"
                 highlightLines={highlightLines}
-                primaryColor={primaryColor}
               />
             </div>
           </TabPanel>
