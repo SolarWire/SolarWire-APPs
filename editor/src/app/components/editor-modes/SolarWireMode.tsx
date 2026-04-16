@@ -8,6 +8,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements } from '../../../shared/utils/solarwire-utils';
+import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './SolarWireMode.css';
 
 function SolarWireMode(): JSX.Element {
@@ -197,42 +198,33 @@ function SolarWireMode(): JSX.Element {
   }, [undo, handleKeyDown]);
 
   return (
-    <div className="solarwire-mode">
-      <div className="solarwire-header">
-        <div className="solarwire-tabs">
-          <button 
-            className={`solarwire-tab ${activeTab === 'code' ? 'active' : ''}`}
-            onClick={() => setActiveTab('code')}
-            title="代码编辑器"
-          >
-            <span className="tab-icon">{/* 代码图标 */}</span>
-            代码编辑
-          </button>
-          <button 
-            className={`solarwire-tab ${activeTab === 'visual' ? 'active' : ''}`}
-            onClick={() => setActiveTab('visual')}
-            title="可视化编辑器"
-          >
-            <span className="tab-icon">{/* 眼睛图标 */}</span>
-            可视化编辑
-          </button>
+    <TabProvider activeTab={activeTab} onTabChange={setActiveTab}>
+      <div className="solarwire-mode">
+        <div className="solarwire-header">
+          <TabList className="solarwire-tabs">
+            <Tab id="code" title="代码编辑器">
+              代码编辑
+            </Tab>
+            <Tab id="visual" title="可视化编辑器">
+              可视化编辑
+            </Tab>
+          </TabList>
         </div>
-      </div>
-      
-      <div className="solarwire-content">
-        {activeTab === 'code' ? (
-          <div className="code-panel">
-            <MonacoEditor
-              language="solarwire"
-              value={content}
-              onChange={setContent}
-              height="100%"
-              highlightLines={highlightLines}
-              primaryColor={primaryColor}
-            />
-          </div>
-        ) : (
-          <>
+        
+        <div className="solarwire-content">
+          <TabPanel id="code">
+            <div className="code-panel">
+              <MonacoEditor
+                language="solarwire"
+                value={content}
+                onChange={setContent}
+                height="100%"
+                highlightLines={highlightLines}
+                primaryColor={primaryColor}
+              />
+            </div>
+          </TabPanel>
+          <TabPanel id="visual">
             <SolarWirePreview 
               zoomLevel={zoomLevel}
               selectionTool={selectionTool}
@@ -362,10 +354,10 @@ function SolarWireMode(): JSX.Element {
                 <PropertyPanel />
               </div>
             )}
-          </>
-        )}
+          </TabPanel>
+        </div>
       </div>
-    </div>
+    </TabProvider>
   );
 }
 

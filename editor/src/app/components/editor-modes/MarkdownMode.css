@@ -11,33 +11,7 @@
   background: var(--bg-tertiary);
 }
 
-.markdown-tab {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.15s ease;
-}
-
-.markdown-tab:hover {
-  color: var(--text-primary);
-  background: var(--bg-secondary);
-}
-
-.markdown-tab.active {
-  color: var(--accent-color);
-  border-bottom-color: var(--accent-color);
-  background: var(--bg-secondary);
-}
-
-.tab-icon {
-  font-size: 14px;
-}
+/* 使用统一 Tab 组件样式，见 src/app/components/ui/Tab.css */
 
 .markdown-content {
   flex: 1;

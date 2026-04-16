@@ -8,6 +8,7 @@ import SolarWireView from './SolarWireView';
 import VersionView from './VersionView';
 import GitView from './GitView';
 import { getSelectedItemForView } from '../../shared/utils/file-utils';
+import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './ViewTabs.css';
 
 const ViewTabs: React.FC = () => {
@@ -39,25 +40,26 @@ const ViewTabs: React.FC = () => {
   };
 
   return (
-    <div className="view-tabs-container">
-      <div className="view-tabs">
-        {views.map((view) => (
-          <div
-            key={view.type}
-            className={`view-tab ${currentView === view.type ? 'active' : ''}`}
-            data-testid={view.testId}
-            onClick={() => {
-              // 切换视图时不取消之前的选中状态
-              // 而是根据记录去选中相应的项
-              setCurrentView(view.type);
-            }}
-          >
-            {view.label}
-          </div>
-        ))}
+    <TabProvider activeTab={currentView} onTabChange={(tabId) => setCurrentView(tabId as ViewType)}>
+      <div className="view-tabs-container">
+        <TabList className="view-tabs">
+          {views.map((view) => (
+            <Tab
+              key={view.type}
+              id={view.type}
+              className={view.testId}
+            >
+              {view.label}
+            </Tab>
+          ))}
+        </TabList>
+        <div className="view-content">
+          <TabPanel id={currentView}>
+            {renderViewContent()}
+          </TabPanel>
+        </div>
       </div>
-      <div className="view-content">{renderViewContent()}</div>
-    </div>
+    </TabProvider>
   );
 };
 

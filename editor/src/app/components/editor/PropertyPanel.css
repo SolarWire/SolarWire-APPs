@@ -248,7 +248,7 @@
 
 .note-section textarea {
   min-height: 40px;
-  max-height: none;
+  max-height: 300px;
   resize: none;
   padding: 8px;
   border: 1px solid var(--border-color);
@@ -259,7 +259,7 @@
   box-sizing: border-box;
   line-height: 1.4;
   white-space: pre-wrap;
-  overflow: visible;
+  overflow-y: auto;
 }
 
 .note-section textarea:focus {
@@ -309,21 +309,21 @@
 
 .error-section {
   padding: 16px;
-  background-color: #fff3f3;
-  border: 1px solid #ff9999;
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
   border-radius: 8px;
   margin: 16px;
 }
 
 .error-section h3 {
-  color: #d32f2f;
+  color: var(--error-text);
   margin-top: 0;
   margin-bottom: 12px;
 }
 
 .error-message {
-  background-color: white;
-  border: 1px solid #ffcccc;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--error-border);
   border-radius: 4px;
   padding: 12px;
   margin-bottom: 12px;
@@ -336,12 +336,12 @@
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 12px;
   line-height: 1.4;
-  color: #d32f2f;
+  color: var(--error-text);
   white-space: pre-wrap;
 }
 
 .error-button {
-  background-color: #d32f2f;
+  background-color: var(--error-bg-solid);
   color: white;
   border: none;
   border-radius: 4px;
@@ -352,5 +352,5 @@
 }
 
 .error-button:hover {
-  background-color: #b71c1c;
+  background-color: rgba(183, 28, 28, 0.9);
 }

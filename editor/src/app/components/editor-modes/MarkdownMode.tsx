@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import MonacoEditor from '../editor/MonacoEditor';
 import MarkdownPreview from '../editor/MarkdownPreview';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
+import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './MarkdownMode.css';
 
 function MarkdownMode(): JSX.Element {
   const { content, setContent } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet, updateFileContent } = useFileStore();
-  const [activeTab, setActiveTab] = useState<'preview' | 'editor'>('preview');
 
   // 加载选中文件的内容
   useEffect(() => {
@@ -26,38 +26,31 @@ function MarkdownMode(): JSX.Element {
   };
 
   return (
-    <div className="markdown-mode">
-      <div className="markdown-tabs">
-        <button 
-          className={`markdown-tab ${activeTab === 'preview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('preview')}
-          title="预览"
-        >
-          <span className="tab-icon">{/* 眼睛图标 */}</span>
-          预览
-        </button>
-        <button 
-          className={`markdown-tab ${activeTab === 'editor' ? 'active' : ''}`}
-          onClick={() => setActiveTab('editor')}
-          title="编辑器"
-        >
-          <span className="tab-icon">{/* 代码图标 */}</span>
-          编辑器
-        </button>
+    <TabProvider defaultTab="preview">
+      <div className="markdown-mode">
+        <TabList className="markdown-tabs">
+          <Tab id="preview" title="预览">
+            预览
+          </Tab>
+          <Tab id="editor" title="编辑器">
+            编辑器
+          </Tab>
+        </TabList>
+        <div className="markdown-content">
+          <TabPanel id="editor">
+            <MonacoEditor
+              language="markdown"
+              value={content}
+              onChange={handleChange}
+              height="100%"
+            />
+          </TabPanel>
+          <TabPanel id="preview">
+            <MarkdownPreview />
+          </TabPanel>
+        </div>
       </div>
-      <div className="markdown-content">
-        {activeTab === 'editor' ? (
-          <MonacoEditor
-            language="markdown"
-            value={content}
-            onChange={handleChange}
-            height="100%"
-          />
-        ) : (
-          <MarkdownPreview />
-        )}
-      </div>
-    </div>
+    </TabProvider>
   );
 }
 

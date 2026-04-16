@@ -5,27 +5,7 @@
   color: var(--text-primary);
 }
 
-.file-view::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.file-view::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-.file-view::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 0;
-}
-
-.file-view::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-.file-view::-webkit-scrollbar-corner {
-  background: var(--bg-primary);
-}
+/* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */
 
 .file-view-empty {
   display: flex;

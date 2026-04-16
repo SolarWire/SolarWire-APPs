@@ -1,0 +1,190 @@
+{
+  "extends": [
+    "stylelint-config-standard",
+    "stylelint-config-recommended",
+    "stylelint-config-css-modules"
+  ],
+  "plugins": [
+    "stylelint-order",
+    "stylelint-prettier"
+  ],
+  "rules": {
+    "prettier/prettier": true,
+    
+    "order/order": [
+      "custom-properties",
+      "dollar-variables",
+      {
+        "type": "at-rule",
+        "name": "extend"
+      },
+      {
+        "type": "at-rule",
+        "name": "include",
+        "hasBlock": false
+      },
+      "declarations",
+      {
+        "type": "at-rule",
+        "name": "include",
+        "hasBlock": true
+      },
+      "rules"
+    ],
+    
+    "order/properties-alphabetical-order": true,
+    
+    "color-no-hex": true,
+    
+    "color-named": "never",
+    
+    "color-no-invalid-hex": true,
+    
+    "function-disallowed-list": ["rgb"],
+    
+    "function-allowed-list": ["var", "calc", "attr", "url", "rgba", "color-mix"],
+    
+    "declaration-property-value-disallowed-list": {
+      "/^background/": ["/^#[0-9a-fA-F]{3,6}/"],
+      "/^color/": ["/^#[0-9a-fA-F]{3,6}/"],
+      "/^border/": ["/^#[0-9a-fA-F]{3,6}/"]
+    },
+    
+    "declaration-property-value-required": {
+      "/^background/": ["var(--"]
+    },
+    
+    "custom-property-pattern": "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+    
+    "selector-class-pattern": "^([a-z][a-z0-9]*)(-[a-z0-9]+)*$",
+    
+    "selector-max-id": 0,
+    
+    "selector-max-specificity": "0,3,0",
+    
+    "selector-max-compound-selectors": 3,
+    
+    "max-nesting-depth": 3,
+    
+    "rule-empty-line-before": [
+      "always-multi-line",
+      {
+        "except": ["first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    
+    "at-rule-empty-line-before": [
+      "always",
+      {
+        "except": ["blockless-after-same-name-blockless", "first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    
+    "comment-empty-line-before": [
+      "always",
+      {
+        "except": ["first-nested"],
+        "ignore": ["stylelint-commands"]
+      }
+    ],
+    
+    "declaration-empty-line-before": [
+      "always",
+      {
+        "except": ["after-declaration", "first-nested"],
+        "ignore": ["after-comment"]
+      }
+    ],
+    
+    "string-quotes": "single",
+    
+    "unit-allowed-list": ["px", "%", "em", "rem", "vh", "vw", "s", "ms", "deg", "fr", "vmin", "vmax"],
+    
+    "unit-disallowed-list": ["pt", "cm", "mm", "in", "pc"],
+    
+    "value-no-vendor-prefix": true,
+    
+    "property-no-vendor-prefix": true,
+    
+    "no-duplicate-selectors": true,
+    
+    "no-duplicate-at-import-rules": true,
+    
+    "no-invalid-position-at-import-rule": true,
+    
+    "import-notation": "string",
+    
+    "declaration-block-no-redundant-longhand-properties": true,
+    
+    "shorthand-property-no-redundant-values": true,
+    
+    "declaration-block-no-duplicate-properties": [
+      true,
+      {
+        "ignore": ["consecutive-duplicates-with-different-values"]
+      }
+    ],
+    
+    "declaration-block-no-shorthand-property-overrides": true,
+    
+    "comment-no-empty": true,
+    
+    "comment-word-disallowed-list": ["todo", "fixme", "hack"],
+    
+    "indentation": 2,
+    
+    "max-line-length": 120,
+    
+    "length-zero-no-unit": true,
+    
+    "number-max-precision": 5,
+    
+    "time-min-milliseconds": 10,
+    
+    "value-no-vendor-prefix": true,
+    
+    "selector-no-vendor-prefix": true,
+    
+    "media-feature-name-no-vendor-prefix": true,
+    
+    "at-rule-no-vendor-prefix": true,
+    
+    "property-no-unknown": [
+      true,
+      {
+        "ignoreProperties": ["/^--/"]
+      }
+    ],
+    
+    "selector-pseudo-element-no-unknown": true,
+    
+    "selector-pseudo-class-no-unknown": true,
+    
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["tailwind", "apply", "variants", "responsive", "screen", "include", "mixin", "extend"]
+      }
+    ],
+    
+    "function-no-unknown": true,
+    
+    "no-unknown-animations": true
+  },
+  "overrides": [
+    {
+      "files": ["*.module.css"],
+      "customSyntax": "postcss-modules"
+    }
+  ],
+  "ignoreFiles": [
+    "**/dist/**",
+    "**/build/**",
+    "**/node_modules/**",
+    "**/*.js",
+    "**/*.ts",
+    "**/*.tsx"
+  ]
+}

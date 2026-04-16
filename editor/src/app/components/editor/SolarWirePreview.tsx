@@ -1,5 +1,15 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useCoordinateSystem } from '../../../shared/hooks/useCoordinateSystem';
+import { useDragCoordinate } from '../../../shared/hooks/useDragCoordinate';
+import {
+  getLineStartCoords,
+  getLineEndCoords,
+  getLineStartMode,
+  getLineEndMode,
+  updateLineEndRelative,
+  updateLineEndAbsolute,
+  getLineCoordinates
+} from '../../../shared/utils/coordinate-converter';
 
 // 节流函数
 function throttle<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
@@ -72,6 +82,7 @@ const getElementDataFromContent = (content: string, lineNum: number) => {
  * @param dx X 轴偏移量
  * @param dy Y 轴偏移量
  * @param throttledSetContent 节流版本的 setContent 函数
+ * @param isRelative 是否使用相对坐标模式
  * @returns 更新后的文档内容
  */
 const handleLineDrag = (
@@ -83,20 +94,40 @@ const handleLineDrag = (
   elementY2: number | undefined,
   dx: number,
   dy: number,
-  throttledSetContent: (content: string) => void
+  throttledSetContent: (content: string) => void,
+  isRelative: boolean = false
 ): string => {
-  const newX = Math.max(0, Math.round(elementX + dx));
-  const newY = Math.max(0, Math.round(elementY + dy));
+  let newContent = content;
   
-  let newContent = updateLineAttribute(content, lineNum, 'x', newX);
-  newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-  
-  // 如果有终点坐标，同时更新终点
-  if (elementX2 !== undefined && elementY2 !== undefined) {
-    const newX2 = Math.max(0, Math.round(elementX2 + dx));
-    const newY2 = Math.max(0, Math.round(elementY2 + dy));
+  if (isRelative && elementX2 !== undefined && elementY2 !== undefined) {
+    // 相对模式：保持相对偏移不变
+    const originalDx = elementX2 - elementX;
+    const originalDy = elementY2 - elementY;
+    
+    const newX = Math.max(0, Math.round(elementX + dx));
+    const newY = Math.max(0, Math.round(elementY + dy));
+    const newX2 = newX + originalDx;
+    const newY2 = newY + originalDy;
+    
+    newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
+    newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
     newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
     newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+  } else {
+    // 绝对模式：直接更新所有坐标
+    const newX = Math.max(0, Math.round(elementX + dx));
+    const newY = Math.max(0, Math.round(elementY + dy));
+    
+    newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
+    newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+    
+    // 如果有终点坐标，同时更新终点
+    if (elementX2 !== undefined && elementY2 !== undefined) {
+      const newX2 = Math.max(0, Math.round(elementX2 + dx));
+      const newY2 = Math.max(0, Math.round(elementY2 + dy));
+      newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
+      newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+    }
   }
   
   throttledSetContent(newContent);
@@ -312,6 +343,71 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return ast.elements.find(e => e.location?.line === lineNum) || null;
   }, [ast]);
 
+  /**
+   * 检测鼠标位置是否在线段附近（2px 范围内）
+   * @param mouseX 鼠标 X 坐标（SVG 坐标）
+   * @param mouseY 鼠标 Y 坐标（SVG 坐标）
+   * @param lineElement 线段元素
+   * @param tolerance 容差范围（像素）
+   * @returns 是否在线段附近
+   */
+  const isMouseNearLine = useCallback((
+    mouseX: number,
+    mouseY: number,
+    lineElement: SolarWireElement,
+    tolerance: number = 2
+  ): boolean => {
+    if (lineElement.type !== 'line') return false;
+    
+    const { x1, y1, x2, y2 } = getLineCoordinates(lineElement);
+    
+    // 计算点到线段的最短距离
+    const distance = pointToLineDistance(mouseX, mouseY, x1, y1, x2, y2);
+    return distance <= tolerance;
+  }, [pointToLineDistance]);
+
+  /**
+   * 计算点到线段的最短距离
+   */
+  const pointToLineDistance = (
+    px: number,
+    py: number,
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number
+  ): number => {
+    const A = px - x1;
+    const B = py - y1;
+    const C = x2 - x1;
+    const D = y2 - y1;
+
+    const dot = A * C + B * D;
+    const lenSq = C * C + D * D;
+    let param = -1;
+    
+    if (lenSq !== 0) {
+      param = dot / lenSq;
+    }
+
+    let xx, yy;
+
+    if (param < 0) {
+      xx = x1;
+      yy = y1;
+    } else if (param > 1) {
+      xx = x2;
+      yy = y2;
+    } else {
+      xx = x1 + param * C;
+      yy = y1 + param * D;
+    }
+
+    const dx = px - xx;
+    const dy = py - yy;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
   const getElementBounds = useCallback((elementId: string) => {
     const elementData = getElementData(elementId);
     if (!elementData) return { x: 0, y: 0, w: 0, h: 0, r: 0 };
@@ -362,6 +458,61 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     
     return { x, y, w, h, r };
   }, [getElementData]);
+
+  /**
+   * 检测鼠标位置附近的所有元素（包括线段）
+   * @param svgX 鼠标 X 坐标（SVG 坐标）
+   * @param svgY 鼠标 Y 坐标（SVG 坐标）
+   * @param tolerance 容差范围（像素）
+   * @returns 最近的元素 ID
+   */
+  const findElementAtPosition = useCallback((
+    svgX: number,
+    svgY: number,
+    tolerance: number = 2
+  ): string | null => {
+    if (!ast) return null;
+    
+    let nearestElement: string | null = null;
+    let minDistance = Infinity;
+    
+    ast.elements.forEach((element) => {
+      const lineNum = element.location?.line;
+      if (!lineNum) return;
+      
+      if (element.type === 'line') {
+        // 线段元素：使用点到线段距离
+        const { x1, y1, x2, y2 } = getLineCoordinates(element);
+        const actualDistance = pointToLineDistance(svgX, svgY, x1, y1, x2, y2);
+        
+        if (actualDistance <= tolerance && actualDistance < minDistance) {
+          minDistance = actualDistance;
+          nearestElement = lineNum.toString();
+        }
+      } else {
+        // 普通元素：使用边界框检测
+        const bounds = getElementBounds(lineNum.toString());
+        const elementLeft = bounds.x;
+        const elementRight = bounds.x + bounds.w;
+        const elementTop = bounds.y;
+        const elementBottom = bounds.y + bounds.h;
+        
+        // 计算点到矩形边界的最近距离
+        const closestX = Math.max(elementLeft, Math.min(svgX, elementRight));
+        const closestY = Math.max(elementTop, Math.min(svgY, elementBottom));
+        const distance = Math.sqrt(
+          Math.pow(svgX - closestX, 2) + Math.pow(svgY - closestY, 2)
+        );
+        
+        if (distance <= tolerance && distance < minDistance) {
+          minDistance = distance;
+          nearestElement = lineNum.toString();
+        }
+      }
+    });
+    
+    return nearestElement;
+  }, [ast, getElementBounds]);
 
   const testBoxSelection = useCallback((x1: number, y1: number, x2: number, y2: number) => {
     if (!ast) return;
@@ -473,8 +624,14 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }
     }
 
-    const elementId = getElementIdFromSVGElement(target);
+    let elementId = getElementIdFromSVGElement(target);
     const currentTool = (isPanMode || isSpacePressed) ? 'pan' : selectionTool;
+
+    // 如果没有直接获取到元素 ID，尝试检测附近的线段（2px 容差）
+    if (!elementId && (currentTool === 'select' || currentTool === 'box-inclusive')) {
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      elementId = findElementAtPosition(svgCoords.x, svgCoords.y, 2);
+    }
 
     switch (currentTool) {
       case 'pan':
@@ -691,6 +848,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (!isNaN(lineNum)) {
         // 根据元素类型调用对应的拖动处理函数
         if (dragElementState.isLine) {
+          // 检测线段的坐标模式
+          const lines = content.split(/\r?\n/);
+          const line = lines[lineNum - 1];
+          const isEndRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
+          
           handleLineDrag(
             content,
             lineNum,
@@ -700,7 +862,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dragElementState.elementY2,
             dx,
             dy,
-            throttledSetContent
+            throttledSetContent,
+            isEndRelative
           );
         } else {
           handleElementDrag(
@@ -873,40 +1036,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       
       if (elementData && elementData.type === 'line') {
         // 线段元素 - 渲染两个端点句柄
-        const lineElement = elementData as any;
-        
-        let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-        
-        // 获取起点坐标
-        if (lineElement.start && lineElement.start.x && lineElement.start.x.type === 'absolute') {
-          x1 = lineElement.start.x.value;
-        }
-        if (lineElement.start && lineElement.start.y && lineElement.start.y.type === 'absolute') {
-          y1 = lineElement.start.y.value;
-        }
-        
-        // 获取终点坐标
-        if (lineElement.end) {
-          if ((lineElement.end as any).x && (lineElement.end as any).y) {
-            // 绝对坐标格式
-            if ((lineElement.end as any).x.type === 'absolute') {
-              x2 = (lineElement.end as any).x.value;
-            }
-            if ((lineElement.end as any).y.type === 'absolute') {
-              y2 = (lineElement.end as any).y.value;
-            }
-          } else if ((lineElement.end as any).dx !== undefined && (lineElement.end as any).dy !== undefined) {
-            // 相对坐标格式
-            x2 = x1 + (lineElement.end as any).dx;
-            y2 = y1 + (lineElement.end as any).dy;
-          }
-        }
-        
-        // 如果没有找到终点，使用默认值
-        if (x2 === 0 && y2 === 0) {
-          x2 = x1 + 100;
-          y2 = y1;
-        }
+        const { x1, y1, x2, y2 } = getLineCoordinates(elementData);
         
         const endPoints = [
           { x: x1, y: y1, handle: 'start' as const },
@@ -959,6 +1089,76 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     });
 
     return handles;
+  };
+
+  /**
+   * 渲染参考线 - 显示相对坐标的参考关系
+   */
+  const renderReferenceLines = () => {
+    if (selectedElements.length === 0) return null;
+
+    const lines: JSX.Element[] = [];
+
+    selectedElements.forEach((elementId) => {
+      const elementData = getElementData(elementId);
+      if (!elementData) return;
+
+      const bounds = getElementBounds(elementId);
+      const lineNum = parseInt(elementId);
+      
+      if (!isNaN(lineNum)) {
+        const contentLines = content.split(/\r?\n/);
+        if (lineNum > 0 && lineNum <= contentLines.length) {
+          const line = contentLines[lineNum - 1];
+          
+          // 检测是否是相对坐标格式
+          const isRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
+          
+          if (isRelative && elementData.type === 'line') {
+            // 绘制从起点到终点的参考线
+            const { x1, y1, x2, y2 } = getLineCoordinates(elementData);
+            const lineElement = elementData as any;
+            
+            lines.push(
+              <line
+                key={`ref-line-${elementId}`}
+                x1={x1}
+                y1={y1}
+                x2={x2}
+                y2={y2}
+                stroke="var(--text-muted)"
+                strokeWidth={2 / scale}
+                strokeDasharray="4,4"
+                opacity="0.5"
+                pointerEvents="none"
+              />
+            );
+            
+            // 添加偏移量标签
+            const dx = lineElement.end?.dx || x2 - x1;
+            const dy = lineElement.end?.dy || y2 - y1;
+            const midX = (x1 + x2) / 2;
+            const midY = (y1 + y2) / 2;
+            
+            lines.push(
+              <text
+                key={`ref-label-${elementId}`}
+                x={midX}
+                y={midY - (5 / scale)}
+                fontSize={`${10 / scale}px`}
+                fill="var(--text-muted)"
+                textAnchor="middle"
+                pointerEvents="none"
+              >
+                dx:{dx}, dy:{dy}
+              </text>
+            );
+          }
+        }
+      }
+    });
+
+    return <g className="reference-lines">{lines}</g>;
   };
 
   const renderError = () => {
@@ -1051,6 +1251,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           >
             <g style={{ pointerEvents: 'auto' }}>
               {renderHoverHighlight()}
+              {renderReferenceLines()}
               {renderSelectionHandles()}
             </g>
           </svg>

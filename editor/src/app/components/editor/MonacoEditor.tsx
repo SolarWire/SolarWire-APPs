@@ -157,9 +157,9 @@ function MonacoEditor({
   }, [primaryColor]);
   
   return (
-    <div className="monaco-editor" style={{ height }}>
+    <div className="monaco-editor">
       <Editor
-        height="100%"
+        height={height}
         language={language}
         value={value}
         onChange={(val) => onChange(val || '')}

@@ -2,7 +2,13 @@ import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react'
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { parse } from "../../../lib/parser";
-import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
+import { updateLineAttribute, updateLineCoords } from '../../../shared/utils/solarwire-utils';
+import {
+  getLineStartMode,
+  getLineEndMode,
+  getLineStartCoords,
+  getLineEndCoords
+} from '../../../shared/utils/coordinate-converter';
 import type { Element } from '../../../lib/parser/types';
 import { ColorPicker } from '../ui/ColorPicker';
 import { Scrollbar } from '../ui/Scrollbar';
@@ -65,12 +71,68 @@ function PropertyGroupTitle({ children }: PropertyGroupTitleProps): JSX.Element 
   return <div className="property-group-title">{children}</div>;
 }
 
+interface CoordinateTypeSelectorProps {
+  mode: 'absolute' | 'relative';
+  onModeChange: (mode: 'absolute' | 'relative') => void;
+  label?: string;
+}
+
+function CoordinateTypeSelector({ 
+  mode, 
+  onModeChange,
+  label = '坐标模式'
+}: CoordinateTypeSelectorProps): JSX.Element {
+  return (
+    <div className="coordinate-type-selector" style={{ marginBottom: '8px' }}>
+      <label style={{ fontSize: '12px', color: 'var(--text-muted)', marginRight: '8px' }}>{label}</label>
+      <div className="toggle-group" style={{ display: 'inline-flex', gap: '4px' }}>
+        <button
+          className={mode === 'absolute' ? 'active' : ''}
+          onClick={() => onModeChange('absolute')}
+          title="绝对坐标：相对于画布原点 (0, 0)"
+          style={{
+            padding: '4px 8px',
+            fontSize: '11px',
+            border: '1px solid var(--border-light)',
+            borderRadius: '3px',
+            background: mode === 'absolute' ? 'var(--primary-color)' : 'var(--bg-light)',
+            color: mode === 'absolute' ? 'var(--white)' : 'var(--text-dark)',
+            cursor: 'pointer'
+          }}
+        >
+          绝对
+        </button>
+        <button
+          className={mode === 'relative' ? 'active' : ''}
+          onClick={() => onModeChange('relative')}
+          title="相对坐标：相对于参考点"
+          style={{
+            padding: '4px 8px',
+            fontSize: '11px',
+            border: '1px solid var(--border-light)',
+            borderRadius: '3px',
+            background: mode === 'relative' ? 'var(--primary-color)' : 'var(--bg-light)',
+            color: mode === 'relative' ? 'var(--white)' : 'var(--text-dark)',
+            cursor: 'pointer'
+          }}
+        >
+          相对
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function PropertyPanel(): JSX.Element {
   const { selectedElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
 
   const [parseError, setParseError] = React.useState<string | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  
+  // 线段坐标模式状态
+  const [startMode, setStartMode] = useState<'absolute' | 'relative'>('absolute');
+  const [endMode, setEndMode] = useState<'absolute' | 'relative'>('absolute');
 
   // 自动调整 textarea 高度的函数
   const adjustTextareaHeight = useCallback((textareaRef: HTMLTextAreaElement | null) => {
@@ -106,6 +168,68 @@ function PropertyPanel(): JSX.Element {
     const newContent = updateLineAttribute(content, lineNum, property, value);
     setContent(newContent);
   }, [element, content, setContent]);
+  
+  // 处理线段坐标变化
+  const handleLineCoordChange = useCallback((
+    handle: 'start' | 'end',
+    coord: 'x' | 'y',
+    value: number,
+    isRelative: boolean
+  ) => {
+    if (!element || element.type !== 'line') return;
+    const lineNum = element.location?.line;
+    if (!lineNum) return;
+    
+    const lineElement = element as any;
+    const startCoords = getLineStartCoords(lineElement);
+    const endCoords = getLineEndCoords(lineElement, startCoords);
+    
+    if (handle === 'start') {
+      // 更新起点坐标
+      if (isRelative) {
+        // 相对模式：更新相对于 (0,0) 的偏移
+        updateLineAttribute(content, lineNum, 'x', value);
+        // TODO: 需要更复杂的逻辑来处理相对坐标
+      } else {
+        // 绝对模式：直接更新
+        const newContent = updateLineCoords(
+          content,
+          lineNum,
+          coord === 'x' ? value : startCoords.x,
+          coord === 'y' ? value : startCoords.y,
+          endCoords.x,
+          endCoords.y
+        );
+        setContent(newContent);
+      }
+    } else if (handle === 'end') {
+      // 更新终点坐标
+      if (isRelative) {
+        // 相对模式：更新相对于起点的偏移
+        // TODO: 需要更复杂的逻辑来处理相对坐标
+      } else {
+        // 绝对模式：直接更新
+        const newContent = updateLineCoords(
+          content,
+          lineNum,
+          startCoords.x,
+          startCoords.y,
+          coord === 'x' ? value : endCoords.x,
+          coord === 'y' ? value : endCoords.y
+        );
+        setContent(newContent);
+      }
+    }
+  }, [element, content, setContent]);
+  
+  // 检测并更新坐标模式
+  useEffect(() => {
+    if (element && element.type === 'line') {
+      const lineEl = element as any;
+      setStartMode(getLineStartMode(lineEl));
+      setEndMode(getLineEndMode(lineEl));
+    }
+  }, [element]);
 
   if (parseError) {
     // Extract line number from error message
@@ -195,10 +319,10 @@ function PropertyPanel(): JSX.Element {
   const w = attrs.w || '';
   const h = attrs.h || '';
   const r = attrs.r || '';
-  const bg = attrs.bg || '#ffffff';
-  const borderColor = attrs.b || '#333333';
+  const bg = attrs.bg || 'var(--white)';
+  const borderColor = attrs.b || 'var(--text-dark)';
   const borderSize = attrs.s || '1';
-  const textColor = attrs.c || '#000000';
+  const textColor = attrs.c || 'var(--black)';
   const fontSize = attrs.size || attrs['text-size'] || '12';
   const align = attrs.align || 'c';
   const opacity = attrs.opacity || '1';
@@ -293,15 +417,46 @@ function PropertyPanel(): JSX.Element {
 
           {showLineControls && (
             <>
-              <PropertyGroupTitle>Line End</PropertyGroupTitle>
+              <CoordinateTypeSelector
+                mode={startMode}
+                onModeChange={(mode) => {
+                  setStartMode(mode);
+                  // TODO: 切换起点坐标模式
+                }}
+                label="起点坐标"
+              />
+              <PropertyGroupTitle>起点 Position</PropertyGroupTitle>
+              <PropertyPair
+                label1="X"
+                value1={x}
+                onChange1={(v) => handleLineCoordChange('start', 'x', v, startMode === 'relative')}
+                label2="Y"
+                value2={y}
+                onChange2={(v) => handleLineCoordChange('start', 'y', v, startMode === 'relative')}
+              />
+              
+              <CoordinateTypeSelector
+                mode={endMode}
+                onModeChange={(mode) => {
+                  setEndMode(mode);
+                  // TODO: 切换终点坐标模式
+                }}
+                label="终点坐标"
+              />
+              <PropertyGroupTitle>终点 Position</PropertyGroupTitle>
               <PropertyPair
                 label1="X2"
                 value1={x2}
-                onChange1={(v) => handleChange('x2', v)}
+                onChange1={(v) => handleLineCoordChange('end', 'x', v, endMode === 'relative')}
                 label2="Y2"
                 value2={y2}
-                onChange2={(v) => handleChange('y2', v)}
+                onChange2={(v) => handleLineCoordChange('end', 'y', v, endMode === 'relative')}
               />
+              {endMode === 'relative' && (
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+                  (实际位置：{x2}, {y2})
+                </div>
+              )}
               <PropertyRow label="Style">
                 <select
                   value={attrs.style || 'solid'}

@@ -6,27 +6,7 @@
   color: var(--text-primary);
 }
 
-.git-view::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.git-view::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-.git-view::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 0;
-}
-
-.git-view::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-.git-view::-webkit-scrollbar-corner {
-  background: var(--bg-primary);
-}
+/* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */
 
 .git-empty {
   display: flex;
@@ -92,15 +72,15 @@
 }
 
 .section-title.modified {
-  color: #dcdcaa;
+  color: var(--warning-text);
 }
 
 .section-title.staged {
-  color: #6a9955;
+  color: var(--success-text);
 }
 
 .section-title.untracked {
-  color: #9cdcfe;
+  color: #9cdcfe; /* 保持原有颜色，untracked 状态的特殊颜色 */
 }
 
 .empty-section {
@@ -173,7 +153,7 @@
   background: var(--accent-color);
   border: none;
   border-radius: 4px;
-  color: #1e1e1e;
+  color: var(--bg-primary);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;

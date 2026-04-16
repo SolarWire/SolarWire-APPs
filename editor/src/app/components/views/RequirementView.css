@@ -6,27 +6,7 @@
   color: var(--text-primary);
 }
 
-.requirement-view::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-.requirement-view::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-
-.requirement-view::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 0;
-}
-
-.requirement-view::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
-}
-
-.requirement-view::-webkit-scrollbar-corner {
-  background: var(--bg-primary);
-}
+/* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */
 
 .requirement-card {
   padding: 15px;
@@ -71,23 +51,23 @@
 }
 
 .status-modified {
-  background-color: #ffb347;
-  color: #fff;
+  background-color: var(--warning-text);
+  color: var(--white);
 }
 
 .status-untracked {
-  background-color: #4caf50;
-  color: #fff;
+  background-color: var(--success-text);
+  color: var(--white);
 }
 
 .status-staged {
   background-color: #2196f3;
-  color: #fff;
+  color: var(--white);
 }
 
 .status-committed {
   background-color: #9e9e9e;
-  color: #fff;
+  color: var(--white);
 }
 
 .requirement-filename {

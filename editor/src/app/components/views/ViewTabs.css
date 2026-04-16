@@ -10,22 +10,7 @@
   border-bottom: 1px solid var(--border-color);
 }
 
-.view-tab {
-  padding: 8px 12px;
-  font-size: 12px;
-  color: var(--text-muted);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-}
-
-.view-tab:hover {
-  color: var(--text-primary);
-}
-
-.view-tab.active {
-  color: var(--text-primary);
-  border-bottom-color: var(--accent-color);
-}
+/* 使用统一 Tab 组件样式，见 src/app/components/ui/Tab.css */
 
 .view-content {
   flex: 1;
