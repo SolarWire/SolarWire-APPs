@@ -269,24 +269,26 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
     let svg = result.svg;
     
     // 只替换第一个以换行符或开始的<g>标签，避免替换表格内部子元素的<g>
-    const firstGMatch = svg.match(/^(\s*)<g>/);
+    // 使用更通用的正则匹配带或不带属性的 <g> 标签
+    const firstGMatch = svg.match(/^(\s*)<g(\s[^>]*)?>/);
     if (firstGMatch) {
       const indent = firstGMatch[1];
       const isSelected = selectedElementIds.includes(id) || (lineNum && selectedElementIds.includes(lineNum));
       
       // 对于表格元素，不使用selected-glow类，避免子元素模糊
       const isTableElement = element.type === 'table';
+      const gRegex = /^(\s*)<g(\s[^>]*)?>/;
       
       if (isSelected) {
         if (isTableElement) {
           // 表格元素不使用drop-shadow滤镜，只添加data属性
-          svg = svg.replace(/^(\s*)<g>/, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`);
+          svg = svg.replace(gRegex, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`);
         } else {
           // 其他元素正常使用selected-glow
-          svg = svg.replace(/^(\s*)<g>/, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}" class="selected-glow">`);
+          svg = svg.replace(gRegex, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}" class="selected-glow">`);
         }
       } else {
-        svg = svg.replace(/^(\s*)<g>/, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`);
+        svg = svg.replace(gRegex, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`);
       }
     }
     

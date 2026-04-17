@@ -1,23 +1,5 @@
 import { create } from 'zustand';
-
-interface GitStatus {
-  modified: string[];
-  staged: string[];
-  untracked: string[];
-}
-
-interface GitCommit {
-  hash: string;
-  shortHash: string;
-  date: string;
-  message: string;
-  authorName: string;
-}
-
-interface GitBranch {
-  name: string;
-  isCurrent: boolean;
-}
+import { GitCommit, GitStatus, GitBranch } from '../../shared/types/git';
 
 interface GitAnalysisProgress {
   total: number;
