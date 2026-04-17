@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useGitStore } from '../../stores/gitStore';
+import { useGitDiffStore } from '../../stores/gitDiffStore';
 import { useFileStore } from '../../stores/fileStore';
 import './VersionDiffMode.css';
 
@@ -8,8 +9,8 @@ interface DiffStatus {
 }
 
 function VersionDiffMode(): JSX.Element {
+  const { history } = useGitStore();
   const { 
-    history, 
     leftCommit, 
     rightCommit, 
     leftFileContent, 
@@ -20,7 +21,7 @@ function VersionDiffMode(): JSX.Element {
     loadRightFileContent, 
     loadFileDiff,
     exitDiffMode 
-  } = useGitStore();
+  } = useGitDiffStore();
   const { selectedFile, currentPath } = useFileStore();
 
   const [leftCommitSearch, setLeftCommitSearch] = useState('');

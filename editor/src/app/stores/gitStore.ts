@@ -1,14 +1,6 @@
 import { create } from 'zustand';
 import { GitCommit, GitStatus, GitBranch } from '../../shared/types/git';
 
-interface GitAnalysisProgress {
-  total: number;
-  processed: number;
-  status: 'running' | 'completed' | 'cancelled';
-  matchingCommits?: number;
-  onCancel?: () => void;
-}
-
 interface GitState {
   isInitialized: boolean;
   status: GitStatus;
@@ -17,15 +9,6 @@ interface GitState {
   currentBranch: string;
   loading: boolean;
   selectedCommit: GitCommit | null;
-  // 版本对比相关
-  isDiffMode: boolean;
-  leftCommit: GitCommit | null;
-  rightCommit: GitCommit | null;
-  leftFileContent: string;
-  rightFileContent: string;
-  fileDiff: string;
-  // 版本分析进度
-  gitAnalysis: GitAnalysisProgress | null;
   initGit: (repoPath: string) => Promise<void>;
   refreshStatus: () => Promise<void>;
   refreshHistory: (filePath?: string) => Promise<void>;
@@ -41,14 +24,6 @@ interface GitState {
   checkoutCommit: (hash: string) => Promise<void>;
   getFileDiff: (filePath: string) => Promise<string>;
   selectCommit: (commit: GitCommit | null) => void;
-  // 版本对比相关方法
-  enterDiffMode: () => void;
-  exitDiffMode: () => void;
-  setLeftCommit: (commit: GitCommit | null) => void;
-  setRightCommit: (commit: GitCommit | null) => void;
-  loadLeftFileContent: (filePath: string, commitHash: string) => Promise<void>;
-  loadRightFileContent: (filePath: string, commitHash: string) => Promise<void>;
-  loadFileDiff: (filePath: string, commitHash1: string, commitHash2: string) => Promise<void>;
   getGitLog: (filePath?: string) => Promise<GitCommit[]>;
 }
 
@@ -62,13 +37,6 @@ export const useGitStore = create<GitState>((set, get) => ({
   currentBranch: 'main',
   loading: false,
   selectedCommit: null,
-  isDiffMode: false,
-  leftCommit: null,
-  rightCommit: null,
-  leftFileContent: '',
-  rightFileContent: '',
-  fileDiff: '',
-  gitAnalysis: null,
 
   initGit: async (repoPath: string) => {
     if (!api) return;
@@ -218,59 +186,6 @@ export const useGitStore = create<GitState>((set, get) => ({
 
   selectCommit: (commit: GitCommit | null) => {
     set({ selectedCommit: commit });
-  },
-
-  enterDiffMode: () => {
-    set({ isDiffMode: true });
-  },
-
-  exitDiffMode: () => {
-    set({ 
-      isDiffMode: false,
-      leftCommit: null,
-      rightCommit: null,
-      leftFileContent: '',
-      rightFileContent: '',
-      fileDiff: ''
-    });
-  },
-
-  setLeftCommit: (commit: GitCommit | null) => {
-    set({ leftCommit: commit });
-  },
-
-  setRightCommit: (commit: GitCommit | null) => {
-    set({ rightCommit: commit });
-  },
-
-  loadLeftFileContent: async (filePath: string, commitHash: string) => {
-    if (!api) return;
-    try {
-      const content = await api.getFileContentAtCommit(filePath, commitHash);
-      set({ leftFileContent: content });
-    } catch (error) {
-      console.error('Failed to load left file content:', error);
-    }
-  },
-
-  loadRightFileContent: async (filePath: string, commitHash: string) => {
-    if (!api) return;
-    try {
-      const content = await api.getFileContentAtCommit(filePath, commitHash);
-      set({ rightFileContent: content });
-    } catch (error) {
-      console.error('Failed to load right file content:', error);
-    }
-  },
-
-  loadFileDiff: async (filePath: string, commitHash1: string, commitHash2: string) => {
-    if (!api) return;
-    try {
-      const diff = await api.getFileDiffBetweenCommits(filePath, commitHash1, commitHash2);
-      set({ fileDiff: diff });
-    } catch (error) {
-      console.error('Failed to load file diff:', error);
-    }
   },
 
   getGitLog: async (filePath?: string): Promise<GitCommit[]> => {

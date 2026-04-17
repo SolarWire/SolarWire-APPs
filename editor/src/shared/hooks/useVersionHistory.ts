@@ -6,8 +6,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { versionCache } from '../cache/versionCache';
 import { GitCommit, VersionAnalysisContext, AnalysisProgress, TitleValidationResult } from '../types/version';
-import { useGitStore } from '../../app/stores/gitStore';
 import { performanceMonitor } from '../utils/performanceMonitor';
+
+interface GitApi {
+  getLog: (filePath?: string) => Promise<GitCommit[]>;
+  getFileContentAtCommit: (path: string, hash: string) => Promise<string>;
+  isInitialized: boolean;
+}
 
 interface UseVersionHistoryResult {
   analysisProgress: AnalysisProgress | null;
@@ -64,10 +69,11 @@ async function handleWorkerFileContentRequest(
   worker: Worker,
   requestId: number,
   filePath: string,
-  commitHash: string
+  commitHash: string,
+  getFileContentAtCommit: (path: string, hash: string) => Promise<string>
 ) {
   try {
-    const content = await window.electronAPI.invoke('git:getFileContentAtCommit', filePath, commitHash);
+    const content = await getFileContentAtCommit(filePath, commitHash);
     worker.postMessage({
       type: 'getFileContentResponse',
       id: requestId,
@@ -85,7 +91,11 @@ async function handleWorkerFileContentRequest(
   }
 }
 
-export function useVersionHistory(filePath: string, snippet?: SolarWireSnippet): UseVersionHistoryResult {
+export function useVersionHistory(
+  filePath: string, 
+  snippet: SolarWireSnippet | undefined,
+  gitApi: GitApi
+): UseVersionHistoryResult {
   const [progress, setProgress] = useState<AnalysisProgress | null>(null);
   const [commits, setCommits] = useState<GitCommit[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +103,6 @@ export function useVersionHistory(filePath: string, snippet?: SolarWireSnippet):
   const [worker, setWorker] = useState<Worker | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { isInitialized, getGitLog } = useGitStore();
   const workerRef = useRef<Worker | null>(null);
   const analysisStartTime = useRef<number>(0);
 
@@ -140,7 +149,7 @@ export function useVersionHistory(filePath: string, snippet?: SolarWireSnippet):
         return;
       }
 
-      if (!isInitialized) {
+      if (!gitApi.isInitialized) {
         setError('Git 仓库未初始化');
         setSuggestion('请先打开一个包含 Git 仓库的文件夹');
         return;
@@ -159,10 +168,8 @@ export function useVersionHistory(filePath: string, snippet?: SolarWireSnippet):
 
       try {
         const relativePath = filePath;
-        // 从 gitStore 获取提交历史
-        const { getGitLog } = useGitStore.getState();
-        const gitCommits = await getGitLog(relativePath);
-        console.log(`[useVersionHistory] Retrieved ${gitCommits.length} commits from gitStore`);
+        const gitCommits = await gitApi.getLog(relativePath);
+        console.log(`[useVersionHistory] Retrieved ${gitCommits.length} commits from gitApi`);
         const limitedCommits = gitCommits.slice(0, 50);
 
         if (limitedCommits.length === 0) {
@@ -197,7 +204,13 @@ export function useVersionHistory(filePath: string, snippet?: SolarWireSnippet):
           const { type, data, id } = event.data;
 
           if (type === 'getFileContent') {
-            handleWorkerFileContentRequest(analyzerWorker, id, data.filePath, data.commitHash);
+            handleWorkerFileContentRequest(
+              analyzerWorker, 
+              id, 
+              data.filePath, 
+              data.commitHash,
+              gitApi.getFileContentAtCommit
+            );
           } else if (type === 'progress') {
             setProgress(data);
           } else if (type === 'complete') {
@@ -247,7 +260,7 @@ export function useVersionHistory(filePath: string, snippet?: SolarWireSnippet):
     if (filePath) {
       startAnalysis();
     }
-  }, [filePath, snippet, isInitialized]);
+  }, [filePath, snippet, gitApi]);
 
   return {
     analysisProgress: progress,

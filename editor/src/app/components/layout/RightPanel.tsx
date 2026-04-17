@@ -4,12 +4,12 @@ import SolarWireMode from '../editor-modes/SolarWireMode';
 import MarkdownMode from '../editor-modes/MarkdownMode';
 import VersionDiffMode from '../editor-modes/VersionDiffMode';
 import { useEditorStore } from '../../stores/editorStore';
-import { useGitStore } from '../../stores/gitStore';
+import { useGitDiffStore } from '../../stores/gitDiffStore';
 import './RightPanel.css';
 
 const RightPanel: React.FC = () => {
   const { mode } = useEditorStore();
-  const { isDiffMode } = useGitStore();
+  const { isDiffMode } = useGitDiffStore();
 
   if (isDiffMode) {
     return <VersionDiffMode />;

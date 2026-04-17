@@ -751,42 +751,33 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       case 'box-inclusive':
         if (elementId) {
           // 点击到元素时，点选
-          const bounds = getElementBounds(elementId);
           const elementData = getElementData(elementId);
           const isLine = elementData?.type === 'line';
           
-          const dragState: DragElementState = {
-            elementId,
-            startX: e.clientX,
-            startY: e.clientY,
-            elementX: bounds.x,
-            elementY: bounds.y
-          };
+          let dragState: DragElementState;
           
-          // 如果是线段，保存终点坐标
+          // 线段元素使用 getLineCoordinates 获取实际起点 (x1, y1)
           if (isLine && elementData) {
-            const lineElement = elementData as any;
-            let x2 = 0, y2 = 0;
-            
-            if (lineElement.end) {
-              if ((lineElement.end as any).x && (lineElement.end as any).y) {
-                if ((lineElement.end as any).x.type === 'absolute') {
-                  x2 = (lineElement.end as any).x.value;
-                }
-                if ((lineElement.end as any).y.type === 'absolute') {
-                  y2 = (lineElement.end as any).y.value;
-                }
-              } else if ((lineElement.end as any).dx !== undefined && (lineElement.end as any).dy !== undefined) {
-                x2 = bounds.x + (lineElement.end as any).dx;
-                y2 = bounds.y + (lineElement.end as any).dy;
-              }
-            }
-            
-            if (x2 !== 0 || y2 !== 0) {
-              dragState.elementX2 = x2;
-              dragState.elementY2 = y2;
-              dragState.isLine = true;
-            }
+            const lineCoords = getLineCoordinates(elementData);
+            dragState = {
+              elementId,
+              startX: e.clientX,
+              startY: e.clientY,
+              elementX: lineCoords.x1,
+              elementY: lineCoords.y1,
+              elementX2: lineCoords.x2,
+              elementY2: lineCoords.y2,
+              isLine: true
+            };
+          } else {
+            const bounds = getElementBounds(elementId);
+            dragState = {
+              elementId,
+              startX: e.clientX,
+              startY: e.clientY,
+              elementX: bounds.x,
+              elementY: bounds.y
+            };
           }
           
           setDragElementState(dragState);
@@ -995,9 +986,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         currentY: e.clientY
       });
     } else {
-      // 更新悬停元素
-      const target = e.target as SVGElement | HTMLElement;
-      const elementId = getElementIdFromSVGElement(target);
+      // 更新悬停元素 - 使用几何检测而不是 DOM 事件传播，避免被其他元素的透明覆盖层拦截
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const elementId = findElementAtPosition(svgCoords.x, svgCoords.y);
       setHoveredElement(elementId);
     }
   };
