@@ -33,13 +33,13 @@ function MarkdownMode(): React.ReactElement {
       <div className="markdown-mode">
         <TabList className="markdown-tabs">
           <Tab id="preview" title="预览">
-            预览
+            👁️
           </Tab>
           <Tab id="editor" title="编辑器">
-            编辑器
+            ✏️
           </Tab>
           <Tab id="version" title="版本历史">
-            版本历史
+            📜
           </Tab>
         </TabList>
         <div className="markdown-content">

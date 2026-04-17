@@ -5,9 +5,12 @@ import { Scrollbar } from '../ui/Scrollbar';
 import './GitView.css';
 
 function GitView(): React.ReactElement {
-  const { isInitialized, status, commit, stageAllModified, refreshStatus, history, refreshHistory } = useGitStore();
+  const { isInitialized, status, commit, stageAllModified, refreshStatus, history, refreshHistory, push, pull, fetch } = useGitStore();
   const [commitMessage, setCommitMessage] = useState<string>('');
   const [isCommitting, setIsCommitting] = useState(false);
+  const [isPushing, setIsPushing] = useState(false);
+  const [isPulling, setIsPulling] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
 
   const handleRefresh = async () => {
     try {
@@ -15,6 +18,35 @@ function GitView(): React.ReactElement {
       await refreshHistory();
     } catch (error) {
       console.error('Failed to refresh Git status:', error);
+    }
+  };
+
+  const handlePush = async () => {
+    setIsPushing(true);
+    try {
+      await push();
+    } finally {
+      setIsPushing(false);
+    }
+  };
+
+  const handlePull = async () => {
+    setIsPulling(true);
+    try {
+      await pull();
+      await refreshStatus();
+      await refreshHistory();
+    } finally {
+      setIsPulling(false);
+    }
+  };
+
+  const handleFetch = async () => {
+    try {
+      await fetch();
+      await refreshStatus();
+    } catch (error) {
+      console.error('Failed to fetch:', error);
     }
   };
 
@@ -50,9 +82,10 @@ function GitView(): React.ReactElement {
     <Scrollbar className="git-view-scrollbar">
       <div className="git-view">
         <div className="git-header">
-          <button className="refresh-button" onClick={handleRefresh}>
-            🔄 Refresh
-          </button>
+          <button className="refresh-button" onClick={handleFetch} title="获取远程更新">📥</button>
+          <button className="refresh-button" onClick={handlePull} disabled={isPulling} title="拉取并合并">⬇️</button>
+          <button className="refresh-button" onClick={handlePush} disabled={isPushing} title="推送">⬆️</button>
+          <button className="refresh-button" onClick={handleRefresh} title="刷新">🔄</button>
         </div>
 
         {/* 始终显示 Commit 区域 */}

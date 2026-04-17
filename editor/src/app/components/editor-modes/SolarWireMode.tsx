@@ -17,11 +17,11 @@ function SolarWireMode(): React.ReactElement {
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
   const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
-  const [activeTab, setActiveTab] = useState<'code' | 'visual' | 'version'>('visual');
+  const [activeTab, setActiveTab] = useState<'visual' | 'code' | 'version'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
   const [highlightTrigger, setHighlightTrigger] = useState(0);
 
-  const handleTabChange = useCallback((tab: 'code' | 'visual' | 'version') => {
+  const handleTabChange = useCallback((tab: 'visual' | 'code' | 'version') => {
     setActiveTab(tab);
     // 切换到代码编辑器时，触发高亮更新（不滚动，保留之前的滚动位置）
     if (tab === 'code' && selectedElements.length > 0) {
@@ -214,14 +214,14 @@ function SolarWireMode(): React.ReactElement {
       <div className="solarwire-mode">
         <div className="solarwire-header">
           <TabList className="solarwire-tabs">
-            <Tab id="code" title="代码编辑器">
-              代码编辑
+            <Tab id="visual" title="可视化编辑">
+              🎨
             </Tab>
-            <Tab id="visual" title="可视化编辑器">
-              可视化编辑
+            <Tab id="code" title="代码编辑">
+              💻
             </Tab>
             <Tab id="version" title="版本历史">
-              版本历史
+              📜
             </Tab>
           </TabList>
         </div>

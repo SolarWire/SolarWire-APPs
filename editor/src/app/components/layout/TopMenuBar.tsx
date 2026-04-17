@@ -204,7 +204,7 @@ const TopMenuBar: React.FC = () => {
           onClick={handleOpen} 
           title="Open Directory (Ctrl+O)"
         >
-          📂 Open
+          📂
         </button>
         
         <button 
@@ -213,7 +213,7 @@ const TopMenuBar: React.FC = () => {
           title="Save (Ctrl+S)"
           disabled={!isModified}
         >
-          💾 Save
+          💾
         </button>
         
         <div className="spacer"></div>

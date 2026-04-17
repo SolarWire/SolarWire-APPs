@@ -15,11 +15,11 @@ const ViewTabs: React.FC = () => {
   const { currentView, setCurrentView } = useAppStore();
   const { setSelectedFile } = useFileStore();
 
-  const views: { type: ViewType; label: string; testId: string }[] = [
-    { type: 'file', label: 'File', testId: 'view-files' },
-    { type: 'requirement', label: 'Req', testId: 'view-requirements' },
-    { type: 'solarwire', label: 'Solar', testId: 'view-pages' },
-    { type: 'git', label: 'Git', testId: 'view-git' },
+  const views: { type: ViewType; emoji: string; title: string }[] = [
+    { type: 'file', emoji: '📁', title: '文件管理器' },
+    { type: 'requirement', emoji: '📋', title: '需求文档' },
+    { type: 'solarwire', emoji: '🎨', title: 'SolarWire' },
+    { type: 'git', emoji: '🔀', title: '版本控制' },
   ];
 
   const renderViewContent = () => {
@@ -45,9 +45,9 @@ const ViewTabs: React.FC = () => {
             <Tab
               key={view.type}
               id={view.type}
-              className={view.testId}
+              title={view.title}
             >
-              {view.label}
+              {view.emoji}
             </Tab>
           ))}
         </TabList>

@@ -52,7 +52,7 @@
   align-items: center;
   gap: 0;
   flex-shrink: 0;
-  width: 54px;
+  width: 28px;
   position: relative;
   z-index: 1;
   padding-left: 6px;
@@ -62,8 +62,9 @@
   content: '';
   position: absolute;
   left: 11px;
-  top: 18px;
-  bottom: -22px;
+  top: 50%;
+  margin-top: 6px;
+  height: calc(100% - 12px);
   width: 2px;
   background: rgba(88, 166, 255, 0.25);
   z-index: 0;
@@ -71,7 +72,7 @@
 }
 
 .git-graph-row:last-child .git-graph-dot-container::after {
-  display: none;
+  display: none !important;
 }
 
 .git-graph-dot {
