@@ -3,74 +3,109 @@
  */
 
 import React from 'react';
-import { useGitStore } from '../../stores/gitStore';
+import { useStatusStore, getOperationIcon } from '../../stores/statusStore';
+import { useGitAnalysisStore } from '../../stores/gitAnalysisStore';
 import './StatusBar.css';
 
-export function StatusBar(): JSX.Element {
-  const { gitAnalysis } = useGitStore();
+function Spinner() {
+  return (
+    <svg className="spinner" viewBox="0 0 50 50">
+      <circle
+        className="spinner-circle"
+        cx="25"
+        cy="25"
+        r="20"
+        fill="none"
+        strokeWidth="5"
+      />
+    </svg>
+  );
+}
+
+function OperationStatusDisplay() {
+  const { currentOperation } = useStatusStore();
+
+  if (!currentOperation) return null;
+
+  const { type, status, message, errorDetail } = currentOperation;
+  const icon = getOperationIcon(type);
+
+  if (status === 'running') {
+    return (
+      <div className="status-bar-item operation-status running">
+        <Spinner />
+        <span className="progress-bar-container">
+          <span className="progress-bar-virtual"></span>
+        </span>
+        <span className="operation-message">{message}</span>
+      </div>
+    );
+  }
+
+  if (status === 'success') {
+    return (
+      <div className="status-bar-item operation-status success">
+        <span className="status-icon">✅</span>
+        <span className="operation-message">{message}</span>
+      </div>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <div className="status-bar-item operation-status error">
+        <span className="status-icon">❌</span>
+        <span 
+          className="operation-message error-message" 
+          title={errorDetail || message}
+        >
+          {message}
+        </span>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+function FilePathDisplay() {
+  const { filePath } = useStatusStore();
+
+  if (!filePath) {
+    return (
+      <div className="status-bar-item file-path">
+        <span className="no-file-text">No file opened</span>
+      </div>
+    );
+  }
 
   return (
-    <div className="status-bar">
-      {/* Git 分析进度 */}
-      {gitAnalysis && gitAnalysis.status === 'running' && (
-        <div className="status-bar-item git-analysis">
-          <Spinner className="spinner" />
-          <span className="progress-text">
-            Git 分析中：{gitAnalysis.processed}/{gitAnalysis.total} 个提交
-          </span>
-          <button 
-            onClick={gitAnalysis.onCancel}
-            className="cancel-button"
-          >
-            取消
-          </button>
-        </div>
-      )}
-      
-      {/* Git 分析完成 */}
-      {gitAnalysis && gitAnalysis.status === 'completed' && (
-        <div className="status-bar-item git-analysis">
-          <CheckIcon className="success-icon" />
-          <span>
-            ✓ 找到 {gitAnalysis.matchingCommits} 个相关版本
-          </span>
-        </div>
-      )}
-
-      {/* 其他状态栏内容 */}
-      <div className="status-bar-item">
-        {/* ... */}
-      </div>
+    <div className="status-bar-item file-path" title={filePath}>
+      <span className="file-icon">📁</span>
+      <span className="file-path-text">{filePath}</span>
     </div>
   );
 }
 
-function Spinner({ className }: { className?: string }) {
+export function StatusBar(): JSX.Element {
+  const { gitAnalysis } = useGitAnalysisStore();
+
   return (
-    <svg className={`spinner ${className}`} viewBox="0 0 24 24">
-      <circle
-        className="spinner-circle"
-        cx="12"
-        cy="12"
-        r="10"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="3"
-        strokeLinecap="round"
-      />
-    </svg>
+    <div className="status-bar">
+      <div className="status-bar-left">
+        <FilePathDisplay />
+        {gitAnalysis && gitAnalysis.status === 'running' && (
+          <div className="status-bar-item git-analysis">
+            <Spinner />
+            <span className="progress-text">
+              分析中 {gitAnalysis.processed}/{gitAnalysis.total}
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="status-bar-right">
+        <OperationStatusDisplay />
+      </div>
+    </div>
   );
 }
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg className={`success-icon ${className}`} viewBox="0 0 24 24">
-      <path
-        fill="currentColor"
-        d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-      />
-    </svg>
-  );
-}
-
-export default StatusBar;

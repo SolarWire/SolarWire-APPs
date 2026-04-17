@@ -1,5 +1,5 @@
 import React from 'react';
-import VersionView from './VersionView';
+import VersionView from '../version/VersionView';
 import './VersionGitTabs.css';
 
 const VersionGitTabs: React.FC = () => {

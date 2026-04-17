@@ -3,6 +3,7 @@ import { FileState, FileNode, SolarWireSnippet } from '../types/file';
 import { readFile } from '../../shared/utils/file-utils';
 import { useEditorStore } from './editorStore';
 import { useGitStore } from './gitStore';
+import { useStatusStore } from './statusStore';
 
 async function writeFile(filePath: string, content: string): Promise<void> {
   const api = (window as any).api;
@@ -79,12 +80,16 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
   openFileAtPath: async (filePath: string) => {
     try {
+      useStatusStore.getState().startOperation('open', '打开文件...');
+      
       const content = await readFile(filePath);
       const name = filePath.split(/[\\/]/).pop() || filePath;
       const node: FileNode = { name, path: filePath, type: 'file' };
       set({ selectedFile: node, fileContent: content });
       useEditorStore.getState().setContent(content);
       useEditorStore.getState().setModified(false);
+      useStatusStore.getState().setCurrentFilePath(filePath);
+      
       try {
         const parts = name.split('.');
         const ext = parts.length > 1 ? parts.pop()!.toLowerCase() : '';
@@ -98,7 +103,11 @@ export const useFileStore = create<FileState>((set, get) => ({
       } catch (e) {
         // ignore
       }
+      
+      useStatusStore.getState().completeOperation(`已打开: ${name}`);
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '未知错误';
+      useStatusStore.getState().failOperation('打开文件失败', errorMessage);
       console.error('Failed to open file', err);
     }
   },
@@ -115,13 +124,19 @@ export const useFileStore = create<FileState>((set, get) => ({
   },
   openDirectoryAtPath: async (dirPath: string) => {
     try {
+      useStatusStore.getState().startOperation('open', '打开目录...');
       const tree = await getFileTree(dirPath);
       set({ currentPath: dirPath, fileTree: tree });
+      useStatusStore.getState().setCurrentFilePath(dirPath);
       
       // Initialize Git for this directory
       const gitStore = useGitStore.getState();
       await gitStore.initGit(dirPath);
+      
+      useStatusStore.getState().completeOperation('目录已打开');
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '未知错误';
+      useStatusStore.getState().failOperation('打开目录失败', errorMessage);
       console.error('Failed to open directory', err);
     }
   },
@@ -130,9 +145,12 @@ export const useFileStore = create<FileState>((set, get) => ({
     const editorState = useEditorStore.getState();
     if (!selectedFile) {
       console.error('No file selected');
+      useStatusStore.getState().failOperation('保存失败', '没有选择文件');
       return;
     }
     try {
+      useStatusStore.getState().startOperation('save', '保存中...');
+      
       let contentToSave = editorState.content;
       
       // 检查是否正在编辑一个 snippet
@@ -161,7 +179,10 @@ export const useFileStore = create<FileState>((set, get) => ({
       set({ fileContent: contentToSave });
       
       useEditorStore.getState().setModified(false);
+      useStatusStore.getState().completeOperation('保存成功');
     } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '未知错误';
+      useStatusStore.getState().failOperation('保存失败', errorMessage);
       console.error('Failed to save file', err);
     }
   },

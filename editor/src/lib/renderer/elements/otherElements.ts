@@ -48,7 +48,7 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   updateLastElementBounds(context, bounds);
   
   if (note) {
-    svgParts.push(`<title>${escapeHtml(note)}</title>`);
+    svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
   
   svgParts.push(`</g>`);
@@ -136,7 +136,7 @@ export function renderText(element: TextElement, context: RenderContext): Render
   updateLastElementBounds(context, bounds);
   
   if (note) {
-    svgParts.push(`<title>${escapeHtml(note)}</title>`);
+    svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
   
   svgParts.push(`</g>`);
@@ -186,7 +186,7 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   updateLastElementBounds(context, bounds);
   
   if (note) {
-    svgParts.push(`<title>${escapeHtml(note)}</title>`);
+    svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
   
   svgParts.push(`</g>`);
@@ -241,7 +241,7 @@ export function renderImage(element: ImageElement, context: RenderContext): Rend
   updateLastElementBounds(context, bounds);
   
   if (note) {
-    svgParts.push(`<title>${escapeHtml(note)}</title>`);
+    svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
   
   svgParts.push(`</g>`);
@@ -525,7 +525,7 @@ function renderTableElement(
   updateLastElementBounds(context, bounds);
   
   if (note) {
-    svgParts.push(`<title>${escapeHtml(note)}</title>`);
+    svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
   
   return {

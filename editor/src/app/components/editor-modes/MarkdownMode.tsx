@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import MonacoEditor from '../editor/MonacoEditor';
 import MarkdownPreview from '../editor/MarkdownPreview';
-import VersionView from '../views/VersionView';
+import VersionView from '../version/VersionView';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';

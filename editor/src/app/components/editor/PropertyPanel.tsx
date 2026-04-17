@@ -4,8 +4,6 @@ import { useEditorStore } from '../../stores/editorStore';
 import { parse } from "../../../lib/parser";
 import { updateLineAttribute, updateLineCoords } from '../../../shared/utils/solarwire-utils';
 import {
-  getLineStartMode,
-  getLineEndMode,
   getLineStartCoords,
   getLineEndCoords
 } from '../../../shared/utils/coordinate-converter';
@@ -71,50 +69,11 @@ function PropertyGroupTitle({ children }: PropertyGroupTitleProps): JSX.Element 
   return <div className="property-group-title">{children}</div>;
 }
 
-interface CoordinateTypeSelectorProps {
-  mode: 'absolute' | 'relative';
-  onModeChange: (mode: 'absolute' | 'relative') => void;
-  label?: string;
-}
-
-function CoordinateTypeSelector({ 
-  mode, 
-  onModeChange,
-  label = '坐标模式'
-}: CoordinateTypeSelectorProps): JSX.Element {
-  return (
-    <div className="coordinate-type-selector">
-      <label className="coordinate-type-label">{label}</label>
-      <div className="toggle-group">
-        <button
-          className={mode === 'absolute' ? 'active' : ''}
-          onClick={() => onModeChange('absolute')}
-          title="绝对坐标：相对于画布原点 (0, 0)"
-        >
-          绝对
-        </button>
-        <button
-          className={mode === 'relative' ? 'active' : ''}
-          onClick={() => onModeChange('relative')}
-          title="相对坐标：相对于参考点"
-        >
-          相对
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function PropertyPanel(): JSX.Element {
   const { selectedElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
-
-  const [parseError, setParseError] = React.useState<string | null>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-  
-  // 线段坐标模式状态
-  const [startMode, setStartMode] = useState<'absolute' | 'relative'>('absolute');
-  const [endMode, setEndMode] = useState<'absolute' | 'relative'>('absolute');
+  const [parseError, setParseError] = useState<string | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // 自动调整 textarea 高度的函数
   const adjustTextareaHeight = useCallback((textareaRef: HTMLTextAreaElement | null) => {
@@ -151,12 +110,11 @@ function PropertyPanel(): JSX.Element {
     setContent(newContent);
   }, [element, content, setContent]);
   
-  // 处理线段坐标变化
+  // 处理线段坐标变化（统一使用绝对坐标）
   const handleLineCoordChange = useCallback((
     handle: 'start' | 'end',
     coord: 'x' | 'y',
-    value: number,
-    isRelative: boolean
+    value: number
   ) => {
     if (!element || element.type !== 'line') return;
     const lineNum = element.location?.line;
@@ -166,63 +124,53 @@ function PropertyPanel(): JSX.Element {
     const startCoords = getLineStartCoords(lineElement);
     const endCoords = getLineEndCoords(lineElement, startCoords);
     
+    let newContent: string;
+    
     if (handle === 'start') {
-      // 更新起点坐标
-      if (isRelative) {
-        // 相对模式：更新相对于 (0,0) 的偏移
-        updateLineAttribute(content, lineNum, 'x', value);
-        // TODO: 需要更复杂的逻辑来处理相对坐标
-      } else {
-        // 绝对模式：直接更新
-        const newContent = updateLineCoords(
-          content,
-          lineNum,
-          coord === 'x' ? value : startCoords.x,
-          coord === 'y' ? value : startCoords.y,
-          endCoords.x,
-          endCoords.y
-        );
-        setContent(newContent);
-      }
-    } else if (handle === 'end') {
-      // 更新终点坐标
-      if (isRelative) {
-        // 相对模式：更新相对于起点的偏移
-        // TODO: 需要更复杂的逻辑来处理相对坐标
-      } else {
-        // 绝对模式：直接更新
-        const newContent = updateLineCoords(
-          content,
-          lineNum,
-          startCoords.x,
-          startCoords.y,
-          coord === 'x' ? value : endCoords.x,
-          coord === 'y' ? value : endCoords.y
-        );
-        setContent(newContent);
-      }
+      newContent = updateLineCoords(
+        content,
+        lineNum,
+        coord === 'x' ? value : startCoords.x,
+        coord === 'y' ? value : startCoords.y,
+        endCoords.x,
+        endCoords.y
+      );
+    } else {
+      newContent = updateLineCoords(
+        content,
+        lineNum,
+        startCoords.x,
+        startCoords.y,
+        coord === 'x' ? value : endCoords.x,
+        coord === 'y' ? value : endCoords.y
+      );
     }
+    
+    setContent(newContent);
   }, [element, content, setContent]);
-  
-  // 检测并更新坐标模式
-  useEffect(() => {
-    if (element && element.type === 'line') {
-      const lineEl = element as any;
-      setStartMode(getLineStartMode(lineEl));
-      setEndMode(getLineEndMode(lineEl));
+
+  // Early returns after all hooks - but we need useEffect before them
+  // Extract note value for the effect hook (must come before early returns)
+  const noteValue = useMemo(() => {
+    if (!element) return '';
+    const el = element as any;
+    const attrs = el.attributes || {};
+    let note = attrs.note || '';
+    if (typeof note === 'string') {
+      note = note.replace(/^"""|"""$/g, '');
     }
+    return note;
   }, [element]);
 
+  // 当 note 内容变化时调整 textarea 高度
+  useEffect(() => {
+    adjustTextareaHeight(textareaRef.current);
+  }, [noteValue, adjustTextareaHeight]);
+
+  // --- Early returns ---
   if (parseError) {
-    // Extract line number from error message
     const lineMatch = parseError.match(/line (\d+)/);
     const errorLine = lineMatch ? parseInt(lineMatch[1]) : null;
-
-    const handleGoToError = () => {
-      // This would need to be implemented with Monaco editor instance
-      console.log('Go to error line:', errorLine);
-      // In a real implementation, we would use the editor instance to set cursor position
-    };
 
     return (
       <div className="property-panel">
@@ -232,10 +180,7 @@ function PropertyPanel(): JSX.Element {
             <pre>{parseError}</pre>
           </div>
           {errorLine && (
-            <button 
-              className="error-button"
-              onClick={handleGoToError}
-            >
+            <button className="error-button">
               Go to Error Line
             </button>
           )}
@@ -277,23 +222,13 @@ function PropertyPanel(): JSX.Element {
   let y = 0;
   
   if (type === 'line' && el.start) {
-    // 线段元素使用start作为起点坐标
-    if (el.start.x.type === 'absolute' && el.start.y.type === 'absolute') {
-      x = el.start.x.value;
-      y = el.start.y.value;
-    } else {
-      x = parseInt(attrs.x || '0');
-      y = parseInt(attrs.y || '0');
-    }
+    x = el.start.x.type === 'absolute' ? el.start.x.value : (el.start.x.value || 0);
+    y = el.start.y.type === 'absolute' ? el.start.y.value : (el.start.y.value || 0);
   } else {
-    // 其他元素使用coordinates
     const coords = el.coordinates;
-    if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
-      x = coords.x.value;
-      y = coords.y.value;
-    } else {
-      x = parseInt(attrs.x || '0');
-      y = parseInt(attrs.y || '0');
+    if (coords) {
+      x = coords.x.type === 'absolute' ? coords.x.value : (coords.x.value || 0);
+      y = coords.y.type === 'absolute' ? coords.y.value : (coords.y.value || 0);
     }
   }
 
@@ -308,23 +243,14 @@ function PropertyPanel(): JSX.Element {
   const fontSize = attrs.size || attrs['text-size'] || '12';
   const align = attrs.align || 'c';
   const opacity = attrs.opacity || '1';
-  
-  // 处理三引号包裹的 note 内容
-  let noteValue = attrs.note || '';
-  if (typeof noteValue === 'string') {
-    // 移除可能的三引号包裹
-    noteValue = noteValue.replace(/^"""|"""$/g, '');
+
+  // 处理线段元素的终点坐标（统一使用绝对坐标）
+  let x2 = 0;
+  let y2 = 0;
+  if (type === 'line' && el.end) {
+    x2 = el.end.x.type === 'absolute' ? el.end.x.value : (el.end.x.value || 0);
+    y2 = el.end.y.type === 'absolute' ? el.end.y.value : (el.end.y.value || 0);
   }
-
-  // 当 note 内容变化时调整 textarea 高度
-  useEffect(() => {
-    adjustTextareaHeight(textareaRef.current);
-  }, [noteValue, adjustTextareaHeight]);
-
-  // 当组件渲染后调整 textarea 高度
-  useEffect(() => {
-    adjustTextareaHeight(textareaRef.current);
-  }, [adjustTextareaHeight]);
 
   const showSizeControls = type !== 'text' && type !== 'line';
   const showRadiusControl = type === 'rounded-rectangle';
@@ -332,30 +258,6 @@ function PropertyPanel(): JSX.Element {
   const showBorderControls = type !== 'line' && type !== 'text';
   const showLineControls = type === 'line';
   const showAlignControl = type === 'text' || 'text' in element;
-  const isTable = type === 'table';
-
-  // 处理线段元素的终点坐标
-  let x2 = 0;
-  let y2 = 0;
-  if (type === 'line' && el.end) {
-    if ('x' in el.end && 'y' in el.end) {
-      // 绝对坐标格式
-      if (el.end.x.type === 'absolute') {
-        x2 = el.end.x.value;
-      }
-      if (el.end.y.type === 'absolute') {
-        y2 = el.end.y.value;
-      }
-    } else if ('dx' in el.end && 'dy' in el.end) {
-      // 相对坐标格式
-      x2 = x + el.end.dx;
-      y2 = y + el.end.dy;
-    }
-  } else {
-    // 回退到属性中的x2和y2
-    x2 = parseInt(attrs.x2 || '0');
-    y2 = parseInt(attrs.y2 || '0');
-  }
 
   return (
     <div className="property-panel">
@@ -399,46 +301,25 @@ function PropertyPanel(): JSX.Element {
 
           {showLineControls && (
             <>
-              <CoordinateTypeSelector
-                mode={startMode}
-                onModeChange={(mode) => {
-                  setStartMode(mode);
-                  // TODO: 切换起点坐标模式
-                }}
-                label="起点坐标"
-              />
               <PropertyGroupTitle>起点 Position</PropertyGroupTitle>
               <PropertyPair
                 label1="X"
                 value1={x}
-                onChange1={(v) => handleLineCoordChange('start', 'x', v, startMode === 'relative')}
+                onChange1={(v) => handleLineCoordChange('start', 'x', v)}
                 label2="Y"
                 value2={y}
-                onChange2={(v) => handleLineCoordChange('start', 'y', v, startMode === 'relative')}
+                onChange2={(v) => handleLineCoordChange('start', 'y', v)}
               />
               
-              <CoordinateTypeSelector
-                mode={endMode}
-                onModeChange={(mode) => {
-                  setEndMode(mode);
-                  // TODO: 切换终点坐标模式
-                }}
-                label="终点坐标"
-              />
               <PropertyGroupTitle>终点 Position</PropertyGroupTitle>
               <PropertyPair
                 label1="X2"
                 value1={x2}
-                onChange1={(v) => handleLineCoordChange('end', 'x', v, endMode === 'relative')}
+                onChange1={(v) => handleLineCoordChange('end', 'x', v)}
                 label2="Y2"
                 value2={y2}
-                onChange2={(v) => handleLineCoordChange('end', 'y', v, endMode === 'relative')}
+                onChange2={(v) => handleLineCoordChange('end', 'y', v)}
               />
-              {endMode === 'relative' && (
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  (实际位置：{x2}, {y2})
-                </div>
-              )}
               <PropertyRow label="Style">
                 <select
                   value={attrs.style || 'solid'}

@@ -3,7 +3,7 @@ import MonacoEditor from '../editor/MonacoEditor';
 import SolarWirePreview from '../editor/SolarWirePreview';
 import PropertyPanel from '../editor/PropertyPanel';
 import ElementLibrary from '../editor/ElementLibrary';
-import VersionView from '../views/VersionView';
+import VersionView from '../version/VersionView';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
@@ -18,6 +18,17 @@ function SolarWireMode(): JSX.Element {
   const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<'code' | 'visual' | 'version'>('visual');
+  const [scrollTrigger, setScrollTrigger] = useState(0);
+  const [highlightTrigger, setHighlightTrigger] = useState(0);
+
+  const handleTabChange = useCallback((tab: 'code' | 'visual' | 'version') => {
+    setActiveTab(tab);
+    // 切换到代码编辑器时，触发滚动和高亮到选中元素
+    if (tab === 'code' && selectedElements.length > 0) {
+      setScrollTrigger(prev => prev + 1);
+      setHighlightTrigger(prev => prev + 1);
+    }
+  }, [selectedElements.length]);
 
   const selectionTools = [
     { id: 'select', label: 'Select', icon: '🖱️', description: 'Click to select, Shift+Click to multi-select' },
@@ -199,7 +210,7 @@ function SolarWireMode(): JSX.Element {
   }, [undo, handleKeyDown]);
 
   return (
-    <TabProvider activeTab={activeTab} onTabChange={setActiveTab}>
+    <TabProvider activeTab={activeTab} onTabChange={handleTabChange}>
       <div className="solarwire-mode">
         <div className="solarwire-header">
           <TabList className="solarwire-tabs">
@@ -224,6 +235,8 @@ function SolarWireMode(): JSX.Element {
                 onChange={setContent}
                 height="100%"
                 highlightLines={highlightLines}
+                scrollTrigger={scrollTrigger}
+                highlightTrigger={highlightTrigger}
               />
             </div>
           </TabPanel>

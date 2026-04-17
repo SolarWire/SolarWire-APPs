@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { GitCommit, GitStatus, GitBranch } from '../../shared/types/git';
+import { useStatusStore } from './statusStore';
 
 interface GitState {
   isInitialized: boolean;
@@ -115,10 +116,14 @@ export const useGitStore = create<GitState>((set, get) => ({
   commit: async (message: string) => {
     if (!api) return;
     try {
+      useStatusStore.getState().startOperation('git-commit', '提交中...');
       await api.commit(message);
       await get().refreshStatus();
       await get().refreshHistory();
+      useStatusStore.getState().completeOperation('提交成功');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '提交失败';
+      useStatusStore.getState().failOperation('Git 提交失败', errorMessage);
       console.error('Failed to commit:', error);
     }
   },
@@ -137,9 +142,13 @@ export const useGitStore = create<GitState>((set, get) => ({
   push: async () => {
     if (!api) return;
     try {
+      useStatusStore.getState().startOperation('git-push', '推送中...');
       await api.push();
       await get().refreshStatus();
+      useStatusStore.getState().completeOperation('推送成功');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '推送失败';
+      useStatusStore.getState().failOperation('Git 推送失败', errorMessage);
       console.error('Failed to push:', error);
     }
   },
@@ -147,9 +156,13 @@ export const useGitStore = create<GitState>((set, get) => ({
   pull: async () => {
     if (!api) return;
     try {
+      useStatusStore.getState().startOperation('git-pull', '拉取中...');
       await api.pull();
       await get().refreshStatus();
+      useStatusStore.getState().completeOperation('拉取成功');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '拉取失败';
+      useStatusStore.getState().failOperation('Git 拉取失败', errorMessage);
       console.error('Failed to pull:', error);
     }
   },
@@ -157,9 +170,13 @@ export const useGitStore = create<GitState>((set, get) => ({
   fetch: async () => {
     if (!api) return;
     try {
+      useStatusStore.getState().startOperation('git-pull', '获取中...');
       await api.fetch();
       await get().refreshStatus();
+      useStatusStore.getState().completeOperation('获取成功');
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : '获取失败';
+      useStatusStore.getState().failOperation('Git 获取失败', errorMessage);
       console.error('Failed to fetch:', error);
     }
   },

@@ -144,8 +144,8 @@ export function useVersionHistory(
       }
 
       if (!titleResult.valid) {
-        setError(titleResult.error);
-        setSuggestion(titleResult.suggestion);
+        setError(titleResult.error || null);
+        setSuggestion(titleResult.suggestion || null);
         return;
       }
 
@@ -155,7 +155,7 @@ export function useVersionHistory(
         return;
       }
 
-      if (titleResult.title !== 'pending') {
+      if (titleResult.title && titleResult.title !== 'pending') {
         const cacheKey = buildCacheKey(filePath, snippet, titleResult.title);
         const cached = versionCache.get(cacheKey);
         
@@ -169,7 +169,7 @@ export function useVersionHistory(
       try {
         const relativePath = filePath;
         const gitCommits = await gitApi.getLog(relativePath);
-        console.log(`[useVersionHistory] Retrieved ${gitCommits.length} commits from gitApi`);
+        console.log(`[useVersionHistory] Retrieved ${gitCommits.length} commits from gitStore`);
         const limitedCommits = gitCommits.slice(0, 50);
 
         if (limitedCommits.length === 0) {
@@ -204,13 +204,7 @@ export function useVersionHistory(
           const { type, data, id } = event.data;
 
           if (type === 'getFileContent') {
-            handleWorkerFileContentRequest(
-              analyzerWorker, 
-              id, 
-              data.filePath, 
-              data.commitHash,
-              gitApi.getFileContentAtCommit
-            );
+            handleWorkerFileContentRequest(analyzerWorker, id, data.filePath, data.commitHash, gitApi.getFileContentAtCommit);
           } else if (type === 'progress') {
             setProgress(data);
           } else if (type === 'complete') {
@@ -222,7 +216,7 @@ export function useVersionHistory(
             performanceMonitor.recordAnalysisTime(analysisTime);
             console.log(`[Performance] Analysis completed in ${analysisTime}ms`);
 
-            if (titleResult.title !== 'pending') {
+            if (titleResult.title && titleResult.title !== 'pending') {
               const cacheKey = buildCacheKey(filePath, snippet, titleResult.title);
               versionCache.set(cacheKey, {
                 commits: data.matchingCommits,

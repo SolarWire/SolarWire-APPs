@@ -55,7 +55,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
   });
   
   if (note) {
-    svgParts.push(`<title>${escapeHtml(note)}</title>`);
+    svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
   
   svgParts.push(`</g>`);

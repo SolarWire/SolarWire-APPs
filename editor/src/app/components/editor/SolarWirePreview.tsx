@@ -538,26 +538,19 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     let nearestElement: string | null = null;
     let minDistance = Infinity;
     
-    console.log('=== 线段选择调试 ===');
-    console.log('鼠标位置:', { svgX, svgY, tolerance });
-    
     // 第一遍：优先检测线段（使用点到线段距离）
-    ast.elements.forEach((element, idx) => {
+    ast.elements.forEach((element) => {
       const lineNum = element.location?.line;
       if (!lineNum) return;
       
       if (element.type === 'line') {
         try {
-          console.log(`检查线段 [${idx}] line ${lineNum}:`, element);
           const { x1, y1, x2, y2 } = getLineCoordinates(element);
-          console.log(`线段坐标: (${x1},${y1})->(${x2},${y2})`);
           const actualDistance = pointToLineDistance(svgX, svgY, x1, y1, x2, y2);
-          console.log(`距离=${actualDistance.toFixed(2)}, tolerance=${tolerance}`);
           
           if (actualDistance <= tolerance && actualDistance < minDistance) {
             minDistance = actualDistance;
             nearestElement = lineNum.toString();
-            console.log(`✓ 选中线段 ${lineNum}!`);
           }
         } catch (e) {
           console.error(`线段 ${lineNum} 处理失败:`, e);
@@ -566,7 +559,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     });
     
     if (nearestElement) {
-      console.log('最终结果：线段', nearestElement);
       return nearestElement;
     }
     
@@ -592,7 +584,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         if (distance <= tolerance && distance < minDistance) {
           minDistance = distance;
           nearestElement = lineNum.toString();
-          console.log(`✓ 选中元素 ${lineNum} (${element.type})`);
         }
       } catch (e) {
         console.warn('获取元素边界失败', lineNum, e);
@@ -1470,7 +1461,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onMouseLeave={() => {
+        setHoveredElement(null);
+        handleMouseUp({} as React.MouseEvent);
+      }}
       onDragOver={handleDragOver}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}

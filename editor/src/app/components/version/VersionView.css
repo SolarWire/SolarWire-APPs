@@ -1,0 +1,13 @@
+.version-view {
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.commit-list {
+  flex: 1;
+  overflow: visible;
+}

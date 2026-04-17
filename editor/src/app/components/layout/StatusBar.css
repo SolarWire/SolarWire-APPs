@@ -14,12 +14,50 @@
   color: var(--text-secondary);
 }
 
+.status-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.status-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .status-bar-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
+/* 文件路径显示 */
+.file-path {
+  max-width: 400px;
+  overflow: hidden;
+}
+
+.file-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.file-path-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.no-file-text {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Git 分析状态 */
 .git-analysis {
   display: flex;
   align-items: center;
@@ -29,13 +67,16 @@
   border-radius: 4px;
 }
 
+/* 旋转加载器 */
 .spinner {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   animation: spin 1s linear infinite;
+  flex-shrink: 0;
 }
 
 .spinner-circle {
+  stroke: var(--accent-color);
   stroke-dasharray: 32;
   stroke-dashoffset: 10;
 }
@@ -46,16 +87,85 @@
   }
 }
 
-.success-icon {
-  width: 14px;
-  height: 14px;
+/* 操作状态显示 */
+.operation-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.operation-message {
+  font-size: 11px;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operation-message.error-message {
+  color: var(--error-color);
+  cursor: help;
+  border-bottom: 1px dashed var(--error-color);
+}
+
+/* 细线条进度条 - 虚拟进度 */
+.progress-bar-container {
+  width: 60px;
+  height: 2px;
+  background: var(--bg-tertiary);
+  border-radius: 1px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-bar-virtual {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--accent-color) 0%,
+    var(--accent-light) 25%,
+    var(--accent-color) 50%,
+    var(--accent-light) 75%,
+    var(--accent-color) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* 成功状态 */
+.operation-status.success {
   color: var(--success-color);
 }
 
-.progress-text {
-  font-size: 12px;
+/* 错误状态 */
+.operation-status.error {
+  color: var(--error-color);
 }
 
+/* 进度文字 */
+.progress-text {
+  font-size: 11px;
+}
+
+/* 取消按钮 */
 .cancel-button {
   padding: 2px 8px;
   background: var(--bg-tertiary);
@@ -70,4 +180,10 @@
 .cancel-button:hover {
   background: var(--bg-secondary);
   border-color: var(--text-muted);
+}
+
+.success-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--success-color);
 }
