@@ -1,68 +1,10 @@
-/* GitLogView 样式 */
-
 .git-log-view {
-  padding: 8px;
+  padding: 8px 4px;
 }
 
 .git-log-empty {
-  padding: 40px 20px;
+  padding: 48px 20px;
   text-align: center;
-  color: var(--text-secondary);
+  color: #8b949e;
   font-size: 13px;
-}
-
-.git-log-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.git-log-item {
-  padding: 10px 12px;
-  border-radius: 4px;
-  cursor: default;
-  transition: background-color 0.15s ease;
-}
-
-.git-log-item.clickable {
-  cursor: pointer;
-}
-
-.git-log-item.clickable:hover {
-  background-color: var(--bg-hover);
-}
-
-.git-log-hash {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--accent-color);
-  margin-bottom: 4px;
-}
-
-.git-log-message {
-  font-size: 13px;
-  color: var(--text-primary);
-  margin-bottom: 6px;
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.git-log-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.git-log-author {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.git-log-date {
-  margin-left: 8px;
 }

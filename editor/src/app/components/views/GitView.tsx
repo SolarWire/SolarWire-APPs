@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGitStore } from '../../stores/gitStore';
-import { GitLogView } from '../version/GitLogView';
+import { GitGraph } from '../version/GitGraph';
 import { Scrollbar } from '../ui/Scrollbar';
 import './GitView.css';
 
@@ -112,7 +112,7 @@ function GitView(): React.ReactElement {
           <div className="git-log-section">
             <div className="section-title">History ({history.length})</div>
             <div className="git-log-container">
-              <GitLogView
+              <GitGraph
                 commits={history}
                 currentBranch="main"
               />

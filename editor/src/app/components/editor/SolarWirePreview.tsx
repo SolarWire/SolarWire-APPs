@@ -184,7 +184,7 @@ interface DragElementState {
 
 interface ResizeHandleState {
   elementId: string;
-  handle: 'nw' | 'ne' | 'sw' | 'se' | 'start' | 'end';
+  handle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w' | 'start' | 'end';
   startX: number;
   startY: number;
   elementX: number;
@@ -701,11 +701,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             return;
           }
         } else {
-          // 普通角句柄
+          // 普通调整句柄（角 + 边）
           const bounds = getElementBounds(elementId);
           setResizeHandleState({
             elementId,
-            handle: handleAttr as 'nw' | 'ne' | 'sw' | 'se',
+            handle: handleAttr as ResizeHandleState['handle'],
             startX: e.clientX,
             startY: e.clientY,
             elementX: bounds.x,
@@ -870,29 +870,46 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       
       let newX = resizeHandleState.elementX;
       let newY = resizeHandleState.elementY;
-      let newW = resizeHandleState.elementW;
-      let newH = resizeHandleState.elementH;
+      let newW = resizeHandleState.elementW ?? 0;
+      let newH = resizeHandleState.elementH ?? 0;
+
+      const startW = resizeHandleState.elementW ?? 0;
+      const startH = resizeHandleState.elementH ?? 0;
 
       switch (resizeHandleState.handle) {
         case 'nw':
           newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
           newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
-          newW = Math.round(resizeHandleState.elementW - dx);
-          newH = Math.round(resizeHandleState.elementH - dy);
+          newW = Math.round(startW - dx);
+          newH = Math.round(startH - dy);
+          break;
+        case 'n':
+          newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
+          newH = Math.round(startH - dy);
           break;
         case 'ne':
           newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
-          newW = Math.round(resizeHandleState.elementW + dx);
-          newH = Math.round(resizeHandleState.elementH - dy);
+          newW = Math.round(startW + dx);
+          newH = Math.round(startH - dy);
+          break;
+        case 'e':
+          newW = Math.round(startW + dx);
+          break;
+        case 's':
+          newH = Math.round(startH + dy);
+          break;
+        case 'se':
+          newW = Math.round(startW + dx);
+          newH = Math.round(startH + dy);
+          break;
+        case 'w':
+          newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
+          newW = Math.round(startW - dx);
           break;
         case 'sw':
           newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
-          newW = Math.round(resizeHandleState.elementW - dx);
-          newH = Math.round(resizeHandleState.elementH + dy);
-          break;
-        case 'se':
-          newW = Math.round(resizeHandleState.elementW + dx);
-          newH = Math.round(resizeHandleState.elementH + dy);
+          newW = Math.round(startW - dx);
+          newH = Math.round(startH + dy);
           break;
       }
 
@@ -1320,13 +1337,21 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           );
         });
       } else if (elementData && elementData.type !== 'text') {
-        // 其他元素（除了文本元素） - 渲染四个角的调整手柄
         const corners = [
           { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+          { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
           { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+          { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
+          { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
+          { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
           { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-          { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const }
+          { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
         ];
+
+        const cursorMap: Record<string, string> = {
+          nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
+          se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize'
+        };
 
         corners.forEach((corner) => {
           handles.push(
@@ -1341,7 +1366,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               fill="white"
               stroke={primaryColor}
               strokeWidth={2 / scale}
-              style={{ cursor: `${corner.handle}-resize`, pointerEvents: 'auto' }}
+              style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
             />
           );
         });
