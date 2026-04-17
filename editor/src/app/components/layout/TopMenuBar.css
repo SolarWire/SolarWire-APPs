@@ -193,6 +193,28 @@
   background: var(--bg-secondary);
 }
 
+.open-button {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin-right: 8px;
+  transition: all 0.15s ease;
+}
+
+.open-button:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
 .save-button {
   background: transparent;
   color: var(--text-muted);

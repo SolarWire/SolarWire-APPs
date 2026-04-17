@@ -1,4 +1,4 @@
-export type EditorMode = 'blank' | 'markdown' | 'solarwire' | 'version' | 'git';
+export type EditorMode = 'blank' | 'markdown' | 'solarwire' | 'git';
 
 export interface EditorState {
   mode: EditorMode;

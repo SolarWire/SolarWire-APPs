@@ -67,42 +67,27 @@ const FileView: React.FC = () => {
   const renderFileTree = () => {
     if (fileTree.length === 0 && !selectedFile) {
       return (
-        <div className="file-tree-container">
-          <div className="file-tree-header">
-            <h3>Files</h3>
-            <button className="open-button small" onClick={handleOpen}>Open</button>
-          </div>
-          <div className="file-tree">
-            <div className="file-view-empty">
-              <div className="empty-icon">📁</div>
-              <div className="empty-text">Open a file or folder to get started</div>
-              <button className="open-button" onClick={handleOpen}>Open File</button>
-            </div>
-          </div>
+        <div className="file-view-empty">
+          <div className="empty-icon">📁</div>
+          <div className="empty-text">Open a file or folder to get started</div>
         </div>
       );
     }
 
     return (
-      <div className="file-tree-container">
-        <div className="file-tree-header">
-          <h3>Files</h3>
-          <button className="open-button small" onClick={handleOpen}>Open</button>
-        </div>
-        <FileTree
-          nodes={fileTree}
-          expandedDirectories={expandedDirectories}
-          selectedFile={currentView === 'file' ? (selectedFile || (() => {
-            const selectedItem = getSelectionForView('file');
-            if (selectedItem) {
-              return { name: selectedItem.path.split(/[\/]/).pop() || selectedItem.path, path: selectedItem.path, type: 'file' };
-            }
-            return null;
-          })()) : null}
-          onToggleDirectory={toggleDirectory!}
-          onSelectFile={handleSelectFile}
-        />
-      </div>
+      <FileTree
+        nodes={fileTree}
+        expandedDirectories={expandedDirectories}
+        selectedFile={currentView === 'file' ? (selectedFile || (() => {
+          const selectedItem = getSelectionForView('file');
+          if (selectedItem) {
+            return { name: selectedItem.path.split(/[\/\\]/).pop() || selectedItem.path, path: selectedItem.path, type: 'file' };
+          }
+          return null;
+        })()) : null}
+        onToggleDirectory={toggleDirectory!}
+        onSelectFile={handleSelectFile}
+      />
     );
   };
 

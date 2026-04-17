@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('api', {
     getFileDiff: (filePath: string) => ipcRenderer.invoke('git:getFileDiff', filePath),
     getFileContentAtCommit: (filePath: string, commitHash: string) => ipcRenderer.invoke('git:getFileContentAtCommit', filePath, commitHash),
     getFileDiffBetweenCommits: (filePath: string, commitHash1: string, commitHash2: string) => ipcRenderer.invoke('git:getFileDiffBetweenCommits', filePath, commitHash1, commitHash2),
+    getCommitDetails: (commitHash: string) => ipcRenderer.invoke('git:getCommitDetails', commitHash),
   },
 });
 

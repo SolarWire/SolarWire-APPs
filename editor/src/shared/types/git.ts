@@ -30,6 +30,50 @@ export interface GitCommit {
    * 作者姓名
    */
   authorName: string;
+  
+  /**
+   * 作者邮箱（可选）
+   */
+  authorEmail?: string;
+  
+  /**
+   * 修改的文件列表（可选）
+   */
+  changedFiles?: ChangedFile[];
+  
+  /**
+   * 统计信息（可选）
+   */
+  stats?: {
+    additions: number;
+    deletions: number;
+    files: number;
+  };
+}
+
+/**
+ * 修改的文件信息
+ */
+export interface ChangedFile {
+  /**
+   * 文件路径
+   */
+  path: string;
+  
+  /**
+   * 变更类型：'added' | 'deleted' | 'modified' | 'renamed'
+   */
+  type: 'added' | 'deleted' | 'modified' | 'renamed';
+  
+  /**
+   * 新增行数
+   */
+  additions?: number;
+  
+  /**
+   * 删除行数
+   */
+  deletions?: number;
 }
 
 /**

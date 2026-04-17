@@ -171,11 +171,41 @@ const TopMenuBar: React.FC = () => {
     await saveFile();
   };
 
+  const handleOpen = async () => {
+    try {
+      const api = (window as any).api;
+      if (!api || !api.openFileDialog) {
+        console.warn('File dialog not available in current environment');
+        alert('File dialog is only available in the Electron app');
+        return;
+      }
+
+      const paths: string[] = await api.openFileDialog({
+        properties: ['openDirectory'],
+      });
+
+      if (paths && paths.length > 0) {
+        const { openDirectoryAtPath } = useFileStore.getState();
+        await openDirectoryAtPath(paths[0]);
+      }
+    } catch (err) {
+      console.error('Open dialog failed', err);
+    }
+  };
+
   return (
     <>
       <div className="top-menu-bar menu-bar" data-testid="menu-bar">
         <img className="app-logo" src="/logo.svg" alt="SolarWire" />
         <div className="app-title">SolarWire Editor</div>
+        
+        <button 
+          className="open-button" 
+          onClick={handleOpen} 
+          title="Open Directory (Ctrl+O)"
+        >
+          📂 Open
+        </button>
         
         <button 
           className={`save-button ${isModified ? 'modified' : ''}`} 

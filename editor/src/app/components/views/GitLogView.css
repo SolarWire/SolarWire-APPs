@@ -1,0 +1,50 @@
+/* GitLogView 组件样式 */
+
+.git-log-view {
+  height: 100%;
+  overflow: auto;
+  padding: 8px;
+}
+
+/* 自定义 GitLog 样式以适配主题 */
+.git-log-view [class*='git-log'] {
+  --git-log-graph-color: var(--accent-color);
+  --git-log-text-primary: var(--text-primary);
+  --git-log-text-secondary: var(--text-secondary);
+  --git-log-bg: var(--bg-primary);
+  --git-log-border: var(--border-color);
+}
+
+.git-log-view [class*='git-log-graph'] {
+  border-right: 1px solid var(--border-color);
+}
+
+.git-log-view [class*='git-log-table'] {
+  background: transparent;
+}
+
+.git-log-view [class*='git-log-commit-row'] {
+  transition: background-color 0.15s ease;
+}
+
+.git-log-view [class*='git-log-commit-row']:hover {
+  background-color: var(--hover-bg);
+}
+
+.git-log-view [class*='git-log-commit-hash'] {
+  font-family: var(--font-mono);
+  color: var(--accent-color);
+}
+
+.git-log-view [class*='git-log-commit-message'] {
+  color: var(--text-primary);
+}
+
+.git-log-view [class*='git-log-commit-date'] {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.git-log-view [class*='git-log-commit-author'] {
+  color: var(--text-secondary);
+}

@@ -232,6 +232,11 @@
 }
 
 .sidebar-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 280px;
   min-width: 200px;
   display: flex;
   flex-direction: column;
@@ -239,6 +244,7 @@
   background: var(--bg-secondary);
   border-left: 1px solid var(--border-color);
   overflow: hidden;
+  z-index: 10;
 }
 
 .sidebar-panel > * {

@@ -18,6 +18,7 @@ import {
   getFileDiff,
   getFileContentAtCommit,
   getFileDiffBetweenCommits,
+  getCommitDetails,
 } from '../git-manager';
 
 /**
@@ -152,5 +153,10 @@ export function registerGitHandlers(): void {
     validateCommitHash(commitHash1);
     validateCommitHash(commitHash2);
     return await getFileDiffBetweenCommits(filePath, commitHash1, commitHash2);
+  });
+
+  ipcMain.handle('git:getCommitDetails', async (_event, commitHash: string) => {
+    validateCommitHash(commitHash);
+    return await getCommitDetails(commitHash);
   });
 }

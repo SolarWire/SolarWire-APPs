@@ -1,14 +1,73 @@
+/**
+ * 状态栏样式
+ */
+
 .status-bar {
-  height: 22px;
-  background: var(--status-bar-bg);
-  color: var(--white);
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  height: 24px;
   padding: 0 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.status-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.git-analysis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px;
+  background: rgba(79, 195, 247, 0.1);
+  border-radius: 4px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  animation: spin 1s linear infinite;
+}
+
+.spinner-circle {
+  stroke-dasharray: 32;
+  stroke-dashoffset: 10;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.success-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--success-color);
+}
+
+.progress-text {
   font-size: 12px;
 }
 
-.status-text {
-  display: flex;
-  align-items: center;
+.cancel-button {
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-primary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cancel-button:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-muted);
 }

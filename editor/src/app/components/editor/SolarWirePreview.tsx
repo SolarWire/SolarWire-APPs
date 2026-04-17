@@ -226,6 +226,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [boxSelection, setBoxSelection] = useState<BoxSelectionState | null>(null);
+  const [dragPreviewElement, setDragPreviewElement] = useState<{
+    type: string;
+    x: number;
+    y: number;
+  } | null>(null);
   const [dragElementState, setDragElementState] = useState<DragElementState | null>(null);
   const [resizeHandleState, setResizeHandleState] = useState<ResizeHandleState | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -533,37 +538,42 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     let nearestElement: string | null = null;
     let minDistance = Infinity;
     
+    console.log('=== 线段选择调试 ===');
+    console.log('鼠标位置:', { svgX, svgY, tolerance });
+    
     // 第一遍：优先检测线段（使用点到线段距离）
-    ast.elements.forEach((element) => {
+    ast.elements.forEach((element, idx) => {
       const lineNum = element.location?.line;
       if (!lineNum) return;
       
       if (element.type === 'line') {
         try {
+          console.log(`检查线段 [${idx}] line ${lineNum}:`, element);
           const { x1, y1, x2, y2 } = getLineCoordinates(element);
+          console.log(`线段坐标: (${x1},${y1})->(${x2},${y2})`);
           const actualDistance = pointToLineDistance(svgX, svgY, x1, y1, x2, y2);
+          console.log(`距离=${actualDistance.toFixed(2)}, tolerance=${tolerance}`);
           
           if (actualDistance <= tolerance && actualDistance < minDistance) {
             minDistance = actualDistance;
             nearestElement = lineNum.toString();
+            console.log(`✓ 选中线段 ${lineNum}!`);
           }
         } catch (e) {
-          console.warn('Failed to get line coordinates for element', lineNum, e);
+          console.error(`线段 ${lineNum} 处理失败:`, e);
         }
       }
     });
     
-    // 如果已经找到线段，直接返回（线段优先级最高）
     if (nearestElement) {
+      console.log('最终结果：线段', nearestElement);
       return nearestElement;
     }
     
-    // 第二遍：检测其他元素（使用边界框检测）
+    // 第二遍：检测其他元素
     ast.elements.forEach((element) => {
       const lineNum = element.location?.line;
       if (!lineNum) return;
-      
-      // 跳过线段元素（已经检测过了）
       if (element.type === 'line') return;
       
       try {
@@ -573,7 +583,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const elementTop = bounds.y;
         const elementBottom = bounds.y + bounds.h;
         
-        // 计算点到矩形边界的最近距离
         const closestX = Math.max(elementLeft, Math.min(svgX, elementRight));
         const closestY = Math.max(elementTop, Math.min(svgY, elementBottom));
         const distance = Math.sqrt(
@@ -583,9 +592,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         if (distance <= tolerance && distance < minDistance) {
           minDistance = distance;
           nearestElement = lineNum.toString();
+          console.log(`✓ 选中元素 ${lineNum} (${element.type})`);
         }
       } catch (e) {
-        console.warn('Failed to get bounds for element', lineNum, e);
+        console.warn('获取元素边界失败', lineNum, e);
       }
     });
     
@@ -1024,10 +1034,43 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
+    
+    // 更新预览元素位置
+    if (dragPreviewElement) {
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      setDragPreviewElement({
+        ...dragPreviewElement,
+        x: Math.round(svgCoords.x),
+        y: Math.round(svgCoords.y)
+      });
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    const jsonData = e.dataTransfer.getData('application/json');
+    if (!jsonData) return;
+    
+    try {
+      const elementData = JSON.parse(jsonData);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      setDragPreviewElement({
+        type: elementData.type,
+        x: Math.round(svgCoords.x),
+        y: Math.round(svgCoords.y)
+      });
+    } catch (error) {
+      console.error('Drag enter error:', error);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragPreviewElement(null);
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    setDragPreviewElement(null);
 
     try {
       const jsonData = e.dataTransfer.getData('application/json');
@@ -1121,6 +1164,147 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         style={{ pointerEvents: 'none' }}
       />
     );
+  };
+
+  const renderDragPreview = () => {
+    if (!dragPreviewElement) return null;
+
+    const { type, x, y } = dragPreviewElement;
+
+    // 根据元素类型渲染不同的预览形状
+    switch (type) {
+      case 'rectangle':
+        return (
+          <rect
+            x={x}
+            y={y}
+            width={100}
+            height={50}
+            fill="rgba(252, 165, 6, 0.3)"
+            stroke={primaryColor}
+            strokeWidth={2 / scale}
+            strokeDasharray="4,4"
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      case 'rounded-rectangle':
+        return (
+          <rect
+            x={x}
+            y={y}
+            width={100}
+            height={50}
+            rx={6}
+            ry={6}
+            fill="rgba(252, 165, 6, 0.3)"
+            stroke={primaryColor}
+            strokeWidth={2 / scale}
+            strokeDasharray="4,4"
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      case 'circle':
+        return (
+          <ellipse
+            cx={x + 50}
+            cy={y + 20}
+            rx={50}
+            ry={20}
+            fill="rgba(252, 165, 6, 0.3)"
+            stroke={primaryColor}
+            strokeWidth={2 / scale}
+            strokeDasharray="4,4"
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      case 'text':
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect
+              x={x}
+              y={y}
+              width={80}
+              height={20}
+              fill="rgba(252, 165, 6, 0.3)"
+              stroke={primaryColor}
+              strokeWidth={2 / scale}
+              strokeDasharray="4,4"
+            />
+            <text
+              x={x + 5}
+              y={y + 15}
+              fontSize={12 / scale}
+              fill={primaryColor}
+              style={{ userSelect: 'none' }}
+            >
+              Text
+            </text>
+          </g>
+        );
+      case 'line':
+        return (
+          <line
+            x1={x}
+            y1={y}
+            x2={x + 100}
+            y2={y}
+            stroke={primaryColor}
+            strokeWidth={2 / scale}
+            strokeDasharray="4,4"
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      case 'image':
+      case 'placeholder':
+        return (
+          <rect
+            x={x}
+            y={y}
+            width={100}
+            height={50}
+            fill="rgba(252, 165, 6, 0.3)"
+            stroke={primaryColor}
+            strokeWidth={2 / scale}
+            strokeDasharray="4,4"
+            style={{ pointerEvents: 'none' }}
+          />
+        );
+      case 'table':
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect
+              x={x}
+              y={y}
+              width={200}
+              height={100}
+              fill="rgba(252, 165, 6, 0.3)"
+              stroke={primaryColor}
+              strokeWidth={2 / scale}
+              strokeDasharray="4,4"
+            />
+            <line
+              x1={x}
+              y1={y + 25}
+              x2={x + 200}
+              y2={y + 25}
+              stroke={primaryColor}
+              strokeWidth={1 / scale}
+              strokeDasharray="2,2"
+            />
+            <line
+              x1={x + 100}
+              y1={y}
+              x2={x + 100}
+              y2={y + 100}
+              stroke={primaryColor}
+              strokeWidth={1 / scale}
+              strokeDasharray="2,2"
+            />
+          </g>
+        );
+      default:
+        return null;
+    }
   };
 
   const renderSelectionHandles = () => {
@@ -1297,8 +1481,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
       onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
       onDrop={handleDrop}
-      onSelect={(e) => e.preventDefault()}
+      onContextMenu={(e) => e.preventDefault()}
       style={{ 
         cursor,
         userSelect: 'none'
@@ -1349,6 +1535,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           >
             <g style={{ pointerEvents: 'auto' }}>
               {renderHoverHighlight()}
+              {renderDragPreview()}
               {renderReferenceLines()}
               {renderSelectionHandles()}
             </g>

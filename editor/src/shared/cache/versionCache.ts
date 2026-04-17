@@ -130,6 +130,54 @@ class VersionCache {
       }
     }
   }
+
+  /**
+   * 预热缓存（批量设置初始缓存）
+   * @param items 预热的缓存项数组
+   */
+  warmup(items: Array<{ key: string; value: VersionCacheItem }>): void {
+    for (const { key, value } of items) {
+      this.set(key, value);
+    }
+  }
+
+  /**
+   * 检查缓存是否命中
+   * @param key 缓存 Key
+   * @returns 是否命中
+   */
+  has(key: string): boolean {
+    const item = this.cache.get(key);
+    if (!item) return false;
+    
+    // 检查是否过期
+    if (Date.now() - item.timestamp > this.TTL) {
+      this.cache.delete(key);
+      return false;
+    }
+    
+    return true;
+  }
+
+  /**
+   * 获取缓存命中率
+   * @returns 命中率（0-1 之间）
+   */
+  getHitRate(): number {
+    const total = this.cache.size;
+    if (total === 0) return 0;
+    
+    const now = Date.now();
+    let validCount = 0;
+    
+    for (const item of this.cache.values()) {
+      if (now - item.timestamp <= this.TTL) {
+        validCount++;
+      }
+    }
+    
+    return validCount / total;
+  }
 }
 
 // 单例模式

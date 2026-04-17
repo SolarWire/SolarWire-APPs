@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, forwardRef } from 'react';
 import './Scrollbar.css';
 
 interface ScrollbarProps {
@@ -6,10 +6,12 @@ interface ScrollbarProps {
   className?: string;
 }
 
-export const Scrollbar: React.FC<ScrollbarProps> = ({ children, className = '' }) => {
+export const Scrollbar = forwardRef<HTMLDivElement, ScrollbarProps>(({ children, className = '' }, ref) => {
   return (
-    <div className={`scrollbar ${className}`}>
+    <div ref={ref} className={`scrollbar ${className}`}>
       {children}
     </div>
   );
-};
+});
+
+Scrollbar.displayName = 'Scrollbar';

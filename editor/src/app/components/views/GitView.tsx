@@ -4,9 +4,17 @@ import { Scrollbar } from '../ui/Scrollbar';
 import './GitView.css';
 
 function GitView(): JSX.Element {
-  const { isInitialized, status, commit, stageAllModified } = useGitStore();
+  const { isInitialized, status, commit, stageAllModified, refreshStatus } = useGitStore();
   const [commitMessage, setCommitMessage] = useState<string>('');
   const [isCommitting, setIsCommitting] = useState(false);
+
+  const handleRefresh = async () => {
+    try {
+      await refreshStatus();
+    } catch (error) {
+      console.error('Failed to refresh Git status:', error);
+    }
+  };
 
   const handleCommit = async () => {
     if (!commitMessage.trim()) return;

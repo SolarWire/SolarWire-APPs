@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import MonacoEditor from '../editor/MonacoEditor';
 import MarkdownPreview from '../editor/MarkdownPreview';
+import VersionView from '../views/VersionView';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
@@ -25,8 +26,10 @@ function MarkdownMode(): JSX.Element {
     }
   };
 
+  const [activeTab, setActiveTab] = useState<'preview' | 'editor' | 'version'>('preview');
+
   return (
-    <TabProvider defaultTab="preview">
+    <TabProvider activeTab={activeTab} onTabChange={setActiveTab}>
       <div className="markdown-mode">
         <TabList className="markdown-tabs">
           <Tab id="preview" title="预览">
@@ -34,6 +37,9 @@ function MarkdownMode(): JSX.Element {
           </Tab>
           <Tab id="editor" title="编辑器">
             编辑器
+          </Tab>
+          <Tab id="version" title="版本历史">
+            版本历史
           </Tab>
         </TabList>
         <div className="markdown-content">
@@ -47,6 +53,12 @@ function MarkdownMode(): JSX.Element {
           </TabPanel>
           <TabPanel id="preview">
             <MarkdownPreview />
+          </TabPanel>
+          <TabPanel id="version">
+            <VersionView
+              filePath={selectedFile?.path}
+              snippet={undefined}
+            />
           </TabPanel>
         </div>
       </div>

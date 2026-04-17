@@ -19,6 +19,14 @@ interface GitBranch {
   isCurrent: boolean;
 }
 
+interface GitAnalysisProgress {
+  total: number;
+  processed: number;
+  status: 'running' | 'completed' | 'cancelled';
+  matchingCommits?: number;
+  onCancel?: () => void;
+}
+
 interface GitState {
   isInitialized: boolean;
   status: GitStatus;
@@ -34,6 +42,8 @@ interface GitState {
   leftFileContent: string;
   rightFileContent: string;
   fileDiff: string;
+  // 版本分析进度
+  gitAnalysis: GitAnalysisProgress | null;
   initGit: (repoPath: string) => Promise<void>;
   refreshStatus: () => Promise<void>;
   refreshHistory: (filePath?: string) => Promise<void>;
@@ -57,6 +67,7 @@ interface GitState {
   loadLeftFileContent: (filePath: string, commitHash: string) => Promise<void>;
   loadRightFileContent: (filePath: string, commitHash: string) => Promise<void>;
   loadFileDiff: (filePath: string, commitHash1: string, commitHash2: string) => Promise<void>;
+  getGitLog: (filePath?: string) => Promise<GitCommit[]>;
 }
 
 const api = (window as any).api?.git;
@@ -75,6 +86,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   leftFileContent: '',
   rightFileContent: '',
   fileDiff: '',
+  gitAnalysis: null,
 
   initGit: async (repoPath: string) => {
     if (!api) return;
@@ -276,6 +288,16 @@ export const useGitStore = create<GitState>((set, get) => ({
       set({ fileDiff: diff });
     } catch (error) {
       console.error('Failed to load file diff:', error);
+    }
+  },
+
+  getGitLog: async (filePath?: string): Promise<GitCommit[]> => {
+    if (!api) return [];
+    try {
+      return await api.getLog(filePath);
+    } catch (error) {
+      console.error('Failed to get git log:', error);
+      return [];
     }
   },
 }));

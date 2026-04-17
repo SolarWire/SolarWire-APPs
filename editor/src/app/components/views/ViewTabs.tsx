@@ -30,8 +30,6 @@ const ViewTabs: React.FC = () => {
         return <RequirementView />;
       case 'solarwire':
         return <SolarWireView />;
-      case 'version':
-        return <VersionView />;
       case 'git':
         return <GitView />;
       default:

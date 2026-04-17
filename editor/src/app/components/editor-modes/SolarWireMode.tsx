@@ -3,6 +3,7 @@ import MonacoEditor from '../editor/MonacoEditor';
 import SolarWirePreview from '../editor/SolarWirePreview';
 import PropertyPanel from '../editor/PropertyPanel';
 import ElementLibrary from '../editor/ElementLibrary';
+import VersionView from '../views/VersionView';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
@@ -16,7 +17,7 @@ function SolarWireMode(): JSX.Element {
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
   const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
-  const [activeTab, setActiveTab] = useState<'code' | 'visual'>('visual');
+  const [activeTab, setActiveTab] = useState<'code' | 'visual' | 'version'>('visual');
 
   const selectionTools = [
     { id: 'select', label: 'Select', icon: '🖱️', description: 'Click to select, Shift+Click to multi-select' },
@@ -208,6 +209,9 @@ function SolarWireMode(): JSX.Element {
             <Tab id="visual" title="可视化编辑器">
               可视化编辑
             </Tab>
+            <Tab id="version" title="版本历史">
+              版本历史
+            </Tab>
           </TabList>
         </div>
         
@@ -349,10 +353,19 @@ function SolarWireMode(): JSX.Element {
             
             {/* 悬浮属性面板 */}
             {selectedElements.length > 0 && (
-              <div className="sidebar-panel-floating">
+              <div className="sidebar-panel">
                 <PropertyPanel />
               </div>
             )}
+          </TabPanel>
+          <TabPanel id="version">
+            <VersionView
+              filePath={selectedFile?.path}
+              snippet={currentSnippet ? {
+                code: currentSnippet.code,
+                snippetIndex: currentSnippet.snippetIndex
+              } : undefined}
+            />
           </TabPanel>
         </div>
       </div>

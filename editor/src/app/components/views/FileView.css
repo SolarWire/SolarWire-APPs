@@ -43,11 +43,6 @@
   background-color: var(--accent-hover);
 }
 
-.open-button.small {
-  padding: 4px 8px;
-  font-size: 11px;
-}
-
 .selected-file {
   padding: 16px;
 }
@@ -79,21 +74,4 @@
   font-size: 11px;
   color: var(--text-muted);
   word-break: break-all;
-}
-
-.file-tree-container {
-  padding: 16px;
-}
-
-.file-tree-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.file-tree-header h3 {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin: 0;
 }

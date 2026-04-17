@@ -7,12 +7,26 @@ interface GitStatus {
   untracked: string[];
 }
 
+interface ChangedFile {
+  path: string;
+  type: 'added' | 'deleted' | 'modified' | 'renamed';
+  additions?: number;
+  deletions?: number;
+}
+
 interface GitCommit {
   hash: string;
   shortHash: string;
   date: string;
   message: string;
   authorName: string;
+  authorEmail?: string;
+  changedFiles?: ChangedFile[];
+  stats?: {
+    additions: number;
+    deletions: number;
+    files: number;
+  };
 }
 
 interface GitBranch {
@@ -204,6 +218,30 @@ class GitRepository {
     }
   }
 
+  /**
+   * 获取指定 commit 时的文件内容
+   * @param filePath 文件路径
+   * @param commitHash commit hash
+   * @returns 文件内容
+   */
+  async getFileContentAtCommit(filePath: string, commitHash: string): Promise<string> {
+    this.validateFilePath(filePath);
+    this.validateCommitHash(commitHash);
+    
+    try {
+      // 使用 git show 获取指定 commit 时的文件内容
+      const content = await this.git.show([`${commitHash}:${filePath}`]);
+      return content || '';
+    } catch (error: any) {
+      console.error(`Failed to get file content at commit ${commitHash}:`, error);
+      // 如果文件在该 commit 时不存在，返回空字符串
+      if (error.message?.includes('does not exist')) {
+        return '';
+      }
+      throw error;
+    }
+  }
+
   async fetch(): Promise<void> {
     try {
       await this.git.fetch();
@@ -234,18 +272,6 @@ class GitRepository {
     }
   }
 
-  async getFileContentAtCommit(filePath: string, commitHash: string): Promise<string> {
-    this.validateFilePath(filePath);
-    this.validateCommitHash(commitHash);
-    try {
-      const content = await this.git.show([`${commitHash}:${filePath}`]);
-      return content;
-    } catch (error) {
-      console.error('Failed to get file content at commit:', error);
-      return '';
-    }
-  }
-
   async getFileDiffBetweenCommits(
     filePath: string,
     commitHash1: string,
@@ -260,6 +286,101 @@ class GitRepository {
     } catch (error) {
       console.error('Failed to get file diff between commits:', error);
       return '';
+    }
+  }
+
+  /**
+   * 获取提交详情（修改的文件列表和统计信息）
+   * @param commitHash commit hash
+   * @returns 修改的文件列表和统计信息
+   */
+  async getCommitDetails(commitHash: string): Promise<ChangedFile[]> {
+    this.validateCommitHash(commitHash);
+    
+    try {
+      // 获取提交的文件变更列表
+      const diff = await this.git.diff([`${commitHash}^..${commitHash}`, '--name-status']);
+      
+      if (!diff) {
+        return [];
+      }
+
+      const lines = diff.trim().split('\n');
+      const changedFiles: ChangedFile[] = [];
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        const parts = line.split('\t');
+        if (parts.length < 2) continue;
+
+        const status = parts[0].trim();
+        const filePath = parts[1].trim();
+
+        let type: ChangedFile['type'] = 'modified';
+        if (status.startsWith('A')) {
+          type = 'added';
+        } else if (status.startsWith('D')) {
+          type = 'deleted';
+        } else if (status.startsWith('R')) {
+          type = 'renamed';
+        }
+
+        changedFiles.push({
+          path: filePath,
+          type
+        });
+      }
+
+      // 获取统计信息
+      const numstat = await this.git.diff([`${commitHash}^..${commitHash}`, '--numstat']);
+      let additions = 0;
+      let deletions = 0;
+
+      if (numstat) {
+        const stats = numstat.trim().split('\n');
+        for (const stat of stats) {
+          if (!stat.trim()) continue;
+          const [adds, dels] = stat.split('\t');
+          if (adds && adds !== '-') {
+            additions += parseInt(adds, 10);
+          }
+          if (dels && dels !== '-') {
+            deletions += parseInt(dels, 10);
+          }
+        }
+      }
+
+      // 为每个文件添加详细的统计信息
+      if (numstat) {
+        const statLines = numstat.trim().split('\n');
+        const fileStatsMap = new Map<string, { additions: number; deletions: number }>();
+        
+        for (const statLine of statLines) {
+          if (!statLine.trim()) continue;
+          const [adds, dels, filePath] = statLine.split('\t');
+          if (filePath) {
+            fileStatsMap.set(filePath.trim(), {
+              additions: adds && adds !== '-' ? parseInt(adds, 10) : 0,
+              deletions: dels && dels !== '-' ? parseInt(dels, 10) : 0
+            });
+          }
+        }
+
+        // 更新 changedFiles 中的统计信息
+        for (const file of changedFiles) {
+          const stats = fileStatsMap.get(file.path);
+          if (stats) {
+            file.additions = stats.additions;
+            file.deletions = stats.deletions;
+          }
+        }
+      }
+
+      return changedFiles;
+    } catch (error: any) {
+      console.error(`Failed to get commit details for ${commitHash}:`, error);
+      return [];
     }
   }
 }
@@ -419,4 +540,12 @@ export async function getFileDiffBetweenCommits(
     return '';
   }
   return await repo.getFileDiffBetweenCommits(filePath, commitHash1, commitHash2);
+}
+
+export async function getCommitDetails(commitHash: string): Promise<ChangedFile[]> {
+  const repo = getCurrentRepo();
+  if (!repo) {
+    return [];
+  }
+  return await repo.getCommitDetails(commitHash);
 }
