@@ -155,11 +155,8 @@ function PropertyPanel(): JSX.Element {
     if (!element) return '';
     const el = element as any;
     const attrs = el.attributes || {};
-    let note = attrs.note || '';
-    if (typeof note === 'string') {
-      note = note.replace(/^"""|"""$/g, '');
-    }
-    return note;
+    const note = attrs.note || '';
+    return typeof note === 'string' ? note : '';
   }, [element]);
 
   // 当 note 内容变化时调整 textarea 高度
@@ -255,9 +252,10 @@ function PropertyPanel(): JSX.Element {
   const showSizeControls = type !== 'text' && type !== 'line';
   const showRadiusControl = type === 'rounded-rectangle';
   const showTextControls = 'text' in element || type === 'text';
-  const showBorderControls = type !== 'line' && type !== 'text';
+  const showBorderControls = type !== 'line' && type !== 'text' && type !== 'table';
+  const showFillControl = type !== 'line' && type !== 'text' && type !== 'table';
   const showLineControls = type === 'line';
-  const showAlignControl = type === 'text' || 'text' in element;
+  const showAlignControl = type === 'text' || (type !== 'circle' && 'text' in element);
 
   return (
     <div className="property-panel">
@@ -344,11 +342,19 @@ function PropertyPanel(): JSX.Element {
 
           <PropertyGroupTitle>Appearance</PropertyGroupTitle>
           <div className="property-row">
-            <ColorPicker
-              label="Fill"
-              value={bg}
-              onChange={(color) => handleChange('bg', color)}
-            />
+            {type === 'line' ? (
+              <ColorPicker
+                label="Color"
+                value={textColor}
+                onChange={(color) => handleChange('c', color)}
+              />
+            ) : showFillControl && (
+              <ColorPicker
+                label="Fill"
+                value={bg}
+                onChange={(color) => handleChange('bg', color)}
+              />
+            )}
             {showBorderControls && (
               <ColorPicker
                 label="Border"

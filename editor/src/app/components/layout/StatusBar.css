@@ -38,6 +38,25 @@
 .file-path {
   max-width: 400px;
   overflow: hidden;
+  position: relative;
+  cursor: default;
+}
+
+.file-path:hover::after {
+  content: attr(data-full-path);
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 6px 10px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  pointer-events: none;
 }
 
 .file-icon {

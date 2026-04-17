@@ -198,7 +198,6 @@ const TopMenuBar: React.FC = () => {
     <>
       <div className="top-menu-bar menu-bar" data-testid="menu-bar">
         <img className="app-logo" src="/logo.svg" alt="SolarWire" />
-        <div className="app-title">SolarWire Editor</div>
         
         <button 
           className="open-button" 

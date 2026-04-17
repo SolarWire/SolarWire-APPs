@@ -535,38 +535,34 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   ): string | null => {
     if (!ast) return null;
     
-    let nearestElement: string | null = null;
-    let minDistance = Infinity;
+    // 逆序遍历元素（从z轴最上方开始），返回第一个匹配的元素
     
     // 第一遍：优先检测线段（使用点到线段距离）
-    ast.elements.forEach((element) => {
+    for (let i = ast.elements.length - 1; i >= 0; i--) {
+      const element = ast.elements[i];
       const lineNum = element.location?.line;
-      if (!lineNum) return;
+      if (!lineNum) continue;
       
       if (element.type === 'line') {
         try {
           const { x1, y1, x2, y2 } = getLineCoordinates(element);
           const actualDistance = pointToLineDistance(svgX, svgY, x1, y1, x2, y2);
           
-          if (actualDistance <= tolerance && actualDistance < minDistance) {
-            minDistance = actualDistance;
-            nearestElement = lineNum.toString();
+          if (actualDistance <= tolerance) {
+            return lineNum.toString();
           }
         } catch (e) {
           console.error(`线段 ${lineNum} 处理失败:`, e);
         }
       }
-    });
-    
-    if (nearestElement) {
-      return nearestElement;
     }
     
-    // 第二遍：检测其他元素
-    ast.elements.forEach((element) => {
+    // 第二遍：检测其他元素（逆序，从z轴最上方开始）
+    for (let i = ast.elements.length - 1; i >= 0; i--) {
+      const element = ast.elements[i];
       const lineNum = element.location?.line;
-      if (!lineNum) return;
-      if (element.type === 'line') return;
+      if (!lineNum) continue;
+      if (element.type === 'line') continue;
       
       try {
         const bounds = getElementBounds(lineNum.toString());
@@ -581,16 +577,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           Math.pow(svgX - closestX, 2) + Math.pow(svgY - closestY, 2)
         );
         
-        if (distance <= tolerance && distance < minDistance) {
-          minDistance = distance;
-          nearestElement = lineNum.toString();
+        if (distance <= tolerance) {
+          return lineNum.toString();
         }
       } catch (e) {
         console.warn('获取元素边界失败', lineNum, e);
       }
-    });
+    }
     
-    return nearestElement;
+    return null;
   }, [ast, getElementBounds]);
 
   const testBoxSelection = useCallback((x1: number, y1: number, x2: number, y2: number) => {

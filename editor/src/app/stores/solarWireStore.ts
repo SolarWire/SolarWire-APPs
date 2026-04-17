@@ -12,6 +12,7 @@ interface SolarWireState {
   zoomLevel: number;
   isSpacePressed: boolean;
   selectElements: (ids: string[]) => void;
+  setSelectedElements: (ids: string[]) => void;
   setSelectionTool: (tool: SelectionTool) => void;
   setIsPanMode: (isPanMode: boolean) => void;
   setDragState: (state: any) => void;
@@ -32,6 +33,7 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
   isSpacePressed: false,
 
   selectElements: (ids: string[]) => set({ selectedElements: ids }),
+  setSelectedElements: (ids: string[]) => set({ selectedElements: ids }),
   setSelectionTool: (tool: SelectionTool) => set({ selectionTool: tool }),
   setIsPanMode: (isPanMode: boolean) => set({ isPanMode }),
   setDragState: (state: any) => set({ dragState: state }),

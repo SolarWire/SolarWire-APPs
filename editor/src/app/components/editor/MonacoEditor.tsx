@@ -3,6 +3,9 @@ import Editor from '@monaco-editor/react';
 import { useAppStore } from '../../stores/appStore';
 import './MonacoEditor.css';
 
+// 模块级变量，在组件卸载后仍保留滚动位置
+let globalSavedScrollPosition = 0;
+
 interface MonacoEditorProps {
   language: string;
   value: string;
@@ -41,6 +44,21 @@ function MonacoEditor({
   const handleEditorDidMount = useCallback((editor: any, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    
+    // 恢复之前保存的滚动位置
+    if (globalSavedScrollPosition > 0) {
+      editor.revealLine(globalSavedScrollPosition);
+    }
+    
+    // 监听滚动事件，保存当前可见的第一行
+    const scrollListener = () => {
+      const topLine = editor.getScrollTop();
+      const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+      if (lineHeight > 0) {
+        globalSavedScrollPosition = Math.round(topLine / lineHeight) + 1;
+      }
+    };
+    editor.onDidScrollChange(scrollListener);
     
     // 检查是否有待应用的高亮数据
     if (pendingHighlightRef.current && pendingHighlightRef.current.lines.length > 0) {

@@ -15,7 +15,7 @@ import './SolarWireMode.css';
 function SolarWireMode(): JSX.Element {
   const { content, setContent, undo } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
-  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed } = useSolarWireStore();
+  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<'code' | 'visual' | 'version'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
@@ -23,9 +23,8 @@ function SolarWireMode(): JSX.Element {
 
   const handleTabChange = useCallback((tab: 'code' | 'visual' | 'version') => {
     setActiveTab(tab);
-    // 切换到代码编辑器时，触发滚动和高亮到选中元素
+    // 切换到代码编辑器时，触发高亮更新（不滚动，保留之前的滚动位置）
     if (tab === 'code' && selectedElements.length > 0) {
-      setScrollTrigger(prev => prev + 1);
       setHighlightTrigger(prev => prev + 1);
     }
   }, [selectedElements.length]);

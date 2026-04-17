@@ -80,7 +80,7 @@ function FilePathDisplay() {
   }
 
   return (
-    <div className="status-bar-item file-path" title={filePath}>
+    <div className="status-bar-item file-path" title={filePath} data-full-path={filePath}>
       <span className="file-icon">📁</span>
       <span className="file-path-text">{filePath}</span>
     </div>
