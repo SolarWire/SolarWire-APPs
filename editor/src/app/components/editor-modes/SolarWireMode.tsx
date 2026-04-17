@@ -37,8 +37,9 @@ function SolarWireMode(): JSX.Element {
 
   const handleBringToFront = () => {
     if (selectedElements.length === 0) return;
-    const newContent = bringElementsToFront(content, selectedElements);
+    const { content: newContent, newElementIds } = bringElementsToFront(content, selectedElements);
     setContent(newContent);
+    setSelectedElements(newElementIds);
   };
 
   const handleAlign = (alignmentType: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom') => {

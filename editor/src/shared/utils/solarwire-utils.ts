@@ -401,7 +401,7 @@ export function updateLineAttribute(
 export function bringElementsToFront(
   content: string,
   selectedElementIds: string[]
-): string {
+): { content: string; newElementIds: string[] } {
   const lines = content.split(/\r?\n/);
   
   // 收集所有选中元素的行和内容，包括note的多行内容和表格的多行内容
@@ -454,7 +454,17 @@ export function bringElementsToFront(
   // 按照选中元素的原顺序添加到剩余行的末尾
   const newLines = [...remainingLines, ...selectedBlocks.flatMap(block => block.content)];
   
-  return newLines.join('\n');
+  // 计算元素的新行号
+  const remainingCount = remainingLines.length;
+  let currentLine = remainingCount + 1;
+  const newElementIds: string[] = [];
+  
+  for (const block of selectedBlocks) {
+    newElementIds.push(currentLine.toString());
+    currentLine += block.content.length;
+  }
+  
+  return { content: newLines.join('\n'), newElementIds };
 }
 
 /**
@@ -551,18 +561,17 @@ export function detectTableBounds(
   startLine: number
 ): { startLine: number; endLine: number } {
   const lines = content.split(/\r?\n/);
-  let endLine = startLine;
   
   const i = startLine - 1;
   if (i < 0 || i >= lines.length) {
-    return { startLine, endLine };
+    return { startLine, endLine: startLine };
   }
   
   const currentLine = lines[i];
   const trimmedLine = currentLine.trim();
   
   if (!trimmedLine.startsWith('##')) {
-    return { startLine, endLine };
+    return { startLine, endLine: startLine };
   }
   
   const getIndent = (line: string): number => {
@@ -573,38 +582,54 @@ export function detectTableBounds(
     return indent;
   };
   
-  const tableIndent = getIndent(currentLine);
-  let nextUnindentedLineIndex = -1;
+  // 先检测表格声明行的 note 边界，避免将 note 内容误判为下一个元素
+  const { endLine: noteEndLine } = detectNoteBounds(content, startLine);
   
-  // 从表格声明行的下一行开始，找到下一个无缩进（或缩进不大于表格声明）的元素声明行
-  for (let j = i + 1; j < lines.length; j++) {
+  // 从 note 结束行的下一行开始逐行检测
+  const scanStartIndex = noteEndLine;
+  
+  for (let j = scanStartIndex; j < lines.length; j++) {
     const line = lines[j];
     const lineTrimmed = line.trim();
     
     // 跳过空行和注释行
-    if (lineTrimmed === '' || lineTrimmed.startsWith('#')) {
+    if (lineTrimmed === '' || lineTrimmed.startsWith('//')) {
       continue;
     }
     
     const lineIndent = getIndent(line);
     
-    // 如果缩进不大于表格声明行，说明这是表格外的元素
-    if (lineIndent <= tableIndent) {
-      nextUnindentedLineIndex = j;
+    // 找到没有缩进的行，说明这是表格外的下一个元素
+    if (lineIndent === 0) {
+      // 从当前行往前找，跳过所有注释行和空行
+      let endIdx = j - 1;
+      while (endIdx >= scanStartIndex) {
+        const prevLine = lines[endIdx].trim();
+        // 如果是注释或空行，继续往前
+        if (prevLine === '' || prevLine.startsWith('//')) {
+          endIdx--;
+        } else {
+          // 找到最后一个非注释行
+          break;
+        }
+      }
+      return { startLine, endLine: endIdx + 1 };
+    }
+  }
+  
+  // 没有找到下一个无缩进行，表格是文件最后一个元素
+  // 从文件末尾往前找最后一个非注释行
+  let endIdx = lines.length - 1;
+  while (endIdx >= scanStartIndex) {
+    const line = lines[endIdx].trim();
+    if (line === '' || line.startsWith('//')) {
+      endIdx--;
+    } else {
       break;
     }
   }
   
-  // 确定表格的结束索引
-  let lastTableLineIndex = nextUnindentedLineIndex - 1;
-  if (nextUnindentedLineIndex === -1) {
-    // 没有找到下一个无缩进行，说明表格是最后一个元素，取到文件末尾
-    lastTableLineIndex = lines.length - 1;
-  }
-  
-  endLine = lastTableLineIndex + 1;
-  
-  return { startLine, endLine };
+  return { startLine, endLine: endIdx + 1 };
 }
 
 export function getElementRelatedLines(

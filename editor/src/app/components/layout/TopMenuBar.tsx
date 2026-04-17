@@ -14,7 +14,7 @@ interface SolarWireToolbarProps {
 
 const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
   const { content, setContent } = useEditorStore();
-  const { selectedElements, selectionTool, setSelectionTool, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, isPanMode, setIsPanMode } = useSolarWireStore();
+  const { selectedElements, selectionTool, setSelectionTool, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, isPanMode, setIsPanMode, setSelectedElements } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
 
   const selectionTools = [
@@ -24,8 +24,9 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
 
   const handleBringToFront = () => {
     if (selectedElements.length === 0) return;
-    const newContent = bringElementsToFront(content, selectedElements);
+    const { content: newContent, newElementIds } = bringElementsToFront(content, selectedElements);
     setContent(newContent);
+    setSelectedElements(newElementIds);
   };
 
   const handleAlign = (alignmentType: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom') => {
