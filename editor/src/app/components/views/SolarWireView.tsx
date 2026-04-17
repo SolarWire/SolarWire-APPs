@@ -6,7 +6,7 @@ import { useSelectionStore } from '../../stores/selectionStore';
 import { Scrollbar } from '../ui/Scrollbar';
 import './SolarWireView.css';
 
-function SolarWireView(): JSX.Element {
+function SolarWireView(): React.ReactElement {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [pages, setPages] = useState<SolarWireSnippet[]>([]);
   const [loading, setLoading] = useState<boolean>(false);

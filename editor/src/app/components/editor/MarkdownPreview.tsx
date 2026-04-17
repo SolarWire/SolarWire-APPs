@@ -15,11 +15,14 @@ mermaid.initialize({
   securityLevel: 'loose',
 });
 
-function MarkdownPreview(): JSX.Element {
+const markdownPreviewScrollPosition = { value: 0 };
+
+function MarkdownPreview(): React.ReactElement {
   const { content } = useEditorStore();
   const { selectedFile, fileContent } = useFileStore();
   const [html, setHtml] = useState<string>('');
   const previewRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let contentToRender = content;
@@ -78,8 +81,20 @@ function MarkdownPreview(): JSX.Element {
     }
   }, [html]);
 
+  useEffect(() => {
+    if (scrollContainerRef.current && markdownPreviewScrollPosition.value > 0) {
+      scrollContainerRef.current.scrollTop = markdownPreviewScrollPosition.value;
+    }
+  }, []);
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      markdownPreviewScrollPosition.value = scrollContainerRef.current.scrollTop;
+    }
+  };
+
   return (
-    <Scrollbar className="markdown-preview" ref={previewRef}>
+    <Scrollbar className="markdown-preview" ref={scrollContainerRef} onScroll={handleScroll}>
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </Scrollbar>
   );

@@ -248,7 +248,6 @@
 
 .note-section textarea {
   min-height: 40px;
-  max-height: 300px;
   resize: none;
   padding: 8px;
   border: 1px solid var(--border-color);
@@ -259,7 +258,7 @@
   box-sizing: border-box;
   line-height: 1.4;
   white-space: pre-wrap;
-  overflow: visible; /* 不显示滚动条，让高度自适应内容 */
+  overflow: hidden;
 }
 
 .note-section textarea:focus {

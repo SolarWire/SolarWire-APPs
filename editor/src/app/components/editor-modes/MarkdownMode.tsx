@@ -7,7 +7,7 @@ import { useFileStore } from '../../stores/fileStore';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './MarkdownMode.css';
 
-function MarkdownMode(): JSX.Element {
+function MarkdownMode(): React.ReactElement {
   const { content, setContent } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet, updateFileContent } = useFileStore();
 
@@ -49,6 +49,8 @@ function MarkdownMode(): JSX.Element {
               value={content}
               onChange={handleChange}
               height="100%"
+              preserveScrollPosition={true}
+              scrollKey="markdown-editor"
             />
           </TabPanel>
           <TabPanel id="preview">

@@ -14,7 +14,7 @@ interface CommitDetailProps {
   showCheckout?: boolean;
 }
 
-export function CommitDetail({ commit, onClose, currentFilePath, showCheckout = false }: CommitDetailProps): JSX.Element {
+export function CommitDetail({ commit, onClose, currentFilePath, showCheckout = false }: CommitDetailProps): React.ReactElement {
   const [loading, setLoading] = useState(false);
   const [fileStats, setFileStats] = useState<ChangedFile[]>([]);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -124,7 +124,7 @@ export function CommitDetail({ commit, onClose, currentFilePath, showCheckout = 
   );
 }
 
-function FileItem({ file, isCurrentFile }: { file: ChangedFile; isCurrentFile: boolean }): JSX.Element {
+function FileItem({ file, isCurrentFile }: { file: ChangedFile; isCurrentFile: boolean }): React.ReactElement {
   const typeIcon = { added: '+', deleted: '-', modified: 'M', renamed: 'R' }[file.type];
   const typeClass = { added: 'file-added', deleted: 'file-deleted', modified: 'file-modified', renamed: 'file-renamed' }[file.type];
 

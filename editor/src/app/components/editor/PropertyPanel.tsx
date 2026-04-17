@@ -17,7 +17,7 @@ interface PropertyRowProps {
   children: React.ReactNode;
 }
 
-function PropertyRow({ label, children }: PropertyRowProps): JSX.Element {
+function PropertyRow({ label, children }: PropertyRowProps): React.ReactElement {
   return (
     <div className="property-row">
       <div className="property-group">
@@ -38,7 +38,7 @@ interface PropertyPairProps {
   type?: 'number' | 'text';
 }
 
-function PropertyPair({ label1, value1, onChange1, label2, value2, onChange2, type = 'number' }: PropertyPairProps): JSX.Element {
+function PropertyPair({ label1, value1, onChange1, label2, value2, onChange2, type = 'number' }: PropertyPairProps): React.ReactElement {
   return (
     <div className="property-row">
       <div className="property-group">
@@ -65,23 +65,15 @@ interface PropertyGroupTitleProps {
   children: React.ReactNode;
 }
 
-function PropertyGroupTitle({ children }: PropertyGroupTitleProps): JSX.Element {
+function PropertyGroupTitle({ children }: PropertyGroupTitleProps): React.ReactElement {
   return <div className="property-group-title">{children}</div>;
 }
 
-function PropertyPanel(): JSX.Element {
+function PropertyPanel(): React.ReactElement {
   const { selectedElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
   const [parseError, setParseError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // 自动调整 textarea 高度的函数
-  const adjustTextareaHeight = useCallback((textareaRef: HTMLTextAreaElement | null) => {
-    if (textareaRef) {
-      textareaRef.style.height = 'auto';
-      textareaRef.style.height = `${textareaRef.scrollHeight}px`;
-    }
-  }, []);
 
   const ast = useMemo(() => {
     try {
@@ -101,6 +93,29 @@ function PropertyPanel(): JSX.Element {
       return id === elementId;
     }) as Element | undefined;
   }, [ast, selectedElements]);
+
+  const [localNoteValue, setLocalNoteValue] = useState('');
+  const elementLineRef = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    const currentElementLine = element?.location?.line;
+    if (element && currentElementLine !== elementLineRef.current) {
+      elementLineRef.current = currentElementLine;
+      const el = element as any;
+      const note = el.attributes?.note || '';
+      setLocalNoteValue(typeof note === 'string' ? note : '');
+    } else if (!element && elementLineRef.current !== undefined) {
+      elementLineRef.current = undefined;
+      setLocalNoteValue('');
+    }
+  }, [element]);
+
+  const adjustTextareaHeight = useCallback((textareaEl: HTMLTextAreaElement | null) => {
+    if (textareaEl) {
+      textareaEl.style.height = 'auto';
+      textareaEl.style.height = `${textareaEl.scrollHeight}px`;
+    }
+  }, []);
 
   const handleChange = useCallback((property: string, value: any) => {
     if (!element) return;
@@ -149,20 +164,10 @@ function PropertyPanel(): JSX.Element {
     setContent(newContent);
   }, [element, content, setContent]);
 
-  // Early returns after all hooks - but we need useEffect before them
-  // Extract note value for the effect hook (must come before early returns)
-  const noteValue = useMemo(() => {
-    if (!element) return '';
-    const el = element as any;
-    const attrs = el.attributes || {};
-    const note = attrs.note || '';
-    return typeof note === 'string' ? note : '';
-  }, [element]);
-
-  // 当 note 内容变化时调整 textarea 高度
+  // 当 localNoteValue 变化时调整 textarea 高度
   useEffect(() => {
     adjustTextareaHeight(textareaRef.current);
-  }, [noteValue, adjustTextareaHeight]);
+  }, [localNoteValue, adjustTextareaHeight]);
 
   // --- Early returns ---
   if (parseError) {
@@ -471,9 +476,10 @@ function PropertyPanel(): JSX.Element {
             <PropertyGroupTitle>Note</PropertyGroupTitle>
             <textarea
               ref={textareaRef}
-              value={noteValue}
+              value={localNoteValue}
               placeholder="Add a note..."
               onChange={(e) => {
+                setLocalNoteValue(e.target.value);
                 handleChange('note', e.target.value);
                 adjustTextareaHeight(textareaRef.current);
               }}

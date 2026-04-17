@@ -21,7 +21,7 @@ interface VersionViewProps {
   };
 }
 
-export function VersionView({ filePath, snippet }: VersionViewProps): JSX.Element {
+export function VersionView({ filePath, snippet }: VersionViewProps): React.ReactElement {
   const { isInitialized, getGitLog } = useGitStore();
   const { 
     enterDiffMode,

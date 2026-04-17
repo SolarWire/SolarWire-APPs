@@ -96,15 +96,14 @@ export function registerGitHandlers(): void {
     return { success: true };
   });
 
-  ipcMain.handle('git:commit', async (_event, message: string) => {
+  ipcMain.handle('git:commit', async (_event, message: string, name?: string, email?: string) => {
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       throw new Error('Commit message cannot be empty');
     }
-    // 限制提交消息长度
     if (message.length > 10000) {
       throw new Error('Commit message too long (max 10000 characters)');
     }
-    await commit(message);
+    await commit(message, name, email);
     return { success: true };
   });
 

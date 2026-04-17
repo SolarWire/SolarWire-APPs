@@ -57,7 +57,8 @@ class WorkerPool {
     // 如果没有空闲 Worker，创建新的（不超过最大值）
     if (this.workers.length < this.MAX_SIZE) {
       const worker = new Worker(
-        new URL('../workers/git-diff-analyzer.worker.ts', import.meta.url)
+        new URL('../../workers/git-diff-analyzer.worker.ts', import.meta.url),
+        { type: 'module' }
       );
       const wrapper: WorkerWrapper = {
         worker,

@@ -57,7 +57,7 @@ function parseUnifiedDiff(diffText: string): DiffData {
   };
 }
 
-export function DiffView({ filePath, oldCommit, newCommit, onClose }: DiffViewProps): JSX.Element {
+export function DiffView({ filePath, oldCommit, newCommit, onClose }: DiffViewProps): React.ReactElement {
   const [diffText, setDiffText] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

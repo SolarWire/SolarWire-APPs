@@ -12,7 +12,7 @@ import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alig
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './SolarWireMode.css';
 
-function SolarWireMode(): JSX.Element {
+function SolarWireMode(): React.ReactElement {
   const { content, setContent, undo } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
   const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements } = useSolarWireStore();

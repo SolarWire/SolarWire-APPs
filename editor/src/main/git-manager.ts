@@ -180,9 +180,11 @@ class GitRepository {
     }
   }
 
-  async commit(message: string): Promise<void> {
+  async commit(message: string, name?: string, email?: string): Promise<void> {
     const sanitizedMessage = this.sanitizeCommitMessage(message);
     try {
+      if (name) await this.git.addConfig('user.name', name);
+      if (email) await this.git.addConfig('user.email', email);
       await this.git.commit(sanitizedMessage);
     } catch (error) {
       console.error('Failed to commit:', error);
@@ -466,12 +468,12 @@ export async function stageAllModified(): Promise<void> {
   await repo.stageAllModified();
 }
 
-export async function commit(message: string): Promise<void> {
+export async function commit(message: string, name?: string, email?: string): Promise<void> {
   const repo = getCurrentRepo();
   if (!repo) {
     throw new Error('Git not initialized');
   }
-  await repo.commit(message);
+  await repo.commit(message, name, email);
 }
 
 export async function checkoutBranch(branchName: string): Promise<void> {

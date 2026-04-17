@@ -179,7 +179,8 @@ export function useVersionHistory(
         }
 
         const analyzerWorker = new Worker(
-          new URL('../workers/git-diff-analyzer.worker.ts', import.meta.url)
+          new URL('../../workers/git-diff-analyzer.worker.ts', import.meta.url),
+          { type: 'module' }
         );
         
         workerRef.current = analyzerWorker;
@@ -201,10 +202,10 @@ export function useVersionHistory(
         };
 
         analyzerWorker.onmessage = (event) => {
-          const { type, data, id } = event.data;
+          const { type, data, id, filePath, commitHash } = event.data;
 
           if (type === 'getFileContent') {
-            handleWorkerFileContentRequest(analyzerWorker, id, data.filePath, data.commitHash, gitApi.getFileContentAtCommit);
+            handleWorkerFileContentRequest(analyzerWorker, id, filePath, commitHash, gitApi.getFileContentAtCommit);
           } else if (type === 'progress') {
             setProgress(data);
           } else if (type === 'complete') {

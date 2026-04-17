@@ -83,7 +83,7 @@ function snapToAngle(dx: number, dy: number): { dx: number; dy: number } {
   };
 }
 
-function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false }: SolarWireCanvasProps): JSX.Element {
+function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false }: SolarWireCanvasProps): React.ReactElement {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const interactionLayerRef = useRef<SVGSVGElement>(null);
   

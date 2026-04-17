@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useGitStore } from '../../stores/gitStore';
+import { GitLogView } from '../version/GitLogView';
 import { Scrollbar } from '../ui/Scrollbar';
 import './GitView.css';
 
-function GitView(): JSX.Element {
-  const { isInitialized, status, commit, stageAllModified, refreshStatus } = useGitStore();
+function GitView(): React.ReactElement {
+  const { isInitialized, status, commit, stageAllModified, refreshStatus, history, refreshHistory } = useGitStore();
   const [commitMessage, setCommitMessage] = useState<string>('');
   const [isCommitting, setIsCommitting] = useState(false);
 
   const handleRefresh = async () => {
     try {
       await refreshStatus();
+      await refreshHistory();
     } catch (error) {
       console.error('Failed to refresh Git status:', error);
     }
@@ -48,9 +50,27 @@ function GitView(): JSX.Element {
     <Scrollbar className="git-view-scrollbar">
       <div className="git-view">
         <div className="git-header">
-          <h3>Git</h3>
           <button className="refresh-button" onClick={handleRefresh}>
             🔄 Refresh
+          </button>
+        </div>
+
+        {/* 始终显示 Commit 区域 */}
+        <div className="commit-section">
+          <div className="section-title">Commit</div>
+          <textarea
+            className="commit-message-input"
+            placeholder="输入提交信息..."
+            value={commitMessage}
+            onChange={(e) => setCommitMessage(e.target.value)}
+            rows={3}
+          />
+          <button
+            className="commit-button"
+            onClick={handleCommit}
+            disabled={!commitMessage.trim() || isCommitting}
+          >
+            {isCommitting ? '提交中...' : '提交'}
           </button>
         </div>
 
@@ -84,6 +104,19 @@ function GitView(): JSX.Element {
                 <span className="file-name">{file}</span>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Git 历史可视化 */}
+        {history.length > 0 && (
+          <div className="git-log-section">
+            <div className="section-title">History ({history.length})</div>
+            <div className="git-log-container">
+              <GitLogView
+                commits={history}
+                currentBranch="main"
+              />
+            </div>
           </div>
         )}
       </div>

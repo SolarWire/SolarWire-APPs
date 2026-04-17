@@ -205,7 +205,7 @@ interface SolarWirePreviewProps {
   isSpacePressed?: boolean;
 }
 
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false }: SolarWirePreviewProps): JSX.Element {
+function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false }: SolarWirePreviewProps): React.ReactElement {
   const { selectedElements, selectElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
   const { primaryColor } = useSettingsStore();
@@ -1287,7 +1287,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const renderSelectionHandles = () => {
     if (selectedElements.length === 0) return null;
 
-    const handles: JSX.Element[] = [];
+    const handles: React.ReactElement[] = [];
     const handleSize = 8 / scale;
 
     selectedElements.forEach((elementId) => {
@@ -1357,7 +1357,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const renderReferenceLines = () => {
     if (selectedElements.length === 0) return null;
 
-    const lines: JSX.Element[] = [];
+    const lines: React.ReactElement[] = [];
 
     selectedElements.forEach((elementId) => {
       const elementData = getElementData(elementId);

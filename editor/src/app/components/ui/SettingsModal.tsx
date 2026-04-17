@@ -7,7 +7,7 @@ interface SettingsModalProps {
   onClose: () => void;
 }
 
-function SettingsModal({ isOpen, onClose }: SettingsModalProps): JSX.Element | null {
+function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElement | null {
   const { gitName, gitEmail, primaryColor, setGitName, setGitEmail, setPrimaryColor } = useSettingsStore();
   const [tempGitName, setTempGitName] = useState(gitName);
   const [tempGitEmail, setTempGitEmail] = useState(gitEmail);

@@ -11,7 +11,7 @@ interface ElementLibraryProps {
   compact?: boolean;
 }
 
-function ElementLibrary({ compact = false }: ElementLibraryProps): JSX.Element {
+function ElementLibrary({ compact = false }: ElementLibraryProps): React.ReactElement {
   const elements: Element[] = [
     { type: 'rectangle', name: 'Rectangle', icon: '⬜' },
     { type: 'rounded-rectangle', name: 'Rounded', icon: '⬛' },

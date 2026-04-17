@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { GitCommit, GitStatus, GitBranch } from '../../shared/types/git';
 import { useStatusStore } from './statusStore';
+import { useSettingsStore } from './settingsStore';
 
 interface GitState {
   isInitialized: boolean;
@@ -117,7 +118,8 @@ export const useGitStore = create<GitState>((set, get) => ({
     if (!api) return;
     try {
       useStatusStore.getState().startOperation('git-commit', '提交中...');
-      await api.commit(message);
+      const { gitName, gitEmail } = useSettingsStore.getState();
+      await api.commit(message, gitName || undefined, gitEmail || undefined);
       await get().refreshStatus();
       await get().refreshHistory();
       useStatusStore.getState().completeOperation('提交成功');

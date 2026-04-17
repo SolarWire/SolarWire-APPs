@@ -12,7 +12,7 @@ interface Requirement {
   folderName: string;
 }
 
-function RequirementView(): JSX.Element {
+function RequirementView(): React.ReactElement {
   const { currentPath, fileTree, openFileAtPath } = useFileStore();
   const { status, history, refreshStatus, refreshHistory } = useGitStore();
   const [gitInfo, setGitInfo] = useState<Map<string, { hash: string; date: string; status: string }>>(new Map());

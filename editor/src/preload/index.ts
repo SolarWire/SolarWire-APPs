@@ -19,7 +19,7 @@ contextBridge.exposeInMainWorld('api', {
     stageFile: (filePath: string) => ipcRenderer.invoke('git:stageFile', filePath),
     stageAllModified: () => ipcRenderer.invoke('git:stageAllModified'),
     unstageFile: (filePath: string) => ipcRenderer.invoke('git:unstageFile', filePath),
-    commit: (message: string) => ipcRenderer.invoke('git:commit', message),
+    commit: (message: string, name?: string, email?: string) => ipcRenderer.invoke('git:commit', message, name, email),
     checkoutBranch: (branchName: string) => ipcRenderer.invoke('git:checkoutBranch', branchName),
     push: () => ipcRenderer.invoke('git:push'),
     pull: () => ipcRenderer.invoke('git:pull'),

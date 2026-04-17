@@ -3,8 +3,7 @@ import Editor from '@monaco-editor/react';
 import { useAppStore } from '../../stores/appStore';
 import './MonacoEditor.css';
 
-// 模块级变量，在组件卸载后仍保留滚动位置
-let globalSavedScrollPosition = 0;
+let globalSavedScrollPosition: Record<string, number> = {};
 
 interface MonacoEditorProps {
   language: string;
@@ -15,6 +14,8 @@ interface MonacoEditorProps {
   scrollTrigger?: number;
   highlightTrigger?: number;
   autoScroll?: boolean;
+  preserveScrollPosition?: boolean;
+  scrollKey?: string;
 }
 
 function MonacoEditor({
@@ -24,8 +25,10 @@ function MonacoEditor({
   height = '100%',
   highlightLines = [],
   scrollTrigger,
-  highlightTrigger
-}: MonacoEditorProps): JSX.Element {
+  highlightTrigger,
+  preserveScrollPosition = false,
+  scrollKey
+}: MonacoEditorProps): React.ReactElement {
   const { theme } = useAppStore();
   const monacoRef = useRef<any>(null);
   const editorRef = useRef<any>(null);
@@ -45,22 +48,23 @@ function MonacoEditor({
     editorRef.current = editor;
     monacoRef.current = monaco;
     
-    // 恢复之前保存的滚动位置
-    if (globalSavedScrollPosition > 0) {
-      editor.revealLine(globalSavedScrollPosition);
+    if (preserveScrollPosition && scrollKey) {
+      const savedPosition = globalSavedScrollPosition[scrollKey];
+      if (savedPosition && savedPosition > 0) {
+        editor.revealLine(savedPosition);
+      }
+      
+      const scrollListener = () => {
+        const topLine = editor.getScrollTop();
+        const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+        if (lineHeight > 0) {
+          globalSavedScrollPosition[scrollKey] = Math.round(topLine / lineHeight) + 1;
+        }
+      };
+      editor.onDidScrollChange(scrollListener);
     }
     
-    // 监听滚动事件，保存当前可见的第一行
-    const scrollListener = () => {
-      const topLine = editor.getScrollTop();
-      const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
-      if (lineHeight > 0) {
-        globalSavedScrollPosition = Math.round(topLine / lineHeight) + 1;
-      }
-    };
-    editor.onDidScrollChange(scrollListener);
-    
-    // 检查是否有待应用的高亮数据
+    // Check if there is pending highlight data to apply
     if (pendingHighlightRef.current && pendingHighlightRef.current.lines.length > 0) {
       const newDecorations = pendingHighlightRef.current.lines.map(line => ({
         range: new monaco.Range(line, 1, line, 1),
@@ -75,7 +79,7 @@ function MonacoEditor({
       pendingHighlightRef.current = null;
     }
 
-    // 检查是否有待应用的滚动数据
+    // Check if there is pending scroll data to apply
     if (pendingScrollRef.current) {
       editor.revealLineInCenter(pendingScrollRef.current.line);
       pendingScrollRef.current = null;
@@ -120,7 +124,7 @@ function MonacoEditor({
         });
       }
     }
-  }, []);
+  }, [preserveScrollPosition, scrollKey]);
 
   // Effect 1: 更新高亮装饰（不滚动）
   useEffect(() => {

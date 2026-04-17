@@ -5,7 +5,7 @@ import { useFileStore } from './stores/fileStore';
 import { useSettingsStore } from './stores/settingsStore';
 import './styles/global.css';
 
-function App(): JSX.Element {
+function App(): React.ReactElement {
   const { setTheme } = useAppStore();
   const { openDirectoryAtPath, currentPath } = useFileStore();
   const { loadSettings } = useSettingsStore();

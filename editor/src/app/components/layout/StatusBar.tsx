@@ -87,7 +87,7 @@ function FilePathDisplay() {
   );
 }
 
-export function StatusBar(): JSX.Element {
+export function StatusBar(): React.ReactElement {
   const { gitAnalysis } = useGitAnalysisStore();
 
   return (

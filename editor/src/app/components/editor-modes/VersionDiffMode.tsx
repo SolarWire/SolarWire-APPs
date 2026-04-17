@@ -8,7 +8,7 @@ interface DiffStatus {
   type: 'same' | 'added' | 'removed' | 'modified';
 }
 
-function VersionDiffMode(): JSX.Element {
+function VersionDiffMode(): React.ReactElement {
   const { history } = useGitStore();
   const { 
     leftCommit, 

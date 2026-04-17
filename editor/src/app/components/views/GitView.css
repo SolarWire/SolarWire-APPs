@@ -129,10 +129,17 @@
   font-size: 11px;
 }
 
-.commit-message {
+.commit-section {
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+}
+
+.commit-message-input {
   width: 100%;
   padding: 8px 10px;
-  background: var(--bg-tertiary);
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 4px;
   color: var(--text-primary);
@@ -142,9 +149,18 @@
   box-sizing: border-box;
 }
 
-.commit-message:focus {
+.commit-message-input:focus {
   outline: none;
   border-color: var(--accent-color);
+}
+
+.git-log-section {
+  margin-top: 20px;
+}
+
+.git-log-container {
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 .commit-button {
