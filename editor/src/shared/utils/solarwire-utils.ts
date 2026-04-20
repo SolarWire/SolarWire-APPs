@@ -113,7 +113,7 @@ export function updateLineAttribute(
   content: string,
   lineNum: number,
   attributeName: string,
-  attributeValue: string | number
+  attributeValue: string | number | boolean
 ): string {
   const lines = content.split(/\r?\n/);
   
@@ -346,7 +346,7 @@ export function updateLineAttribute(
   if (attributeName === 'bold' || attributeName === 'italic') {
     const attrPattern = new RegExp(`\\s+${attributeName}(?:=[^\\s]+)?`);
     
-    if (attributeValue === true || attributeValue === 'true') {
+    if (attributeValue === true || (typeof attributeValue === 'string' && attributeValue === 'true')) {
       if (!attrPattern.test(line)) {
         const notePattern = /\s+note=/;
         const noteMatch = line.match(notePattern);
@@ -807,19 +807,15 @@ function getElementCoordsAndBounds(line: string): { x: number; y: number; bounds
  * @returns 更新后的元素行
  */
 function updateElementCoords(line: string, newX: number, newY: number): string {
-  // 检查是否有绝对坐标
   const absoluteMatch = line.match(/@\(([\d]+),\s*([\d]+)\)/);
   if (absoluteMatch) {
-    // 更新绝对坐标
     return line.replace(absoluteMatch[0], `@(${newX}, ${newY})`);
   }
-  
-  // 更新 x 和 y 属性
+
   let updated = line;
   if (updated.includes('x=')) {
     updated = updated.replace(/x=([\d]+)/, `x=${newX}`);
   } else {
-    // 如果没有 x 属性，尝试添加
     const firstSpace = updated.indexOf(' ');
     if (firstSpace !== -1) {
       updated = updated.substring(0, firstSpace + 1) + `x=${newX} ` + updated.substring(firstSpace + 1);
@@ -828,44 +824,10 @@ function updateElementCoords(line: string, newX: number, newY: number): string {
   if (updated.includes('y=')) {
     updated = updated.replace(/y=([\d]+)/, `y=${newY}`);
   } else {
-    // 如果没有 y 属性，尝试添加
     const firstSpace = updated.indexOf(' ');
     if (firstSpace !== -1) {
       updated = updated.substring(0, firstSpace + 1) + `y=${newY} ` + updated.substring(firstSpace + 1);
     }
   }
   return updated;
-}
-
-/**
- * 检查是否存在单引号或双引号包裹的note
- * @param content 代码内容
- * @returns 是否存在单引号或双引号包裹的note
- */
-export function hasDoubleQuoteNotes(content: string): boolean {
-  const lines = content.split(/\r?\n/);
-  for (const line of lines) {
-    // 检测双引号包裹的note（但不是三引号）
-    if (line.includes('note="') && !line.includes('note="""')) {
-      return true;
-    }
-    // 检测单引号包裹的note
-    if (line.includes("note='") && !line.includes("note='''")) {
-      return true;
-    }
-  }
-  return false;
-}
-
-/**
- * 将单引号或双引号包裹的note转换为三引号包裹
- * @param content 代码内容
- * @returns 更新后的代码内容
- */
-export function convertDoubleQuoteNotesToTriple(content: string): string {
-  // 先处理双引号包裹的note（但不是三引号）
-  let result = content.replace(/note="([^"]*)"(?!")/g, 'note="""$1"""');
-  // 再处理单引号包裹的note（但不是三引号）
-  result = result.replace(/note='([^']*)'(?!')/g, "note=\"\"\"$1\"\"\"");
-  return result;
 }

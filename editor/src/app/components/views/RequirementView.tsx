@@ -33,7 +33,7 @@ function RequirementView(): React.ReactElement {
       const newGitInfo = new Map<string, { hash: string; date: string; status: string }>();
       
       // 为每个文件获取最新的git信息
-      fileTree.forEach(node => {
+      fileTree.forEach((node: any) => {
         const processNode = (n: any) => {
           if (n.type === 'file') {
             const ext = n.name.split('.').pop()?.toLowerCase();

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileNode } from '../../types/file';
+import { FileNode } from '../../../shared/types/file';
 import './FileTree.css';
 
 interface FileTreeProps {

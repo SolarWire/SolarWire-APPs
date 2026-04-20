@@ -15,7 +15,7 @@ interface UseCoordinateSystemReturn {
   getScreenCoords: (worldX: number, worldY: number) => { x: number; y: number };
   getSvgCoords: (clientX: number, clientY: number) => { x: number; y: number };
   getTransform: () => string;
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export function useCoordinateSystem({

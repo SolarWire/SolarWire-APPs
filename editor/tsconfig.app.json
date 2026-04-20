@@ -14,5 +14,5 @@
     "outDir": "./dist/app"
   },
   "include": ["src/app/**/*", "src/shared/**/*"],
-  "exclude": ["node_modules", "dist", "**/__tests__/**/*", "**/*.test.ts"]
+  "exclude": ["node_modules", "dist", "**/__tests__/**/*", "**/*.test.ts", "src/app/components/editor/SolarWireCanvas.tsx"]
 }

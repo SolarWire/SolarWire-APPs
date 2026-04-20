@@ -1,4 +1,4 @@
-import { Coordinate, CoordinateExpression, RelativeEndCoordinate, Element, DocumentDeclaration, SourceLocation } from '../parser-src';
+import { Coordinate, CoordinateExpression, RelativeEndCoordinate, Element, DocumentDeclaration, SourceLocation } from '../parser';
 
 export function escapeHtml(text: string): string {
   return text

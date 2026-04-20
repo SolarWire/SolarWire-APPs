@@ -16,11 +16,17 @@ export interface SettingsState {
   gitEmail: string;
   primaryColor: string;
   favoriteColors: string[];
+  showGrid: boolean;
+  gridSize: number;
+  snapToGrid: boolean;
   setGitName: (name: string) => void;
   setGitEmail: (email: string) => void;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
+  setShowGrid: (show: boolean) => void;
+  setGridSize: (size: number) => void;
+  setSnapToGrid: (snap: boolean) => void;
   loadSettings: () => void;
   saveSettings: () => void;
 }
@@ -29,7 +35,10 @@ const defaultSettings = {
   gitName: '',
   gitEmail: '',
   primaryColor: '#FCA506',
-  favoriteColors: defaultFavoriteColors
+  favoriteColors: defaultFavoriteColors,
+  showGrid: false,
+  gridSize: 20,
+  snapToGrid: false,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -71,6 +80,21 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     get().saveSettings();
   },
 
+  setShowGrid: (show: boolean) => {
+    set({ showGrid: show });
+    get().saveSettings();
+  },
+
+  setGridSize: (size: number) => {
+    set({ gridSize: size });
+    get().saveSettings();
+  },
+
+  setSnapToGrid: (snap: boolean) => {
+    set({ snapToGrid: snap });
+    get().saveSettings();
+  },
+
   loadSettings: () => {
     try {
       const saved = localStorage.getItem('solarwire-settings');
@@ -80,7 +104,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           gitName: parsed.gitName || defaultSettings.gitName,
           gitEmail: parsed.gitEmail || defaultSettings.gitEmail,
           primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
-          favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors
+          favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
+          showGrid: parsed.showGrid ?? defaultSettings.showGrid,
+          gridSize: parsed.gridSize || defaultSettings.gridSize,
+          snapToGrid: parsed.snapToGrid ?? defaultSettings.snapToGrid,
         });
         // 应用主色
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
@@ -92,12 +119,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: () => {
     try {
-      const { gitName, gitEmail, primaryColor, favoriteColors } = get();
+      const { gitName, gitEmail, primaryColor, favoriteColors, showGrid, gridSize, snapToGrid } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
         gitName,
         gitEmail,
         primaryColor,
-        favoriteColors
+        favoriteColors,
+        showGrid,
+        gridSize,
+        snapToGrid,
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);

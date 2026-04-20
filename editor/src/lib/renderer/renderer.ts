@@ -1,4 +1,4 @@
-import { Document, Element } from '../parser-src';
+import { Document, Element } from '../parser';
 import { createRenderContext, RenderContext, ElementBounds, escapeHtml, formatRenderError, getElementLocationInfo } from './context';
 import { renderRectangle, RenderResult } from './elements/rectangle';
 import { renderCircle, renderText, renderPlaceholder, renderImage, renderTable } from './elements/otherElements';
@@ -114,6 +114,7 @@ interface InternalRenderOptions {
   notes?: NoteInfo[];
   noteNumberRef?: { current: number };
   elementIndex?: number;
+  imageUrlResolver?: (relativePath: string) => string;
 }
 
 export function renderElement(element: Element, context: RenderContext, options?: InternalRenderOptions): RenderResult {
@@ -129,7 +130,7 @@ export function renderElement(element: Element, context: RenderContext, options?
       case 'placeholder':
         return renderPlaceholder(element, context);
       case 'image':
-        return renderImage(element, context);
+        return renderImage(element, context, options?.imageUrlResolver);
       case 'line':
         return renderLine(element, context);
       case 'table':
@@ -166,6 +167,7 @@ export interface RenderOptions {
   sourceInput?: string;
   selectedElementIds?: string[];
   primaryColor?: string;
+  imageUrlResolver?: (relativePath: string) => string;
 }
 
 export interface RenderResultWithMeta {
@@ -194,12 +196,14 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   const disableNotes = options?.disableNotes ?? false;
   const selectedElementIds = options?.selectedElementIds || [];
   const primaryColor = options?.primaryColor || '#FCA506';
+  const imageUrlResolver = options?.imageUrlResolver;
   
   const renderOptions: InternalRenderOptions = {
     disableNotes,
     sourceInput: options?.sourceInput,
     notes,
-    noteNumberRef
+    noteNumberRef,
+    imageUrlResolver
   };
   
   ast.elements.forEach((element, index) => {

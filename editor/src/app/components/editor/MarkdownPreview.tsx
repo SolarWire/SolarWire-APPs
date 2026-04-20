@@ -11,16 +11,18 @@ import { Scrollbar } from '../ui/Scrollbar';
 
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'dark',
+  theme: 'default',
   securityLevel: 'loose',
 });
 
 const markdownPreviewScrollPosition = { value: 0 };
+let mermaidRenderCounter = 0;
 
 function MarkdownPreview(): React.ReactElement {
   const { content } = useEditorStore();
   const { selectedFile, fileContent } = useFileStore();
   const [html, setHtml] = useState<string>('');
+  const [isRenderingMermaid, setIsRenderingMermaid] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +35,7 @@ function MarkdownPreview(): React.ReactElement {
     if (contentToRender) {
       const processedContent = contentToRender.replace(
         /```solarwire\s*([\s\S]*?)```/g,
-        (match, code) => {
+        (match: string, code: string) => {
           try {
             const ast = parse(code.trim());
             const svg = renderSvg(ast);
@@ -61,24 +63,49 @@ function MarkdownPreview(): React.ReactElement {
   }, [selectedFile, fileContent, content]);
 
   useEffect(() => {
-    if (previewRef.current && html) {
-      const mermaidElements = previewRef.current.querySelectorAll('.language-mermaid, code.language-mermaid, pre:has(code.language-mermaid)');
-      
-      mermaidElements.forEach(async (element, index) => {
-        const mermaidCode = element.textContent || '';
-        if (mermaidCode.trim()) {
+    if (!html || !previewRef.current) return;
+
+    const renderMermaid = async () => {
+      setIsRenderingMermaid(true);
+      try {
+        const codeBlocks = previewRef.current!.querySelectorAll('pre code.language-mermaid');
+        if (codeBlocks.length === 0) {
+          setIsRenderingMermaid(false);
+          return;
+        }
+
+        for (let i = 0; i < codeBlocks.length; i++) {
+          const codeEl = codeBlocks[i];
+          const mermaidCode = codeEl.textContent?.trim();
+          if (!mermaidCode) continue;
+
+          const preEl = codeEl.closest('pre');
+          if (!preEl) continue;
+
           try {
-            const { svg } = await mermaid.render(`mermaid-${Date.now()}-${index}`, mermaidCode);
+            mermaidRenderCounter++;
+            const id = `mermaid-${Date.now()}-${mermaidRenderCounter}`;
+            const { svg } = await mermaid.render(id, mermaidCode);
+
             const container = document.createElement('div');
             container.className = 'mermaid-container';
             container.innerHTML = svg;
-            element.parentNode?.replaceChild(container, element);
+
+            preEl.parentNode?.replaceChild(container, preEl);
           } catch (error) {
-            console.error('Failed to render Mermaid:', error);
+            console.error('Mermaid render error:', error);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'mermaid-error';
+            errorDiv.textContent = 'Mermaid 渲染失败';
+            preEl.parentNode?.replaceChild(errorDiv, preEl);
           }
         }
-      });
-    }
+      } finally {
+        setIsRenderingMermaid(false);
+      }
+    };
+
+    renderMermaid();
   }, [html]);
 
   useEffect(() => {
@@ -95,7 +122,7 @@ function MarkdownPreview(): React.ReactElement {
 
   return (
     <Scrollbar className="markdown-preview" ref={scrollContainerRef} onScroll={handleScroll}>
-      <div dangerouslySetInnerHTML={{ __html: html }} />
+      <div ref={previewRef} dangerouslySetInnerHTML={{ __html: html }} />
     </Scrollbar>
   );
 }

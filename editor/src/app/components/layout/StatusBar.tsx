@@ -4,7 +4,6 @@
 
 import React from 'react';
 import { useStatusStore, getOperationIcon } from '../../stores/statusStore';
-import { useGitAnalysisStore } from '../../stores/gitAnalysisStore';
 import './StatusBar.css';
 
 function Spinner() {
@@ -88,20 +87,10 @@ function FilePathDisplay() {
 }
 
 export function StatusBar(): React.ReactElement {
-  const { gitAnalysis } = useGitAnalysisStore();
-
   return (
     <div className="status-bar">
       <div className="status-bar-left">
         <FilePathDisplay />
-        {gitAnalysis && gitAnalysis.status === 'running' && (
-          <div className="status-bar-item git-analysis">
-            <Spinner />
-            <span className="progress-text">
-              分析中 {gitAnalysis.processed}/{gitAnalysis.total}
-            </span>
-          </div>
-        )}
       </div>
       <div className="status-bar-right">
         <OperationStatusDisplay />

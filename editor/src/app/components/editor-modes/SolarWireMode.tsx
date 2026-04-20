@@ -3,6 +3,8 @@ import MonacoEditor from '../editor/MonacoEditor';
 import SolarWirePreview from '../editor/SolarWirePreview';
 import PropertyPanel from '../editor/PropertyPanel';
 import ElementLibrary from '../editor/ElementLibrary';
+import LayerPanel from '../editor/LayerPanel';
+import ShortcutPanel from '../editor/ShortcutPanel';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
@@ -15,10 +17,12 @@ function SolarWireMode(): React.ReactElement {
   const { content, setContent, undo } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
   const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements } = useSolarWireStore();
-  const { primaryColor } = useSettingsStore();
+  const { primaryColor, showGrid, gridSize, snapToGrid, setShowGrid, setGridSize, setSnapToGrid } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
   const [highlightTrigger, setHighlightTrigger] = useState(0);
+  const [showLayerPanel, setShowLayerPanel] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
 
   const handleTabChange = useCallback((tab: 'visual' | 'code') => {
     setActiveTab(tab);
@@ -179,6 +183,8 @@ function SolarWireMode(): React.ReactElement {
   };
 
   // 处理空格键事件，实现临时激活视角移动状态
+  const [clipboardContent, setClipboardContent] = useState<string | null>(null);
+
   useEffect(() => {
     const handleKeyDownEvent = (e: KeyboardEvent) => {
       if (e.code === 'Space' && !e.repeat) {
@@ -189,8 +195,56 @@ function SolarWireMode(): React.ReactElement {
         e.preventDefault();
         undo();
       }
+      // Ctrl+C 复制元素
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElements.length > 0) {
+        e.preventDefault();
+        const lines = content.split(/\r?\n/);
+        const selectedLines = selectedElements
+          .map((id) => parseInt(id))
+          .filter((lineNum) => !isNaN(lineNum) && lineNum > 0 && lineNum <= lines.length)
+          .map((lineNum) => lines[lineNum - 1]);
+        if (selectedLines.length > 0) {
+          setClipboardContent(selectedLines.join('\n'));
+        }
+      }
+      // Ctrl+V 粘贴元素
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardContent && !e.target) {
+        const activeElement = document.activeElement;
+        const isEditor = activeElement?.tagName === 'TEXTAREA' || 
+                         activeElement?.getAttribute('contenteditable') === 'true' ||
+                         activeElement?.closest('.monaco-editor');
+        if (isEditor) return;
+
+        e.preventDefault();
+        const offset = 15;
+        const adjustedContent = clipboardContent.replace(
+          /@\((\d+),\s*(\d+)\)/g,
+          (_, x, y) => `@(${parseInt(x) + offset}, ${parseInt(y) + offset})`
+        ).replace(
+          /->\((\d+),\s*(\d+)\)/g,
+          (_, x, y) => `->(${parseInt(x) + offset}, ${parseInt(y) + offset})`
+        );
+        
+        const currentContent = content.trimEnd();
+        const newContent = `${currentContent}\n${adjustedContent}`;
+        setContent(newContent);
+      }
       // 方向键移动元素
       handleKeyDown(e);
+      // G 键切换网格
+      if (e.key === 'g' && !e.ctrlKey && !e.metaKey) {
+        const activeElement = document.activeElement;
+        const isEditor = activeElement?.tagName === 'TEXTAREA' || 
+                         activeElement?.getAttribute('contenteditable') === 'true' ||
+                         activeElement?.closest('.monaco-editor');
+        if (!isEditor) {
+          setShowGrid(!showGrid);
+        }
+      }
+      // ? 键切换快捷键面板
+      if (e.key === '?' || (e.shiftKey && e.key === '/')) {
+        setShowShortcuts(prev => !prev);
+      }
     };
 
     const handleKeyUpEvent = (e: KeyboardEvent) => {
@@ -244,6 +298,9 @@ function SolarWireMode(): React.ReactElement {
               onZoomChange={setZoomLevel}
               isPanMode={isPanMode}
               isSpacePressed={isSpacePressed}
+              showGridProp={showGrid}
+              snapToGridProp={snapToGrid}
+              gridSizeProp={gridSize}
             />
             
             {/* 悬浮工具栏 */}
@@ -285,11 +342,35 @@ function SolarWireMode(): React.ReactElement {
                   >
                     {showNotes ? '👁️' : '🙈'}
                   </button>
+                  <button
+                    className={`grid-toggle-button ${showGrid ? 'active' : ''}`}
+                    onClick={() => setShowGrid(!showGrid)}
+                    title={showGrid ? 'Hide Grid (G)' : 'Show Grid (G)'}
+                  >
+                    ▦
+                  </button>
+                  <button
+                    className={`snap-toggle-button ${snapToGrid ? 'active' : ''}`}
+                    onClick={() => setSnapToGrid(!snapToGrid)}
+                    title={snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+                  >
+                    🧲
+                  </button>
                   <div className="zoom-controls">
                     <button className="zoom-button" onClick={handleZoomOut}>-</button>
                     <span className="zoom-label">{zoomLevel}%</span>
                     <button className="zoom-button" onClick={handleZoomIn}>+</button>
                   </div>
+                </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section layers-section">
+                  <button
+                    className={`layers-toggle-button ${showLayerPanel ? 'active' : ''}`}
+                    onClick={() => setShowLayerPanel(!showLayerPanel)}
+                    title="Toggle Layers Panel"
+                  >
+                    ☰ Layers
+                  </button>
                 </div>
                 <div className="toolbar-divider"></div>
                 <div className="toolbar-section actions-section">
@@ -357,6 +438,16 @@ function SolarWireMode(): React.ReactElement {
                 <div className="toolbar-section elements-section">
                   <ElementLibrary compact />
                 </div>
+                <div className="toolbar-divider"></div>
+                <div className="toolbar-section help-section">
+                  <button
+                    className="help-button"
+                    onClick={() => setShowShortcuts(true)}
+                    title="Keyboard Shortcuts (?)"
+                  >
+                    ?
+                  </button>
+                </div>
               </div>
             </div>
             
@@ -366,9 +457,19 @@ function SolarWireMode(): React.ReactElement {
                 <PropertyPanel />
               </div>
             )}
+
+            {/* 图层面板 */}
+            {showLayerPanel && (
+              <div className="layer-panel-container">
+                <LayerPanel onSelectElement={(id) => setSelectedElements([id])} />
+              </div>
+            )}
           </TabPanel>
         </div>
       </div>
+
+      {/* 快捷键面板 */}
+      <ShortcutPanel isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </TabProvider>
   );
 }

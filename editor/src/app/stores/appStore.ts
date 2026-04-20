@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppState, ViewType, Theme } from '../types/app';
+import { AppState, ViewType, Theme } from '../../shared/types/app';
 
 // 从 localStorage 读取保存的主题，默认为 'dark'
 const getSavedTheme = (): Theme => {
@@ -13,7 +13,7 @@ const getSavedTheme = (): Theme => {
 
 const savedTheme = getSavedTheme();
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>()((set) => ({
   currentView: 'file',
   theme: savedTheme,
   setCurrentView: (view: ViewType) => set({ currentView: view }),

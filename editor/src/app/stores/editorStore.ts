@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { EditorState, EditorMode } from '../types/editor';
+import { EditorState, EditorMode } from '../../shared/types/editor';
 
 const sampleContent = `!title="SolarWire Complete Feature Demo"
 !c=#333
@@ -121,7 +121,7 @@ the note system in SolarWire."
 "End of Demo - Check below for all notes!" @(50,1580) size=14 note="Thank you for exploring SolarWire! Scroll down to see all note cards with their corresponding badges."
 `;
 
-export const useEditorStore = create<EditorState>((set, get) => ({
+export const useEditorStore = create<EditorState>()((set, get) => ({
   mode: 'solarwire',
   content: sampleContent,
   isModified: false,

@@ -1,4 +1,4 @@
-import { RectangleElement, RoundedRectangleElement } from '../../parser-src';
+import { RectangleElement, RoundedRectangleElement } from '../../parser';
 import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute } from '../context';
 
 export interface RenderResult {

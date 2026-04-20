@@ -1,16 +1,9 @@
 /**
  * 坐标转换工具函数
- * 提供绝对坐标和相对坐标之间的转换，以及坐标标准化功能
+ * 提供绝对坐标和相对坐标之间的转换，以及线段坐标处理
  */
 
-import type { Coordinate, Element } from '../../lib/parser/types';
-
-export interface ElementBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+import type { Element } from '../../lib/parser/types';
 
 /**
  * 将绝对坐标转换为相对坐标（相对于参考点）
@@ -45,72 +38,6 @@ export function relativeToAbsolute(
 }
 
 /**
- * 标准化坐标：将任意坐标类型转换为绝对值
- * @param coord 坐标对象（absolute/relative/edge）
- * @param referenceBounds 参考元素边界（用于 edge 坐标）
- * @param defaultValue 默认值
- * @returns 绝对值
- */
-export function normalizeCoordinate(
-  coord: Coordinate,
-  referenceBounds: ElementBounds | null,
-  defaultValue: number = 0
-): number {
-  switch (coord.type) {
-    case 'absolute':
-      return coord.value;
-    
-    case 'relative':
-      // 相对坐标需要参考点，这里返回相对值本身
-      // 实际使用时需要加上参考点的坐标
-      return coord.value;
-    
-    case 'edge':
-      if (!referenceBounds) {
-        return defaultValue;
-      }
-      switch (coord.direction) {
-        case 'L': return referenceBounds.x + coord.value;
-        case 'R': return referenceBounds.x + referenceBounds.width + coord.value;
-        case 'T': return referenceBounds.y + coord.value;
-        case 'B': return referenceBounds.y + referenceBounds.height + coord.value;
-        case 'C': return referenceBounds.x + referenceBounds.width / 2 + coord.value;
-        default: return defaultValue;
-      }
-    
-    default:
-      const exhaustiveCheck: never = coord;
-      throw new Error(`Unknown coordinate type: ${(exhaustiveCheck as any).type}`);
-  }
-}
-
-/**
- * 获取元素的边界信息
- * @param element 元素对象
- * @param lastElementBounds 上一个元素的边界（用于相对坐标计算）
- * @returns 元素边界
- */
-export function getElementBounds(
-  element: Element,
-  lastElementBounds: ElementBounds | null = null
-): ElementBounds {
-  const attrs = element.attributes;
-  
-  // 处理坐标
-  let x = 0, y = 0;
-  if (element.coordinates) {
-    x = normalizeCoordinate(element.coordinates.x, lastElementBounds, 0);
-    y = normalizeCoordinate(element.coordinates.y, lastElementBounds, 0);
-  }
-  
-  // 处理尺寸
-  const w = parseInt(attrs.w) || 100;
-  const h = parseInt(attrs.h) || 100;
-  
-  return { x, y, width: w, height: h };
-}
-
-/**
  * 获取线段元素的起点坐标
  * @param lineElement 线段元素
  * @returns 起点坐标 { x, y }
@@ -119,10 +46,10 @@ export function getLineStartCoords(lineElement: Element): { x: number; y: number
   if (lineElement.type !== 'line') {
     return { x: 0, y: 0 };
   }
-  
+
   const lineEl = lineElement as any;
   let x = 0, y = 0;
-  
+
   if (lineEl.start) {
     if (lineEl.start.x.type === 'absolute') {
       x = lineEl.start.x.value;
@@ -131,7 +58,7 @@ export function getLineStartCoords(lineElement: Element): { x: number; y: number
       y = lineEl.start.y.value;
     }
   }
-  
+
   return { x, y };
 }
 
@@ -148,23 +75,20 @@ export function getLineEndCoords(
   if (lineElement.type !== 'line') {
     return { x: 0, y: 0 };
   }
-  
+
   const lineEl = lineElement as any;
-  
+
   if (!lineEl.end) {
-    // 默认终点
     return { x: startCoords.x + 100, y: startCoords.y };
   }
-  
-  // 检查是否是相对坐标
+
   if ('dx' in lineEl.end && 'dy' in lineEl.end) {
     return {
       x: startCoords.x + lineEl.end.dx,
       y: startCoords.y + lineEl.end.dy
     };
   }
-  
-  // 绝对坐标
+
   let x = 0, y = 0;
   if (lineEl.end.x.type === 'absolute') {
     x = lineEl.end.x.value;
@@ -172,29 +96,8 @@ export function getLineEndCoords(
   if (lineEl.end.y.type === 'absolute') {
     y = lineEl.end.y.value;
   }
-  
-  return { x, y };
-}
 
-/**
- * 将元素坐标更新为新的绝对坐标
- * @param element 元素对象
- * @param newX 新的 X 坐标
- * @param newY 新的 Y 坐标
- * @returns 更新后的元素对象（浅拷贝）
- */
-export function updateElementCoordinates(
-  element: Element,
-  newX: number,
-  newY: number
-): Element {
-  return {
-    ...element,
-    coordinates: {
-      x: { type: 'absolute', value: newX },
-      y: { type: 'absolute', value: newY }
-    }
-  };
+  return { x, y };
 }
 
 /**
@@ -212,7 +115,7 @@ export function updateLineEndRelative(
   if (lineElement.type !== 'line') {
     return lineElement;
   }
-  
+
   const lineEl = lineElement as any;
   return {
     ...lineEl,
@@ -235,7 +138,7 @@ export function updateLineEndAbsolute(
   if (lineElement.type !== 'line') {
     return lineElement;
   }
-  
+
   const lineEl = lineElement as any;
   return {
     ...lineEl,
@@ -247,15 +150,6 @@ export function updateLineEndAbsolute(
 }
 
 /**
- * 检测坐标类型
- * @param coord 坐标对象
- * @returns 'absolute' | 'relative' | 'edge'
- */
-export function getCoordinateType(coord: Coordinate): 'absolute' | 'relative' | 'edge' {
-  return coord.type;
-}
-
-/**
  * 检测线段终点的坐标模式
  * @param lineElement 线段元素
  * @returns 'absolute' | 'relative'
@@ -264,7 +158,7 @@ export function getLineEndMode(lineElement: Element): 'absolute' | 'relative' {
   if (lineElement.type !== 'line') {
     return 'absolute';
   }
-  
+
   const lineEl = lineElement as any;
   if (lineEl.end && 'dx' in lineEl.end && 'dy' in lineEl.end) {
     return 'relative';
@@ -281,7 +175,7 @@ export function getLineStartMode(lineElement: Element): 'absolute' | 'relative' 
   if (lineElement.type !== 'line') {
     return 'absolute';
   }
-  
+
   const lineEl = lineElement as any;
   if (lineEl.start) {
     if (lineEl.start.x.type === 'relative' || lineEl.start.y.type === 'relative') {
@@ -296,20 +190,19 @@ export function getLineStartMode(lineElement: Element): 'absolute' | 'relative' 
  * @param lineElement 线段元素
  * @returns { x1, y1, x2, y2 } 起点和终点坐标
  */
-export function getLineCoordinates(lineElement: Element): { 
-  x1: number; 
-  y1: number; 
-  x2: number; 
-  y2: number 
+export function getLineCoordinates(lineElement: Element): {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number
 } {
   if (lineElement.type !== 'line') {
     return { x1: 0, y1: 0, x2: 0, y2: 0 };
   }
-  
+
   const lineEl = lineElement as any;
   let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
-  
-  // 获取起点坐标
+
   if (lineEl.start) {
     if (lineEl.start.x.type === 'absolute') {
       x1 = lineEl.start.x.value;
@@ -318,11 +211,9 @@ export function getLineCoordinates(lineElement: Element): {
       y1 = lineEl.start.y.value;
     }
   }
-  
-  // 获取终点坐标
+
   if (lineEl.end) {
     if (lineEl.end.x && lineEl.end.y) {
-      // 绝对坐标格式
       if (lineEl.end.x.type === 'absolute') {
         x2 = lineEl.end.x.value;
       }
@@ -330,17 +221,15 @@ export function getLineCoordinates(lineElement: Element): {
         y2 = lineEl.end.y.value;
       }
     } else if (lineEl.end.dx !== undefined && lineEl.end.dy !== undefined) {
-      // 相对坐标格式
       x2 = x1 + lineEl.end.dx;
       y2 = y1 + lineEl.end.dy;
     }
   }
-  
-  // 默认值
+
   if (x2 === 0 && y2 === 0) {
     x2 = x1 + 100;
     y2 = y1;
   }
-  
+
   return { x1, y1, x2, y2 };
 }

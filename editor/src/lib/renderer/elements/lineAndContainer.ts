@@ -1,4 +1,4 @@
-import { LineElement, Element } from '../../parser-src';
+import { LineElement, Element } from '../../parser';
 import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, calculateLineEnd, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
 import { RenderResult } from './rectangle';
 

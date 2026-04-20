@@ -270,5 +270,87 @@
   z-index: 1000;
   width: 300px;
   max-height: 80vh;
-  overflow: visible; /* 移除 auto，保持错误提示完整显示 */
+  overflow: visible;
+}
+
+/* 网格/吸附/图层/帮助按钮样式 */
+.grid-toggle-button,
+.snap-toggle-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+}
+
+.grid-toggle-button:hover,
+.snap-toggle-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.grid-toggle-button.active,
+.snap-toggle-button.active {
+  background: var(--accent-opacity-35);
+  border-color: var(--accent-color);
+}
+
+.layers-section .layers-toggle-button,
+.help-section .help-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 10px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  color: var(--text-secondary);
+}
+
+.layers-toggle-button:hover,
+.help-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.layers-toggle-button.active {
+  background: var(--accent-opacity-35);
+  border-color: var(--accent-color);
+}
+
+.help-button {
+  width: 32px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* 图层面板容器 */
+.layer-panel-container {
+  position: absolute;
+  top: 0;
+  right: 280px;
+  bottom: 0;
+  width: 220px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  z-index: 5;
+  overflow: hidden;
+}
+
+/* 响应式：当属性面板隐藏时图层面板靠右 */
+.sidebar-panel:not(:first-child) ~ .layer-panel-container,
+.layer-panel-container:not(:has(~ .sidebar-panel)) {
+  right: 0;
 }

@@ -1,4 +1,4 @@
-import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '../../parser-src';
+import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '../../parser';
 import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo } from '../context';
 import { RenderResult } from './rectangle';
 
@@ -197,7 +197,11 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   };
 }
 
-export function renderImage(element: ImageElement, context: RenderContext): RenderResult {
+export function renderImage(
+  element: ImageElement, 
+  context: RenderContext, 
+  imageUrlResolver?: (relativePath: string) => string
+): RenderResult {
   let pos: AbsolutePosition;
   if (element.coordinates) {
     pos = calculatePosition(context, element.coordinates);
@@ -211,6 +215,8 @@ export function renderImage(element: ImageElement, context: RenderContext): Rend
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const note = element.attributes['note'];
+  
+  const resolvedUrl = imageUrlResolver ? imageUrlResolver(element.url) : element.url;
   
   const svgParts: string[] = [];
   
@@ -229,7 +235,7 @@ export function renderImage(element: ImageElement, context: RenderContext): Rend
   
   svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}">Image</text>`);
   
-  svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(element.url)}"/>`);
+  svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"/>`);
   
   const bounds: ElementBounds = {
     x: pos.x,

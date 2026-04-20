@@ -1,14 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { useAppStore } from '../../stores/appStore';
-import { SolarWireSnippet } from '../../types/file';
+import { SolarWireSnippet } from '../../../shared/types/file';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { Scrollbar } from '../ui/Scrollbar';
 import './SolarWireView.css';
 
+interface SolarWirePage extends SolarWireSnippet {
+  displayTitle: string;
+  subtitle: string;
+  requirementName: string;
+}
+
 function SolarWireView(): React.ReactElement {
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [pages, setPages] = useState<SolarWireSnippet[]>([]);
+  const [pages, setPages] = useState<SolarWirePage[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const { currentPath, openFileAtPath, openSolarWireSnippet } = useFileStore();
 

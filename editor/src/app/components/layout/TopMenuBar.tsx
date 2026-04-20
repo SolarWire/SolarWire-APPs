@@ -187,7 +187,9 @@ const TopMenuBar: React.FC = () => {
 
       if (paths && paths.length > 0) {
         const { openDirectoryAtPath } = useFileStore.getState();
-        await openDirectoryAtPath(paths[0]);
+        if (openDirectoryAtPath) {
+          await openDirectoryAtPath(paths[0]);
+        }
       }
     } catch (err) {
       console.error('Open dialog failed', err);

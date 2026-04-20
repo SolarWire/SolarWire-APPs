@@ -1,12 +1,12 @@
 import React from 'react';
 import { useAppStore } from '../../stores/appStore';
 import { useFileStore } from '../../stores/fileStore';
-import { ViewType } from '../../types/app';
+import { ViewType } from '../../../shared/types/app';
 import FileView from './FileView';
 import RequirementView from './RequirementView';
 import SolarWireView from './SolarWireView';
 import GitView from './GitView';
-import { getSelectedItemForView } from '../../shared/utils/file-utils';
+import { getSelectedItemForView } from '../../../shared/utils/file-utils';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './ViewTabs.css';
 
