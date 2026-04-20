@@ -622,7 +622,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   /**
    * 吸附阈值（px）- 元素边缘与引导线距离小于此值时触发吸附
-   * 建议值：2-3px（精确吸附），可配置为 props 后续接入设置面板
    */
   const SNAP_THRESHOLD = 2;
   const ALIGN_THRESHOLD = SNAP_THRESHOLD;
@@ -1965,24 +1964,32 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         return;
       }
 
-      const newX = groupBounds.x + dx;
-      const newY = groupBounds.y + dy;
+      const useGridSnap = effectiveShowGrid;
+      
+      if (!useGridSnap && !altKeyPressed) {
+        const newX = groupBounds.x + dx;
+        const newY = groupBounds.y + dy;
 
-      const excludeIds = multiDragElements.map(e => e.elementId);
-      const otherElements = (ast?.elements || []).filter((el: SolarWireElement, idx: number) => {
-        const id = el.location?.line?.toString() || (idx + 1).toString();
-        return !excludeIds.includes(id);
-      });
-      const elementGuides = collectElementGuides(excludeIds, otherElements);
-      const canvasGuides = collectCanvasGuides();
-      const userGuides = collectUserGuides();
-      const allGuides = [...elementGuides, ...canvasGuides, ...userGuides];
+        const excludeIds = multiDragElements.map(e => e.elementId);
+        const otherElements = (ast?.elements || []).filter((el: SolarWireElement, idx: number) => {
+          const id = el.location?.line?.toString() || (idx + 1).toString();
+          return !excludeIds.includes(id);
+        });
+        const elementGuides = collectElementGuides(excludeIds, otherElements);
+        const canvasGuides = collectCanvasGuides();
+        const userGuides = collectUserGuides();
+        const allGuides = [...elementGuides, ...canvasGuides, ...userGuides];
 
-      const activeEdges = getActiveEdgesForMove();
-      const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
+        const activeEdges = getActiveEdgesForMove();
+        const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
 
-      const snapOffsetX = snapped.snapped ? snapped.x - newX : 0;
-      const snapOffsetY = snapped.snapped ? snapped.y - newY : 0;
+        dx += snapped.snapped ? snapped.x - newX : 0;
+        dy += snapped.snapped ? snapped.y - newY : 0;
+        
+        setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
+      } else {
+        setAlignmentGuides([]);
+      }
 
       let newContent = content;
       
@@ -1990,8 +1997,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const lineNum = parseInt(el.elementId);
         if (isNaN(lineNum)) return;
         
-        let finalX = Math.max(0, Math.round(el.elementX + dx + snapOffsetX));
-        let finalY = Math.max(0, Math.round(el.elementY + dy + snapOffsetY));
+        let finalX = Math.max(0, Math.round(el.elementX + dx));
+        let finalY = Math.max(0, Math.round(el.elementY + dy));
         
         if (el.isLine) {
           if (el.elementX2 !== undefined && el.elementY2 !== undefined) {
@@ -2006,9 +2013,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
           }
         } else {
-          if (effectiveSnapToGrid && effectiveGridSize > 0) {
-            finalX = Math.round(finalX / effectiveGridSize) * effectiveGridSize;
-            finalY = Math.round(finalY / effectiveGridSize) * effectiveGridSize;
+          if (useGridSnap && effectiveSnapToGrid) {
+            const gridSnapSize = 10;
+            finalX = Math.round(finalX / gridSnapSize) * gridSnapSize;
+            finalY = Math.round(finalY / gridSnapSize) * gridSnapSize;
           }
           
           newContent = updateLineAttribute(newContent, lineNum, 'x', finalX);
@@ -2016,7 +2024,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         }
       });
       
-      setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
       rafUpdater(newContent);
       return;
     }
