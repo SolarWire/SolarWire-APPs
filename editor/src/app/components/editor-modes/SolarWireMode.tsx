@@ -16,7 +16,7 @@ import './SolarWireMode.css';
 function SolarWireMode(): React.ReactElement {
   const { content, setContent, undo } = useEditorStore();
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
-  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements } = useSolarWireStore();
+  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements, selectElements } = useSolarWireStore();
   const { primaryColor, showGrid, gridSize, snapToGrid, setShowGrid, setGridSize, setSnapToGrid } = useSettingsStore();
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
@@ -241,6 +241,24 @@ function SolarWireMode(): React.ReactElement {
           setShowGrid(!showGrid);
         }
       }
+      // Ctrl+A 选中所有元素
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
+        const activeElement = document.activeElement;
+        const isMonacoEditor = activeElement?.closest('.monaco-editor');
+        const isTextInput = activeElement?.tagName === 'TEXTAREA' || 
+                            activeElement?.getAttribute('contenteditable') === 'true';
+        
+        if (!isMonacoEditor && !isTextInput) {
+          e.preventDefault();
+          const lines = content.split(/\r?\n/);
+          const allElementIds = lines
+            .map((_, index) => (index + 1).toString())
+            .filter((_, idx) => {
+              return lines[idx].trim().length > 0;
+            });
+          setSelectedElements(allElementIds);
+        }
+      }
       // ? 键切换快捷键面板
       if (e.key === '?' || (e.shiftKey && e.key === '/')) {
         setShowShortcuts(prev => !prev);
@@ -356,21 +374,18 @@ function SolarWireMode(): React.ReactElement {
                   >
                     🧲
                   </button>
-                  <div className="zoom-controls">
-                    <button className="zoom-button" onClick={handleZoomOut}>-</button>
-                    <span className="zoom-label">{zoomLevel}%</span>
-                    <button className="zoom-button" onClick={handleZoomIn}>+</button>
-                  </div>
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section layers-section">
                   <button
                     className={`layers-toggle-button ${showLayerPanel ? 'active' : ''}`}
                     onClick={() => setShowLayerPanel(!showLayerPanel)}
                     title="Toggle Layers Panel"
                   >
-                    ☰ Layers
+                    ☰
                   </button>
+                  <div className="zoom-controls">
+                    <button className="zoom-button" onClick={handleZoomOut}>-</button>
+                    <span className="zoom-label">{zoomLevel}%</span>
+                    <button className="zoom-button" onClick={handleZoomIn}>+</button>
+                  </div>
                 </div>
                 <div className="toolbar-divider"></div>
                 <div className="toolbar-section actions-section">

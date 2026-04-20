@@ -7,7 +7,7 @@ import {
   getLineStartCoords,
   getLineEndCoords
 } from '../../../shared/utils/coordinate-converter';
-import type { Element } from '../../../lib/parser/types';
+import type { Element, Document as SWDocument } from '../../../lib/parser/types';
 import { ColorPicker } from '../ui/ColorPicker';
 import { Scrollbar } from '../ui/Scrollbar';
 import './PropertyPanel.css';
@@ -67,6 +67,149 @@ interface PropertyGroupTitleProps {
 
 function PropertyGroupTitle({ children }: PropertyGroupTitleProps): React.ReactElement {
   return <div className="property-group-title">{children}</div>;
+}
+
+interface BatchEditPanelProps {
+  selectedElements: string[];
+  content: string;
+  setContent: (content: string) => void;
+  ast: SWDocument | null;
+}
+
+function BatchEditPanel({ selectedElements, content, setContent, ast }: BatchEditPanelProps): React.ReactElement {
+  const [batchValues, setBatchValues] = useState({
+    dx: '', dy: '', dw: '', dh: '', color: '', bg: '', fontSize: '',
+  });
+
+  const applyBatchChange = useCallback((property: string, value: string | number) => {
+    if (!ast) return;
+    
+    let newContent = content;
+    
+    selectedElements.forEach((elementId) => {
+      const lineNum = parseInt(elementId);
+      if (isNaN(lineNum)) return;
+      
+      if (property === 'dx' || property === 'dy') {
+        const el = ast.elements.find(e => e.location?.line === lineNum);
+        if (!el) return;
+        
+        const attrs = (el as any).attributes || {};
+        const currentX = parseInt(attrs.x || '0');
+        const currentY = parseInt(attrs.y || '0');
+        const offset = parseInt(value as string) || 0;
+        
+        if (property === 'dx') {
+          newContent = updateLineAttribute(newContent, lineNum, 'x', currentX + offset);
+        } else {
+          newContent = updateLineAttribute(newContent, lineNum, 'y', currentY + offset);
+        }
+      } else if (property === 'dw' || property === 'dh') {
+        const el = ast.elements.find(e => e.location?.line === lineNum);
+        if (!el) return;
+        
+        const attrs = (el as any).attributes || {};
+        const currentW = parseInt(attrs.w || '0');
+        const currentH = parseInt(attrs.h || '0');
+        const offset = parseInt(value as string) || 0;
+        
+        if (property === 'dw' && currentW > 0) {
+          newContent = updateLineAttribute(newContent, lineNum, 'w', Math.max(10, currentW + offset));
+        } else if (property === 'dh' && currentH > 0) {
+          newContent = updateLineAttribute(newContent, lineNum, 'h', Math.max(10, currentH + offset));
+        }
+      } else {
+        newContent = updateLineAttribute(newContent, lineNum, property, value);
+      }
+    });
+    
+    setContent(newContent);
+  }, [ast, content, setContent, selectedElements]);
+
+  return (
+    <div className="batch-edit-panel">
+      <PropertyGroupTitle>位置偏移</PropertyGroupTitle>
+      <div className="property-row">
+        <div className="property-group">
+          <label>ΔX</label>
+          <input
+            type="number"
+            value={batchValues.dx}
+            onChange={(e) => {
+              setBatchValues(prev => ({ ...prev, dx: e.target.value }));
+              if (e.target.value) applyBatchChange('dx', e.target.value);
+            }}
+            placeholder="0"
+          />
+        </div>
+        <div className="property-group">
+          <label>ΔY</label>
+          <input
+            type="number"
+            value={batchValues.dy}
+            onChange={(e) => {
+              setBatchValues(prev => ({ ...prev, dy: e.target.value }));
+              if (e.target.value) applyBatchChange('dy', e.target.value);
+            }}
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <PropertyGroupTitle>尺寸调整</PropertyGroupTitle>
+      <div className="property-row">
+        <div className="property-group">
+          <label>ΔW</label>
+          <input
+            type="number"
+            value={batchValues.dw}
+            onChange={(e) => {
+              setBatchValues(prev => ({ ...prev, dw: e.target.value }));
+              if (e.target.value) applyBatchChange('dw', e.target.value);
+            }}
+            placeholder="0"
+          />
+        </div>
+        <div className="property-group">
+          <label>ΔH</label>
+          <input
+            type="number"
+            value={batchValues.dh}
+            onChange={(e) => {
+              setBatchValues(prev => ({ ...prev, dh: e.target.value }));
+              if (e.target.value) applyBatchChange('dh', e.target.value);
+            }}
+            placeholder="0"
+          />
+        </div>
+      </div>
+
+      <PropertyGroupTitle>统一属性</PropertyGroupTitle>
+      <ColorPicker
+        label="颜色"
+        value={batchValues.color || '#000000'}
+        onChange={(color) => {
+          setBatchValues(prev => ({ ...prev, color }));
+          applyBatchChange('c', color);
+        }}
+      />
+      
+      <div className="property-row">
+        <div className="property-group">
+          <label>字号</label>
+          <input
+            type="number"
+            value={batchValues.fontSize}
+            onChange={(e) => {
+              setBatchValues(prev => ({ ...prev, fontSize: e.target.value }));
+              if (e.target.value) applyBatchChange('size', e.target.value);
+            }}
+            placeholder="12"
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function PropertyPanel(): React.ReactElement {

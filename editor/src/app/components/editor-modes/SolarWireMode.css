@@ -273,9 +273,13 @@
   overflow: visible;
 }
 
-/* 网格/吸附/图层/帮助按钮样式 */
+/* 统一操作按钮样式（小按钮 32x32） */
 .grid-toggle-button,
-.snap-toggle-button {
+.snap-toggle-button,
+.layers-toggle-button,
+.help-button,
+.note-toggle-button,
+.pan-tool-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -287,70 +291,38 @@
   cursor: pointer;
   font-size: 16px;
   transition: all 0.15s ease;
+  color: var(--text-secondary);
+  padding: 0;
 }
 
 .grid-toggle-button:hover,
-.snap-toggle-button:hover {
+.snap-toggle-button:hover,
+.layers-toggle-button:hover,
+.help-button:hover,
+.note-toggle-button:hover,
+.pan-tool-button:hover {
   background: var(--border-color);
   border-color: var(--text-muted);
 }
 
 .grid-toggle-button.active,
-.snap-toggle-button.active {
+.snap-toggle-button.active,
+.layers-toggle-button.active,
+.note-toggle-button.active,
+.pan-tool-button.active {
   background: var(--accent-opacity-35);
   border-color: var(--accent-color);
 }
 
-.layers-section .layers-toggle-button,
-.help-section .help-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 10px;
-  height: 32px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.15s ease;
-  color: var(--text-secondary);
-}
-
-.layers-toggle-button:hover,
-.help-button:hover {
-  background: var(--border-color);
-  border-color: var(--text-muted);
-}
-
-.layers-toggle-button.active {
-  background: var(--accent-opacity-35);
-  border-color: var(--accent-color);
-}
-
-.help-button {
-  width: 32px;
-  padding: 0;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-/* 图层面板容器 */
+/* 图层面板容器 - 左侧打开 */
 .layer-panel-container {
   position: absolute;
   top: 0;
-  right: 280px;
+  left: 0;
   bottom: 0;
   width: 220px;
   background: var(--bg-secondary);
-  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
   z-index: 5;
   overflow: hidden;
-}
-
-/* 响应式：当属性面板隐藏时图层面板靠右 */
-.sidebar-panel:not(:first-child) ~ .layer-panel-container,
-.layer-panel-container:not(:has(~ .sidebar-panel)) {
-  right: 0;
 }

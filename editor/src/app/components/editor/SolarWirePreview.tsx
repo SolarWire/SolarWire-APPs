@@ -11,14 +11,26 @@ import {
   getLineCoordinates
 } from '../../../shared/utils/coordinate-converter';
 
-// 节流函数
-function throttle<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
-  let lastCall = 0;
-  return (...args: Parameters<T>) => {
-    const now = Date.now();
-    if (now - lastCall >= wait) {
-      lastCall = now;
-      func(...args);
+/**
+ * RAF-based content updater: batches content updates to the next animation frame.
+ * Avoids losing intermediate updates like throttle does.
+ */
+function createRafContentUpdater(setContent: (content: string) => void) {
+  let rafId: number | null = null;
+  let pendingContent: string | null = null;
+
+  const flush = () => {
+    rafId = null;
+    if (pendingContent !== null) {
+      setContent(pendingContent);
+      pendingContent = null;
+    }
+  };
+
+  return (newContent: string) => {
+    pendingContent = newContent;
+    if (rafId === null) {
+      rafId = requestAnimationFrame(flush);
     }
   };
 }
@@ -83,7 +95,7 @@ const getElementDataFromContent = (content: string, lineNum: number) => {
  * @param elementY2 原始终点 Y 坐标
  * @param dx X 轴偏移量
  * @param dy Y 轴偏移量
- * @param throttledSetContent 节流版本的 setContent 函数
+ * @param setContentFn 内容更新函数
  * @param isRelative 是否使用相对坐标模式
  * @returns 更新后的文档内容
  */
@@ -96,7 +108,7 @@ const handleLineDrag = (
   elementY2: number | undefined,
   dx: number,
   dy: number,
-  throttledSetContent: (content: string) => void,
+  setContentFn: (content: string) => void,
   isRelative: boolean = false
 ): string => {
   let newContent = content;
@@ -132,7 +144,7 @@ const handleLineDrag = (
     }
   }
   
-  throttledSetContent(newContent);
+  setContentFn(newContent);
   return newContent;
 };
 
@@ -148,7 +160,7 @@ const snapToGridValue = (value: number, gridSize: number): number => {
  * @param elementY 原始 Y 坐标
  * @param dx X 轴偏移量
  * @param dy Y 轴偏移量
- * @param throttledSetContent 节流版本的 setContent 函数
+ * @param setContentFn 内容更新函数
  * @returns 更新后的文档内容
  */
 const handleElementDrag = (
@@ -158,7 +170,7 @@ const handleElementDrag = (
   elementY: number,
   dx: number,
   dy: number,
-  throttledSetContent: (content: string) => void,
+  setContentFn: (content: string) => void,
   snapToGrid: boolean = false,
   gridSize: number = 20
 ): string => {
@@ -173,7 +185,7 @@ const handleElementDrag = (
   let newContent = updateLineAttribute(content, lineNum, 'x', newX);
   newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
   
-  throttledSetContent(newContent);
+  setContentFn(newContent);
   return newContent;
 };
 
@@ -182,6 +194,17 @@ interface BoxSelectionState {
   startY: number;
   currentX: number;
   currentY: number;
+}
+
+interface MultiDragState {
+  elementId: string;
+  startX: number;
+  startY: number;
+  elementX: number;
+  elementY: number;
+  elementX2?: number;
+  elementY2?: number;
+  isLine?: boolean;
 }
 
 interface DragElementState {
@@ -230,8 +253,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const effectiveSnapToGrid = snapToGrid || snapToGridProp;
   const effectiveGridSize = gridSize || gridSizeProp;
   
-  // 创建节流版本的setContent函数，限制调用频率为100ms
-  const throttledSetContent = useMemo(() => throttle(setContent, 100), [setContent]);
+  // RAF-based content updater
+  const rafUpdater = useMemo(() => createRafContentUpdater(setContent), [setContent]);
 
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -252,13 +275,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     y: number;
   } | null>(null);
   const [dragElementState, setDragElementState] = useState<DragElementState | null>(null);
+  const [multiDragElements, setMultiDragElements] = useState<MultiDragState[]>([]);
   const [resizeHandleState, setResizeHandleState] = useState<ResizeHandleState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [hoveredElement, setHoveredElement] = useState<string | null>(null);
   const [imageManager] = useState(() => new ImageAssetManager());
   const [dropOverlay, setDropOverlay] = useState(false);
-  const [alignmentGuides, setAlignmentGuides] = useState<Array<{ type: string; position: number }>>([]);
+  const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
+  const [edgeGaps, setEdgeGaps] = useState<Array<{ type: string; targetBounds: { x: number; y: number; w: number; h: number }; distance: number; currentEdge: number; targetEdge: number; overlapStart: number; overlapEnd: number }>>([]);
 
   const handleImageAdded = useCallback((assetPath: string, x: number, y: number) => {
     const worldCoords = getSvgCoords(x, y);
@@ -561,16 +586,42 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   const ALIGN_THRESHOLD = 5;
 
-  const calculateAlignmentGuides = useCallback((elementId: string, currentX: number, currentY: number, currentW: number, currentH: number, elements: SolarWireElement[]) => {
+  interface AlignmentGuide {
+    type: string;
+    position: number;
+    distance: number;
+    targetBounds: { x: number; y: number; w: number; h: number };
+    currentEdge: number;
+    isHorizontal: boolean;
+  }
+
+  /**
+   * 计算当前元素与其他元素之间的对齐辅助线
+   * @param elementId 当前元素 ID
+   * @param currentX 当前元素 X 坐标
+   * @param currentY 当前元素 Y 坐标
+   * @param currentW 当前元素宽度
+   * @param currentH 当前元素高度
+   * @param elements 所有元素列表
+   * @returns 对齐辅助线数组
+   */
+  const calculateAlignmentGuides = useCallback((elementId: string, currentX: number, currentY: number, currentW: number, currentH: number, elements: SolarWireElement[]): AlignmentGuide[] => {
     if (!elements || elements.length === 0) return [];
     
-    const guides: Array<{ type: string; position: number }> = [];
+    const guides: AlignmentGuide[] = [];
     const elementIds = new Set<string>();
     
     elements.forEach((el: SolarWireElement, index: number) => {
       const id = el.location?.line?.toString() || (index + 1).toString();
       if (id !== elementId) elementIds.add(id);
     });
+
+    const myLeft = currentX;
+    const myRight = currentX + currentW;
+    const myTop = currentY;
+    const myBottom = currentY + currentH;
+    const myCenterX = currentX + currentW / 2;
+    const myCenterY = currentY + currentH / 2;
 
     elementIds.forEach(id => {
       const bounds = getElementBounds(id);
@@ -580,36 +631,136 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const by = bounds.y;
       const bw = bounds.w;
       const bh = bounds.h;
+      const bLeft = bx;
+      const bRight = bx + bw;
+      const bTop = by;
+      const bBottom = by + bh;
       const bCenterX = bx + bw / 2;
       const bCenterY = by + bh / 2;
 
-      const myCenterX = currentX + currentW / 2;
-      const myCenterY = currentY + currentH / 2;
+      // 计算两个元素在各方向上的实际边到边距离（间隙）
+      // 如果重叠，距离为负值
+      const gapLeftRight = bLeft - myRight;     // 当前元素右边缘到目标元素左边缘的间隙
+      const gapRightLeft = myLeft - bRight;     // 当前元素左边缘到目标元素右边缘的间隙
+      const gapTopBottom = bTop - myBottom;     // 当前元素下边缘到目标元素上边缘的间隙
+      const gapBottomTop = myTop - bBottom;     // 当前元素上边缘到目标元素下边缘的间隙
 
-      if (Math.abs(currentX - bx) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'left', position: bx });
+      // 左边对齐：当前元素左边 vs 目标元素左边
+      if (Math.abs(myLeft - bLeft) < ALIGN_THRESHOLD) {
+        guides.push({ type: 'left', position: bLeft, distance: Math.abs(myLeft - bLeft), targetBounds: bounds, currentEdge: myLeft, isHorizontal: false });
       }
-      if (Math.abs((currentX + currentW) - (bx + bw)) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'right', position: bx + bw });
+      // 右边对齐：当前元素右边 vs 目标元素右边
+      if (Math.abs(myRight - bRight) < ALIGN_THRESHOLD) {
+        guides.push({ type: 'right', position: bRight, distance: Math.abs(myRight - bRight), targetBounds: bounds, currentEdge: myRight, isHorizontal: false });
       }
-      if (Math.abs(currentY - by) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'top', position: by });
+      // 上边对齐
+      if (Math.abs(myTop - bTop) < ALIGN_THRESHOLD) {
+        guides.push({ type: 'top', position: bTop, distance: Math.abs(myTop - bTop), targetBounds: bounds, currentEdge: myTop, isHorizontal: true });
       }
-      if (Math.abs((currentY + currentH) - (by + bh)) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'bottom', position: by + bh });
+      // 下边对齐
+      if (Math.abs(myBottom - bBottom) < ALIGN_THRESHOLD) {
+        guides.push({ type: 'bottom', position: bBottom, distance: Math.abs(myBottom - bBottom), targetBounds: bounds, currentEdge: myBottom, isHorizontal: true });
       }
+      // 水平中心对齐
       if (Math.abs(myCenterX - bCenterX) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'centerX', position: bCenterX });
+        guides.push({ type: 'centerX', position: bCenterX, distance: Math.abs(myCenterX - bCenterX), targetBounds: bounds, currentEdge: myCenterX, isHorizontal: false });
       }
+      // 垂直中心对齐
       if (Math.abs(myCenterY - bCenterY) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'centerY', position: bCenterY });
+        guides.push({ type: 'centerY', position: bCenterY, distance: Math.abs(myCenterY - bCenterY), targetBounds: bounds, currentEdge: myCenterY, isHorizontal: true });
       }
     });
 
     return guides;
   }, [getElementBounds]);
 
-  const snapToAlignment = useCallback((guides: Array<{ type: string; position: number }>, x: number, y: number, w: number, h: number) => {
+  /**
+   * 计算元素边缘到其他元素边缘的实际间距（用于显示距离线）
+   * 返回最近的间距信息
+   */
+  const calculateEdgeGaps = useCallback((elementId: string, currentX: number, currentY: number, currentW: number, currentH: number, elements: SolarWireElement[]) => {
+    if (!elements || elements.length === 0) return [];
+    
+    const gaps: Array<{
+      type: string;
+      targetBounds: { x: number; y: number; w: number; h: number };
+      distance: number;
+      currentEdge: number;
+      targetEdge: number;
+      overlapStart: number;
+      overlapEnd: number;
+    }> = [];
+    
+    const myLeft = currentX;
+    const myRight = currentX + currentW;
+    const myTop = currentY;
+    const myBottom = currentY + currentH;
+    const myCenterX = currentX + currentW / 2;
+    const myCenterY = currentY + currentH / 2;
+
+    // 检查所有其他元素，计算当前元素各边到最近元素的距离
+    elements.forEach((el: SolarWireElement, index: number) => {
+      const id = el.location?.line?.toString() || (index + 1).toString();
+      if (id === elementId) return;
+      
+      const bounds = getElementBounds(id);
+      if (!bounds || bounds.w === 0 && bounds.h === 0) return;
+
+      const bx = bounds.x;
+      const by = bounds.y;
+      const bw = bounds.w;
+      const bh = bounds.h;
+      const bLeft = bx;
+      const bRight = bx + bw;
+      const bTop = by;
+      const bBottom = by + bh;
+      const bCenterX = bx + bw / 2;
+      const bCenterY = by + bh / 2;
+
+      // 计算水平方向重叠范围（用于 Y 轴方向的连线）
+      const xOverlapStart = Math.max(myLeft, bLeft);
+      const xOverlapEnd = Math.min(myRight, bRight);
+      const xHasOverlap = xOverlapEnd > xOverlapStart;
+
+      // 计算垂直方向重叠范围（用于 X 轴方向的连线）
+      const yOverlapStart = Math.max(myTop, bTop);
+      const yOverlapEnd = Math.min(myBottom, bBottom);
+      const yHasOverlap = yOverlapEnd > yOverlapStart;
+
+      // 左边到左边的距离
+      if (myLeft > bRight) {
+        const dist = Math.round(myLeft - bRight);
+        if (dist < 100 && yHasOverlap) {
+          gaps.push({ type: 'left', targetBounds: bounds, distance: dist, currentEdge: myLeft, targetEdge: bRight, overlapStart: yOverlapStart, overlapEnd: yOverlapEnd });
+        }
+      }
+      // 右边到右边的距离
+      if (bLeft > myRight) {
+        const dist = Math.round(bLeft - myRight);
+        if (dist < 100 && yHasOverlap) {
+          gaps.push({ type: 'right', targetBounds: bounds, distance: dist, currentEdge: myRight, targetEdge: bLeft, overlapStart: yOverlapStart, overlapEnd: yOverlapEnd });
+        }
+      }
+      // 上边到上边的距离
+      if (myTop > bBottom) {
+        const dist = Math.round(myTop - bBottom);
+        if (dist < 100 && xHasOverlap) {
+          gaps.push({ type: 'top', targetBounds: bounds, distance: dist, currentEdge: myTop, targetEdge: bBottom, overlapStart: xOverlapStart, overlapEnd: xOverlapEnd });
+        }
+      }
+      // 下边到下边的距离
+      if (bTop > myBottom) {
+        const dist = Math.round(bTop - myBottom);
+        if (dist < 100 && xHasOverlap) {
+          gaps.push({ type: 'bottom', targetBounds: bounds, distance: dist, currentEdge: myBottom, targetEdge: bTop, overlapStart: xOverlapStart, overlapEnd: xOverlapEnd });
+        }
+      }
+    });
+
+    return gaps;
+  }, [getElementBounds]);
+
+  const snapToAlignment = useCallback((guides: Array<{ type: string; position: number; distance: number; targetBounds: { x: number; y: number; w: number; h: number } }>, x: number, y: number, w: number, h: number) => {
     let snappedX = x;
     let snappedY = y;
     let snapped = false;
@@ -738,21 +889,28 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const maxY = Math.max(y1, y2);
     const selected: string[] = [];
 
+    const isIntersectMode = selectionTool === 'box-inclusive';
+
     ast.elements.forEach((element) => {
       const line = element.location?.line;
       if (!line) return;
       
-      // 线段元素使用特殊的检测逻辑
       if (element.type === 'line') {
         try {
           const { x1: lineX1, y1: lineY1, x2: lineX2, y2: lineY2 } = getLineCoordinates(element);
           
-          // 检查线段的起点和终点是否都在框选区域内
           const startInBox = lineX1 >= minX && lineX1 <= maxX && lineY1 >= minY && lineY1 <= maxY;
           const endInBox = lineX2 >= minX && lineX2 <= maxX && lineY2 >= minY && lineY2 <= maxY;
           
-          // 框选：线段的起点或终点至少有一个在区域内
-          if (startInBox || endInBox) {
+          let lineSelected = false;
+          if (isIntersectMode) {
+            const intersects = !(lineX1 > maxX || lineX2 < minX || lineY1 > maxY || lineY2 < minY);
+            lineSelected = startInBox || endInBox || intersects;
+          } else {
+            lineSelected = startInBox && endInBox;
+          }
+          
+          if (lineSelected) {
             selected.push(line.toString());
           }
         } catch (e) {
@@ -761,7 +919,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         return;
       }
       
-      // 普通元素使用边界框检测
       const bounds = getElementBounds(line.toString());
       if (bounds.w === 0 && bounds.h === 0) return;
 
@@ -770,9 +927,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const elementTop = bounds.y;
       const elementBottom = bounds.y + bounds.h;
 
-      // 包含框选：元素必须完全在框选区域内
-      const isSelected = elementLeft >= minX && elementRight <= maxX &&
-        elementTop >= minY && elementBottom <= maxY;
+      let isSelected: boolean;
+      if (isIntersectMode) {
+        isSelected = !(elementLeft > maxX || elementRight < minX || elementTop > maxY || elementBottom < minY);
+      } else {
+        isSelected = elementLeft >= minX && elementRight <= maxX &&
+          elementTop >= minY && elementBottom <= maxY;
+      }
 
       if (isSelected) {
         selected.push(line.toString());
@@ -909,6 +1070,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           }
           
           setDragElementState(dragState);
+          
           if (e.shiftKey) {
             // Shift+Click：切换选中状态
             if (selectedElements.includes(elementId)) {
@@ -917,8 +1079,40 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               selectElements([...selectedElements, elementId]);
             }
           } else {
-            // 普通点击：只选中这个元素
-            selectElements([elementId]);
+            // 普通点击：如果点击的元素已在选中且选中多个，保持多选并开始拖拽
+            if (!selectedElements.includes(elementId)) {
+              selectElements([elementId]);
+            } else if (selectedElements.length > 1) {
+              // 多选状态下，捕获所有选中元素的初始位置
+              const initialPositions: MultiDragState[] = [];
+              selectedElements.forEach((id) => {
+                const elData = getElementData(id);
+                const elIsLine = elData?.type === 'line';
+                if (elIsLine && elData) {
+                  const lineCoords = getLineCoordinates(elData);
+                  initialPositions.push({
+                    elementId: id,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    elementX: lineCoords.x1,
+                    elementY: lineCoords.y1,
+                    elementX2: lineCoords.x2,
+                    elementY2: lineCoords.y2,
+                    isLine: true
+                  });
+                } else {
+                  const bounds = getElementBounds(id);
+                  initialPositions.push({
+                    elementId: id,
+                    startX: e.clientX,
+                    startY: e.clientY,
+                    elementX: bounds.x,
+                    elementY: bounds.y
+                  });
+                }
+              });
+              setMultiDragElements(initialPositions);
+            }
           }
         } else if (currentTool === 'box-inclusive') {
           // box-inclusive 模式下，点击空白处开始框选（使用屏幕坐标）
@@ -1021,7 +1215,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               }
               
               lines[lineNum - 1] = line;
-              throttledSetContent(lines.join('\n'));
+              rafUpdater(lines.join('\n'));
             }
           }
           return;
@@ -1140,7 +1334,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
           newContent = updateLineAttribute(newContent, lineNum, 'w', newW);
           newContent = updateLineAttribute(newContent, lineNum, 'h', newH);
-          throttledSetContent(newContent);
+          rafUpdater(newContent);
         }
       }
       return;
@@ -1205,7 +1399,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dragElementState.elementY2,
             dx,
             dy,
-            throttledSetContent,
+            rafUpdater,
             isEndRelative
           );
         } else {
@@ -1216,12 +1410,72 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dragElementState.elementY,
             dx,
             dy,
-            throttledSetContent,
+            rafUpdater,
             effectiveSnapToGrid,
             effectiveGridSize
           );
         }
       }
+      return;
+    }
+
+    if (multiDragElements.length > 0) {
+      const currentCoords = getSvgCoords(e.clientX, e.clientY);
+      const startCoords = getSvgCoords(multiDragElements[0].startX, multiDragElements[0].startY);
+      
+      const dx = currentCoords.x - startCoords.x;
+      const dy = currentCoords.y - startCoords.y;
+      
+      let newContent = content;
+      
+      multiDragElements.forEach((el) => {
+        const lineNum = parseInt(el.elementId);
+        if (isNaN(lineNum)) return;
+        
+        if (el.isLine) {
+          const lines = newContent.split(/\r?\n/);
+          const line = lines[lineNum - 1];
+          const isEndRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
+          
+          if (isEndRelative && el.elementX2 !== undefined && el.elementY2 !== undefined) {
+            const originalDx = el.elementX2 - el.elementX;
+            const originalDy = el.elementY2 - el.elementY;
+            
+            let newX = Math.max(0, Math.round(el.elementX + dx));
+            let newY = Math.max(0, Math.round(el.elementY + dy));
+            let newX2 = newX + originalDx;
+            let newY2 = newY + originalDy;
+            
+            newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
+            newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+            newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
+            newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+          } else {
+            let newX = Math.max(0, Math.round(el.elementX + dx));
+            let newY = Math.max(0, Math.round(el.elementY + dy));
+            let newX2 = Math.max(0, Math.round((el.elementX2 || el.elementX + 100) + dx));
+            let newY2 = Math.max(0, Math.round((el.elementY2 || el.elementY) + dy));
+            
+            newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
+            newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+            newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
+            newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+          }
+        } else {
+          let newX = Math.max(0, Math.round(el.elementX + dx));
+          let newY = Math.max(0, Math.round(el.elementY + dy));
+          
+          if (effectiveSnapToGrid && effectiveGridSize > 0) {
+            newX = Math.round(newX / effectiveGridSize) * effectiveGridSize;
+            newY = Math.round(newY / effectiveGridSize) * effectiveGridSize;
+          }
+          
+          newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
+          newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+        }
+      });
+      
+      rafUpdater(newContent);
       return;
     }
 
@@ -1253,6 +1507,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     if (dragElementState) {
       setDragElementState(null);
+      setAlignmentGuides([]);
+      return;
+    }
+
+    if (multiDragElements.length > 0) {
+      setMultiDragElements([]);
       setAlignmentGuides([]);
       return;
     }
@@ -1744,62 +2004,197 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const renderAlignmentGuides = () => {
     if (alignmentGuides.length === 0) return null;
 
-    if (!containerRef.current) return null;
-    const rect = containerRef.current.getBoundingClientRect();
+    const currentDraggedBounds = dragElementState ? getElementBounds(dragElementState.elementId) : null;
 
     return alignmentGuides.map((guide, index) => {
       const isHorizontal = guide.type === 'top' || guide.type === 'bottom' || guide.type === 'centerY';
       const pos = guide.position;
+      const targetBounds = guide.targetBounds;
+      const distanceText = Math.round(guide.distance);
 
-      if (isHorizontal) {
-        const screenPos = {
-          x: rect.left,
-          y: rect.top + pos * scale,
-          width: rect.width,
-          height: 1
-        };
+      if (!currentDraggedBounds) return null;
+
+      // 计算两个元素之间的水平或垂直重叠范围，用于确定连线范围
+      const overlapStart: number = Math.max(
+        isHorizontal ? targetBounds.x : targetBounds.y,
+        isHorizontal ? currentDraggedBounds.x : currentDraggedBounds.y
+      );
+      const overlapEnd: number = Math.min(
+        isHorizontal ? targetBounds.x + targetBounds.w : targetBounds.y + targetBounds.h,
+        isHorizontal ? currentDraggedBounds.x + currentDraggedBounds.w : currentDraggedBounds.y + currentDraggedBounds.h
+      );
+      const hasOverlap = overlapEnd > overlapStart;
+
+      // 对齐辅助线（虚线，贯穿画布）
+      if (Math.abs(guide.distance) < 0.5) {
         return (
-          <div
+          <line
             key={`align-${index}`}
-            className="alignment-guide"
-            style={{
-              position: 'absolute',
-              left: screenPos.x,
-              top: screenPos.y,
-              width: screenPos.width,
-              height: screenPos.height,
-              backgroundColor: '#FF4444',
-              opacity: 0.8,
-              zIndex: 2000,
-              pointerEvents: 'none'
-            }}
-          />
-        );
-      } else {
-        const screenPos = {
-          x: rect.left + pos * scale,
-          y: rect.top,
-          width: 1,
-          height: rect.height
-        };
-        return (
-          <div
-            key={`align-${index}`}
-            className="alignment-guide"
-            style={{
-              position: 'absolute',
-              left: screenPos.x,
-              top: screenPos.y,
-              width: screenPos.width,
-              height: screenPos.height,
-              backgroundColor: '#FF4444',
-              opacity: 0.8,
-              zIndex: 2000,
-              pointerEvents: 'none'
-            }}
+            x1={isHorizontal ? 0 : pos}
+            y1={isHorizontal ? pos : 0}
+            x2={isHorizontal ? 100000 : pos}
+            y2={isHorizontal ? pos : 100000}
+            stroke={primaryColor}
+            strokeWidth={1 / scale}
+            strokeDasharray="4,3"
+            opacity={0.7}
+            pointerEvents="none"
           />
         );
       }
+
+      // 有重叠时：元素边到边的垂直/水平实线 + 距离标签
+      if (hasOverlap) {
+        if (isHorizontal) {
+          // 水平距离线（连接两个元素的上下边）
+          const targetEdge = pos; // 目标元素的边
+          const draggedEdge = guide.type === 'top' ? currentDraggedBounds.y :
+                            guide.type === 'bottom' ? currentDraggedBounds.y + currentDraggedBounds.h :
+                            currentDraggedBounds.y + currentDraggedBounds.h / 2;
+
+          const midX = (overlapStart + overlapEnd) / 2;
+          const labelMidX = midX;
+          const labelMidY = (targetEdge + draggedEdge) / 2;
+
+          return (
+            <g key={`align-${index}`} pointerEvents="none">
+              <line
+                x1={overlapStart}
+                y1={draggedEdge}
+                x2={overlapEnd}
+                y2={draggedEdge}
+                stroke={primaryColor}
+                strokeWidth={1 / scale}
+                strokeDasharray="none"
+                opacity={0.9}
+              />
+              <line
+                x1={overlapStart}
+                y1={targetEdge}
+                x2={overlapEnd}
+                y2={targetEdge}
+                stroke={primaryColor}
+                strokeWidth={1 / scale}
+                strokeDasharray="none"
+                opacity={0.9}
+              />
+              <line
+                x1={midX}
+                y1={draggedEdge}
+                x2={midX}
+                y2={targetEdge}
+                stroke={primaryColor}
+                strokeWidth={1 / scale}
+                strokeDasharray="none"
+                opacity={0.9}
+              />
+              <rect
+                x={labelMidX - 18 / scale}
+                y={labelMidY - 7 / scale}
+                width={36 / scale}
+                height={14 / scale}
+                fill="var(--bg-primary)"
+                fillOpacity={0.9}
+                rx={3 / scale}
+                stroke={primaryColor}
+                strokeWidth={0.5 / scale}
+              />
+              <text
+                x={labelMidX}
+                y={labelMidY + 4 / scale}
+                fontSize={`${9 / scale}px`}
+                fill={primaryColor}
+                textAnchor="middle"
+                fontFamily="Menlo, Consolas, monospace"
+              >
+                {distanceText}px
+              </text>
+            </g>
+          );
+        } else {
+          // 垂直距离线（连接两个元素的左右边）
+          const targetEdge = pos;
+          const draggedEdge = guide.type === 'left' ? currentDraggedBounds.x :
+                            guide.type === 'right' ? currentDraggedBounds.x + currentDraggedBounds.w :
+                            currentDraggedBounds.x + currentDraggedBounds.w / 2;
+
+          const midY = (overlapStart + overlapEnd) / 2;
+          const labelMidX = (targetEdge + draggedEdge) / 2;
+          const labelMidY = midY;
+
+          return (
+            <g key={`align-${index}`} pointerEvents="none">
+              <line
+                x1={draggedEdge}
+                y1={overlapStart}
+                x2={draggedEdge}
+                y2={overlapEnd}
+                stroke={primaryColor}
+                strokeWidth={1 / scale}
+                strokeDasharray="none"
+                opacity={0.9}
+              />
+              <line
+                x1={targetEdge}
+                y1={overlapStart}
+                x2={targetEdge}
+                y2={overlapEnd}
+                stroke={primaryColor}
+                strokeWidth={1 / scale}
+                strokeDasharray="none"
+                opacity={0.9}
+              />
+              <line
+                x1={draggedEdge}
+                y1={midY}
+                x2={targetEdge}
+                y2={midY}
+                stroke={primaryColor}
+                strokeWidth={1 / scale}
+                strokeDasharray="none"
+                opacity={0.9}
+              />
+              <rect
+                x={labelMidX - 18 / scale}
+                y={labelMidY - 7 / scale}
+                width={36 / scale}
+                height={14 / scale}
+                fill="var(--bg-primary)"
+                fillOpacity={0.9}
+                rx={3 / scale}
+                stroke={primaryColor}
+                strokeWidth={0.5 / scale}
+              />
+              <text
+                x={labelMidX}
+                y={labelMidY + 4 / scale}
+                fontSize={`${9 / scale}px`}
+                fill={primaryColor}
+                textAnchor="middle"
+                fontFamily="Menlo, Consolas, monospace"
+              >
+                {distanceText}px
+              </text>
+            </g>
+          );
+        }
+      }
+
+      // 没有重叠时：显示对齐轴线的虚线
+      return (
+        <line
+          key={`align-${index}`}
+          x1={isHorizontal ? 0 : pos}
+          y1={isHorizontal ? pos : 0}
+          x2={isHorizontal ? 100000 : pos}
+          y2={isHorizontal ? pos : 100000}
+          stroke={primaryColor}
+          strokeWidth={1 / scale}
+          strokeDasharray="4,3"
+          opacity={0.5}
+          pointerEvents="none"
+        />
+      );
     });
   };
 

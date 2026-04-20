@@ -8,56 +8,77 @@
   margin-bottom: 8px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-dark);
+  color: var(--text-primary);
 }
 
 .color-picker-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .color-picker-wrapper input[type="color"] {
-  width: 100%;
+  width: 40px;
   height: 32px;
-  border: 1px solid var(--border-lighter);
-  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
   cursor: pointer;
+  padding: 2px;
+  background: var(--bg-tertiary);
+}
+
+.color-picker-hex-input {
+  flex: 1;
+  height: 32px;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Menlo', 'Consolas', monospace;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.color-picker-hex-input:focus {
+  border-color: var(--accent-color);
 }
 
 .color-picker-dropdown {
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 32px;
+  position: relative;
 }
 
 .color-picker-toggle {
   height: 32px;
   width: 32px;
-  border: none;
-  background: var(--bg-light);
-  border-left: 1px solid var(--border-lighter);
-  border-radius: 0 4px 4px 0;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
 }
 
 .color-picker-toggle:hover {
-  background: var(--bg-hover);
+  background: var(--border-color);
+  border-color: var(--text-muted);
 }
 
 .color-picker-menu {
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   margin-top: 4px;
-  background: var(--white);
-  border: 1px solid var(--border-lighter);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   padding: 8px;
   min-width: 200px;
   z-index: 1000;
@@ -68,10 +89,12 @@
 }
 
 .color-picker-section-title {
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 600;
   margin-bottom: 8px;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .color-picker-grid {
@@ -81,34 +104,38 @@
 }
 
 .color-picker-swatch {
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--border-lighter);
-  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 6px;
   cursor: pointer;
   padding: 0;
+  transition: all 0.15s ease;
 }
 
 .color-picker-swatch:hover {
-  border-color: var(--text-dark);
+  border-color: var(--accent-color);
+  transform: scale(1.1);
 }
 
 .color-picker-divider {
   height: 1px;
-  background: var(--border-lighter);
+  background: var(--border-color);
   margin: 8px 0;
 }
 
 .color-picker-add {
   width: 100%;
-  padding: 4px 8px;
-  border: 1px solid var(--border-lighter);
-  border-radius: 4px;
-  background: var(--bg-light);
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   cursor: pointer;
   font-size: 12px;
+  transition: all 0.15s ease;
 }
 
 .color-picker-add:hover {
-  background: var(--bg-hover);
+  background: var(--border-color);
 }
