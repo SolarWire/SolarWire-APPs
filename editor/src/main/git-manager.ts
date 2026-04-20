@@ -237,7 +237,14 @@ class GitRepository {
     } catch (error: any) {
       console.error(`Failed to get file content at commit ${commitHash}:`, error);
       // 如果文件在该 commit 时不存在，返回空字符串
-      if (error.message?.includes('does not exist')) {
+      const errorMsg = error.message || error.stderr || '';
+      if (
+        errorMsg.includes('does not exist') ||
+        errorMsg.includes('exists on disk, but not in') ||
+        errorMsg.includes('not found in') ||
+        errorMsg.includes('fatal:') ||
+        errorMsg.includes('no such path')
+      ) {
         return '';
       }
       throw error;

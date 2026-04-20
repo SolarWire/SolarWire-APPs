@@ -4,6 +4,7 @@ import { readFile } from '../../shared/utils/file-utils';
 import { useEditorStore } from './editorStore';
 import { useGitStore } from './gitStore';
 import { useStatusStore } from './statusStore';
+import { preloadVersionHistory } from '../../shared/utils/versionHistoryPreloader';
 
 async function writeFile(filePath: string, content: string): Promise<void> {
   const api = (window as any).api;
@@ -132,6 +133,22 @@ export const useFileStore = create<FileState>((set, get) => ({
       // Initialize Git for this directory
       const gitStore = useGitStore.getState();
       await gitStore.initGit(dirPath);
+      
+      // Start background preload of version history for all supported files
+      preloadVersionHistory(
+        dirPath,
+        gitStore.getGitLog,
+        async (path: string, hash: string) => {
+          const api = (window as any).api?.git;
+          if (!api) return '';
+          return await api.getFileContentAtCommit(path, hash);
+        },
+        {
+          onProgress: (current, total, file) => {
+            console.log(`[VersionPreloader] Progress: ${current}/${total} - ${file}`);
+          }
+        }
+      ).catch(err => console.error('[VersionPreloader] Preload failed:', err));
       
       useStatusStore.getState().completeOperation('目录已打开');
     } catch (err) {

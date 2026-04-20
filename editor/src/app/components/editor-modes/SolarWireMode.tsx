@@ -3,7 +3,6 @@ import MonacoEditor from '../editor/MonacoEditor';
 import SolarWirePreview from '../editor/SolarWirePreview';
 import PropertyPanel from '../editor/PropertyPanel';
 import ElementLibrary from '../editor/ElementLibrary';
-import VersionView from '../version/VersionView';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
@@ -17,11 +16,11 @@ function SolarWireMode(): React.ReactElement {
   const { selectedFile, fileContent, currentSnippet } = useFileStore();
   const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements } = useSolarWireStore();
   const { primaryColor } = useSettingsStore();
-  const [activeTab, setActiveTab] = useState<'visual' | 'code' | 'version'>('visual');
+  const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
   const [highlightTrigger, setHighlightTrigger] = useState(0);
 
-  const handleTabChange = useCallback((tab: 'visual' | 'code' | 'version') => {
+  const handleTabChange = useCallback((tab: 'visual' | 'code') => {
     setActiveTab(tab);
     // 切换到代码编辑器时，触发高亮更新（不滚动，保留之前的滚动位置）
     if (tab === 'code' && selectedElements.length > 0) {
@@ -210,7 +209,7 @@ function SolarWireMode(): React.ReactElement {
   }, [undo, handleKeyDown]);
 
   return (
-    <TabProvider activeTab={activeTab} onTabChange={handleTabChange}>
+    <TabProvider activeTab={activeTab} onTabChange={(tabId) => handleTabChange(tabId as 'visual' | 'code')}>
       <div className="solarwire-mode">
         <div className="solarwire-header">
           <TabList className="solarwire-tabs">
@@ -219,9 +218,6 @@ function SolarWireMode(): React.ReactElement {
             </Tab>
             <Tab id="code" title="代码编辑">
               💻
-            </Tab>
-            <Tab id="version" title="版本历史">
-              📜
             </Tab>
           </TabList>
         </div>
@@ -370,15 +366,6 @@ function SolarWireMode(): React.ReactElement {
                 <PropertyPanel />
               </div>
             )}
-          </TabPanel>
-          <TabPanel id="version">
-            <VersionView
-              filePath={selectedFile?.path}
-              snippet={currentSnippet ? {
-                code: currentSnippet.code,
-                snippetIndex: currentSnippet.snippetIndex
-              } : undefined}
-            />
           </TabPanel>
         </div>
       </div>

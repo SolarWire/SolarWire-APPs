@@ -5,7 +5,6 @@ import { ViewType } from '../../types/app';
 import FileView from './FileView';
 import RequirementView from './RequirementView';
 import SolarWireView from './SolarWireView';
-import VersionView from '../version/VersionView';
 import GitView from './GitView';
 import { getSelectedItemForView } from '../../shared/utils/file-utils';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';

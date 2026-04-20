@@ -28,6 +28,7 @@ interface TabProps {
   badge?: number | string;
   disabled?: boolean;
   className?: string;
+  title?: string;
 }
 
 export const Tab: React.FC<TabProps> = ({
@@ -36,7 +37,8 @@ export const Tab: React.FC<TabProps> = ({
   icon,
   badge,
   disabled = false,
-  className = ''
+  className = '',
+  title
 }) => {
   const context = useContext(TabContext);
   if (!context) {
@@ -53,6 +55,7 @@ export const Tab: React.FC<TabProps> = ({
       disabled={disabled}
       role="tab"
       aria-selected={isActive}
+      title={title}
     >
       {icon && <span className="tab-icon">{icon}</span>}
       <span className="tab-content">{children}</span>

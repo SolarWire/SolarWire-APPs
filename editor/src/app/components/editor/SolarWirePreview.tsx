@@ -1337,21 +1337,29 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           );
         });
       } else if (elementData && elementData.type !== 'text') {
-        const corners = [
-          { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-          { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
-          { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-          { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
-          { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
-          { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
-          { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-          { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
-        ];
+        const isCircle = elementData.type === 'circle';
+        const corners = isCircle
+          ? [
+              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const }
+            ]
+          : [
+              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+              { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
+              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+              { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
+              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
+              { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
+              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+              { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
+            ];
 
-        const cursorMap: Record<string, string> = {
-          nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
-          se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize'
-        };
+        const cursorMap: Record<string, string> = isCircle
+          ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
+          : { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
+              se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' };
 
         corners.forEach((corner) => {
           handles.push(
