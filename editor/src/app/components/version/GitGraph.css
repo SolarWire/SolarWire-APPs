@@ -2,7 +2,7 @@
 
 .git-graph {
   padding: 8px 0;
-  color: #c9d1d9;
+  color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
   position: relative;
 }
@@ -16,9 +16,9 @@
 }
 
 .git-graph-empty {
-  padding: 48px 20px;
+  padding: 48px 24px;
   text-align: center;
-  color: #8b949e;
+  color: var(--text-muted);
   font-size: 13px;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .git-graph-row:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--accent-opacity-10);
 }
 
 .git-graph-row-hovered {
@@ -66,7 +66,7 @@
   margin-top: 6px;
   height: calc(100% - 12px);
   width: 2px;
-  background: rgba(88, 166, 255, 0.25);
+  background: var(--accent-opacity-35);
   z-index: 0;
   pointer-events: none;
 }
@@ -99,7 +99,7 @@
 
 .git-graph-message {
   font-size: 13px;
-  color: #e6edf3;
+  color: var(--text-primary);
   line-height: 1.3;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -111,7 +111,7 @@
   align-items: center;
   gap: 8px;
   font-size: 11px;
-  color: #6e7681;
+  color: var(--text-muted);
   overflow: hidden;
 }
 
@@ -146,10 +146,10 @@
   min-width: 340px;
   max-width: 480px;
   padding: 12px 14px;
-  background: #1c1c1c;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-opacity-35);
   border-radius: 8px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px var(--accent-opacity-15);
   pointer-events: auto;
   animation: git-tooltip-fade-in 0.12s ease;
 }
@@ -187,25 +187,25 @@
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #58a6ff 0%, #3fb950 100%);
+  background: linear-gradient(135deg, var(--status-blue) 0%, var(--success-text) 100%);
   flex-shrink: 0;
 }
 
 .git-graph-tooltip-author {
   font-size: 12px;
   font-weight: 600;
-  color: #e6edf3;
+  color: var(--text-primary);
 }
 
 .git-graph-tooltip-date {
   font-size: 11px;
-  color: #6e7681;
+  color: var(--text-muted);
   margin-left: auto;
 }
 
 .git-graph-tooltip-message {
   font-size: 13px;
-  color: #c9d1d9;
+  color: var(--text-primary);
   line-height: 1.4;
   margin-bottom: 8px;
   word-break: break-word;
@@ -213,16 +213,16 @@
 
 .git-graph-tooltip-stats {
   font-size: 11px;
-  color: #8b949e;
+  color: var(--text-muted);
   margin-bottom: 8px;
 }
 
 .git-graph-tooltip-stat-add {
-  color: #3fb950;
+  color: var(--success-text);
 }
 
 .git-graph-tooltip-stat-del {
-  color: #f85149;
+  color: var(--error-text);
 }
 
 .git-graph-tooltip-hash {
@@ -230,7 +230,7 @@
   align-items: center;
   gap: 6px;
   font-size: 11px;
-  color: #6e7681;
+  color: var(--text-muted);
   font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }
 
@@ -241,7 +241,7 @@
 .git-graph-tooltip-copy-btn {
   background: none;
   border: none;
-  color: #6e7681;
+  color: var(--text-muted);
   cursor: pointer;
   padding: 2px;
   font-size: 12px;
@@ -250,7 +250,7 @@
 }
 
 .git-graph-tooltip-copy-btn:hover {
-  color: #e6edf3;
+  color: var(--text-primary);
 }
 
 /* 版本标签 */
@@ -261,10 +261,10 @@
   margin-top: 4px;
   padding: 2px 8px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--accent-opacity-10);
+  border: 1px solid var(--accent-opacity-35);
   font-size: 11px;
-  color: #8b949e;
+  color: var(--text-muted);
 }
 
 .git-graph-tooltip-tag-icon {

@@ -26,15 +26,15 @@ function SolarWireMode(): React.ReactElement {
 
   const handleTabChange = useCallback((tab: 'visual' | 'code') => {
     setActiveTab(tab);
-    // 切换到代码编辑器时，触发高亮更新（不滚动，保留之前的滚动位置）
     if (tab === 'code' && selectedElements.length > 0) {
       setHighlightTrigger(prev => prev + 1);
     }
   }, [selectedElements.length]);
 
   const selectionTools = [
-    { id: 'select', label: 'Select', icon: '🖱️', description: 'Click to select, Shift+Click to multi-select' },
-    { id: 'box-inclusive', label: 'Box Select', icon: '📦', description: 'Drag to box select (inclusive)' }
+    { id: 'select', label: '点选', icon: '🖱️', description: '点击选中元素，Shift+点击切换选中状态' },
+    { id: 'box-include', label: '包含框选', icon: '⬚', description: '完全包含在框内的元素才会被选中' },
+    { id: 'box-intersect', label: '交叉框选', icon: '⬛', description: '与框相交的元素都会被选中' }
   ];
 
   const handleBringToFront = () => {
@@ -58,7 +58,6 @@ function SolarWireMode(): React.ReactElement {
     setZoomLevel(Math.max(zoomLevel - 10, 25));
   };
 
-  // 将选中的元素ID转换为行号，包括note的多行内容
   const highlightLines = React.useMemo(() => {
     if (selectedElements.length === 0) {
       return [];
@@ -76,14 +75,12 @@ function SolarWireMode(): React.ReactElement {
   }, [selectedElements, content]);
 
   useEffect(() => {
-    // 只有当不是在编辑 snippet 时，才从 fileContent 加载内容
     if (selectedFile && fileContent && !currentSnippet) {
       setContent(fileContent);
     }
   }, [selectedFile, fileContent, currentSnippet, setContent]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    // 检查是否有输入框或编辑器有焦点
     const activeElement = document.activeElement;
     const isEditing = activeElement && (
       activeElement.tagName === 'INPUT' ||
@@ -97,7 +94,6 @@ function SolarWireMode(): React.ReactElement {
     let dx = 0;
     let dy = 0;
 
-    // 检查是否按住了Shift键，如果是，则每次移动10px
     const step = e.shiftKey ? 10 : 1;
 
     switch (e.key) {
@@ -127,14 +123,12 @@ function SolarWireMode(): React.ReactElement {
         if (elementData) {
           if (dx !== 0) {
             newContent = updateLineAttribute(newContent, elementLine, 'x', elementData.x + dx);
-            // 如果是线段元素，同时更新终点x坐标
             if (elementData.x2) {
               newContent = updateLineAttribute(newContent, elementLine, 'x2', elementData.x2 + dx);
             }
           }
           if (dy !== 0) {
             newContent = updateLineAttribute(newContent, elementLine, 'y', elementData.y + dy);
-            // 如果是线段元素，同时更新终点y坐标
             if (elementData.y2) {
               newContent = updateLineAttribute(newContent, elementLine, 'y2', elementData.y2 + dy);
             }
@@ -166,7 +160,6 @@ function SolarWireMode(): React.ReactElement {
       if (yMatch) y = parseInt(yMatch[1]);
     }
 
-    // 检查是否是线段元素，获取终点坐标
     const lineEndPattern = /->\((\d+),\s*(\d+)\)/;
     const lineEndMatch = line.match(lineEndPattern);
     if (lineEndMatch) {
@@ -182,7 +175,28 @@ function SolarWireMode(): React.ReactElement {
     return { x, y, x2, y2 };
   };
 
-  // 处理空格键事件，实现临时激活视角移动状态
+  const handleDeleteSelected = useCallback(() => {
+    if (selectedElements.length === 0) return;
+    
+    const lines = content.split(/\r?\n/);
+    const sortedElementIds = selectedElements
+      .map(id => parseInt(id))
+      .filter(lineNum => !isNaN(lineNum))
+      .sort((a, b) => b - a);
+    
+    const newLines = [...lines];
+    sortedElementIds.forEach(lineNum => {
+      const lineIndex = lineNum - 1;
+      if (lineIndex >= 0 && lineIndex < newLines.length) {
+        newLines.splice(lineIndex, 1);
+      }
+    });
+    
+    const newContent = newLines.join('\n');
+    setContent(newContent);
+    setSelectedElements([]);
+  }, [selectedElements, content, setContent, setSelectedElements]);
+
   const [clipboardContent, setClipboardContent] = useState<string | null>(null);
 
   useEffect(() => {
@@ -190,12 +204,10 @@ function SolarWireMode(): React.ReactElement {
       if (e.code === 'Space' && !e.repeat) {
         setIsSpacePressed(true);
       }
-      // Ctrl+Z 撤销
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
         undo();
       }
-      // Ctrl+C 复制元素
       if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElements.length > 0) {
         e.preventDefault();
         const lines = content.split(/\r?\n/);
@@ -207,7 +219,6 @@ function SolarWireMode(): React.ReactElement {
           setClipboardContent(selectedLines.join('\n'));
         }
       }
-      // Ctrl+V 粘贴元素
       if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardContent && !e.target) {
         const activeElement = document.activeElement;
         const isEditor = activeElement?.tagName === 'TEXTAREA' || 
@@ -229,9 +240,20 @@ function SolarWireMode(): React.ReactElement {
         const newContent = `${currentContent}\n${adjustedContent}`;
         setContent(newContent);
       }
-      // 方向键移动元素
+      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElements.length > 0) {
+        const activeElement = document.activeElement;
+        const isEditing = activeElement && (
+          activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          (activeElement as HTMLElement).isContentEditable ||
+          (activeElement as any).classList?.contains('monaco-editor')
+        );
+        if (!isEditing) {
+          e.preventDefault();
+          handleDeleteSelected();
+        }
+      }
       handleKeyDown(e);
-      // G 键切换网格
       if (e.key === 'g' && !e.ctrlKey && !e.metaKey) {
         const activeElement = document.activeElement;
         const isEditor = activeElement?.tagName === 'TEXTAREA' || 
@@ -241,7 +263,6 @@ function SolarWireMode(): React.ReactElement {
           setShowGrid(!showGrid);
         }
       }
-      // Ctrl+A 选中所有元素
       if ((e.ctrlKey || e.metaKey) && e.key === 'a') {
         const activeElement = document.activeElement;
         const isMonacoEditor = activeElement?.closest('.monaco-editor');
@@ -259,7 +280,6 @@ function SolarWireMode(): React.ReactElement {
           setSelectedElements(allElementIds);
         }
       }
-      // ? 键切换快捷键面板
       if (e.key === '?' || (e.shiftKey && e.key === '/')) {
         setShowShortcuts(prev => !prev);
       }
@@ -294,6 +314,151 @@ function SolarWireMode(): React.ReactElement {
           </TabList>
         </div>
         
+        {/* 固定工具栏：在 header 下方 */}
+        <div className="solarwire-toolbar-fixed">
+          <div className="solarwire-toolbar">
+            <div className="toolbar-section pan-section">
+              <button
+                className={`pan-tool-button ${(isPanMode || isSpacePressed) ? 'active' : ''}`}
+                onClick={() => setIsPanMode(!isPanMode)}
+                title="Pan Mode: Hold space or click to toggle"
+              >
+                <span className="tool-icon">👆</span>
+              </button>
+            </div>
+            <div className="toolbar-divider"></div>
+            <div className="toolbar-section selection-section">
+              <div className="selection-tools">
+                {selectionTools.map(tool => (
+                  <button
+                    key={tool.id}
+                    className={`selection-tool-button ${selectionTool === tool.id && !isPanMode && !isSpacePressed ? 'active' : ''}`}
+                    onClick={() => {
+                      setSelectionTool(tool.id as 'select' | 'box-include' | 'box-intersect');
+                      setIsPanMode(false);
+                    }}
+                    title={tool.description}
+                  >
+                    <span className="tool-icon">{tool.icon}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="toolbar-divider"></div>
+            <div className="toolbar-section display-section">
+              <button
+                className={`note-toggle-button ${showNotes ? 'active' : ''}`}
+                onClick={() => setShowNotes(!showNotes)}
+                title={showNotes ? 'Hide Notes' : 'Show Notes'}
+              >
+                {showNotes ? '👁️' : '🙈'}
+              </button>
+              <button
+                className={`grid-toggle-button ${showGrid ? 'active' : ''}`}
+                onClick={() => setShowGrid(!showGrid)}
+                title={showGrid ? 'Hide Grid (G)' : 'Show Grid (G)'}
+              >
+                ▦
+              </button>
+              <button
+                className={`snap-toggle-button ${snapToGrid ? 'active' : ''}`}
+                onClick={() => setSnapToGrid(!snapToGrid)}
+                title={snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+              >
+                🧲
+              </button>
+              <button
+                className={`layers-toggle-button ${showLayerPanel ? 'active' : ''}`}
+                onClick={() => setShowLayerPanel(!showLayerPanel)}
+                title="Toggle Layers Panel"
+              >
+                ☰
+              </button>
+              <div className="zoom-controls">
+                <button className="zoom-button" onClick={handleZoomOut}>-</button>
+                <span className="zoom-label">{zoomLevel}%</span>
+                <button className="zoom-button" onClick={handleZoomIn}>+</button>
+              </div>
+            </div>
+            <div className="toolbar-divider"></div>
+            <div className="toolbar-section actions-section">
+              <button
+                className="action-button"
+                onClick={handleBringToFront}
+                disabled={selectedElements.length === 0}
+                title="Bring to Front"
+              >
+                <span className="tool-icon">⬆️</span>
+              </button>
+            </div>
+            <div className="toolbar-divider"></div>
+            <div className="toolbar-section align-section">
+              <button
+                className="action-button"
+                onClick={() => handleAlign('left')}
+                disabled={selectedElements.length < 2}
+                title="Align Left"
+              >
+                <span className="tool-icon">⬅️</span>
+              </button>
+              <button
+                className="action-button"
+                onClick={() => handleAlign('center-h')}
+                disabled={selectedElements.length < 2}
+                title="Align Center Horizontally"
+              >
+                <span className="tool-icon">↔️</span>
+              </button>
+              <button
+                className="action-button"
+                onClick={() => handleAlign('right')}
+                disabled={selectedElements.length < 2}
+                title="Align Right"
+              >
+                <span className="tool-icon">➡️</span>
+              </button>
+              <button
+                className="action-button"
+                onClick={() => handleAlign('top')}
+                disabled={selectedElements.length < 2}
+                title="Align Top"
+              >
+                <span className="tool-icon">⬆️</span>
+              </button>
+              <button
+                className="action-button"
+                onClick={() => handleAlign('center-v')}
+                disabled={selectedElements.length < 2}
+                title="Align Center Vertically"
+              >
+                <span className="tool-icon">↕️</span>
+              </button>
+              <button
+                className="action-button"
+                onClick={() => handleAlign('bottom')}
+                disabled={selectedElements.length < 2}
+                title="Align Bottom"
+              >
+                <span className="tool-icon">⬇️</span>
+              </button>
+            </div>
+            <div className="toolbar-divider"></div>
+            <div className="toolbar-section elements-section">
+              <ElementLibrary compact />
+            </div>
+            <div className="toolbar-divider"></div>
+            <div className="toolbar-section help-section">
+              <button
+                className="help-button"
+                onClick={() => setShowShortcuts(true)}
+                title="Keyboard Shortcuts (?)"
+              >
+                ?
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div className="solarwire-content">
           <TabPanel id="code">
             <div className="code-panel">
@@ -321,161 +486,16 @@ function SolarWireMode(): React.ReactElement {
               gridSizeProp={gridSize}
             />
             
-            {/* 悬浮工具栏 */}
-            <div className="solarwire-toolbar-floating">
-              <div className="solarwire-toolbar">
-                <div className="toolbar-section pan-section">
-                  <button
-                    className={`pan-tool-button ${(isPanMode || isSpacePressed) ? 'active' : ''}`}
-                    onClick={() => setIsPanMode(!isPanMode)}
-                    title="Pan Mode: Hold space or click to toggle"
-                  >
-                    <span className="tool-icon">👆</span>
-                  </button>
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section selection-section">
-                  <div className="selection-tools">
-                    {selectionTools.map(tool => (
-                      <button
-                        key={tool.id}
-                        className={`selection-tool-button ${selectionTool === tool.id && !isPanMode && !isSpacePressed ? 'active' : ''}`}
-                        onClick={() => {
-                          setSelectionTool(tool.id as 'select' | 'box-inclusive');
-                          setIsPanMode(false);
-                        }}
-                        title={tool.description}
-                      >
-                        <span className="tool-icon">{tool.icon}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section display-section">
-                  <button
-                    className={`note-toggle-button ${showNotes ? 'active' : ''}`}
-                    onClick={() => setShowNotes(!showNotes)}
-                    title={showNotes ? 'Hide Notes' : 'Show Notes'}
-                  >
-                    {showNotes ? '👁️' : '🙈'}
-                  </button>
-                  <button
-                    className={`grid-toggle-button ${showGrid ? 'active' : ''}`}
-                    onClick={() => setShowGrid(!showGrid)}
-                    title={showGrid ? 'Hide Grid (G)' : 'Show Grid (G)'}
-                  >
-                    ▦
-                  </button>
-                  <button
-                    className={`snap-toggle-button ${snapToGrid ? 'active' : ''}`}
-                    onClick={() => setSnapToGrid(!snapToGrid)}
-                    title={snapToGrid ? 'Disable Snap' : 'Enable Snap'}
-                  >
-                    🧲
-                  </button>
-                  <button
-                    className={`layers-toggle-button ${showLayerPanel ? 'active' : ''}`}
-                    onClick={() => setShowLayerPanel(!showLayerPanel)}
-                    title="Toggle Layers Panel"
-                  >
-                    ☰
-                  </button>
-                  <div className="zoom-controls">
-                    <button className="zoom-button" onClick={handleZoomOut}>-</button>
-                    <span className="zoom-label">{zoomLevel}%</span>
-                    <button className="zoom-button" onClick={handleZoomIn}>+</button>
-                  </div>
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section actions-section">
-                  <button
-                    className="action-button"
-                    onClick={handleBringToFront}
-                    disabled={selectedElements.length === 0}
-                    title="Bring to Front"
-                  >
-                    <span className="tool-icon">⬆️</span>
-                  </button>
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section align-section">
-                  <button
-                    className="action-button"
-                    onClick={() => handleAlign('left')}
-                    disabled={selectedElements.length < 2}
-                    title="Align Left"
-                  >
-                    <span className="tool-icon">⬅️</span>
-                  </button>
-                  <button
-                    className="action-button"
-                    onClick={() => handleAlign('center-h')}
-                    disabled={selectedElements.length < 2}
-                    title="Align Center Horizontally"
-                  >
-                    <span className="tool-icon">↔️</span>
-                  </button>
-                  <button
-                    className="action-button"
-                    onClick={() => handleAlign('right')}
-                    disabled={selectedElements.length < 2}
-                    title="Align Right"
-                  >
-                    <span className="tool-icon">➡️</span>
-                  </button>
-                  <button
-                    className="action-button"
-                    onClick={() => handleAlign('top')}
-                    disabled={selectedElements.length < 2}
-                    title="Align Top"
-                  >
-                    <span className="tool-icon">⬆️</span>
-                  </button>
-                  <button
-                    className="action-button"
-                    onClick={() => handleAlign('center-v')}
-                    disabled={selectedElements.length < 2}
-                    title="Align Center Vertically"
-                  >
-                    <span className="tool-icon">↕️</span>
-                  </button>
-                  <button
-                    className="action-button"
-                    onClick={() => handleAlign('bottom')}
-                    disabled={selectedElements.length < 2}
-                    title="Align Bottom"
-                  >
-                    <span className="tool-icon">⬇️</span>
-                  </button>
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section elements-section">
-                  <ElementLibrary compact />
-                </div>
-                <div className="toolbar-divider"></div>
-                <div className="toolbar-section help-section">
-                  <button
-                    className="help-button"
-                    onClick={() => setShowShortcuts(true)}
-                    title="Keyboard Shortcuts (?)"
-                  >
-                    ?
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            {/* 悬浮属性面板 */}
+            {/* 属性面板：固定右侧 */}
             {selectedElements.length > 0 && (
-              <div className="sidebar-panel">
+              <div className="property-panel-fixed">
                 <PropertyPanel />
               </div>
             )}
 
-            {/* 图层面板 */}
+            {/* 图层面板：固定左侧 */}
             {showLayerPanel && (
-              <div className="layer-panel-container">
+              <div className="layer-panel-fixed">
                 <LayerPanel onSelectElement={(id) => setSelectedElements([id])} />
               </div>
             )}
@@ -483,7 +503,6 @@ function SolarWireMode(): React.ReactElement {
         </div>
       </div>
 
-      {/* 快捷键面板 */}
       <ShortcutPanel isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
     </TabProvider>
   );

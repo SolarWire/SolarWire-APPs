@@ -33,3 +33,23 @@
 .solarwire-canvas-interaction-layer g {
   pointer-events: auto;
 }
+
+/* 渲染错误提示 */
+.solarwire-render-error {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  background-color: var(--error-bg);
+  border: 1px solid var(--error-border);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--error-text);
+  font-family: 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  z-index: 1000;
+  max-height: 300px;
+  overflow: auto;
+}

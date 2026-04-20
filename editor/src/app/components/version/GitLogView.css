@@ -3,8 +3,8 @@
 }
 
 .git-log-empty {
-  padding: 48px 20px;
+  padding: 48px 24px;
   text-align: center;
-  color: #8b949e;
+  color: var(--text-muted);
   font-size: 13px;
 }

@@ -742,24 +742,7 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
       </svg>
       
       {renderError && (
-        <div className="solarwire-render-error" style={{
-          position: 'absolute',
-          top: '20px',
-          left: '20px',
-          right: '20px',
-          backgroundColor: '#fff3f3',
-          border: '1px solid #ff9999',
-          borderRadius: '8px',
-          padding: '16px',
-          color: '#d32f2f',
-          fontFamily: 'Monaco, monospace',
-          fontSize: '12px',
-          lineHeight: '1.4',
-          whiteSpace: 'pre-wrap',
-          zIndex: 1000,
-          maxHeight: '300px',
-          overflow: 'auto'
-        }}>
+        <div className="solarwire-render-error">
           {renderError}
         </div>
       )}

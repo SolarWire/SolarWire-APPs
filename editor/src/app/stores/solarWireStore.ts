@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-type SelectionTool = 'select' | 'box-inclusive';
+type SelectionTool = 'select' | 'box-include' | 'box-intersect';
 
 interface SolarWireState {
   selectedElements: string[];
@@ -24,7 +24,7 @@ interface SolarWireState {
 
 export const useSolarWireStore = create<SolarWireState>((set) => ({
   selectedElements: [],
-  selectionTool: 'box-inclusive',
+  selectionTool: 'box-intersect',
   isPanMode: false,
   dragState: null,
   resizeState: null,

@@ -64,6 +64,9 @@
   /* 其他常用色 */
   --divider-bg: #666;
   --divider-horizontal: var(--accent-color);
+  
+  /* 网格颜色 */
+  --grid-color: rgba(128, 128, 128, 0.1);
 }
 
 body.theme-light {

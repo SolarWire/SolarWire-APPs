@@ -54,7 +54,7 @@ const ResizableDivider: React.FC<ResizableDividerProps> = ({
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       if (dividerRef.current) {
-        dividerRef.current.style.backgroundColor = '#FCA506';
+        dividerRef.current.style.setProperty('background-color', 'var(--accent-color)');
       }
       document.body.style.cursor = orientation === 'vertical' ? 'col-resize' : 'row-resize';
       document.body.style.userSelect = 'none';

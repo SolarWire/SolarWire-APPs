@@ -22,7 +22,7 @@
   width: 40px;
   height: 32px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   padding: 2px;
   background: var(--bg-tertiary);
@@ -34,7 +34,7 @@
   padding: 4px 8px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 4px;
   color: var(--text-primary);
   font-size: 12px;
   font-family: 'Menlo', 'Consolas', monospace;
@@ -55,7 +55,7 @@
   width: 32px;
   border: 1px solid var(--border-color);
   background: var(--bg-tertiary);
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   font-size: 10px;
   display: flex;
@@ -78,7 +78,7 @@
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 8px;
   min-width: 200px;
   z-index: 1000;
@@ -107,7 +107,7 @@
   width: 28px;
   height: 28px;
   border: 2px solid transparent;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   padding: 0;
   transition: all 0.15s ease;
@@ -128,7 +128,7 @@
   width: 100%;
   padding: 6px 8px;
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--bg-tertiary);
   color: var(--text-primary);
   cursor: pointer;

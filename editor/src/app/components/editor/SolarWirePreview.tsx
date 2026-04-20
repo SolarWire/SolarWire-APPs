@@ -45,7 +45,7 @@ import { useImageDrop } from '../../hooks/useImageDrop';
 import type { Document, Element as SolarWireElement } from '../../../lib/parser/types';
 import './SolarWirePreview.css';
 
-type SelectionTool = 'select' | 'box-inclusive';
+import type { SelectionTool } from '../../stores/solarWireStore';
 
 // 获取元素数据，包括线段元素的终点坐标
 const getElementDataFromContent = (content: string, lineNum: number) => {
@@ -244,6 +244,13 @@ interface SolarWirePreviewProps {
   gridSizeProp?: number;
 }
 
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20 }: SolarWirePreviewProps): React.ReactElement {
   const { selectedElements, selectElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
@@ -283,7 +290,16 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const [imageManager] = useState(() => new ImageAssetManager());
   const [dropOverlay, setDropOverlay] = useState(false);
   const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
-  const [edgeGaps, setEdgeGaps] = useState<Array<{ type: string; targetBounds: { x: number; y: number; w: number; h: number }; distance: number; currentEdge: number; targetEdge: number; overlapStart: number; overlapEnd: number }>>([]);
+  const [edgeGaps, setEdgeGaps] = useState<Array<{
+    type: string;
+    targetBounds: { x: number; y: number; w: number; h: number };
+    distance: number;
+    currentEdge: number;
+    targetEdge: number;
+    hasOverlap: boolean;
+    overlapStart: number;
+    overlapEnd: number;
+  }>>([]);
 
   const handleImageAdded = useCallback((assetPath: string, x: number, y: number) => {
     const worldCoords = getSvgCoords(x, y);
@@ -687,6 +703,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       distance: number;
       currentEdge: number;
       targetEdge: number;
+      hasOverlap: boolean;
       overlapStart: number;
       overlapEnd: number;
     }> = [];
@@ -727,32 +744,133 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const yOverlapEnd = Math.min(myBottom, bBottom);
       const yHasOverlap = yOverlapEnd > yOverlapStart;
 
-      // 左边到左边的距离
-      if (myLeft > bRight) {
-        const dist = Math.round(myLeft - bRight);
-        if (dist < 100 && yHasOverlap) {
-          gaps.push({ type: 'left', targetBounds: bounds, distance: dist, currentEdge: myLeft, targetEdge: bRight, overlapStart: yOverlapStart, overlapEnd: yOverlapEnd });
+      // 水平方向距离检测（左右方向）
+      if (yHasOverlap) {
+        // 有交叉：显示同方向边的距离（左-左、右-右）
+        const leftToLeft = Math.abs(myLeft - bLeft);
+        if (leftToLeft < 100) {
+          gaps.push({
+            type: 'left',
+            targetBounds: bounds,
+            distance: Math.round(leftToLeft),
+            currentEdge: myLeft,
+            targetEdge: bLeft,
+            hasOverlap: true,
+            overlapStart: yOverlapStart,
+            overlapEnd: yOverlapEnd
+          });
+        }
+
+        const rightToRight = Math.abs(myRight - bRight);
+        if (rightToRight < 100) {
+          gaps.push({
+            type: 'right',
+            targetBounds: bounds,
+            distance: Math.round(rightToRight),
+            currentEdge: myRight,
+            targetEdge: bRight,
+            hasOverlap: true,
+            overlapStart: yOverlapStart,
+            overlapEnd: yOverlapEnd
+          });
+        }
+      } else {
+        // 无交叉：显示反方向边的距离（左-右、右-左）
+        if (myLeft > bRight) {
+          const dist = Math.round(myLeft - bRight);
+          if (dist < 100) {
+            gaps.push({
+              type: 'left',
+              targetBounds: bounds,
+              distance: dist,
+              currentEdge: myLeft,
+              targetEdge: bRight,
+              hasOverlap: false,
+              overlapStart: yOverlapStart,
+              overlapEnd: yOverlapEnd
+            });
+          }
+        }
+
+        if (bLeft > myRight) {
+          const dist = Math.round(bLeft - myRight);
+          if (dist < 100) {
+            gaps.push({
+              type: 'right',
+              targetBounds: bounds,
+              distance: dist,
+              currentEdge: myRight,
+              targetEdge: bLeft,
+              hasOverlap: false,
+              overlapStart: yOverlapStart,
+              overlapEnd: yOverlapEnd
+            });
+          }
         }
       }
-      // 右边到右边的距离
-      if (bLeft > myRight) {
-        const dist = Math.round(bLeft - myRight);
-        if (dist < 100 && yHasOverlap) {
-          gaps.push({ type: 'right', targetBounds: bounds, distance: dist, currentEdge: myRight, targetEdge: bLeft, overlapStart: yOverlapStart, overlapEnd: yOverlapEnd });
+
+      // 垂直方向距离检测（上下方向）
+      if (xHasOverlap) {
+        // 有交叉：显示同方向边的距离（上-上、下-下）
+        const topToTop = Math.abs(myTop - bTop);
+        if (topToTop < 100) {
+          gaps.push({
+            type: 'top',
+            targetBounds: bounds,
+            distance: Math.round(topToTop),
+            currentEdge: myTop,
+            targetEdge: bTop,
+            hasOverlap: true,
+            overlapStart: xOverlapStart,
+            overlapEnd: xOverlapEnd
+          });
         }
-      }
-      // 上边到上边的距离
-      if (myTop > bBottom) {
-        const dist = Math.round(myTop - bBottom);
-        if (dist < 100 && xHasOverlap) {
-          gaps.push({ type: 'top', targetBounds: bounds, distance: dist, currentEdge: myTop, targetEdge: bBottom, overlapStart: xOverlapStart, overlapEnd: xOverlapEnd });
+
+        const bottomToBottom = Math.abs(myBottom - bBottom);
+        if (bottomToBottom < 100) {
+          gaps.push({
+            type: 'bottom',
+            targetBounds: bounds,
+            distance: Math.round(bottomToBottom),
+            currentEdge: myBottom,
+            targetEdge: bBottom,
+            hasOverlap: true,
+            overlapStart: xOverlapStart,
+            overlapEnd: xOverlapEnd
+          });
         }
-      }
-      // 下边到下边的距离
-      if (bTop > myBottom) {
-        const dist = Math.round(bTop - myBottom);
-        if (dist < 100 && xHasOverlap) {
-          gaps.push({ type: 'bottom', targetBounds: bounds, distance: dist, currentEdge: myBottom, targetEdge: bTop, overlapStart: xOverlapStart, overlapEnd: xOverlapEnd });
+      } else {
+        // 无交叉：显示反方向边的距离（上-下、下-上）
+        if (myTop > bBottom) {
+          const dist = Math.round(myTop - bBottom);
+          if (dist < 100) {
+            gaps.push({
+              type: 'top',
+              targetBounds: bounds,
+              distance: dist,
+              currentEdge: myTop,
+              targetEdge: bBottom,
+              hasOverlap: false,
+              overlapStart: xOverlapStart,
+              overlapEnd: xOverlapEnd
+            });
+          }
+        }
+
+        if (bTop > myBottom) {
+          const dist = Math.round(bTop - myBottom);
+          if (dist < 100) {
+            gaps.push({
+              type: 'bottom',
+              targetBounds: bounds,
+              distance: dist,
+              currentEdge: myBottom,
+              targetEdge: bTop,
+              hasOverlap: false,
+              overlapStart: xOverlapStart,
+              overlapEnd: xOverlapEnd
+            });
+          }
         }
       }
     });
@@ -760,58 +878,83 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return gaps;
   }, [getElementBounds]);
 
-  const snapToAlignment = useCallback((guides: Array<{ type: string; position: number; distance: number; targetBounds: { x: number; y: number; w: number; h: number } }>, x: number, y: number, w: number, h: number) => {
-    let snappedX = x;
-    let snappedY = y;
+  interface SnapResult {
+    snapped: boolean;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    snapType: string | null;
+  }
+
+  const snapToAlignment = useCallback((
+    guides: Array<{ type: string; position: number; distance: number; targetBounds: { x: number; y: number; w: number; h: number } }>,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    activeHandle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
+  ): SnapResult => {
+    let resultX = x;
+    let resultY = y;
+    let resultW = w;
+    let resultH = h;
     let snapped = false;
+    let snapType: string | null = null;
+
+    const isMovingLeft = activeHandle.includes('w');
+    const isMovingRight = activeHandle.includes('e');
+    const isMovingTop = activeHandle.includes('n');
+    const isMovingBottom = activeHandle.includes('s');
+
+    const fixedRight = x + w;
+    const fixedBottom = y + h;
 
     for (const guide of guides) {
+      if (snapped) break;
+
       switch (guide.type) {
         case 'left':
-          if (Math.abs(x - guide.position) < ALIGN_THRESHOLD) {
-            snappedX = guide.position;
+          if (isMovingLeft && Math.abs(x - guide.position) < ALIGN_THRESHOLD) {
+            resultX = guide.position;
+            resultW = Math.max(10, fixedRight - guide.position);
             snapped = true;
-          }
-          break;
-        case 'centerX':
-          const centerX = x + w / 2;
-          if (Math.abs(centerX - guide.position) < ALIGN_THRESHOLD) {
-            snappedX = guide.position - w / 2;
-            snapped = true;
+            snapType = 'left';
           }
           break;
         case 'right':
-          const right = x + w;
-          if (Math.abs(right - guide.position) < ALIGN_THRESHOLD) {
-            snappedX = guide.position - w;
+          if (isMovingRight && Math.abs(fixedRight - guide.position) < ALIGN_THRESHOLD) {
+            resultW = Math.max(10, guide.position - x);
             snapped = true;
+            snapType = 'right';
           }
           break;
         case 'top':
-          if (Math.abs(y - guide.position) < ALIGN_THRESHOLD) {
-            snappedY = guide.position;
+          if (isMovingTop && Math.abs(y - guide.position) < ALIGN_THRESHOLD) {
+            resultY = guide.position;
+            resultH = Math.max(10, fixedBottom - guide.position);
             snapped = true;
-          }
-          break;
-        case 'centerY':
-          const centerY = y + h / 2;
-          if (Math.abs(centerY - guide.position) < ALIGN_THRESHOLD) {
-            snappedY = guide.position - h / 2;
-            snapped = true;
+            snapType = 'top';
           }
           break;
         case 'bottom':
-          const bottom = y + h;
-          if (Math.abs(bottom - guide.position) < ALIGN_THRESHOLD) {
-            snappedY = guide.position - h;
+          if (isMovingBottom && Math.abs(fixedBottom - guide.position) < ALIGN_THRESHOLD) {
+            resultH = Math.max(10, guide.position - y);
             snapped = true;
+            snapType = 'bottom';
           }
           break;
       }
-      if (snapped) break;
     }
 
-    return { snappedX, snappedY, snapped };
+    return {
+      x: resultX,
+      y: resultY,
+      w: resultW,
+      h: resultH,
+      snapped,
+      snapType
+    };
   }, []);
 
   /**
@@ -889,7 +1032,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const maxY = Math.max(y1, y2);
     const selected: string[] = [];
 
-    const isIntersectMode = selectionTool === 'box-inclusive';
+    const isIntersectMode = selectionTool === 'box-intersect';
 
     ast.elements.forEach((element) => {
       const line = element.location?.line;
@@ -1025,7 +1168,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const currentTool = (isPanMode || isSpacePressed) ? 'pan' : selectionTool;
 
     // 如果没有直接获取到元素 ID，尝试检测附近的线段（2px 容差）
-    if (!elementId && (currentTool === 'select' || currentTool === 'box-inclusive')) {
+    if (!elementId && (currentTool === 'select' || currentTool === 'box-include' || currentTool === 'box-intersect')) {
       const svgCoords = getSvgCoords(e.clientX, e.clientY);
       elementId = findElementAtPosition(svgCoords.x, svgCoords.y, 2);
     }
@@ -1037,7 +1180,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         break;
 
       case 'select':
-      case 'box-inclusive':
+      case 'box-include':
+      case 'box-intersect':
         if (elementId) {
           // 点击到元素时，点选
           const elementData = getElementData(elementId);
@@ -1065,8 +1209,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               startX: e.clientX,
               startY: e.clientY,
               elementX: bounds.x,
-              elementY: bounds.y
-            };
+              elementY: bounds.y,
+              elementW: bounds.w,
+              elementH: bounds.h
+            } as any;
           }
           
           setDragElementState(dragState);
@@ -1107,15 +1253,18 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
                     startX: e.clientX,
                     startY: e.clientY,
                     elementX: bounds.x,
-                    elementY: bounds.y
-                  });
+                    elementY: bounds.y,
+                    elementW: bounds.w,
+                    elementH: bounds.h
+                  } as any);
                 }
               });
               setMultiDragElements(initialPositions);
+              setDragElementState(null);
             }
           }
-        } else if (currentTool === 'box-inclusive') {
-          // box-inclusive 模式下，点击空白处开始框选（使用屏幕坐标）
+        } else if (currentTool === 'box-include' || currentTool === 'box-intersect') {
+          // 框选模式下，点击空白处开始框选（使用屏幕坐标）
           setBoxSelection({
             startX: e.clientX,
             startY: e.clientY,
@@ -1330,6 +1479,51 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (newW >= 10 && newH >= 10) {
         const lineNum = parseInt(resizeHandleState.elementId);
         if (!isNaN(lineNum)) {
+          const elements = ast?.elements || [];
+          
+          // 计算对齐辅助线（基于当前 resize 后的位置）
+          if (!isShiftPressed && !resizeHandleState.isLine) {
+            const guides = calculateAlignmentGuides(
+              resizeHandleState.elementId,
+              newX,
+              newY,
+              newW,
+              newH,
+              elements
+            );
+            setAlignmentGuides(guides);
+
+            // 计算边距信息
+            const gaps = calculateEdgeGaps(
+              resizeHandleState.elementId,
+              newX,
+              newY,
+              newW,
+              newH,
+              elements
+            );
+            setEdgeGaps(gaps);
+
+            const snapped = snapToAlignment(
+              guides,
+              newX,
+              newY,
+              newW,
+              newH,
+              resizeHandleState.handle as 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
+            );
+
+            if (snapped.snapped) {
+              newX = snapped.x;
+              newY = snapped.y;
+              newW = snapped.w;
+              newH = snapped.h;
+            }
+          } else {
+            setAlignmentGuides([]);
+            setEdgeGaps([]);
+          }
+
           let newContent = updateLineAttribute(content, lineNum, 'x', newX);
           newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
           newContent = updateLineAttribute(newContent, lineNum, 'w', newW);
@@ -1370,12 +1564,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           dragElementState.elementX + dx,
           dragElementState.elementY + dy,
           elementW,
-          elementH
+          elementH,
+          'nw'
         );
 
         if (snapped.snapped) {
-          dx = snapped.snappedX - dragElementState.elementX;
-          dy = snapped.snappedY - dragElementState.elementY;
+          dx = snapped.x - dragElementState.elementX;
+          dy = snapped.y - dragElementState.elementY;
         }
       } else {
         setAlignmentGuides([]);
@@ -1651,13 +1846,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const renderBoxSelection = () => {
     if (!boxSelection) return null;
 
-    if (!containerRef.current) return null;
-    const rect = containerRef.current.getBoundingClientRect();
+    const startCoords = getSvgCoords(boxSelection.startX, boxSelection.startY);
+    const currentCoords = getSvgCoords(boxSelection.currentX, boxSelection.currentY);
 
-    const x = Math.min(boxSelection.startX, boxSelection.currentX) - rect.left;
-    const y = Math.min(boxSelection.startY, boxSelection.currentY) - rect.top;
-    const width = Math.abs(boxSelection.currentX - boxSelection.startX);
-    const height = Math.abs(boxSelection.currentY - boxSelection.startY);
+    const x = Math.min(startCoords.x, currentCoords.x);
+    const y = Math.min(startCoords.y, currentCoords.y);
+    const width = Math.abs(currentCoords.x - startCoords.x);
+    const height = Math.abs(currentCoords.y - startCoords.y);
 
     return (
       <rect
@@ -1665,10 +1860,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         y={y}
         width={width}
         height={height}
-        fill="rgba(252, 165, 6, 0.1)"
+        fill={hexToRgba(primaryColor, 0.1)}
         stroke={primaryColor}
-        strokeWidth={2}
-        strokeDasharray="4,4"
+        strokeWidth={2 / scale}
+        strokeDasharray={`${4 / scale},${4 / scale}`}
         style={{ pointerEvents: 'none' }}
       />
     );
@@ -1708,7 +1903,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             y={y}
             width={100}
             height={50}
-            fill="rgba(252, 165, 6, 0.3)"
+            fill={hexToRgba(primaryColor, 0.3)}
             stroke={primaryColor}
             strokeWidth={2 / scale}
             strokeDasharray="4,4"
@@ -1724,7 +1919,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             height={50}
             rx={6}
             ry={6}
-            fill="rgba(252, 165, 6, 0.3)"
+            fill={hexToRgba(primaryColor, 0.3)}
             stroke={primaryColor}
             strokeWidth={2 / scale}
             strokeDasharray="4,4"
@@ -1738,7 +1933,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             cy={y + 20}
             rx={50}
             ry={20}
-            fill="rgba(252, 165, 6, 0.3)"
+            fill={hexToRgba(primaryColor, 0.3)}
             stroke={primaryColor}
             strokeWidth={2 / scale}
             strokeDasharray="4,4"
@@ -1753,7 +1948,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               y={y}
               width={80}
               height={20}
-              fill="rgba(252, 165, 6, 0.3)"
+              fill={hexToRgba(primaryColor, 0.3)}
               stroke={primaryColor}
               strokeWidth={2 / scale}
               strokeDasharray="4,4"
@@ -1790,7 +1985,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             y={y}
             width={100}
             height={50}
-            fill="rgba(252, 165, 6, 0.3)"
+            fill={hexToRgba(primaryColor, 0.3)}
             stroke={primaryColor}
             strokeWidth={2 / scale}
             strokeDasharray="4,4"
@@ -1805,7 +2000,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               y={y}
               width={200}
               height={100}
-              fill="rgba(252, 165, 6, 0.3)"
+              fill={hexToRgba(primaryColor, 0.3)}
               stroke={primaryColor}
               strokeWidth={2 / scale}
               strokeDasharray="4,4"
@@ -2258,20 +2453,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         <div
           className="grid-overlay"
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            transform: getTransform(),
-            transformOrigin: '0 0',
-            pointerEvents: 'none',
-            zIndex: 5,
-            backgroundImage: `
-              linear-gradient(to right, rgba(128,128,128,0.1) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(128,128,128,0.1) 1px, transparent 1px)
-            `,
             backgroundSize: `${effectiveGridSize * scale}px ${effectiveGridSize * scale}px`,
-            width: '100%',
-            height: '100%',
+            transform: getTransform(),
           }}
         />
       )}
@@ -2302,30 +2485,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             <g style={{ pointerEvents: 'auto' }}>
               {renderHoverHighlight()}
               {renderDragPreview()}
+              {renderBoxSelection()}
               {renderReferenceLines()}
               {renderSelectionHandles()}
               {renderAlignmentGuides()}
             </g>
-          </svg>
-        </div>
-      )}
-
-      {/* 框选框 - 使用屏幕坐标 */}
-      {boxSelection && (
-        <div
-          className="box-selection-layer"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            pointerEvents: 'none',
-            zIndex: 1000
-          }}
-        >
-          <svg width="100%" height="100%" style={{ position: 'absolute', top: 0, left: 0 }}>
-            {renderBoxSelection()}
           </svg>
         </div>
       )}

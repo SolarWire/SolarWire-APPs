@@ -231,7 +231,8 @@
   height: auto;
 }
 
-.sidebar-panel {
+/* 属性面板：固定在右侧 */
+.property-panel-fixed {
   position: absolute;
   top: 0;
   right: 0;
@@ -247,20 +248,24 @@
   z-index: 10;
 }
 
-.sidebar-panel > * {
+.property-panel-fixed > * {
   flex-shrink: 0;
 }
 
-.sidebar-panel > *:last-child {
+.property-panel-fixed > *:last-child {
   flex: 1;
-  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
+  overflow: hidden;
 }
 
-.solarwire-toolbar-floating {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
+/* 固定工具栏：在 header 下方的文档流中 */
+.solarwire-toolbar-fixed {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.solarwire-toolbar-fixed .solarwire-toolbar {
+  border-top: none;
 }
 
 .error-overlay-content {
@@ -314,8 +319,8 @@
   border-color: var(--accent-color);
 }
 
-/* 图层面板容器 - 左侧打开 */
-.layer-panel-container {
+/* 图层面板容器 - 固定在左侧 */
+.layer-panel-fixed {
   position: absolute;
   top: 0;
   left: 0;

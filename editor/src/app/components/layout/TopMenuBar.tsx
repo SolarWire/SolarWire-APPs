@@ -18,8 +18,9 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
   const { primaryColor } = useSettingsStore();
 
   const selectionTools = [
-    { id: 'select', label: 'Select', icon: '🖱️', description: 'Click to select, Shift+Click to multi-select' },
-    { id: 'box-inclusive', label: 'Box Select', icon: '📦', description: 'Drag to box select (inclusive)' }
+    { id: 'select', label: '点选', icon: '🖱️', description: '点击选中元素，Shift+点击切换选中状态' },
+    { id: 'box-include', label: '包含框选', icon: '⬚', description: '完全包含在框内的元素才会被选中' },
+    { id: 'box-intersect', label: '交叉框选', icon: '⬛', description: '与框相交的元素都会被选中' }
   ];
 
   const handleBringToFront = () => {
@@ -62,7 +63,7 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = () => {
               key={tool.id}
               className={`selection-tool-button ${selectionTool === tool.id && !isPanMode && !isSpacePressed ? 'active' : ''}`}
               onClick={() => {
-                setSelectionTool(tool.id as 'select' | 'box-inclusive');
+                setSelectionTool(tool.id as 'select' | 'box-include' | 'box-intersect');
                 setIsPanMode(false);
               }}
               title={tool.description}
