@@ -9,7 +9,9 @@ import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements } from '../../../shared/utils/solarwire-utils';
+import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements, detectNoteBounds, detectTableBounds } from '../../../shared/utils/solarwire-utils';
+import { parse } from '../../../lib/parser';
+import type { Element as SolarWireElement } from '../../../lib/parser/types';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './SolarWireMode.css';
 
@@ -27,6 +29,7 @@ function SolarWireMode(): React.ReactElement {
   const handleTabChange = useCallback((tab: 'visual' | 'code') => {
     setActiveTab(tab);
     if (tab === 'code' && selectedElements.length > 0) {
+      setScrollTrigger(prev => prev + 1);
       setHighlightTrigger(prev => prev + 1);
     }
   }, [selectedElements.length]);
@@ -49,6 +52,94 @@ function SolarWireMode(): React.ReactElement {
     const newContent = alignElements(content, selectedElements, alignmentType);
     setContent(newContent);
   };
+
+  const handleReorderElements = useCallback((reorderedIds: string[]) => {
+    const lines = content.split(/\r?\n/);
+    const ast = parse(content);
+    
+    const elementBlocks: { startLine: number; endLine: number; id: string }[] = [];
+    
+    ast.elements.forEach((el: SolarWireElement) => {
+      const lineNum = el.location?.line || 0;
+      if (lineNum < 1 || lineNum > lines.length) return;
+      
+      const line = lines[lineNum - 1];
+      if (!line) return;
+      const trimmedLine = line.trim();
+      const isTable = trimmedLine.startsWith('##');
+      
+      let startLine = lineNum;
+      let endLine = lineNum;
+      
+      if (isTable) {
+        const bounds = detectTableBounds(content, lineNum);
+        startLine = bounds.startLine;
+        endLine = bounds.endLine;
+      } else {
+        const bounds = detectNoteBounds(content, lineNum);
+        startLine = bounds.startLine;
+        endLine = bounds.endLine;
+      }
+      
+      const id = el.location?.line?.toString() || lineNum.toString();
+      elementBlocks.push({ startLine, endLine, id });
+    });
+
+    const idToBlock = new Map<string, { startLine: number; endLine: number }>();
+    elementBlocks.forEach(block => {
+      idToBlock.set(block.id, { startLine: block.startLine, endLine: block.endLine });
+    });
+
+    const allLineIndices = new Set<number>();
+    elementBlocks.forEach(block => {
+      for (let i = block.startLine - 1; i < block.endLine; i++) {
+        allLineIndices.add(i);
+      }
+    });
+
+    const nonElementLines: { index: number; content: string }[] = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (!allLineIndices.has(i)) {
+        nonElementLines.push({ index: i, content: lines[i] });
+      }
+    }
+
+    const reorderedLines: string[] = [];
+    
+    const nonElementStart = nonElementLines.filter(n => n.index < Math.min(...elementBlocks.map(b => b.startLine - 1)));
+    const nonElementEnd = nonElementLines.filter(n => n.index > Math.max(...elementBlocks.map(b => b.endLine - 1)));
+    
+    nonElementStart.forEach(n => reorderedLines.push(n.content));
+    
+    const oldIdToNewId = new Map<string, string>();
+    reorderedIds.forEach(id => {
+      const block = idToBlock.get(id);
+      if (block) {
+        const newId = (reorderedLines.length + 1).toString();
+        oldIdToNewId.set(id, newId);
+        for (let i = block.startLine - 1; i < block.endLine; i++) {
+          reorderedLines.push(lines[i]);
+        }
+      }
+    });
+    
+    if (nonElementEnd.length > 0) {
+      reorderedLines.push('');
+      nonElementEnd.forEach(n => reorderedLines.push(n.content));
+    }
+    
+    while (reorderedLines.length > 0 && reorderedLines[reorderedLines.length - 1].trim() === '') {
+      reorderedLines.pop();
+    }
+    
+    const newContent = reorderedLines.join('\n');
+    setContent(newContent);
+    
+    const newSelectedIds = selectedElements
+      .map(oldId => oldIdToNewId.get(oldId))
+      .filter((id): id is string => id !== undefined);
+    setSelectedElements(newSelectedIds);
+  }, [content, setContent, setSelectedElements, selectedElements]);
 
   const handleZoomIn = () => {
     setZoomLevel(Math.min(zoomLevel + 10, 200));
@@ -179,20 +270,61 @@ function SolarWireMode(): React.ReactElement {
     if (selectedElements.length === 0) return;
     
     const lines = content.split(/\r?\n/);
-    const sortedElementIds = selectedElements
-      .map(id => parseInt(id))
-      .filter(lineNum => !isNaN(lineNum))
-      .sort((a, b) => b - a);
     
-    const newLines = [...lines];
-    sortedElementIds.forEach(lineNum => {
-      const lineIndex = lineNum - 1;
-      if (lineIndex >= 0 && lineIndex < newLines.length) {
-        newLines.splice(lineIndex, 1);
+    // 收集所有需要删除的行号范围
+    const linesToDelete = new Set<number>();
+    
+    selectedElements.forEach((elementId) => {
+      const lineNum = parseInt(elementId);
+      if (isNaN(lineNum) || lineNum < 1 || lineNum > lines.length) return;
+      
+      const line = lines[lineNum - 1];
+      const trimmedLine = line.trim();
+      
+      // 判断是否是表格元素
+      const isTableElement = trimmedLine.startsWith('##');
+      
+      if (isTableElement) {
+        // 使用表格边界检测
+        const { startLine, endLine } = detectTableBounds(content, lineNum);
+        for (let i = startLine; i <= endLine; i++) {
+          linesToDelete.add(i);
+        }
+      } else {
+        // 使用note边界检测
+        const { startLine, endLine } = detectNoteBounds(content, lineNum);
+        for (let i = startLine; i <= endLine; i++) {
+          linesToDelete.add(i);
+        }
       }
     });
     
-    const newContent = newLines.join('\n');
+    // 从后往前删除，避免行号偏移
+    const sortedLines = Array.from(linesToDelete).sort((a, b) => b - a);
+    const newLines = [...lines];
+    sortedLines.forEach(lineNum => {
+      const index = lineNum - 1;
+      if (index >= 0 && index < newLines.length) {
+        newLines.splice(index, 1);
+      }
+    });
+    
+    // 清理多余的空行（删除区域前后的空行）
+    let finalLines = newLines.filter((line, idx) => {
+      if (line.trim() !== '') return true;
+      // 如果是空行，检查上下是否都是空行或是文件开头/结尾
+      const prevIsEmpty = idx === 0 || newLines[idx - 1]?.trim() === '';
+      const nextIsEmpty = idx === newLines.length - 1 || newLines[idx + 1]?.trim() === '';
+      // 只保留连续空行中的第一个
+      return !(prevIsEmpty && nextIsEmpty);
+    });
+    
+    // 移除末尾多余的空行
+    while (finalLines.length > 0 && finalLines[finalLines.length - 1].trim() === '') {
+      finalLines.pop();
+    }
+    
+    const newContent = finalLines.join('\n');
     setContent(newContent);
     setSelectedElements([]);
   }, [selectedElements, content, setContent, setSelectedElements]);
@@ -314,7 +446,8 @@ function SolarWireMode(): React.ReactElement {
           </TabList>
         </div>
         
-        {/* 固定工具栏：在 header 下方 */}
+        {/* 固定工具栏：在 header 下方，仅在可视化编辑时显示 */}
+        {activeTab === 'visual' && (
         <div className="solarwire-toolbar-fixed">
           <div className="solarwire-toolbar">
             <div className="toolbar-section pan-section">
@@ -458,6 +591,7 @@ function SolarWireMode(): React.ReactElement {
             </div>
           </div>
         </div>
+        )}
 
         <div className="solarwire-content">
           <TabPanel id="code">
@@ -496,7 +630,10 @@ function SolarWireMode(): React.ReactElement {
             {/* 图层面板：固定左侧 */}
             {showLayerPanel && (
               <div className="layer-panel-fixed">
-                <LayerPanel onSelectElement={(id) => setSelectedElements([id])} />
+                <LayerPanel 
+                  onSelectElement={(id) => setSelectedElements([id])}
+                  onReorderElements={handleReorderElements}
+                />
               </div>
             )}
           </TabPanel>

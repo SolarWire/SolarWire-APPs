@@ -41,6 +41,28 @@
   padding: 4px 0;
 }
 
+.layer-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.layer-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.layer-list::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.layer-list::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.layer-list::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 .layer-item {
   display: flex;
   align-items: center;
@@ -72,6 +94,19 @@
   color: var(--accent-opacity-60);
 }
 
+.layer-item.drag-over {
+  border-top: 2px solid var(--accent-color);
+  background: var(--accent-opacity-10);
+}
+
+.layer-item[draggable="true"] {
+  cursor: grab;
+}
+
+.layer-item[draggable="true"]:active {
+  cursor: grabbing;
+}
+
 .layer-icon {
   font-size: 14px;
   width: 20px;
@@ -92,19 +127,12 @@
   color: var(--text-primary);
 }
 
-.layer-line {
-  font-size: 10px;
-  color: var(--text-muted);
-  flex-shrink: 0;
-  font-family: 'Menlo', 'Consolas', monospace;
-}
-
 .layer-note-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   color: white;
   font-size: 10px;
@@ -115,6 +143,13 @@
 
 .layer-item.selected .layer-note-badge {
   box-shadow: 0 0 0 2px var(--accent-color), 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.layer-line {
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  font-family: 'Menlo', 'Consolas', monospace;
 }
 
 .layer-tooltip {
@@ -128,7 +163,7 @@
   max-width: 320px;
   min-width: 200px;
   animation: layer-tooltip-fade-in 0.15s ease-out;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 @keyframes layer-tooltip-fade-in {
@@ -178,4 +213,22 @@
   word-break: break-word;
   max-height: 150px;
   overflow-y: auto;
+}
+
+.layer-tooltip-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.layer-tooltip-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.layer-tooltip-content::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.layer-tooltip-content::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }

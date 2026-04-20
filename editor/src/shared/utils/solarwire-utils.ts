@@ -637,10 +637,18 @@ export function getElementRelatedLines(
   elementLine: number
 ): number[] {
   const lines = content.split(/\r?\n/);
-  const relatedLines: number[] = [elementLine];
   
   const i = elementLine - 1;
+  if (i < 0 || i >= lines.length) {
+    return [elementLine];
+  }
+  
   const currentLine = lines[i];
+  if (!currentLine) {
+    return [elementLine];
+  }
+  
+  const relatedLines: number[] = [elementLine];
   const trimmedLine = currentLine.trim();
   
   const isTableElement = trimmedLine.startsWith('##');

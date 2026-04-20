@@ -265,6 +265,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    setScale(zoomLevel / 100);
+  }, [zoomLevel]);
   
   // 使用坐标系统Hook
   const { getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
@@ -300,6 +304,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     overlapStart: number;
     overlapEnd: number;
   }>>([]);
+  const [altKeyPressed, setAltKeyPressed] = useState(false);
 
   const handleImageAdded = useCallback((assetPath: string, x: number, y: number) => {
     const worldCoords = getSvgCoords(x, y);
@@ -337,6 +342,21 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       return { svg: '', ast: null, viewBox: null };
     }
   }, [content, selectedElements, primaryColor, showNotes]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') setAltKeyPressed(true);
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') setAltKeyPressed(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -600,100 +620,261 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return { x, y, w, h, r };
   }, [getElementData, getLineCoordinates]);
 
-  const ALIGN_THRESHOLD = 5;
+  /**
+   * 吸附阈值（px）- 元素边缘与引导线距离小于此值时触发吸附
+   * 建议值：2-3px（精确吸附），可配置为 props 后续接入设置面板
+   */
+  const SNAP_THRESHOLD = 2;
+  const ALIGN_THRESHOLD = SNAP_THRESHOLD;
 
   interface AlignmentGuide {
-    type: string;
+    type: GuideType;
     position: number;
-    distance: number;
-    targetBounds: { x: number; y: number; w: number; h: number };
-    currentEdge: number;
-    isHorizontal: boolean;
+    distance?: number;
+    sourceElementId?: string;
+    sourceBounds?: { x: number; y: number; w: number; h: number };
+    relatedElementIds?: string[];
+    priority: number;
+    isSnapped: boolean;
+    targetBounds?: { x: number; y: number; w: number; h: number };
+    currentEdge?: number;
+    isHorizontal?: boolean;
   }
 
-  /**
-   * 计算当前元素与其他元素之间的对齐辅助线
-   * @param elementId 当前元素 ID
-   * @param currentX 当前元素 X 坐标
-   * @param currentY 当前元素 Y 坐标
-   * @param currentW 当前元素宽度
-   * @param currentH 当前元素高度
-   * @param elements 所有元素列表
-   * @returns 对齐辅助线数组
-   */
-  const calculateAlignmentGuides = useCallback((elementId: string, currentX: number, currentY: number, currentW: number, currentH: number, elements: SolarWireElement[]): AlignmentGuide[] => {
-    if (!elements || elements.length === 0) return [];
-    
+  type GuideType =
+    | 'left' | 'right' | 'top' | 'bottom'
+    | 'centerX' | 'centerY'
+    | 'spacingX' | 'spacingY'
+    | 'canvasLeft' | 'canvasRight' | 'canvasTop' | 'canvasBottom' | 'canvasCenterX' | 'canvasCenterY'
+    | 'distributeX' | 'distributeY'
+    | 'userH' | 'userV';
+
+  interface ActiveEdges {
+    left: boolean;
+    right: boolean;
+    top: boolean;
+    bottom: boolean;
+  }
+
+  const getCanvasBounds = useCallback(() => {
+    if (viewBox) {
+      return { width: viewBox.width, height: viewBox.height };
+    }
+    return { width: 100000, height: 100000 };
+  }, [viewBox]);
+
+  const collectElementGuides = useCallback((
+    excludeIds: string[],
+    elements: SolarWireElement[]
+  ): AlignmentGuide[] => {
     const guides: AlignmentGuide[] = [];
-    const elementIds = new Set<string>();
-    
+
     elements.forEach((el: SolarWireElement, index: number) => {
       const id = el.location?.line?.toString() || (index + 1).toString();
-      if (id !== elementId) elementIds.add(id);
-    });
+      if (excludeIds.includes(id)) return;
 
-    const myLeft = currentX;
-    const myRight = currentX + currentW;
-    const myTop = currentY;
-    const myBottom = currentY + currentH;
-    const myCenterX = currentX + currentW / 2;
-    const myCenterY = currentY + currentH / 2;
-
-    elementIds.forEach(id => {
       const bounds = getElementBounds(id);
-      if (!bounds) return;
+      if (!bounds || (bounds.w === 0 && bounds.h === 0)) return;
 
-      const bx = bounds.x;
-      const by = bounds.y;
-      const bw = bounds.w;
-      const bh = bounds.h;
-      const bLeft = bx;
-      const bRight = bx + bw;
-      const bTop = by;
-      const bBottom = by + bh;
-      const bCenterX = bx + bw / 2;
-      const bCenterY = by + bh / 2;
+      const { x, y, w, h } = bounds;
 
-      // 计算两个元素在各方向上的实际边到边距离（间隙）
-      // 如果重叠，距离为负值
-      const gapLeftRight = bLeft - myRight;     // 当前元素右边缘到目标元素左边缘的间隙
-      const gapRightLeft = myLeft - bRight;     // 当前元素左边缘到目标元素右边缘的间隙
-      const gapTopBottom = bTop - myBottom;     // 当前元素下边缘到目标元素上边缘的间隙
-      const gapBottomTop = myTop - bBottom;     // 当前元素上边缘到目标元素下边缘的间隙
-
-      // 左边对齐：当前元素左边 vs 目标元素左边
-      if (Math.abs(myLeft - bLeft) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'left', position: bLeft, distance: Math.abs(myLeft - bLeft), targetBounds: bounds, currentEdge: myLeft, isHorizontal: false });
-      }
-      // 右边对齐：当前元素右边 vs 目标元素右边
-      if (Math.abs(myRight - bRight) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'right', position: bRight, distance: Math.abs(myRight - bRight), targetBounds: bounds, currentEdge: myRight, isHorizontal: false });
-      }
-      // 上边对齐
-      if (Math.abs(myTop - bTop) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'top', position: bTop, distance: Math.abs(myTop - bTop), targetBounds: bounds, currentEdge: myTop, isHorizontal: true });
-      }
-      // 下边对齐
-      if (Math.abs(myBottom - bBottom) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'bottom', position: bBottom, distance: Math.abs(myBottom - bBottom), targetBounds: bounds, currentEdge: myBottom, isHorizontal: true });
-      }
-      // 水平中心对齐
-      if (Math.abs(myCenterX - bCenterX) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'centerX', position: bCenterX, distance: Math.abs(myCenterX - bCenterX), targetBounds: bounds, currentEdge: myCenterX, isHorizontal: false });
-      }
-      // 垂直中心对齐
-      if (Math.abs(myCenterY - bCenterY) < ALIGN_THRESHOLD) {
-        guides.push({ type: 'centerY', position: bCenterY, distance: Math.abs(myCenterY - bCenterY), targetBounds: bounds, currentEdge: myCenterY, isHorizontal: true });
-      }
+      guides.push(
+        { type: 'left',     position: x,         sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
+        { type: 'right',    position: x + w,     sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
+        { type: 'top',      position: y,         sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
+        { type: 'bottom',   position: y + h,     sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
+        { type: 'centerX',  position: x + w / 2, sourceElementId: id, sourceBounds: bounds, priority: 2, isSnapped: false },
+        { type: 'centerY',  position: y + h / 2, sourceElementId: id, sourceBounds: bounds, priority: 2, isSnapped: false },
+      );
     });
 
     return guides;
   }, [getElementBounds]);
 
-  /**
-   * 计算元素边缘到其他元素边缘的实际间距（用于显示距离线）
-   * 返回最近的间距信息
-   */
+  const collectSpacingGuides = useCallback((
+    currentBounds: { x: number; y: number; w: number; h: number },
+    allElementsBounds: Array<{ id: string; bounds: { x: number; y: number; w: number; h: number } }>,
+    threshold: number
+  ): AlignmentGuide[] => {
+    const guides: AlignmentGuide[] = [];
+
+    const allWithCurrent = [
+      ...allElementsBounds,
+      { id: 'current', bounds: currentBounds }
+    ];
+
+    const sortedByX = allWithCurrent
+      .filter(e => Math.abs(e.bounds.y - currentBounds.y) < threshold * 2)
+      .sort((a, b) => a.bounds.x - b.bounds.x);
+
+    for (let i = 1; i < sortedByX.length - 1; i++) {
+      const prev = sortedByX[i - 1];
+      const curr = sortedByX[i];
+      const next = sortedByX[i + 1];
+      const gap1 = curr.bounds.x - (prev.bounds.x + prev.bounds.w);
+      const gap2 = next.bounds.x - (curr.bounds.x + curr.bounds.w);
+
+      if (Math.abs(gap1 - gap2) < 2 && gap1 > 0 && gap2 > 0) {
+        const spacingX = curr.bounds.x + curr.bounds.w + gap1 / 2;
+        guides.push({
+          type: 'spacingX',
+          position: spacingX,
+          distance: Math.round(gap1),
+          relatedElementIds: [prev.id, curr.id, next.id],
+          priority: 3,
+          isSnapped: false
+        });
+      }
+    }
+
+    const sortedByY = allWithCurrent
+      .filter(e => Math.abs(e.bounds.x - currentBounds.x) < threshold * 2)
+      .sort((a, b) => a.bounds.y - b.bounds.y);
+
+    for (let i = 1; i < sortedByY.length - 1; i++) {
+      const prev = sortedByY[i - 1];
+      const curr = sortedByY[i];
+      const next = sortedByY[i + 1];
+      const gap1 = curr.bounds.y - (prev.bounds.y + prev.bounds.h);
+      const gap2 = next.bounds.y - (curr.bounds.y + curr.bounds.h);
+
+      if (Math.abs(gap1 - gap2) < 2 && gap1 > 0 && gap2 > 0) {
+        const spacingY = curr.bounds.y + curr.bounds.h + gap1 / 2;
+        guides.push({
+          type: 'spacingY',
+          position: spacingY,
+          distance: Math.round(gap1),
+          relatedElementIds: [prev.id, curr.id, next.id],
+          priority: 3,
+          isSnapped: false
+        });
+      }
+    }
+
+    return guides;
+  }, []);
+
+  const collectCanvasGuides = useCallback(
+    (): AlignmentGuide[] => {
+      const canvasBounds = getCanvasBounds();
+      return [
+        { type: 'canvasLeft',     position: 0,                   priority: 4, isSnapped: false },
+        { type: 'canvasRight',    position: canvasBounds.width,  priority: 4, isSnapped: false },
+        { type: 'canvasTop',      position: 0,                   priority: 4, isSnapped: false },
+        { type: 'canvasBottom',   position: canvasBounds.height, priority: 4, isSnapped: false },
+        { type: 'canvasCenterX',  position: canvasBounds.width / 2,  priority: 4, isSnapped: false },
+        { type: 'canvasCenterY',  position: canvasBounds.height / 2, priority: 4, isSnapped: false },
+      ];
+    },
+    [getCanvasBounds]
+  );
+
+  const collectDistributeGuides = useCallback((
+    currentBounds: { x: number; y: number; w: number; h: number },
+    allElementsBounds: Array<{ id: string; bounds: { x: number; y: number; w: number; h: number } }>,
+    threshold: number
+  ): AlignmentGuide[] => {
+    const guides: AlignmentGuide[] = [];
+
+    const allWithCurrent = [
+      ...allElementsBounds,
+      { id: 'current', bounds: currentBounds }
+    ];
+
+    const yAligned = allWithCurrent
+      .filter(e => Math.abs(e.bounds.y - currentBounds.y) < threshold * 2)
+      .sort((a, b) => a.bounds.x - b.bounds.x);
+
+    if (yAligned.length >= 3) {
+      const gaps: number[] = [];
+      for (let i = 0; i < yAligned.length - 1; i++) {
+        const gap = yAligned[i + 1].bounds.x - (yAligned[i].bounds.x + yAligned[i].bounds.w);
+        gaps.push(gap);
+      }
+
+      const avgGap = gaps.reduce((sum, g) => sum + g, 0) / gaps.length;
+      const isUniform = gaps.every(g => Math.abs(g - avgGap) < 2 && g > 0);
+
+      if (isUniform && gaps.length >= 2) {
+        for (let i = 0; i < yAligned.length - 1; i++) {
+          const distX = yAligned[i].bounds.x + yAligned[i].bounds.w + avgGap / 2;
+          guides.push({
+            type: 'distributeX',
+            position: distX,
+            distance: Math.round(avgGap),
+            relatedElementIds: [yAligned[i].id, yAligned[i + 1].id],
+            priority: 6,
+            isSnapped: false
+          });
+        }
+      }
+    }
+
+    const xAligned = allWithCurrent
+      .filter(e => Math.abs(e.bounds.x - currentBounds.x) < threshold * 2)
+      .sort((a, b) => a.bounds.y - b.bounds.y);
+
+    if (xAligned.length >= 3) {
+      const gaps: number[] = [];
+      for (let i = 0; i < xAligned.length - 1; i++) {
+        const gap = xAligned[i + 1].bounds.y - (xAligned[i].bounds.y + xAligned[i].bounds.h);
+        gaps.push(gap);
+      }
+
+      const avgGap = gaps.reduce((sum, g) => sum + g, 0) / gaps.length;
+      const isUniform = gaps.every(g => Math.abs(g - avgGap) < 2 && g > 0);
+
+      if (isUniform && gaps.length >= 2) {
+        for (let i = 0; i < xAligned.length - 1; i++) {
+          const distY = xAligned[i].bounds.y + xAligned[i].bounds.h + avgGap / 2;
+          guides.push({
+            type: 'distributeY',
+            position: distY,
+            distance: Math.round(avgGap),
+            relatedElementIds: [xAligned[i].id, xAligned[i + 1].id],
+            priority: 6,
+            isSnapped: false
+          });
+        }
+      }
+    }
+
+    return guides;
+  }, []);
+
+  const collectUserGuides = useCallback(
+    (): AlignmentGuide[] => {
+      return [];
+    },
+    []
+  );
+
+  const getGroupBounds = useCallback((
+    elementIds: string[]
+  ): { x: number; y: number; w: number; h: number } | null => {
+    let minX = Infinity, minY = Infinity;
+    let maxX = -Infinity, maxY = -Infinity;
+
+    elementIds.forEach(id => {
+      const bounds = getElementBounds(id);
+      if (!bounds) return;
+
+      minX = Math.min(minX, bounds.x);
+      minY = Math.min(minY, bounds.y);
+      maxX = Math.max(maxX, bounds.x + bounds.w);
+      maxY = Math.max(maxY, bounds.y + bounds.h);
+    });
+
+    if (minX === Infinity) return null;
+
+    return {
+      x: minX,
+      y: minY,
+      w: maxX - minX,
+      h: maxY - minY
+    };
+  }, [getElementBounds]);
+
   const calculateEdgeGaps = useCallback((elementId: string, currentX: number, currentY: number, currentW: number, currentH: number, elements: SolarWireElement[]) => {
     if (!elements || elements.length === 0) return [];
     
@@ -879,72 +1060,218 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   }, [getElementBounds]);
 
   interface SnapResult {
-    snapped: boolean;
     x: number;
     y: number;
     w: number;
     h: number;
-    snapType: string | null;
+    snapped: boolean;
+    snappedGuides: AlignmentGuide[];
   }
 
-  const snapToAlignment = useCallback((
-    guides: Array<{ type: string; position: number; distance: number; targetBounds: { x: number; y: number; w: number; h: number } }>,
-    x: number,
-    y: number,
-    w: number,
-    h: number,
-    activeHandle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
+  const getActiveEdgesForMove = (): ActiveEdges => ({
+    left: true, right: true, top: true, bottom: true
+  });
+
+  const getActiveEdgesForResize = (
+    handle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
+  ): ActiveEdges => ({
+    left: handle.includes('w'),
+    right: handle.includes('e'),
+    top: handle.includes('n'),
+    bottom: handle.includes('s'),
+  });
+
+  const snapToGuides = useCallback((
+    guides: AlignmentGuide[],
+    currentX: number,
+    currentY: number,
+    currentW: number,
+    currentH: number,
+    activeEdges: ActiveEdges,
+    threshold: number = ALIGN_THRESHOLD,
+    altPressed: boolean = false,
+    isResize: boolean = false
   ): SnapResult => {
-    let resultX = x;
-    let resultY = y;
-    let resultW = w;
-    let resultH = h;
+    if (altPressed) {
+      return {
+        x: currentX, y: currentY, w: currentW, h: currentH,
+        snapped: false, snappedGuides: []
+      };
+    }
+
+    let resultX = currentX;
+    let resultY = currentY;
+    let resultW = currentW;
+    let resultH = currentH;
     let snapped = false;
-    let snapType: string | null = null;
+    const snappedGuides: AlignmentGuide[] = [];
 
-    const isMovingLeft = activeHandle.includes('w');
-    const isMovingRight = activeHandle.includes('e');
-    const isMovingTop = activeHandle.includes('n');
-    const isMovingBottom = activeHandle.includes('s');
+    const fixedRight = currentX + currentW;
+    const fixedBottom = currentY + currentH;
 
-    const fixedRight = x + w;
-    const fixedBottom = y + h;
+    const myLeft = currentX;
+    const myRight = currentX + currentW;
+    const myTop = currentY;
+    const myBottom = currentY + currentH;
+    const myCenterX = currentX + currentW / 2;
+    const myCenterY = currentY + currentH / 2;
 
-    for (const guide of guides) {
-      if (snapped) break;
+    const sortedGuides = [...guides].sort((a, b) => a.priority - b.priority);
+
+    let bestXDistance = threshold;
+    let bestXGuide: AlignmentGuide | null = null;
+    let bestXResult = { x: currentX, w: currentW };
+
+    for (const guide of sortedGuides) {
+      let distance = Infinity;
+      let candidate: { x: number; w: number } | null = null;
 
       switch (guide.type) {
         case 'left':
-          if (isMovingLeft && Math.abs(x - guide.position) < ALIGN_THRESHOLD) {
-            resultX = guide.position;
-            resultW = Math.max(10, fixedRight - guide.position);
-            snapped = true;
-            snapType = 'left';
+        case 'canvasLeft':
+        case 'userV':
+          if (activeEdges.left) {
+            distance = Math.abs(myLeft - guide.position);
+            if (distance < bestXDistance) {
+              candidate = { x: guide.position, w: Math.max(10, fixedRight - guide.position) };
+            }
           }
           break;
+
         case 'right':
-          if (isMovingRight && Math.abs(fixedRight - guide.position) < ALIGN_THRESHOLD) {
-            resultW = Math.max(10, guide.position - x);
-            snapped = true;
-            snapType = 'right';
+        case 'canvasRight':
+          if (activeEdges.right) {
+            distance = Math.abs(myRight - guide.position);
+            if (distance < bestXDistance) {
+              candidate = { x: currentX, w: Math.max(10, guide.position - currentX) };
+            }
           }
           break;
-        case 'top':
-          if (isMovingTop && Math.abs(y - guide.position) < ALIGN_THRESHOLD) {
-            resultY = guide.position;
-            resultH = Math.max(10, fixedBottom - guide.position);
-            snapped = true;
-            snapType = 'top';
+
+        case 'centerX':
+        case 'canvasCenterX':
+          if (activeEdges.left || activeEdges.right) {
+            distance = Math.abs(myCenterX - guide.position);
+            if (distance < bestXDistance) {
+              if (isResize) {
+                if (activeEdges.left && !activeEdges.right) {
+                  candidate = { x: guide.position, w: Math.max(10, fixedRight - guide.position) };
+                } else if (!activeEdges.left && activeEdges.right) {
+                  candidate = { x: currentX, w: Math.max(10, guide.position - currentX) };
+                } else {
+                  const delta = guide.position - myCenterX;
+                  candidate = { x: currentX + delta, w: currentW };
+                }
+              } else {
+                const delta = guide.position - myCenterX;
+                candidate = { x: currentX + delta, w: currentW };
+              }
+            }
           }
           break;
-        case 'bottom':
-          if (isMovingBottom && Math.abs(fixedBottom - guide.position) < ALIGN_THRESHOLD) {
-            resultH = Math.max(10, guide.position - y);
-            snapped = true;
-            snapType = 'bottom';
+
+        case 'spacingX':
+        case 'distributeX':
+          if (activeEdges.right) {
+            distance = Math.abs(myRight - guide.position);
+            if (distance < bestXDistance) {
+              candidate = { x: currentX, w: Math.max(10, guide.position - currentX) };
+            }
           }
           break;
       }
+
+      if (candidate && distance < bestXDistance) {
+        bestXDistance = distance;
+        bestXResult = candidate;
+        bestXGuide = guide;
+      }
+    }
+
+    if (bestXGuide) {
+      resultX = bestXResult.x;
+      resultW = bestXResult.w;
+      snapped = true;
+      bestXGuide.isSnapped = true;
+      snappedGuides.push(bestXGuide);
+    }
+
+    let bestYDistance = threshold;
+    let bestYGuide: AlignmentGuide | null = null;
+    let bestYResult = { y: currentY, h: currentH };
+
+    for (const guide of sortedGuides) {
+      let distance = Infinity;
+      let candidate: { y: number; h: number } | null = null;
+
+      switch (guide.type) {
+        case 'top':
+        case 'canvasTop':
+        case 'userH':
+          if (activeEdges.top) {
+            distance = Math.abs(myTop - guide.position);
+            if (distance < bestYDistance) {
+              candidate = { y: guide.position, h: Math.max(10, fixedBottom - guide.position) };
+            }
+          }
+          break;
+
+        case 'bottom':
+        case 'canvasBottom':
+          if (activeEdges.bottom) {
+            distance = Math.abs(myBottom - guide.position);
+            if (distance < bestYDistance) {
+              candidate = { y: currentY, h: Math.max(10, guide.position - currentY) };
+            }
+          }
+          break;
+
+        case 'centerY':
+        case 'canvasCenterY':
+          if (activeEdges.top || activeEdges.bottom) {
+            distance = Math.abs(myCenterY - guide.position);
+            if (distance < bestYDistance) {
+              if (isResize) {
+                if (activeEdges.top && !activeEdges.bottom) {
+                  candidate = { y: guide.position, h: Math.max(10, fixedBottom - guide.position) };
+                } else if (!activeEdges.top && activeEdges.bottom) {
+                  candidate = { y: currentY, h: Math.max(10, guide.position - currentY) };
+                } else {
+                  const delta = guide.position - myCenterY;
+                  candidate = { y: currentY + delta, h: currentH };
+                }
+              } else {
+                const delta = guide.position - myCenterY;
+                candidate = { y: currentY + delta, h: currentH };
+              }
+            }
+          }
+          break;
+
+        case 'spacingY':
+        case 'distributeY':
+          if (activeEdges.bottom) {
+            distance = Math.abs(myBottom - guide.position);
+            if (distance < bestYDistance) {
+              candidate = { y: currentY, h: Math.max(10, guide.position - currentY) };
+            }
+          }
+          break;
+      }
+
+      if (candidate && distance < bestYDistance) {
+        bestYDistance = distance;
+        bestYResult = candidate;
+        bestYGuide = guide;
+      }
+    }
+
+    if (bestYGuide) {
+      resultY = bestYResult.y;
+      resultH = bestYResult.h;
+      snapped = true;
+      bestYGuide.isSnapped = true;
+      snappedGuides.push(bestYGuide);
     }
 
     return {
@@ -953,7 +1280,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       w: resultW,
       h: resultH,
       snapped,
-      snapType
+      snappedGuides
     };
   }, []);
 
@@ -967,7 +1294,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const findElementAtPosition = useCallback((
     svgX: number,
     svgY: number,
-    tolerance: number = 2
+    tolerance: number = 10
   ): string | null => {
     if (!ast) return null;
     
@@ -1167,10 +1494,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     let elementId = getElementIdFromSVGElement(target);
     const currentTool = (isPanMode || isSpacePressed) ? 'pan' : selectionTool;
 
-    // 如果没有直接获取到元素 ID，尝试检测附近的线段（2px 容差）
+    // 如果没有直接获取到元素 ID，尝试检测附近的元素（10px 容差）
     if (!elementId && (currentTool === 'select' || currentTool === 'box-include' || currentTool === 'box-intersect')) {
       const svgCoords = getSvgCoords(e.clientX, e.clientY);
-      elementId = findElementAtPosition(svgCoords.x, svgCoords.y, 2);
+      elementId = findElementAtPosition(svgCoords.x, svgCoords.y, 10);
     }
 
     switch (currentTool) {
@@ -1217,8 +1544,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           
           setDragElementState(dragState);
           
-          if (e.shiftKey) {
-            // Shift+Click：切换选中状态
+          if (e.shiftKey || e.ctrlKey || e.metaKey) {
+            // Shift+Click / Ctrl+Click / Cmd+Click：切换选中状态
             if (selectedElements.includes(elementId)) {
               selectElements(selectedElements.filter(id => id !== elementId));
             } else {
@@ -1315,29 +1642,42 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               let x2 = resizeHandleState.elementX2 || x1 + 100;
               let y2 = resizeHandleState.elementY2 || y1;
               
-              let rawDx = dx;
-              let rawDy = dy;
-              
-              if (e.shiftKey) {
-                // Shift 按下：约束为垂直或水平
-                const absDx = Math.abs(rawDx);
-                const absDy = Math.abs(rawDy);
-                
-                if (absDx > absDy) {
-                  rawDy = 0;
-                } else if (absDy > absDx) {
-                  rawDx = 0;
-                } else {
-                  rawDy = 0;
-                }
-              }
+              const origX1 = x1, origY1 = y1, origX2 = x2, origY2 = y2;
               
               if (resizeHandleState.handle === 'start') {
-                x1 = Math.max(0, Math.round(resizeHandleState.elementX + rawDx));
-                y1 = Math.max(0, Math.round(resizeHandleState.elementY + rawDy));
+                x1 = Math.max(0, Math.round(origX1 + dx));
+                y1 = Math.max(0, Math.round(origY1 + dy));
               } else {
-                x2 = Math.max(0, Math.round((resizeHandleState.elementX2 || x1 + 100) + rawDx));
-                y2 = Math.max(0, Math.round((resizeHandleState.elementY2 || y1) + rawDy));
+                x2 = Math.max(0, Math.round(origX2 + dx));
+                y2 = Math.max(0, Math.round(origY2 + dy));
+              }
+              
+              if (e.shiftKey) {
+                let currentDx: number, currentDy: number;
+                if (resizeHandleState.handle === 'start') {
+                  currentDx = currentCoords.x - origX2;
+                  currentDy = currentCoords.y - origY2;
+                } else {
+                  currentDx = currentCoords.x - origX1;
+                  currentDy = currentCoords.y - origY1;
+                }
+                
+                const absDx = Math.abs(currentDx);
+                const absDy = Math.abs(currentDy);
+                
+                if (absDx >= absDy) {
+                  if (resizeHandleState.handle === 'start') {
+                    y1 = origY2;
+                  } else {
+                    y2 = origY1;
+                  }
+                } else {
+                  if (resizeHandleState.handle === 'start') {
+                    x1 = origX2;
+                  } else {
+                    x2 = origX1;
+                  }
+                }
               }
               
               // 检查线段的格式
@@ -1481,19 +1821,36 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         if (!isNaN(lineNum)) {
           const elements = ast?.elements || [];
           
-          // 计算对齐辅助线（基于当前 resize 后的位置）
           if (!isShiftPressed && !resizeHandleState.isLine) {
-            const guides = calculateAlignmentGuides(
-              resizeHandleState.elementId,
+            const excludeIds = [resizeHandleState.elementId];
+            const elementGuides = collectElementGuides(excludeIds, elements);
+            const canvasGuides = collectCanvasGuides();
+            const allGuides = [...elementGuides, ...canvasGuides];
+
+            const activeEdges = getActiveEdgesForResize(
+              resizeHandleState.handle as 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
+            );
+            const snapped = snapToGuides(
+              allGuides,
               newX,
               newY,
               newW,
               newH,
-              elements
+              activeEdges,
+              ALIGN_THRESHOLD,
+              altKeyPressed,
+              true
             );
-            setAlignmentGuides(guides);
 
-            // 计算边距信息
+            if (snapped.snapped) {
+              newX = snapped.x;
+              newY = snapped.y;
+              newW = snapped.w;
+              newH = snapped.h;
+            }
+
+            setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
+
             const gaps = calculateEdgeGaps(
               resizeHandleState.elementId,
               newX,
@@ -1503,22 +1860,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               elements
             );
             setEdgeGaps(gaps);
-
-            const snapped = snapToAlignment(
-              guides,
-              newX,
-              newY,
-              newW,
-              newH,
-              resizeHandleState.handle as 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
-            );
-
-            if (snapped.snapped) {
-              newX = snapped.x;
-              newY = snapped.y;
-              newW = snapped.w;
-              newH = snapped.h;
-            }
           } else {
             setAlignmentGuides([]);
             setEdgeGaps([]);
@@ -1547,31 +1888,25 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const elementW = (dragElementState as any).elementW || 100;
       const elementH = (dragElementState as any).elementH || 50;
       
-      // 计算对齐辅助线 (不处理线段元素)
-      if (!dragElementState.isLine) {
-        const guides = calculateAlignmentGuides(
-          dragElementState.elementId,
-          dragElementState.elementX + dx,
-          dragElementState.elementY + dy,
-          elementW,
-          elementH,
-          elements
-        );
-        setAlignmentGuides(guides);
+      const useGridSnap = effectiveShowGrid;
+      
+      if (!useGridSnap && !dragElementState.isLine && !altKeyPressed) {
+        const newX = dragElementState.elementX + dx;
+        const newY = dragElementState.elementY + dy;
+        const excludeIds = [dragElementState.elementId];
+        const elementGuides = collectElementGuides(excludeIds, elements);
+        const canvasGuides = collectCanvasGuides();
+        const allGuides = [...elementGuides, ...canvasGuides];
 
-        const snapped = snapToAlignment(
-          guides,
-          dragElementState.elementX + dx,
-          dragElementState.elementY + dy,
-          elementW,
-          elementH,
-          'nw'
-        );
+        const activeEdges = getActiveEdgesForMove();
+        const snapped = snapToGuides(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
 
         if (snapped.snapped) {
           dx = snapped.x - dragElementState.elementX;
           dy = snapped.y - dragElementState.elementY;
         }
+
+        setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
       } else {
         setAlignmentGuides([]);
       }
@@ -1598,6 +1933,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             isEndRelative
           );
         } else {
+          const useGridSnap = effectiveShowGrid;
+          const gridSnapSize = useGridSnap ? 10 : 0;
+          
           handleElementDrag(
             content,
             lineNum,
@@ -1606,8 +1944,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dx,
             dy,
             rafUpdater,
-            effectiveSnapToGrid,
-            effectiveGridSize
+            useGridSnap && effectiveSnapToGrid,
+            gridSnapSize
           );
         }
       }
@@ -1618,58 +1956,67 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const currentCoords = getSvgCoords(e.clientX, e.clientY);
       const startCoords = getSvgCoords(multiDragElements[0].startX, multiDragElements[0].startY);
       
-      const dx = currentCoords.x - startCoords.x;
-      const dy = currentCoords.y - startCoords.y;
+      let dx = currentCoords.x - startCoords.x;
+      let dy = currentCoords.y - startCoords.y;
       
+      const groupBounds = getGroupBounds(multiDragElements.map(e => e.elementId));
+      if (!groupBounds) {
+        rafUpdater(content);
+        return;
+      }
+
+      const newX = groupBounds.x + dx;
+      const newY = groupBounds.y + dy;
+
+      const excludeIds = multiDragElements.map(e => e.elementId);
+      const otherElements = (ast?.elements || []).filter((el: SolarWireElement, idx: number) => {
+        const id = el.location?.line?.toString() || (idx + 1).toString();
+        return !excludeIds.includes(id);
+      });
+      const elementGuides = collectElementGuides(excludeIds, otherElements);
+      const canvasGuides = collectCanvasGuides();
+      const userGuides = collectUserGuides();
+      const allGuides = [...elementGuides, ...canvasGuides, ...userGuides];
+
+      const activeEdges = getActiveEdgesForMove();
+      const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
+
+      const snapOffsetX = snapped.snapped ? snapped.x - newX : 0;
+      const snapOffsetY = snapped.snapped ? snapped.y - newY : 0;
+
       let newContent = content;
       
       multiDragElements.forEach((el) => {
         const lineNum = parseInt(el.elementId);
         if (isNaN(lineNum)) return;
         
+        let finalX = Math.max(0, Math.round(el.elementX + dx + snapOffsetX));
+        let finalY = Math.max(0, Math.round(el.elementY + dy + snapOffsetY));
+        
         if (el.isLine) {
-          const lines = newContent.split(/\r?\n/);
-          const line = lines[lineNum - 1];
-          const isEndRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
-          
-          if (isEndRelative && el.elementX2 !== undefined && el.elementY2 !== undefined) {
+          if (el.elementX2 !== undefined && el.elementY2 !== undefined) {
             const originalDx = el.elementX2 - el.elementX;
             const originalDy = el.elementY2 - el.elementY;
+            let newX2 = finalX + originalDx;
+            let newY2 = finalY + originalDy;
             
-            let newX = Math.max(0, Math.round(el.elementX + dx));
-            let newY = Math.max(0, Math.round(el.elementY + dy));
-            let newX2 = newX + originalDx;
-            let newY2 = newY + originalDy;
-            
-            newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
-            newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-            newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
-            newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
-          } else {
-            let newX = Math.max(0, Math.round(el.elementX + dx));
-            let newY = Math.max(0, Math.round(el.elementY + dy));
-            let newX2 = Math.max(0, Math.round((el.elementX2 || el.elementX + 100) + dx));
-            let newY2 = Math.max(0, Math.round((el.elementY2 || el.elementY) + dy));
-            
-            newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
-            newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+            newContent = updateLineAttribute(newContent, lineNum, 'x', finalX);
+            newContent = updateLineAttribute(newContent, lineNum, 'y', finalY);
             newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
             newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
           }
         } else {
-          let newX = Math.max(0, Math.round(el.elementX + dx));
-          let newY = Math.max(0, Math.round(el.elementY + dy));
-          
           if (effectiveSnapToGrid && effectiveGridSize > 0) {
-            newX = Math.round(newX / effectiveGridSize) * effectiveGridSize;
-            newY = Math.round(newY / effectiveGridSize) * effectiveGridSize;
+            finalX = Math.round(finalX / effectiveGridSize) * effectiveGridSize;
+            finalY = Math.round(finalY / effectiveGridSize) * effectiveGridSize;
           }
           
-          newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
-          newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+          newContent = updateLineAttribute(newContent, lineNum, 'x', finalX);
+          newContent = updateLineAttribute(newContent, lineNum, 'y', finalY);
         }
       });
       
+      setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
       rafUpdater(newContent);
       return;
     }
@@ -2199,93 +2546,36 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const renderAlignmentGuides = () => {
     if (alignmentGuides.length === 0) return null;
 
-    const currentDraggedBounds = dragElementState ? getElementBounds(dragElementState.elementId) : null;
+    const canvasBounds = getCanvasBounds();
 
-    return alignmentGuides.map((guide, index) => {
-      const isHorizontal = guide.type === 'top' || guide.type === 'bottom' || guide.type === 'centerY';
+    const isGuideSnapped = (guide: AlignmentGuide) => guide.isSnapped;
+
+    const isHorizontalGuide = (type: string) =>
+      type === 'top' || type === 'bottom' || type === 'centerY' ||
+      type === 'spacingY' || type === 'distributeY' || type === 'userH' ||
+      type === 'canvasTop' || type === 'canvasBottom' || type === 'canvasCenterY';
+
+    const renderSnappedGuide = (guide: AlignmentGuide, index: number) => {
       const pos = guide.position;
-      const targetBounds = guide.targetBounds;
-      const distanceText = Math.round(guide.distance);
+      const isH = isHorizontalGuide(guide.type);
 
-      if (!currentDraggedBounds) return null;
-
-      // 计算两个元素之间的水平或垂直重叠范围，用于确定连线范围
-      const overlapStart: number = Math.max(
-        isHorizontal ? targetBounds.x : targetBounds.y,
-        isHorizontal ? currentDraggedBounds.x : currentDraggedBounds.y
-      );
-      const overlapEnd: number = Math.min(
-        isHorizontal ? targetBounds.x + targetBounds.w : targetBounds.y + targetBounds.h,
-        isHorizontal ? currentDraggedBounds.x + currentDraggedBounds.w : currentDraggedBounds.y + currentDraggedBounds.h
-      );
-      const hasOverlap = overlapEnd > overlapStart;
-
-      // 对齐辅助线（虚线，贯穿画布）
-      if (Math.abs(guide.distance) < 0.5) {
-        return (
+      return (
+        <g key={`align-${index}`} pointerEvents="none">
           <line
-            key={`align-${index}`}
-            x1={isHorizontal ? 0 : pos}
-            y1={isHorizontal ? pos : 0}
-            x2={isHorizontal ? 100000 : pos}
-            y2={isHorizontal ? pos : 100000}
+            x1={isH ? 0 : pos}
+            y1={isH ? pos : 0}
+            x2={isH ? canvasBounds.width : pos}
+            y2={isH ? pos : canvasBounds.height}
             stroke={primaryColor}
-            strokeWidth={1 / scale}
-            strokeDasharray="4,3"
-            opacity={0.7}
-            pointerEvents="none"
+            strokeWidth={2 / scale}
+            strokeDasharray="none"
+            opacity={0.9}
           />
-        );
-      }
-
-      // 有重叠时：元素边到边的垂直/水平实线 + 距离标签
-      if (hasOverlap) {
-        if (isHorizontal) {
-          // 水平距离线（连接两个元素的上下边）
-          const targetEdge = pos; // 目标元素的边
-          const draggedEdge = guide.type === 'top' ? currentDraggedBounds.y :
-                            guide.type === 'bottom' ? currentDraggedBounds.y + currentDraggedBounds.h :
-                            currentDraggedBounds.y + currentDraggedBounds.h / 2;
-
-          const midX = (overlapStart + overlapEnd) / 2;
-          const labelMidX = midX;
-          const labelMidY = (targetEdge + draggedEdge) / 2;
-
-          return (
-            <g key={`align-${index}`} pointerEvents="none">
-              <line
-                x1={overlapStart}
-                y1={draggedEdge}
-                x2={overlapEnd}
-                y2={draggedEdge}
-                stroke={primaryColor}
-                strokeWidth={1 / scale}
-                strokeDasharray="none"
-                opacity={0.9}
-              />
-              <line
-                x1={overlapStart}
-                y1={targetEdge}
-                x2={overlapEnd}
-                y2={targetEdge}
-                stroke={primaryColor}
-                strokeWidth={1 / scale}
-                strokeDasharray="none"
-                opacity={0.9}
-              />
-              <line
-                x1={midX}
-                y1={draggedEdge}
-                x2={midX}
-                y2={targetEdge}
-                stroke={primaryColor}
-                strokeWidth={1 / scale}
-                strokeDasharray="none"
-                opacity={0.9}
-              />
+          {guide.distance && (
+            <>
               <rect
-                x={labelMidX - 18 / scale}
-                y={labelMidY - 7 / scale}
+                x={isH ? canvasBounds.width / 2 - 18 / scale : pos + 4 / scale}
+                y={isH ? pos + 4 / scale : canvasBounds.height / 2 - 7 / scale}
                 width={36 / scale}
                 height={14 / scale}
                 fill="var(--bg-primary)"
@@ -2295,101 +2585,98 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
                 strokeWidth={0.5 / scale}
               />
               <text
-                x={labelMidX}
-                y={labelMidY + 4 / scale}
+                x={isH ? canvasBounds.width / 2 : pos + 4 / scale}
+                y={isH ? pos + 14 / scale : canvasBounds.height / 2 + 4 / scale}
                 fontSize={`${9 / scale}px`}
                 fill={primaryColor}
                 textAnchor="middle"
                 fontFamily="Menlo, Consolas, monospace"
               >
-                {distanceText}px
+                {guide.distance}px
               </text>
-            </g>
-          );
-        } else {
-          // 垂直距离线（连接两个元素的左右边）
-          const targetEdge = pos;
-          const draggedEdge = guide.type === 'left' ? currentDraggedBounds.x :
-                            guide.type === 'right' ? currentDraggedBounds.x + currentDraggedBounds.w :
-                            currentDraggedBounds.x + currentDraggedBounds.w / 2;
+            </>
+          )}
+        </g>
+      );
+    };
 
-          const midY = (overlapStart + overlapEnd) / 2;
-          const labelMidX = (targetEdge + draggedEdge) / 2;
-          const labelMidY = midY;
+    const renderFaintGuide = (guide: AlignmentGuide, index: number) => {
+      const pos = guide.position;
+      const isH = isHorizontalGuide(guide.type);
 
-          return (
-            <g key={`align-${index}`} pointerEvents="none">
-              <line
-                x1={draggedEdge}
-                y1={overlapStart}
-                x2={draggedEdge}
-                y2={overlapEnd}
-                stroke={primaryColor}
-                strokeWidth={1 / scale}
-                strokeDasharray="none"
-                opacity={0.9}
-              />
-              <line
-                x1={targetEdge}
-                y1={overlapStart}
-                x2={targetEdge}
-                y2={overlapEnd}
-                stroke={primaryColor}
-                strokeWidth={1 / scale}
-                strokeDasharray="none"
-                opacity={0.9}
-              />
-              <line
-                x1={draggedEdge}
-                y1={midY}
-                x2={targetEdge}
-                y2={midY}
-                stroke={primaryColor}
-                strokeWidth={1 / scale}
-                strokeDasharray="none"
-                opacity={0.9}
-              />
-              <rect
-                x={labelMidX - 18 / scale}
-                y={labelMidY - 7 / scale}
-                width={36 / scale}
-                height={14 / scale}
-                fill="var(--bg-primary)"
-                fillOpacity={0.9}
-                rx={3 / scale}
-                stroke={primaryColor}
-                strokeWidth={0.5 / scale}
-              />
-              <text
-                x={labelMidX}
-                y={labelMidY + 4 / scale}
-                fontSize={`${9 / scale}px`}
-                fill={primaryColor}
-                textAnchor="middle"
-                fontFamily="Menlo, Consolas, monospace"
-              >
-                {distanceText}px
-              </text>
-            </g>
-          );
-        }
-      }
-
-      // 没有重叠时：显示对齐轴线的虚线
       return (
         <line
-          key={`align-${index}`}
-          x1={isHorizontal ? 0 : pos}
-          y1={isHorizontal ? pos : 0}
-          x2={isHorizontal ? 100000 : pos}
-          y2={isHorizontal ? pos : 100000}
+          key={`faint-${index}`}
+          x1={isH ? 0 : pos}
+          y1={isH ? pos : 0}
+          x2={isH ? canvasBounds.width : pos}
+          y2={isH ? pos : canvasBounds.height}
           stroke={primaryColor}
           strokeWidth={1 / scale}
-          strokeDasharray="4,3"
+          strokeDasharray={`${4 / scale},${4 / scale}`}
+          opacity={0.3}
+          pointerEvents="none"
+        />
+      );
+    };
+
+    const renderCanvasGuide = (guide: AlignmentGuide, index: number) => {
+      const pos = guide.position;
+      const isH = isHorizontalGuide(guide.type);
+
+      return (
+        <line
+          key={`canvas-${index}`}
+          x1={isH ? 0 : pos}
+          y1={isH ? pos : 0}
+          x2={isH ? canvasBounds.width : pos}
+          y2={isH ? pos : canvasBounds.height}
+          stroke={primaryColor}
+          strokeWidth={1 / scale}
+          strokeDasharray={`${6 / scale},${6 / scale}`}
           opacity={0.5}
           pointerEvents="none"
         />
       );
+    };
+
+    const renderUserGuide = (guide: AlignmentGuide, index: number) => {
+      const pos = guide.position;
+      const isH = isHorizontalGuide(guide.type);
+
+      return (
+        <line
+          key={`user-${index}`}
+          x1={isH ? 0 : pos}
+          y1={isH ? pos : 0}
+          x2={isH ? canvasBounds.width : pos}
+          y2={isH ? pos : canvasBounds.height}
+          stroke="#8B5CF6"
+          strokeWidth={2 / scale}
+          strokeDasharray="none"
+          opacity={0.8}
+          pointerEvents="none"
+        />
+      );
+    };
+
+    return alignmentGuides.map((guide, index) => {
+      if (guide.type.startsWith('canvas')) {
+        if ((guide.type === 'canvasCenterX' || guide.type === 'canvasCenterY') && !guide.isSnapped) {
+          return null;
+        }
+        return renderCanvasGuide(guide, index);
+      }
+
+      if (guide.type === 'userH' || guide.type === 'userV') {
+        return renderUserGuide(guide, index);
+      }
+
+      if (guide.isSnapped) {
+        return renderSnappedGuide(guide, index);
+      }
+
+      return renderFaintGuide(guide, index);
     });
   };
 
@@ -2453,8 +2740,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         <div
           className="grid-overlay"
           style={{
-            backgroundSize: `${effectiveGridSize * scale}px ${effectiveGridSize * scale}px`,
+            position: 'absolute',
+            top: '-50000px',
+            left: '-50000px',
+            width: '100000px',
+            height: '100000px',
             transform: getTransform(),
+            transformOrigin: '0 0',
+            backgroundSize: `10px 10px`,
+            pointerEvents: 'none',
           }}
         />
       )}
