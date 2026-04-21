@@ -167,29 +167,28 @@ function LayerPanel({ onSelectElement, onReorderElements }: LayerPanelProps): Re
 
     if (hoverTimerRef.current) {
       clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
     }
 
-    hoverTimerRef.current = setTimeout(() => {
-      if (layer.note && !hoveredNote) {
-        const rect = element.getBoundingClientRect();
-        const padding = 12;
-        let left = rect.right + padding;
-        let top = rect.top;
+    if (layer.note) {
+      const rect = element.getBoundingClientRect();
+      const padding = 12;
+      let left = rect.right + padding;
+      let top = rect.top;
 
-        const tooltipMinWidth = 300;
-        if (left + tooltipMinWidth > window.innerWidth) {
-          left = rect.left - tooltipMinWidth - padding;
-          if (left < 0) {
-            left = rect.left;
-            top = rect.bottom + padding;
-          }
+      const tooltipMinWidth = 300;
+      if (left + tooltipMinWidth > window.innerWidth) {
+        left = rect.left - tooltipMinWidth - padding;
+        if (left < 0) {
+          left = rect.left;
+          top = rect.bottom + padding;
         }
-
-        setHoveredNote(layer.note);
-        setTooltipPosition({ left, top });
       }
-    }, 300);
-  }, [cancelHide, hoveredNote]);
+
+      setHoveredNote(layer.note);
+      setTooltipPosition({ left, top });
+    }
+  }, [cancelHide]);
 
   const handleLayerMouseLeave = useCallback(() => {
     isLayerHoveredRef.current = false;

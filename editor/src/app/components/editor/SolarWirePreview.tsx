@@ -1100,13 +1100,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     let resultX = currentX;
     let resultY = currentY;
-    let resultW = currentW;
-    let resultH = currentH;
     let snapped = false;
     const snappedGuides: AlignmentGuide[] = [];
-
-    const fixedRight = currentX + currentW;
-    const fixedBottom = currentY + currentH;
 
     const myLeft = currentX;
     const myRight = currentX + currentW;
@@ -1119,11 +1114,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     let bestXDistance = threshold;
     let bestXGuide: AlignmentGuide | null = null;
-    let bestXResult = { x: currentX, w: currentW };
+    let bestXSnappedX = currentX;
 
     for (const guide of sortedGuides) {
       let distance = Infinity;
-      let candidate: { x: number; w: number } | null = null;
+      let snappedX: number | null = null;
 
       switch (guide.type) {
         case 'left':
@@ -1132,7 +1127,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.left) {
             distance = Math.abs(myLeft - guide.position);
             if (distance < bestXDistance) {
-              candidate = { x: guide.position, w: Math.max(10, fixedRight - guide.position) };
+              snappedX = guide.position;
             }
           }
           break;
@@ -1142,7 +1137,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.right) {
             distance = Math.abs(myRight - guide.position);
             if (distance < bestXDistance) {
-              candidate = { x: currentX, w: Math.max(10, guide.position - currentX) };
+              snappedX = guide.position - currentW;
             }
           }
           break;
@@ -1152,19 +1147,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.left || activeEdges.right) {
             distance = Math.abs(myCenterX - guide.position);
             if (distance < bestXDistance) {
-              if (isResize) {
-                if (activeEdges.left && !activeEdges.right) {
-                  candidate = { x: guide.position, w: Math.max(10, fixedRight - guide.position) };
-                } else if (!activeEdges.left && activeEdges.right) {
-                  candidate = { x: currentX, w: Math.max(10, guide.position - currentX) };
-                } else {
-                  const delta = guide.position - myCenterX;
-                  candidate = { x: currentX + delta, w: currentW };
-                }
-              } else {
-                const delta = guide.position - myCenterX;
-                candidate = { x: currentX + delta, w: currentW };
-              }
+              snappedX = currentX + (guide.position - myCenterX);
             }
           }
           break;
@@ -1174,22 +1157,21 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.right) {
             distance = Math.abs(myRight - guide.position);
             if (distance < bestXDistance) {
-              candidate = { x: currentX, w: Math.max(10, guide.position - currentX) };
+              snappedX = guide.position - currentW;
             }
           }
           break;
       }
 
-      if (candidate && distance < bestXDistance) {
+      if (snappedX !== null && distance < bestXDistance) {
         bestXDistance = distance;
-        bestXResult = candidate;
+        bestXSnappedX = snappedX;
         bestXGuide = guide;
       }
     }
 
     if (bestXGuide) {
-      resultX = bestXResult.x;
-      resultW = bestXResult.w;
+      resultX = bestXSnappedX;
       snapped = true;
       bestXGuide.isSnapped = true;
       snappedGuides.push(bestXGuide);
@@ -1197,11 +1179,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     let bestYDistance = threshold;
     let bestYGuide: AlignmentGuide | null = null;
-    let bestYResult = { y: currentY, h: currentH };
+    let bestYSnappedY = currentY;
 
     for (const guide of sortedGuides) {
       let distance = Infinity;
-      let candidate: { y: number; h: number } | null = null;
+      let snappedY: number | null = null;
 
       switch (guide.type) {
         case 'top':
@@ -1210,7 +1192,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.top) {
             distance = Math.abs(myTop - guide.position);
             if (distance < bestYDistance) {
-              candidate = { y: guide.position, h: Math.max(10, fixedBottom - guide.position) };
+              snappedY = guide.position;
             }
           }
           break;
@@ -1220,7 +1202,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.bottom) {
             distance = Math.abs(myBottom - guide.position);
             if (distance < bestYDistance) {
-              candidate = { y: currentY, h: Math.max(10, guide.position - currentY) };
+              snappedY = guide.position - currentH;
             }
           }
           break;
@@ -1230,19 +1212,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.top || activeEdges.bottom) {
             distance = Math.abs(myCenterY - guide.position);
             if (distance < bestYDistance) {
-              if (isResize) {
-                if (activeEdges.top && !activeEdges.bottom) {
-                  candidate = { y: guide.position, h: Math.max(10, fixedBottom - guide.position) };
-                } else if (!activeEdges.top && activeEdges.bottom) {
-                  candidate = { y: currentY, h: Math.max(10, guide.position - currentY) };
-                } else {
-                  const delta = guide.position - myCenterY;
-                  candidate = { y: currentY + delta, h: currentH };
-                }
-              } else {
-                const delta = guide.position - myCenterY;
-                candidate = { y: currentY + delta, h: currentH };
-              }
+              snappedY = currentY + (guide.position - myCenterY);
             }
           }
           break;
@@ -1252,22 +1222,21 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           if (activeEdges.bottom) {
             distance = Math.abs(myBottom - guide.position);
             if (distance < bestYDistance) {
-              candidate = { y: currentY, h: Math.max(10, guide.position - currentY) };
+              snappedY = guide.position - currentH;
             }
           }
           break;
       }
 
-      if (candidate && distance < bestYDistance) {
+      if (snappedY !== null && distance < bestYDistance) {
         bestYDistance = distance;
-        bestYResult = candidate;
+        bestYSnappedY = snappedY;
         bestYGuide = guide;
       }
     }
 
     if (bestYGuide) {
-      resultY = bestYResult.y;
-      resultH = bestYResult.h;
+      resultY = bestYSnappedY;
       snapped = true;
       bestYGuide.isSnapped = true;
       snappedGuides.push(bestYGuide);
@@ -1276,8 +1245,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return {
       x: resultX,
       y: resultY,
-      w: resultW,
-      h: resultH,
+      w: currentW,
+      h: currentH,
       snapped,
       snappedGuides
     };
@@ -1819,50 +1788,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const lineNum = parseInt(resizeHandleState.elementId);
         if (!isNaN(lineNum)) {
           const elements = ast?.elements || [];
-          
-          if (!isShiftPressed && !resizeHandleState.isLine) {
-            const excludeIds = [resizeHandleState.elementId];
-            const elementGuides = collectElementGuides(excludeIds, elements);
-            const canvasGuides = collectCanvasGuides();
-            const allGuides = [...elementGuides, ...canvasGuides];
 
-            const activeEdges = getActiveEdgesForResize(
-              resizeHandleState.handle as 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
-            );
-            const snapped = snapToGuides(
-              allGuides,
-              newX,
-              newY,
-              newW,
-              newH,
-              activeEdges,
-              ALIGN_THRESHOLD,
-              altKeyPressed,
-              true
-            );
-
-            if (snapped.snapped) {
-              newX = snapped.x;
-              newY = snapped.y;
-              newW = snapped.w;
-              newH = snapped.h;
-            }
-
-            setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
-
-            const gaps = calculateEdgeGaps(
-              resizeHandleState.elementId,
-              newX,
-              newY,
-              newW,
-              newH,
-              elements
-            );
-            setEdgeGaps(gaps);
-          } else {
-            setAlignmentGuides([]);
-            setEdgeGaps([]);
-          }
+          setAlignmentGuides([]);
+          setEdgeGaps([]);
 
           let newContent = updateLineAttribute(content, lineNum, 'x', newX);
           newContent = updateLineAttribute(newContent, lineNum, 'y', newY);

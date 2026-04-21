@@ -330,6 +330,7 @@ function SolarWireMode(): React.ReactElement {
   }, [selectedElements, content, setContent, setSelectedElements]);
 
   const [clipboardContent, setClipboardContent] = useState<string | null>(null);
+  const [clipboardOriginalPos, setClipboardOriginalPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const handleKeyDownEvent = (e: KeyboardEvent) => {
@@ -343,15 +344,39 @@ function SolarWireMode(): React.ReactElement {
       if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElements.length > 0) {
         e.preventDefault();
         const lines = content.split(/\r?\n/);
-        const selectedLines = selectedElements
+        const processedLineNums = new Set<number>();
+        const allLinesToCopy: string[] = [];
+        let firstElementPos: { x: number; y: number } | null = null;
+
+        selectedElements
           .map((id) => parseInt(id))
           .filter((lineNum) => !isNaN(lineNum) && lineNum > 0 && lineNum <= lines.length)
-          .map((lineNum) => lines[lineNum - 1]);
-        if (selectedLines.length > 0) {
-          setClipboardContent(selectedLines.join('\n'));
+          .forEach((lineNum) => {
+            if (processedLineNums.has(lineNum)) return;
+
+            const relatedLines = getElementRelatedLines(content, lineNum);
+            const startLine = relatedLines[0];
+            const endLine = relatedLines[relatedLines.length - 1];
+
+            const coordMatch = lines[startLine - 1]?.match(/@\((\d+),\s*(\d+)\)/);
+            if (!firstElementPos && coordMatch) {
+              firstElementPos = { x: parseInt(coordMatch[1]), y: parseInt(coordMatch[2]) };
+            }
+
+            for (let i = startLine; i <= endLine; i++) {
+              if (!processedLineNums.has(i)) {
+                allLinesToCopy.push(lines[i - 1]);
+                processedLineNums.add(i);
+              }
+            }
+          });
+
+        if (allLinesToCopy.length > 0) {
+          setClipboardContent(allLinesToCopy.join('\n'));
+          setClipboardOriginalPos(firstElementPos);
         }
       }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardContent && !e.target) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && clipboardContent) {
         const activeElement = document.activeElement;
         const isEditor = activeElement?.tagName === 'TEXTAREA' || 
                          activeElement?.getAttribute('contenteditable') === 'true' ||
@@ -359,18 +384,52 @@ function SolarWireMode(): React.ReactElement {
         if (isEditor) return;
 
         e.preventDefault();
-        const offset = 15;
+        const lines = content.split(/\r?\n/);
+        let offsetX = 15;
+        let offsetY = 15;
+
+        if (selectedElements.length > 0) {
+          const firstSelectedLine = selectedElements[0];
+          const lineNum = parseInt(firstSelectedLine);
+          if (!isNaN(lineNum) && lineNum > 0 && lineNum <= lines.length) {
+            const relatedLines = getElementRelatedLines(content, lineNum);
+            const startLine = relatedLines[0];
+            const coordMatch = lines[startLine - 1]?.match(/@\((\d+),\s*(\d+)\)/);
+            if (coordMatch) {
+              const targetX = parseInt(coordMatch[1]);
+              const targetY = parseInt(coordMatch[2]);
+              if (clipboardOriginalPos) {
+                offsetX = targetX - clipboardOriginalPos.x + 20;
+                offsetY = targetY - clipboardOriginalPos.y + 20;
+              } else {
+                offsetX = 15;
+                offsetY = 15;
+              }
+            }
+          }
+        }
+
         const adjustedContent = clipboardContent.replace(
           /@\((\d+),\s*(\d+)\)/g,
-          (_, x, y) => `@(${parseInt(x) + offset}, ${parseInt(y) + offset})`
+          (_, x, y) => `@(${parseInt(x) + offsetX}, ${parseInt(y) + offsetY})`
         ).replace(
           /->\((\d+),\s*(\d+)\)/g,
-          (_, x, y) => `->(${parseInt(x) + offset}, ${parseInt(y) + offset})`
+          (_, x, y) => `->(${parseInt(x) + offsetX}, ${parseInt(y) + offsetY})`
         );
         
         const currentContent = content.trimEnd();
         const newContent = `${currentContent}\n${adjustedContent}`;
         setContent(newContent);
+
+        const newLines = adjustedContent.split(/\r?\n/);
+        const startLineNum = currentContent.split(/\r?\n/).length + 1;
+        const newElementIds: string[] = [];
+        for (let i = 0; i < newLines.length; i++) {
+          newElementIds.push((startLineNum + i).toString());
+        }
+        if (newElementIds.length > 0) {
+          setSelectedElements(newElementIds);
+        }
       }
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElements.length > 0) {
         const activeElement = document.activeElement;
@@ -430,7 +489,7 @@ function SolarWireMode(): React.ReactElement {
       window.removeEventListener('keydown', handleKeyDownEvent);
       window.removeEventListener('keyup', handleKeyUpEvent);
     };
-  }, [undo, handleKeyDown]);
+  }, [undo, handleKeyDown, selectedElements, content, clipboardContent, clipboardOriginalPos]);
 
   return (
     <TabProvider activeTab={activeTab} onTabChange={(tabId) => handleTabChange(tabId as 'visual' | 'code')}>
