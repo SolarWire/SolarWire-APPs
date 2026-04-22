@@ -3,15 +3,18 @@ import MonacoEditor from '../editor/MonacoEditor';
 import SolarWirePreview from '../editor/SolarWirePreview';
 import PropertyPanel from '../editor/PropertyPanel';
 import ElementLibrary from '../editor/ElementLibrary';
+import ComponentLibrary from '../editor/ComponentLibrary';
 import LayerPanel from '../editor/LayerPanel';
 import ShortcutPanel from '../editor/ShortcutPanel';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements, detectNoteBounds, detectTableBounds } from '../../../shared/utils/solarwire-utils';
 import { parse } from '../../../lib/parser';
 import type { Element as SolarWireElement } from '../../../lib/parser/types';
+import { Component } from '../../../shared/types/component';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './SolarWireMode.css';
 
@@ -25,6 +28,8 @@ function SolarWireMode(): React.ReactElement {
   const [highlightTrigger, setHighlightTrigger] = useState(0);
   const [showLayerPanel, setShowLayerPanel] = useState(false);
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [componentDropTrigger, setComponentDropTrigger] = useState(0);
+  const { showComponentLibrary, setShowComponentLibrary } = useComponentLibraryStore();
 
   const handleTabChange = useCallback((tab: 'visual' | 'code') => {
     setActiveTab(tab);
@@ -167,9 +172,12 @@ function SolarWireMode(): React.ReactElement {
 
   useEffect(() => {
     if (selectedFile && fileContent && !currentSnippet) {
-      setContent(fileContent);
+      const editorContent = useEditorStore.getState().content;
+      if (editorContent !== fileContent) {
+        setContent(fileContent);
+      }
     }
-  }, [selectedFile, fileContent, currentSnippet, setContent]);
+  }, [selectedFile?.path, fileContent, currentSnippet]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const activeElement = document.activeElement;
@@ -328,6 +336,12 @@ function SolarWireMode(): React.ReactElement {
     setContent(newContent);
     setSelectedElements([]);
   }, [selectedElements, content, setContent, setSelectedElements]);
+
+  const handleDropComponentToCanvas = useCallback((component: Component, x: number, y: number) => {
+    const newContent = content + '\n\n' + component.code;
+    setContent(newContent);
+    setShowComponentLibrary(false);
+  }, [content, setContent, setShowComponentLibrary]);
 
   const [clipboardContent, setClipboardContent] = useState<string | null>(null);
   const [clipboardOriginalPos, setClipboardOriginalPos] = useState<{ x: number; y: number } | null>(null);
@@ -566,6 +580,13 @@ function SolarWireMode(): React.ReactElement {
               >
                 ☰
               </button>
+              <button
+                className={`component-library-toggle-button ${showComponentLibrary ? 'active' : ''}`}
+                onClick={() => setShowComponentLibrary(!showComponentLibrary)}
+                title="Toggle Component Library"
+              >
+                📦
+              </button>
               <div className="zoom-controls">
                 <button className="zoom-button" onClick={handleZoomOut}>-</button>
                 <span className="zoom-label">{zoomLevel}%</span>
@@ -693,6 +714,13 @@ function SolarWireMode(): React.ReactElement {
                   onSelectElement={(id) => setSelectedElements([id])}
                   onReorderElements={handleReorderElements}
                 />
+              </div>
+            )}
+
+            {/* 组件库面板：固定左侧 */}
+            {showComponentLibrary && (
+              <div className="component-library-panel-fixed">
+                <ComponentLibrary onDropToCanvas={handleDropComponentToCanvas} />
               </div>
             )}
           </TabPanel>

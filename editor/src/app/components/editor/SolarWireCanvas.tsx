@@ -525,6 +525,44 @@ function SolarWireCanvas({ zoomLevel, showNotes = true, onZoomChange, isPanMode 
     e.preventDefault();
 
     try {
+      const plainText = e.dataTransfer.getData('text/plain');
+      if (plainText) {
+        const coords = getWorldCoords(e.clientX, e.clientY);
+        const x = Math.round(coords.x);
+        const y = Math.round(coords.y);
+
+        const adjustedCode = plainText
+          .split(/\r?\n/)
+          .map((line) => {
+            const coordMatch = line.match(/@\((\d+),\s*(\d+)\)/);
+            if (coordMatch) {
+              const origX = parseInt(coordMatch[1], 10);
+              const origY = parseInt(coordMatch[2], 10);
+              const dx = x - origX;
+              const dy = y - origY;
+              return line.replace(
+                /@\(\d+,\s*\d+\)/g,
+                (match) => {
+                  const m = match.match(/@\((\d+),\s*(\d+)\)/);
+                  if (m) {
+                    const nx = Math.max(0, parseInt(m[1], 10) + dx);
+                    const ny = Math.max(0, parseInt(m[2], 10) + dy);
+                    return `@(${nx},${ny})`;
+                  }
+                  return match;
+                }
+              );
+            }
+            return line;
+          })
+          .join('\n');
+
+        const currentContent = content || '';
+        const newContent = currentContent.trimEnd() + '\n\n' + adjustedCode;
+        setContent(newContent);
+        return;
+      }
+
       const jsonData = e.dataTransfer.getData('application/json');
       if (!jsonData) return;
 

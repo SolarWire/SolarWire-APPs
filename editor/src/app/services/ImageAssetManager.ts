@@ -1,4 +1,8 @@
 /**
+ * @deprecated Use project-based file storage instead.
+ * Images are now saved directly to the project's assets/images directory.
+ * This class is kept for backward compatibility only.
+ * 
  * Image Asset Manager
  * Manages image files for SolarWire projects
  * Handles adding, retrieving, and managing image assets

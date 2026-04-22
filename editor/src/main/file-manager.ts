@@ -1,4 +1,5 @@
 import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import * as path from 'path';
 
 interface FileNode {
@@ -207,5 +208,62 @@ export async function collectSolarWireSnippets(dirPath: string): Promise<SolarWi
   } catch (error) {
     console.error('Failed to collect solarwire snippets:', error);
     return [];
+  }
+}
+
+export async function ensureDir(dirPath: string): Promise<void> {
+  try {
+    validatePath(dirPath);
+    await fs.mkdir(dirPath, { recursive: true });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to create directory: ${dirPath}`);
+  }
+}
+
+export async function copyFile(srcPath: string, destPath: string): Promise<void> {
+  try {
+    validatePath(srcPath);
+    validatePath(destPath);
+    
+    const destDir = path.dirname(destPath);
+    await fs.mkdir(destDir, { recursive: true });
+    
+    const readStream = fsSync.createReadStream(srcPath);
+    const writeStream = fsSync.createWriteStream(destPath);
+    
+    await new Promise<void>((resolve, reject) => {
+      readStream.on('error', reject);
+      writeStream.on('error', reject);
+      writeStream.on('finish', resolve);
+      readStream.pipe(writeStream);
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to copy file: ${srcPath} -> ${destPath}`);
+  }
+}
+
+export async function readImageAsBase64(imagePath: string): Promise<string> {
+  try {
+    validatePath(imagePath);
+    const buffer = await fs.readFile(imagePath);
+    const ext = path.extname(imagePath).toLowerCase().slice(1);
+    const mimeType = ext === 'png' ? 'image/png' : 
+                     ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' :
+                     ext === 'gif' ? 'image/gif' :
+                     ext === 'webp' ? 'image/webp' :
+                     ext === 'svg' ? 'image/svg+xml' :
+                     'application/octet-stream';
+    return `data:${mimeType};base64,${buffer.toString('base64')}`;
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to read image: ${imagePath}`);
   }
 }

@@ -10,12 +10,34 @@
 
 .git-empty {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
   color: var(--text-muted);
   font-size: 13px;
   text-align: center;
+  gap: 12px;
+}
+
+.git-empty p {
+  margin: 0;
+}
+
+.git-init-button {
+  padding: 10px 24px;
+  background: var(--accent-color);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.git-init-button:hover {
+  background: var(--accent-hover);
 }
 
 .git-header {

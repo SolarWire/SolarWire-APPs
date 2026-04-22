@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld('api', {
   listDirectory: (dirPath: string) => ipcRenderer.invoke('file:listDirectory', dirPath),
   getFileTree: (dirPath: string) => ipcRenderer.invoke('file:getFileTree', dirPath),
   collectSolarWireSnippets: (dirPath: string) => ipcRenderer.invoke('file:collectSolarWireSnippets', dirPath),
+  copyFile: (srcPath: string, destPath: string) => ipcRenderer.invoke('file:copy', srcPath, destPath),
+  ensureDir: (dirPath: string) => ipcRenderer.invoke('file:ensureDir', dirPath),
+  readImageAsBase64: (imagePath: string) => ipcRenderer.invoke('file:readImageAsBase64', imagePath),
   
   // Git APIs
   git: {

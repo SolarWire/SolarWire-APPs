@@ -52,8 +52,8 @@ export function registerGitHandlers(): void {
     if (!repoPath || typeof repoPath !== 'string') {
       throw new Error('Invalid repository path');
     }
-    initGit(repoPath);
-    return { success: true };
+    const result = await initGit(repoPath);
+    return result;
   });
 
   ipcMain.handle('git:isInitialized', async () => {

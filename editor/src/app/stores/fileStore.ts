@@ -13,6 +13,24 @@ async function writeFile(filePath: string, content: string): Promise<void> {
   throw new Error('writeFile API not available');
 }
 
+function extractSolarWireSnippetCode(
+  markdownContent: string,
+  snippetIndex: number
+): string | null {
+  const solarwireBlockRegex = /```solarwire\s*([\s\S]*?)```/g;
+  let match;
+  let currentIndex = 0;
+
+  while ((match = solarwireBlockRegex.exec(markdownContent)) !== null) {
+    currentIndex++;
+    if (currentIndex === snippetIndex) {
+      return match[1].trim();
+    }
+  }
+
+  return null;
+}
+
 function replaceSolarWireSnippetInMarkdown(
   markdownContent: string,
   snippetIndex: number,
@@ -67,7 +85,6 @@ export const useFileStore = create<FileState>()((set, get) => ({
   },
   updateFileContent: (file: FileNode | string, content: string) => {
     set({ fileContent: content });
-    useEditorStore.getState().setContent(content);
   },
   toggleDirectory: (dirPath: string) => {
     const expanded = new Set(get().expandedDirectories);
@@ -114,8 +131,18 @@ export const useFileStore = create<FileState>()((set, get) => ({
   openSolarWireSnippet: async (snippet: SolarWireSnippet) => {
     try {
       const node: FileNode = { name: snippet.name, path: snippet.sourceFile, type: 'file' };
-      set({ selectedFile: node, fileContent: snippet.code, currentSnippet: snippet });
-      useEditorStore.getState().setContent(snippet.code);
+
+      let latestCode = snippet.code;
+      if (snippet.snippetIndex !== undefined) {
+        const fileOnDisk = await readFile(snippet.sourceFile);
+        const extracted = extractSolarWireSnippetCode(fileOnDisk, snippet.snippetIndex);
+        if (extracted !== null) {
+          latestCode = extracted;
+        }
+      }
+
+      set({ selectedFile: node, fileContent: latestCode, currentSnippet: snippet });
+      useEditorStore.getState().setContent(latestCode);
       useEditorStore.getState().setModified(false);
       useEditorStore.getState().setMode('solarwire');
     } catch (err) {
@@ -175,9 +202,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
       
       await writeFile(selectedFile.path, contentToSave);
       
-      // 更新 fileContent，但保持 currentSnippet 不变
       set({ fileContent: contentToSave });
-      
       useEditorStore.getState().setModified(false);
       useStatusStore.getState().completeOperation('保存成功');
     } catch (err) {

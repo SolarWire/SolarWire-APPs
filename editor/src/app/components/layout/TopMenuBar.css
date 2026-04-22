@@ -155,6 +155,27 @@
   background: var(--bg-secondary);
 }
 
+.component-library-manager-button {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  margin: 0 4px;
+  transition: all 0.15s ease;
+}
+
+.component-library-manager-button:hover {
+  background: var(--bg-secondary);
+  border-color: var(--accent-color);
+}
+
 .settings-button {
   background: transparent;
   color: var(--text-primary);

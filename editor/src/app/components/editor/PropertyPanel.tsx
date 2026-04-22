@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
+import { useFileStore } from '../../stores/fileStore';
 import { parse } from "../../../lib/parser";
 import { updateLineAttribute, updateLineCoords } from '../../../shared/utils/solarwire-utils';
 import {
@@ -215,8 +216,10 @@ function BatchEditPanel({ selectedElements, content, setContent, ast }: BatchEdi
 function PropertyPanel(): React.ReactElement {
   const { selectedElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
+  const { currentPath } = useFileStore();
   const [parseError, setParseError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   const ast = useMemo(() => {
     try {
@@ -606,11 +609,67 @@ function PropertyPanel(): React.ReactElement {
           )}
 
           {type === 'image' && (
-            <PropertyRow label="URL">
+            <PropertyRow label="Image Path">
+              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                <input
+                  type="text"
+                  value={el.url || ''}
+                  onChange={(e) => handleChange('url', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  onClick={() => {
+                    if (!currentPath) {
+                      alert('Please open a folder first');
+                      return;
+                    }
+                    imageFileInputRef.current?.click();
+                  }}
+                  title="Select image from project"
+                  style={{ padding: '4px 8px', cursor: 'pointer' }}
+                >
+                  📁
+                </button>
+              </div>
               <input
-                type="text"
-                value={el.url || ''}
-                onChange={(e) => handleChange('url', e.target.value)}
+                ref={imageFileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !currentPath) return;
+
+                  try {
+                    const api = (window as any).api;
+                    if (!api || !api.ensureDir || !api.copyFile) {
+                      alert('File API not available');
+                      return;
+                    }
+
+                    const assetsDir = `${currentPath}/assets/images`;
+                    await api.ensureDir(assetsDir);
+
+                    const timestamp = Date.now();
+                    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+                    const destPath = `${assetsDir}/${timestamp}_${sanitizedName}`;
+
+                    const electronFile = file as File & { path?: string };
+                    if (electronFile.path) {
+                      await api.copyFile(electronFile.path, destPath);
+                    } else {
+                      await api.writeFile(destPath, await file.arrayBuffer());
+                    }
+
+                    const relativePath = `assets/images/${timestamp}_${sanitizedName}`;
+                    handleChange('url', relativePath);
+                  } catch (err) {
+                    console.error('Failed to copy image:', err);
+                    alert('Failed to copy image');
+                  }
+
+                  e.target.value = '';
+                }}
               />
             </PropertyRow>
           )}

@@ -127,31 +127,56 @@ export function updateLineAttribute(
   // 特殊处理 text 属性 - 修改元素内部的 text 而不是添加 text= 属性
   if (attributeName === 'text') {
     // 检查各种元素类型的 text 部分
-    // 矩形: ["text"]
+    // 矩形: ["text"] 或 [""] 或 []
     const rectMatch = line.match(/^(\s*)\["([^"]*)"\](.*)$/);
     if (rectMatch) {
       lines[lineIndex] = `${rectMatch[1]}["${attributeValue}"]${rectMatch[3]}`;
       return lines.join('\n');
     }
     
-    // 圆角矩形: ("text")
+    // 矩形无引号: []
+    const rectEmptyMatch = line.match(/^(\s*)\[\](.*)$/);
+    if (rectEmptyMatch) {
+      lines[lineIndex] = `${rectEmptyMatch[1]}["${attributeValue}"]${rectEmptyMatch[2]}`;
+      return lines.join('\n');
+    }
+    
+    // 圆角矩形: ("text") 或 ("") 或 ()
     const roundedRectMatch = line.match(/^(\s*)\("([^"]*)"\)(.*)$/);
     if (roundedRectMatch) {
       lines[lineIndex] = `${roundedRectMatch[1]}("${attributeValue}")${roundedRectMatch[3]}`;
       return lines.join('\n');
     }
     
-    // 圆形: (("text"))
+    const roundedRectEmptyMatch = line.match(/^(\s*)\(\)(.*)$/);
+    if (roundedRectEmptyMatch) {
+      lines[lineIndex] = `${roundedRectEmptyMatch[1]}("${attributeValue}")${roundedRectEmptyMatch[2]}`;
+      return lines.join('\n');
+    }
+    
+    // 圆形: (("text")) 或 (("")) 或 (())
     const circleMatch = line.match(/^(\s*)\(\("([^"]*)"\)\)(.*)$/);
     if (circleMatch) {
       lines[lineIndex] = `${circleMatch[1]}(("${attributeValue}"))${circleMatch[3]}`;
       return lines.join('\n');
     }
     
-    // 占位符: [?"text"]
+    const circleEmptyMatch = line.match(/^(\s*)\(\(\)\)(.*)$/);
+    if (circleEmptyMatch) {
+      lines[lineIndex] = `${circleEmptyMatch[1]}(("${attributeValue}"))${circleEmptyMatch[2]}`;
+      return lines.join('\n');
+    }
+    
+    // 占位符: [?"text"] 或 [?""] 或 [?]
     const placeholderMatch = line.match(/^(\s*)\[\?"([^"]*)"\](.*)$/);
     if (placeholderMatch) {
       lines[lineIndex] = `${placeholderMatch[1]}[?"${attributeValue}"]${placeholderMatch[3]}`;
+      return lines.join('\n');
+    }
+    
+    const placeholderEmptyMatch = line.match(/^(\s*)\[\?\](.*)$/);
+    if (placeholderEmptyMatch) {
+      lines[lineIndex] = `${placeholderEmptyMatch[1]}[?"${attributeValue}"]${placeholderEmptyMatch[2]}`;
       return lines.join('\n');
     }
     

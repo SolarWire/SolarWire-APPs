@@ -12,11 +12,13 @@ function MarkdownMode(): React.ReactElement {
 
   // 加载选中文件的内容
   useEffect(() => {
-    // 只有当不是在编辑 snippet 时，才从 fileContent 加载内容
     if (selectedFile && fileContent && !currentSnippet) {
-      setContent(fileContent);
+      const editorContent = useEditorStore.getState().content;
+      if (editorContent !== fileContent) {
+        setContent(fileContent);
+      }
     }
-  }, [selectedFile, fileContent, currentSnippet, setContent]);
+  }, [selectedFile?.path, fileContent, currentSnippet]);
 
   const handleChange = (value: string): void => {
     setContent(value);

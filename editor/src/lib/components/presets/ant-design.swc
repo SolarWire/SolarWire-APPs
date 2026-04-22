@@ -1,0 +1,734 @@
+# Ant Design 组件库
+id: ant-design-component-library
+$schema: solarwire-component-library-v1
+description: 基于 Ant Design 设计语言的通用业务组件库，包含按钮、表单、表格、反馈等常用组件
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+## 通用
+id: general
+
+### 主按钮
+id: btn-primary
+name: 主按钮
+description: 用于主要操作的高亮按钮
+categoryId: general
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 主按钮
+["按钮"] @(10, 10) w=120 h=36 bg=#1677ff c=#ffffff size=14 rounded=6
+```
+
+### 默认按钮
+id: btn-default
+name: 默认按钮
+description: 用于一般操作的默认按钮
+categoryId: general
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 默认按钮
+["按钮"] @(10, 10) w=120 h=36 bg=#ffffff c=#000000 size=14 s=1 rounded=6
+```
+
+### 危险按钮
+id: btn-danger
+name: 危险按钮
+description: 用于删除等危险操作的按钮
+categoryId: general
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 危险按钮
+["删除"] @(10, 10) w=120 h=36 bg=#ff4d4f c=#ffffff size=14 rounded=6
+```
+
+### 按钮组
+id: btn-group
+name: 按钮组
+description: 水平排列的按钮组
+categoryId: general
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 按钮组
+["主要操作"] @(10, 10) w=80 h=36 bg=#1677ff c=#ffffff size=13 rounded=6
+["次要操作"] @(100, 10) w=80 h=36 bg=#ffffff c=#000000 size=13 s=1 rounded=6
+["取消"] @(190, 10) w=80 h=36 bg=#ffffff c=#ff4d4f size=13 s=1 rounded=6
+```
+
+### 图标按钮
+id: icon-btn
+name: 图标按钮
+description: 带图标的圆形按钮
+categoryId: general
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 图标按钮
+(("+")) @(10, 10) w=36 h=36 bg=#f0f5ff c=#1677ff size=16 bold=true s=1
+```
+
+### 输入框
+id: input
+name: 输入框
+description: 基础文本输入框
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 输入框
+["请输入内容..."] @(10, 10) w=200 h=36 bg=#ffffff c=#bfbfbf size=13 s=1 rounded=6
+```
+
+### 带标签输入框
+id: input-with-label
+name: 带标签输入框
+description: 左侧带标签的输入框
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 带标签输入框
+"用户名：" @(10, 10) c=#000000 size=13
+["请输入用户名..."] @(70, 10) w=210 h=36 bg=#ffffff c=#bfbfbf size=13 s=1 rounded=6
+```
+
+### 下拉选择框
+id: select
+name: 下拉选择框
+description: 下拉选择组件
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 下拉选择框
+["请选择"] @(10, 10) w=200 h=36 bg=#ffffff c=#000000 size=13 s=1 rounded=6
+"▼" @(175, 10) c=#000000 size=14
+```
+
+### 多行文本框
+id: textarea
+name: 多行文本框
+description: 多行文本输入区域
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 多行文本框
+["请输入备注信息..."] @(10, 10) w=200 h=100 bg=#ffffff c=#bfbfbf size=13 s=1 rounded=6
+```
+
+### 复选框
+id: checkbox
+name: 复选框
+description: 可多选的复选框
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 复选框组
+["✓"] @(10, 10) w=16 h=16 bg=#1677ff c=#ffffff size=12 bold=true rounded=3
+"选项一" @(30, 10) c=#000000 size=13
+[" "] @(90, 10) w=16 h=16 bg=#ffffff c=#000000 size=12 s=1 rounded=3
+"选项二" @(110, 10) c=#000000 size=13
+```
+
+### 单选框
+id: radio
+name: 单选框
+description: 单选按钮组
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 单选框组
+(("●")) @(10, 10) w=16 h=16 bg=#1677ff c=#ffffff size=10 bold=true s=1
+"选项A" @(32, 10) c=#000000 size=13
+(("○")) @(90, 10) w=16 h=16 bg=#ffffff c=#d9d9e9 size=10 s=1
+"选项B" @(112, 10) c=#000000 size=13
+```
+
+### 开关
+id: switch
+name: 开关
+description: 开关切换组件
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 开关
+(" ") @(10, 10) w=44 h=24 bg=#1677ff rounded=12
+(("●")) @(36, 14) w=16 h=16 bg=#ffffff size=8
+```
+
+### 滑块
+id: slider
+name: 滑块
+description: 滑动选择器
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 滑块
+[" "] @(10, 13) w=200 h=4 bg=#e5e5e5 rounded=2
+[" "] @(10, 13) w=100 h=4 bg=#1677ff rounded=2
+(("●")) @(95, 7) w=12 h=12 bg=#1677ff c=#ffffff size=6 s=1
+"50%" @(112, 26) c=#000000 size=12
+```
+
+### 日期选择器
+id: date-picker
+name: 日期选择器
+description: 日期选择输入框
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 日期选择器
+["2026-04-21"] @(10, 10) w=200 h=36 bg=#ffffff c=#000000 size=13 s=1 rounded=6
+"📅" @(175, 10) c=#000000 size=12
+```
+
+### 表单区块
+id: form-block
+name: 表单区块
+description: 包含多个表单项的表单区块
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 表单区块
+[" "] @(10, 10) w=300 h=160 bg=#ffffff s=1 rounded=8
+"用户信息" @(20, 25) c=#000000 size=14 bold=true
+"用户名：" @(20, 50) c=#666666 size=12
+["请输入用户名..."] @(90, 50) w=190 h=36 bg=#ffffff c=#bfbfbf size=13 s=1 rounded=6
+"邮箱：" @(20, 100) c=#666666 size=12
+["example@email.com"] @(90, 100) w=190 h=36 bg=#ffffff c=#bfbfbf size=13 s=1 rounded=6
+["提交"] @(90, 150) w=100 h=36 bg=#1677ff c=#ffffff size=13 rounded=6
+```
+
+### 登录表单
+id: login-form
+name: 登录表单
+description: 完整的登录表单组件
+categoryId: form
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 登录表单
+[" "] @(10, 10) w=300 h=240 bg=#ffffff s=1 rounded=12
+"登录" @(130, 25) c=#000000 size=18 bold=true
+"用户名：" @(20, 60) c=#666666 size=12
+["请输入用户名..."] @(20, 80) w=240 h=36 bg=#f5f5f5 c=#bfbfbf size=13 s=1 rounded=6
+"密码：" @(20, 130) c=#666666 size=12
+["请输入密码..."] @(20, 150) w=240 h=36 bg=#f5f5f5 c=#bfbfbf size=13 s=1 rounded=6
+["登 录"] @(20, 200) w=240 h=36 bg=#1677ff c=#ffffff size=14 rounded=6
+```
+
+## 数据展示
+id: data-display
+
+### 卡片
+id: card
+name: 卡片
+description: 基础卡片容器组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 卡片组件
+[" "] @(10, 10) w=300 h=150 bg=#ffffff s=1 rounded=8
+"卡片标题" @(20, 20) c=#000000 size=16 bold=true
+-- @(10, 40)->(290, 40) c=#f0f0f0 s=1
+"这是一段卡片内容，用于展示信息..." @(10, 55) c=#666666 size=13
+```
+
+### 图片卡片
+id: image-card
+name: 图片卡片
+description: 带图片的卡片组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 图片卡片
+[" "] @(10, 10) w=200 h=200 bg=#ffffff s=1 rounded=8
+["🖼️ 图片"] @(15, 15) w=170 h=100 bg=#f0f0f0 c=#bfbfbf size=14 rounded=4
+"图片标题" @(10, 125) c=#000000 size=14 bold=true
+"图片描述文本内容" @(10, 145) c=#666666 size=12
+```
+
+### 头像
+id: avatar
+name: 头像
+description: 用户头像组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 头像组件
+(("张")) @(10, 10) w=60 h=60 bg=#f0f5ff c=#1677ff size=18 bold=true s=1
+```
+
+### 徽标
+id: badge
+name: 徽标
+description: 徽标数组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 徽标
+[" "] @(10, 10) w=40 h=40 bg=#f0f0f0 rounded=4
+(("9")) @(42, 4) w=20 h=20 bg=#ff4d4f c=#ffffff size=10 bold=true
+```
+
+### 标签
+id: tag
+name: 标签
+description: 标签组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 标签
+("标签") @(10, 10) w=80 h=24 bg=#e6f4ff c=#1677ff size=11 s=1 rounded=12
+```
+
+### 提示气泡
+id: tooltip
+name: 提示气泡
+description: 提示气泡组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 提示气泡
+["这是一段提示文本"] @(10, 10) w=150 h=30 bg=#000000 c=#ffffff size=12 rounded=4
+-- @(75, 40)->(85, 40) c=#000000 s=3
+```
+
+### 统计数值
+id: statistic
+name: 统计数值
+description: 统计数据展示组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 统计数值
+[" "] @(10, 10) w=200 h=100 bg=#ffffff s=1 rounded=8
+"总用户数" @(10, 20) c=#666666 size=12
+"1,234" @(10, 45) c=#000000 size=28 bold=true
+"+12%" @(85, 55) c=#52c41d size=16 bold=false
+```
+
+### 进度条
+id: progress
+name: 进度条
+description: 线性进度条组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 进度条
+[" "] @(10, 10) w=160 h=10 bg=#e5e5e5 rounded=5
+[" "] @(10, 10) w=120 h=10 bg=#1677ff rounded=5
+"75%" @(135, 8) c=#000000 size=12
+```
+
+### 数据表格
+id: data-table
+name: 数据表格
+description: 基础数据表格组件
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 数据表格
+[" "] @(10, 10) w=300 h=150 bg=#ffffff s=1 rounded=8
+"姓名" @(10, 15) c=#000000 size=12 bold=true
+"部门" @(90, 15) c=#000000 size=12 bold=true
+"手机号" @(170, 15) c=#000000 size=12 bold=true
+-- @(10, 30)->(290, 30) c=#f0f0f0 s=1
+"张三" @(10, 40) c=#666666 size=11
+"技术部" @(90, 40) c=#666666 size=11
+"13800000001" @(170, 40) c=#666666 size=11
+-- @(10, 60)->(290, 60) c=#f0f0f0 s=1
+"李四" @(10, 70) c=#666666 size=11
+"产品部" @(90, 70) c=#666666 size=11
+"13900000002" @(170, 70) c=#666666 size=11
+```
+
+### 用户列表
+id: user-list
+name: 用户列表
+description: 用户信息列表项
+categoryId: data-display
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 用户列表项
+(("张")) @(10, 10) w=36 h=36 bg=#f0f5ff c=#1677ff size=14 bold=true s=1
+"张三" @(55, 8) c=#000000 size=13 bold=true
+"zhangsan@email.com" @(55, 24) c=#666666 size=11
+```
+
+## 反馈
+id: feedback
+
+### 成功提示
+id: alert-success
+name: 成功提示
+description: 成功状态提示框
+categoryId: feedback
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 成功提示
+["✅ 操作成功！您的数据已保存"] @(10, 10) w=300 h=36 bg=#f6ffed c=#52c41d size=14 rounded=6
+```
+
+### 错误提示
+id: alert-error
+name: 错误提示
+description: 错误状态提示框
+categoryId: feedback
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 错误提示
+["❌ 操作失败：网络连接超时，请重试"] @(10, 10) w=300 h=36 bg=#fff2f0 c=#ff4d4f size=14 rounded=6
+```
+
+### 警告提示
+id: alert-warning
+name: 警告提示
+description: 警告状态提示框
+categoryId: feedback
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 警告提示
+["⚠️ 警告提示：您的账户存在异常登录"] @(10, 10) w=300 h=36 bg=#fffbe6 c=#faad14 size=14 rounded=6
+```
+
+### 信息提示
+id: alert-info
+name: 信息提示
+description: 信息状态提示框
+categoryId: feedback
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 信息提示
+["ℹ️ 信息提示：系统将于今晚维护升级"] @(10, 10) w=300 h=36 bg=#e6f4ff c=#1677ff size=14 rounded=6
+```
+
+### 模态对话框
+id: modal
+name: 模态对话框
+description: 模态对话框组件
+categoryId: feedback
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 模态对话框
+[" "] @(10, 10) w=300 h=200 bg=#ffffff s=2 rounded=8
+"确认删除操作" @(10, 20) c=#000000 size=16 bold=true
+-- @(10, 40)->(290, 40) c=#f0f0f0 s=1
+"确定要删除此项吗？此操作不可恢复。" @(10, 55) c=#666666 size=13
+["取消"] @(10, 130) w=90 h=36 bg=#ffffff c=#000000 size=13 s=1 rounded=6
+["确定"] @(110, 130) w=90 h=36 bg=#1677ff c=#ffffff size=13 rounded=6
+```
+
+### 通知条
+id: notification
+name: 通知条
+description: 顶部通知条组件
+categoryId: feedback
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 通知条
+[" "] @(10, 10) w=300 h=60 bg=#ffffff s=1 rounded=8
+"通知标题" @(15, 15) c=#000000 size=14 bold=true
+"这是一条通知消息" @(15, 35) c=#666666 size=12
+"×" @(240, 5) c=#999999 size=14 bold=false
+```
+
+## 导航
+id: navigation
+
+### 分页器
+id: pagination
+name: 分页器
+description: 分页导航组件
+categoryId: navigation
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 分页器
+["‹"] @(10, 10) w=30 h=24 bg=#ffffff c=#000000 size=11 s=1 rounded=3
+["1"] @(45, 10) w=30 h=24 bg=#1677ff c=#ffffff size=11 bold=true rounded=3
+["2"] @(80, 10) w=30 h=24 bg=#ffffff c=#000000 size=11 s=1 rounded=3
+["3"] @(115, 10) w=30 h=24 bg=#ffffff c=#000000 size=11 s=1 rounded=3
+["..."] @(150, 10) w=30 h=24 bg=#ffffff c=#000000 size=11 s=1 rounded=3
+["›"] @(185, 10) w=30 h=24 bg=#ffffff c=#000000 size=11 s=1 rounded=3
+```
+
+### 面包屑
+id: breadcrumb
+name: 面包屑
+description: 面包屑导航组件
+categoryId: navigation
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 面包屑导航
+"首页" @(10, 10) c=#1677ff size=12
+"/" @(45, 10) c=#999999 size=12
+"列表" @(60, 10) c=#1677ff size=12
+"/" @(90, 10) c=#999999 size=12
+"详情" @(105, 10) c=#666666 size=12
+```
+
+### 步骤条
+id: steps
+name: 步骤条
+description: 步骤导航组件
+categoryId: navigation
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 步骤条
+(("1")) @(10, 10) w=20 h=20 bg=#1677ff c=#ffffff size=12 bold=true
+"第一步" @(35, 15) c=#666666 size=11
+-- @(30, 20)->(80, 20) c=#1677ff s=2
+(("2")) @(90, 10) w=20 h=20 bg=#1677ff c=#ffffff size=12 bold=true
+"第二步" @(115, 15) c=#666666 size=11
+-- @(120, 20)->(170, 20) c=#e5e5e5 s=2
+(("3")) @(180, 10) w=20 h=20 bg=#e5e5e5 c=#999999 size=12 bold=true
+"第三步" @(205, 15) c=#999999 size=11
+```
+
+### 标签页
+id: tabs
+name: 标签页
+description: 标签页切换组件
+categoryId: navigation
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 标签页
+"基本信息" @(10, 10) c=#1677ff size=13 bold=true
+-- @(10, 25)->(70, 25) c=#1677ff s=2
+"详细信息" @(80, 10) c=#666666 size=13
+"设置" @(140, 10) c=#666666 size=13
+-- @(10, 40)->(290, 40) c=#f0f0f0 s=1
+"基本信息内容区域" @(10, 50) c=#666666 size=12
+```
+
+### 顶部导航
+id: top-nav
+name: 顶部导航
+description: 顶部导航菜单
+categoryId: navigation
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 顶部导航
+[" "] @(0, 0) w=320 h=50 bg=#001529
+"Logo" @(10, 12) c=#ffffff size=16 bold=true
+"首页" @(90, 18) c=#ffffff size=13
+"产品" @(140, 18) c=#ffffff size=13
+"关于" @(190, 18) c=#ffffff size=13
+```
+
+### 侧边导航
+id: side-nav
+name: 侧边导航
+description: 侧边栏导航菜单
+categoryId: navigation
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 侧边导航
+[" "] @(0, 0) w=150 h=400 bg=#001529
+"导航菜单" @(10, 20) c=#ffffff size=14 bold=true
+["仪表盘"] @(5, 50) w=140 h=30 bg=#1677ff c=#ffffff size=12 rounded=4
+"用户管理" @(5, 90) c=#ffffff size=12
+"数据统计" @(5, 120) c=#ffffff size=12
+"系统设置" @(5, 150) c=#ffffff size=12
+```
+
+## 布局
+id: layout
+
+### 页面布局
+id: page-layout
+name: 页面布局
+description: 标准后台页面布局
+categoryId: layout
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 页面布局
+[" "] @(0, 0) w=320 h=50 bg=#001529
+"Logo" @(10, 15) c=#ffffff size=16 bold=true
+"首页" @(100, 18) c=#ffffff size=13
+"产品" @(150, 18) c=#ffffff size=13
+[" "] @(0, 50) w=120 h=350 bg=#001529
+"菜单" @(10, 65) c=#ffffff size=12 bold=true
+"用户管理" @(10, 90) c=#ffffff size=12
+"数据统计" @(10, 110) c=#ffffff size=12
+["页面内容区域"] @(130, 60) w=190 h=340 bg=#f0f0f0 c=#bfbfbf size=12 rounded=4
+```
+
+### 空状态
+id: empty
+name: 空状态
+description: 空状态提示组件
+categoryId: layout
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 空状态
+["📦"] @(50, 10) w=100 h=80 bg=#f5f5f5 c=#bfbfbf size=24 rounded=8
+"暂无数据" @(60, 100) c=#999999 size=13
+["创建数据"] @(65, 120) w=70 h=28 bg=#1677ff c=#ffffff size=11 rounded=4
+```
+
+### 加载中
+id: loading
+name: 加载中
+description: 加载状态组件
+categoryId: layout
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 加载中
+(("加载中")) @(25, 10) w=50 h=50 bg=#ffffff c=#1677ff size=10 s=4
+"加载中..." @(30, 75) c=#999999 size=12
+```
+
+### 骨架屏
+id: skeleton
+name: 骨架屏
+description: 内容加载占位骨架
+categoryId: layout
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 骨架屏
+[" "] @(10, 10) w=300 h=150 bg=#ffffff s=1 rounded=8
+[" "] @(20, 20) w=120 h=16 bg=#f5f5f5 rounded=4
+[" "] @(20, 50) w=280 h=12 bg=#f5f5f5 rounded=3
+[" "] @(20, 70) w=260 h=12 bg=#f5f5f5 rounded=3
+[" "] @(20, 90) w=200 h=12 bg=#f5f5f5 rounded=3
+```
+
+## 页面模板
+id: page-template
+
+### 列表页面
+id: list-page
+name: 列表页面
+description: 标准列表页面模板
+categoryId: page-template
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 列表页面模板
+[" "] @(0, 0) w=400 h=45 bg=#ffffff s=1
+"用户列表" @(10, 12) c=#000000 size=16 bold=true
+["+ 新增"] @(300, 10) w=90 h=28 bg=#1677ff c=#ffffff size=11 rounded=4
+["搜索：请输入用户名..."] @(10, 55) w=380 h=40 bg=#f5f5f5 c=#999999 size=12 rounded=6
+"部门：全部" @(200, 65) c=#999999 size=12
+[" "] @(10, 105) w=380 h=35 bg=#ffffff s=1 rounded=6
+"姓名" @(10, 115) c=#000000 size=12 bold=true
+"部门" @(90, 115) c=#000000 size=12 bold=true
+"手机号" @(170, 115) c=#000000 size=12 bold=true
+"状态" @(250, 115) c=#000000 size=12 bold=true
+[" "] @(10, 150) w=380 h=35 bg=#ffffff s=1 rounded=6
+"张三" @(10, 160) c=#666666 size=11
+"技术部" @(90, 160) c=#666666 size=11
+"13800000001" @(170, 160) c=#666666 size=11
+("正常") @(250, 155) w=50 h=20 bg=#52c41d c=#ffffff size=9 rounded=10
+[" "] @(10, 195) w=380 h=35 bg=#ffffff s=1 rounded=6
+"李四" @(10, 205) c=#666666 size=11
+"产品部" @(90, 205) c=#666666 size=11
+"13900000002" @(170, 205) c=#666666 size=11
+("锁定") @(250, 200) w=50 h=20 bg=#faad14 c=#ffffff size=9 rounded=10
+```
+
+### 详情页面
+id: detail-page
+name: 详情页面
+description: 标准详情页面模板
+categoryId: page-template
+createdAt: 2026-04-21T00:00:00Z
+updatedAt: 2026-04-21T00:00:00Z
+
+```solarwire
+// 详情页面模板
+[" "] @(0, 0) w=400 h=45 bg=#ffffff s=1
+"用户详情：张三" @(10, 12) c=#000000 size=16 bold=true
+["返回列表"] @(300, 10) w=90 h=28 bg=#1677ff c=#ffffff size=11 rounded=4
+[" "] @(10, 55) w=380 h=100 bg=#ffffff s=1 rounded=6
+"基本信息" @(20, 65) c=#000000 size=14 bold=true
+"用户名：张三" @(20, 90) c=#666666 size=12
+"邮箱：zhangsan@email.com" @(20, 110) c=#666666 size=12
+"手机号：13800000001" @(20, 130) c=#666666 size=12
+[" "] @(10, 165) w=380 h=100 bg=#ffffff s=1 rounded=6
+"详细信息" @(20, 175) c=#000000 size=14 bold=true
+"部门：技术部 - 前端开发组" @(20, 200) c=#666666 size=12
+"地址：北京市朝阳区 xx街道" @(20, 220) c=#666666 size=12
+```

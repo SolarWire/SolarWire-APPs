@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useGitStore } from '../../stores/gitStore';
+import { useFileStore } from '../../stores/fileStore';
 import { GitGraph } from '../version/GitGraph';
 import { Scrollbar } from '../ui/Scrollbar';
 import './GitView.css';
 
 function GitView(): React.ReactElement {
-  const { isInitialized, status, commit, stageAllModified, refreshStatus, history, refreshHistory, push, pull, fetch } = useGitStore();
+  const { isInitialized, status, commit, stageAllModified, refreshStatus, history, refreshHistory, push, pull, fetch, initGit } = useGitStore();
+  const { currentPath } = useFileStore();
   const [commitMessage, setCommitMessage] = useState<string>('');
   const [isCommitting, setIsCommitting] = useState(false);
   const [isPushing, setIsPushing] = useState(false);
@@ -68,12 +70,40 @@ function GitView(): React.ReactElement {
     }
   };
 
+  const handleInitGit = async () => {
+    if (!currentPath) {
+      alert('请先打开一个目录');
+      return;
+    }
+    try {
+      await initGit(currentPath);
+      await refreshStatus();
+      await refreshHistory();
+    } catch (error) {
+      console.error('Failed to init git:', error);
+      alert('Git 初始化失败');
+    }
+  };
+
   const hasChanges = status.modified.length > 0 || status.untracked.length > 0 || status.staged.length > 0;
+
+  if (!currentPath) {
+    return (
+      <div className="git-view">
+        <div className="git-empty">Open a folder first to use Git</div>
+      </div>
+    );
+  }
 
   if (!isInitialized) {
     return (
       <div className="git-view">
-        <div className="git-empty">Open a folder first to use Git</div>
+        <div className="git-empty">
+          <p>Git 尚未初始化</p>
+          <button className="git-init-button" onClick={handleInitGit}>
+            初始化 Git 仓库
+          </button>
+        </div>
       </div>
     );
   }

@@ -50,6 +50,10 @@ class GitRepository {
     return this.repoPath;
   }
 
+  async init(): Promise<void> {
+    await this.git.init();
+  }
+
   async getStatus(): Promise<GitStatus> {
     try {
       const status = await this.git.status();
@@ -60,7 +64,7 @@ class GitRepository {
       };
     } catch (error) {
       console.error('Failed to get git status:', error);
-      return { modified: [], staged: [], untracked: [] };
+      throw error;
     }
   }
 
@@ -204,6 +208,15 @@ class GitRepository {
 
   async push(): Promise<void> {
     try {
+      const isDetached = await this.isDetachedHead();
+      if (isDetached) {
+        const branch = await this.getDefaultBranch();
+        if (!branch) {
+          throw new Error('无法找到可用分支，无法推送代码');
+        }
+        console.log(`Detached HEAD state detected, auto-switching to branch: ${branch}`);
+        await this.git.checkout(branch);
+      }
       await this.git.push();
     } catch (error) {
       console.error('Failed to push:', error);
@@ -211,8 +224,46 @@ class GitRepository {
     }
   }
 
+  async isDetachedHead(): Promise<boolean> {
+    try {
+      const status = await this.git.status();
+      return status.current === null;
+    } catch (error) {
+      console.error('Failed to check detached head state:', error);
+      return false;
+    }
+  }
+
+  async getDefaultBranch(): Promise<string | null> {
+    try {
+      const branches = await this.git.branchLocal();
+      if (branches.current && branches.current !== '(no branch)') {
+        return branches.current;
+      }
+      if (branches.all.includes('main')) {
+        return 'main';
+      }
+      if (branches.all.includes('master')) {
+        return 'master';
+      }
+      return branches.all[0] || null;
+    } catch (error) {
+      console.error('Failed to get default branch:', error);
+      return null;
+    }
+  }
+
   async pull(): Promise<void> {
     try {
+      const isDetached = await this.isDetachedHead();
+      if (isDetached) {
+        const branch = await this.getDefaultBranch();
+        if (!branch) {
+          throw new Error('无法找到可用分支，无法拉取远程代码');
+        }
+        console.log(`Detached HEAD state detected, auto-switching to branch: ${branch}`);
+        await this.git.checkout(branch);
+      }
       await this.git.pull();
     } catch (error) {
       console.error('Failed to pull:', error);
@@ -408,11 +459,26 @@ function getCurrentRepo(): GitRepository | null {
   return repositories.get(currentRepoPath) || null;
 }
 
-export function initGit(repoPath: string): void {
+export async function initGit(repoPath: string): Promise<{ success: boolean; wasAlreadyInitialized: boolean }> {
   const resolvedPath = path.resolve(repoPath);
   const repo = new GitRepository(resolvedPath);
   repositories.set(resolvedPath, repo);
   currentRepoPath = resolvedPath;
+  
+  // 尝试运行 git status 来验证是否真的是一个有效的 git 仓库
+  try {
+    await repo.getStatus();
+    return { success: true, wasAlreadyInitialized: true };
+  } catch (error) {
+    // 如果 status 失败，尝试初始化仓库
+    try {
+      await repo.init();
+      return { success: true, wasAlreadyInitialized: false };
+    } catch (initError) {
+      console.error('Failed to initialize git:', initError);
+      return { success: false, wasAlreadyInitialized: false };
+    }
+  }
 }
 
 export function isGitInitialized(): boolean {
