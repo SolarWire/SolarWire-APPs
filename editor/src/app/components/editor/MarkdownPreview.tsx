@@ -125,8 +125,21 @@ function MarkdownPreview(): React.ReactElement {
             setRenderProgress(60 + Math.round((i + 1) / mermaidBlocks.length * 30));
           }
 
+          // 步骤5：转换图片相对路径为 file:// 绝对路径
+          if (selectedFile?.path) {
+            const mdDir = selectedFile.path.replace(/[\\/][^\\/]*$/, '');
+            finalHtml = finalHtml.replace(
+              /<img\s+([^>]*?)src="(assets\/[^"]+)"([^>]*?)>/gi,
+              (match, before, src, after) => {
+                const absolutePath = `${mdDir}/${src}`.replace(/\\/g, '/');
+                const fileUrl = `file:///${absolutePath}`;
+                return `<img ${before}src="${fileUrl}"${after}>`;
+              }
+            );
+          }
+
           setRenderProgress(100);
-          // 步骤5：一次性设置 HTML
+          // 步骤6：一次性设置 HTML
           setHtml(finalHtml as string);
         } catch (error) {
           console.error('Failed to render Markdown:', error);
@@ -157,13 +170,13 @@ function MarkdownPreview(): React.ReactElement {
     <Scrollbar className="markdown-preview" ref={scrollContainerRef} onScroll={handleScroll}>
       {isRendering && (
         <div className="markdown-render-progress">
-          <div 
-            className="progress-bar" 
+          <div
+            className="progress-bar"
             style={{ width: `${renderProgress}%` }}
           />
         </div>
       )}
-      <div style={{ paddingTop: isRendering ? '20px' : '0' }} dangerouslySetInnerHTML={{ __html: html }} />
+      <div dangerouslySetInnerHTML={{ __html: html }} />
     </Scrollbar>
   );
 }

@@ -681,10 +681,94 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return { x, y, w, h, r };
   }, [getElementData, getLineCoordinates]);
 
+  const getElementBoundsFromData = useCallback((
+    elementData: ReturnType<typeof getElementData>
+  ): { x: number; y: number; w: number; h: number; r: number } => {
+    if (!elementData) return { x: 0, y: 0, w: 0, h: 0, r: 0 };
+
+    if (elementData.type === 'line') {
+      try {
+        const { x1, y1, x2, y2 } = getLineCoordinates(elementData);
+        const minX = Math.min(x1, x2);
+        const minY = Math.min(y1, y2);
+        const maxX = Math.max(x1, x2);
+        const maxY = Math.max(y1, y2);
+        return {
+          x: minX,
+          y: minY,
+          w: maxX - minX,
+          h: maxY - minY,
+          r: 0
+        };
+      } catch (e) {
+        // Fall back to attribute-based calculation
+      }
+    }
+
+    const attrs = elementData.attributes || {};
+    const coords = elementData.coordinates;
+    const type = elementData.type;
+
+    let x = 0, y = 0, w = 0, h = 0, r = 0;
+
+    if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
+      x = coords.x.value;
+      y = coords.y.value;
+    } else {
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
+    }
+
+    switch (type) {
+      case 'circle':
+        w = parseInt(attrs.w || '100');
+        h = parseInt(attrs.h || '40');
+        if (attrs.r) {
+          const radius = parseInt(attrs.r);
+          w = h = radius * 2;
+        }
+        break;
+      case 'text':
+        const lines = (elementData as any).text ? (elementData as any).text.split('\n') : [''];
+        const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
+        const lineHeight = parseInt(attrs['line-height'] || '22');
+        const declaredWidth = parseInt(attrs.w || '0');
+        w = declaredWidth || (lines.length > 0 ? Math.max(...lines.map((l: string) => l.length * fontSize * 0.6)) : 100);
+        h = lines.length > 0 ? lines.length * lineHeight : fontSize;
+        break;
+      case 'line':
+        const x2 = parseInt(attrs.x2 || String(x + 100));
+        const y2 = parseInt(attrs.y2 || String(y));
+        w = Math.abs(x2 - x);
+        h = Math.abs(y2 - y) || 2;
+        if (y2 < y) y = y2;
+        if (x2 < x) x = x2;
+        break;
+      default:
+        w = parseInt(attrs.w || '100');
+        h = parseInt(attrs.h || '50');
+        r = parseInt(attrs.r || '0');
+    }
+
+    return { x, y, w, h, r };
+  }, [getLineCoordinates]);
+
+  const getAllElementsBoundsMap = useCallback((
+    elements: SolarWireElement[]
+  ): Map<string, { x: number; y: number; w: number; h: number; r: number }> => {
+    const boundsMap = new Map<string, { x: number; y: number; w: number; h: number; r: number }>();
+    elements.forEach((el, idx) => {
+      const id = el.location?.line?.toString() || (idx + 1).toString();
+      const bounds = getElementBoundsFromData(el);
+      boundsMap.set(id, bounds);
+    });
+    return boundsMap;
+  }, [getElementBoundsFromData]);
+
   /**
    * 吸附阈值（px）- 元素边缘与引导线距离小于此值时触发吸附
    */
-  const SNAP_THRESHOLD = 2;
+  const SNAP_THRESHOLD = 6;
   const ALIGN_THRESHOLD = SNAP_THRESHOLD;
 
   interface AlignmentGuide {
@@ -696,6 +780,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     relatedElementIds?: string[];
     priority: number;
     isSnapped: boolean;
+    isNearby?: boolean;
     targetBounds?: { x: number; y: number; w: number; h: number };
     currentEdge?: number;
     isHorizontal?: boolean;
@@ -725,7 +810,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   const collectElementGuides = useCallback((
     excludeIds: string[],
-    elements: SolarWireElement[]
+    elements: SolarWireElement[],
+    boundsMap?: Map<string, { x: number; y: number; w: number; h: number; r: number }>
   ): AlignmentGuide[] => {
     const guides: AlignmentGuide[] = [];
 
@@ -733,7 +819,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const id = el.location?.line?.toString() || (index + 1).toString();
       if (excludeIds.includes(id)) return;
 
-      const bounds = getElementBounds(id);
+      let bounds;
+      if (boundsMap && boundsMap.has(id)) {
+        bounds = boundsMap.get(id);
+      } else {
+        bounds = getElementBounds(id);
+      }
       if (!bounds || (bounds.w === 0 && bounds.h === 0)) return;
 
       const { x, y, w, h } = bounds;
@@ -1126,6 +1217,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     h: number;
     snapped: boolean;
     snappedGuides: AlignmentGuide[];
+    nearbyGuides: AlignmentGuide[];
   }
 
   const getActiveEdgesForMove = (): ActiveEdges => ({
@@ -1155,7 +1247,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     if (altPressed) {
       return {
         x: currentX, y: currentY, w: currentW, h: currentH,
-        snapped: false, snappedGuides: []
+        snapped: false, snappedGuides: [], nearbyGuides: []
       };
     }
 
@@ -1163,6 +1255,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     let resultY = currentY;
     let snapped = false;
     const snappedGuides: AlignmentGuide[] = [];
+    const nearbyGuides: AlignmentGuide[] = [];
+    const nearbyThreshold = threshold * 2;
 
     const myLeft = currentX;
     const myRight = currentX + currentW;
@@ -1171,11 +1265,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const myCenterX = currentX + currentW / 2;
     const myCenterY = currentY + currentH / 2;
 
-    const sortedGuides = [...guides].sort((a, b) => a.priority - b.priority);
+    const sortedGuides = [...guides].sort((a, b) => b.priority - a.priority);
 
     let bestXDistance = threshold;
     let bestXGuide: AlignmentGuide | null = null;
     let bestXSnappedX = currentX;
+    const xGuideResults: Map<AlignmentGuide, { distance: number; snappedX: number | null }> = new Map();
 
     for (const guide of sortedGuides) {
       let distance = Infinity;
@@ -1224,6 +1319,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           break;
       }
 
+      xGuideResults.set(guide, { distance, snappedX });
       if (snappedX !== null && distance < bestXDistance) {
         bestXDistance = distance;
         bestXSnappedX = snappedX;
@@ -1241,6 +1337,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     let bestYDistance = threshold;
     let bestYGuide: AlignmentGuide | null = null;
     let bestYSnappedY = currentY;
+    const yGuideResults: Map<AlignmentGuide, { distance: number; snappedY: number | null }> = new Map();
 
     for (const guide of sortedGuides) {
       let distance = Infinity;
@@ -1289,6 +1386,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           break;
       }
 
+      yGuideResults.set(guide, { distance, snappedY });
       if (snappedY !== null && distance < bestYDistance) {
         bestYDistance = distance;
         bestYSnappedY = snappedY;
@@ -1303,13 +1401,25 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       snappedGuides.push(bestYGuide);
     }
 
+    for (const [guide, result] of xGuideResults) {
+      if (result.snappedX !== null && result.distance <= nearbyThreshold && !snappedGuides.includes(guide)) {
+        nearbyGuides.push({ ...guide, distance: Math.round(result.distance), isSnapped: false, isNearby: true });
+      }
+    }
+    for (const [guide, result] of yGuideResults) {
+      if (result.snappedY !== null && result.distance <= nearbyThreshold && !snappedGuides.includes(guide) && !nearbyGuides.includes(guide)) {
+        nearbyGuides.push({ ...guide, distance: Math.round(result.distance), isSnapped: false, isNearby: true });
+      }
+    }
+
     return {
       x: resultX,
       y: resultY,
       w: currentW,
       h: currentH,
       snapped,
-      snappedGuides
+      snappedGuides,
+      nearbyGuides
     };
   }, []);
 
@@ -1884,10 +1994,22 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         // 元素对齐吸附：不按 Alt 时始终执行（与网格吸附不互斥）
         const newX = dragElementState.elementX + dx;
         const newY = dragElementState.elementY + dy;
+        const currentBounds = { x: newX, y: newY, w: elementW, h: elementH };
         const excludeIds = [dragElementState.elementId];
-        const elementGuides = collectElementGuides(excludeIds, elements);
+
+        const allElementsBoundsMap = getAllElementsBoundsMap(elements);
+        const elementGuides = collectElementGuides(excludeIds, elements, allElementsBoundsMap);
         const canvasGuides = collectCanvasGuides();
-        const allGuides = [...elementGuides, ...canvasGuides];
+
+        const otherElementsBounds = elements.map((el: SolarWireElement, idx: number) => {
+          const id = el.location?.line?.toString() || (idx + 1).toString();
+          return { id, bounds: allElementsBoundsMap.get(id)! };
+        }).filter(e => e.bounds && !(e.bounds.w === 0 && e.bounds.h === 0));
+
+        const spacingGuides = collectSpacingGuides(currentBounds, otherElementsBounds, ALIGN_THRESHOLD);
+        const distributeGuides = collectDistributeGuides(currentBounds, otherElementsBounds, ALIGN_THRESHOLD);
+
+        const allGuides = [...elementGuides, ...canvasGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
         const snapped = snapToGuides(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
@@ -1897,7 +2019,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           dy = snapped.y - dragElementState.elementY;
         }
 
-        setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
+        setAlignmentGuides([...snapped.snappedGuides, ...snapped.nearbyGuides]);
       } else {
         setAlignmentGuides([]);
       }
@@ -1965,18 +2087,29 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           const id = el.location?.line?.toString() || (idx + 1).toString();
           return !excludeIds.includes(id);
         });
-        const elementGuides = collectElementGuides(excludeIds, otherElements);
+
+        const otherElementsBoundsMap = getAllElementsBoundsMap(otherElements);
+        const elementGuides = collectElementGuides(excludeIds, otherElements, otherElementsBoundsMap);
         const canvasGuides = collectCanvasGuides();
         const userGuides = collectUserGuides();
-        const allGuides = [...elementGuides, ...canvasGuides, ...userGuides];
+
+        const otherElementsBounds = otherElements.map((el: SolarWireElement, idx: number) => {
+          const id = el.location?.line?.toString() || (idx + 1).toString();
+          return { id, bounds: otherElementsBoundsMap.get(id)! };
+        }).filter(e => e.bounds && !(e.bounds.w === 0 && e.bounds.h === 0));
+
+        const spacingGuides = collectSpacingGuides(groupBounds, otherElementsBounds, ALIGN_THRESHOLD);
+        const distributeGuides = collectDistributeGuides(groupBounds, otherElementsBounds, ALIGN_THRESHOLD);
+
+        const allGuides = [...elementGuides, ...canvasGuides, ...userGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
         const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
 
         dx += snapped.snapped ? snapped.x - newX : 0;
         dy += snapped.snapped ? snapped.y - newY : 0;
-        
-        setAlignmentGuides(snapped.snapped ? snapped.snappedGuides : []);
+
+        setAlignmentGuides([...snapped.snappedGuides, ...snapped.nearbyGuides]);
       } else {
         setAlignmentGuides([]);
       }
@@ -2652,6 +2785,39 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       );
     };
 
+    const renderNearbyGuide = (guide: AlignmentGuide, index: number) => {
+      const pos = guide.position;
+      const isH = isHorizontalGuide(guide.type);
+
+      return (
+        <g key={`nearby-${index}`} pointerEvents="none">
+          <line
+            x1={isH ? 0 : pos}
+            y1={isH ? pos : 0}
+            x2={isH ? canvasBounds.width : pos}
+            y2={isH ? pos : canvasBounds.height}
+            stroke={primaryColor}
+            strokeWidth={1.5 / scale}
+            strokeDasharray="none"
+            opacity={0.6}
+          />
+          {guide.distance && (
+            <text
+              x={isH ? canvasBounds.width / 2 : pos + 4 / scale}
+              y={isH ? pos - 4 / scale : canvasBounds.height / 2}
+              fontSize={`${8 / scale}px`}
+              fill={primaryColor}
+              textAnchor={isH ? "middle" : "start"}
+              opacity={0.6}
+              fontFamily="Menlo, Consolas, monospace"
+            >
+              {guide.distance}px
+            </text>
+          )}
+        </g>
+      );
+    };
+
     const renderCanvasGuide = (guide: AlignmentGuide, index: number) => {
       const pos = guide.position;
       const isH = isHorizontalGuide(guide.type);
@@ -2706,6 +2872,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       if (guide.isSnapped) {
         return renderSnappedGuide(guide, index);
+      }
+
+      if (guide.isNearby) {
+        return renderNearbyGuide(guide, index);
       }
 
       return renderFaintGuide(guide, index);

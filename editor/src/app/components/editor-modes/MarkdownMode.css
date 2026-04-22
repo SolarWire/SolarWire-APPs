@@ -186,11 +186,11 @@
 }
 
 .markdown-render-progress {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 1000;
   height: 4px;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
