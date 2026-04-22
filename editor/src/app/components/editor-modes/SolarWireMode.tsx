@@ -338,7 +338,44 @@ function SolarWireMode(): React.ReactElement {
   }, [selectedElements, content, setContent, setSelectedElements]);
 
   const handleDropComponentToCanvas = useCallback((component: Component, x: number, y: number) => {
-    const newContent = content + '\n\n' + component.code;
+    if (!component.code) return;
+
+    const adjustedCode = component.code
+      .split(/\r?\n/)
+      .map((line) => {
+        let resultLine = line;
+
+        resultLine = resultLine.replace(
+          /@\((\d+),\s*(\d+)\)/g,
+          (match) => {
+            const m = match.match(/@\((\d+),\s*(\d+)\)/);
+            if (m) {
+              const nx = Math.max(0, x + parseInt(m[1], 10));
+              const ny = Math.max(0, y + parseInt(m[2], 10));
+              return `@(${nx},${ny})`;
+            }
+            return match;
+          }
+        );
+
+        resultLine = resultLine.replace(
+          /->\(\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+          (match) => {
+            const m = match.match(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+            if (m) {
+              const nx = Math.max(0, x + parseInt(m[1], 10));
+              const ny = Math.max(0, y + parseInt(m[2], 10));
+              return `->(${nx},${ny})`;
+            }
+            return match;
+          }
+        );
+
+        return resultLine;
+      })
+      .join('\n');
+
+    const newContent = content.trimEnd() + '\n\n' + adjustedCode;
     setContent(newContent);
     setShowComponentLibrary(false);
   }, [content, setContent, setShowComponentLibrary]);
@@ -523,9 +560,45 @@ function SolarWireMode(): React.ReactElement {
         {activeTab === 'visual' && (
         <div className="solarwire-toolbar-fixed">
           <div className="solarwire-toolbar">
+            <div className="toolbar-section sidebar-section">
+              <button
+                className={`unified-tool-button layers-toggle-button ${showLayerPanel ? 'active' : ''}`}
+                onClick={() => setShowLayerPanel(!showLayerPanel)}
+                title="Toggle Layers Panel"
+              >
+                ☰
+              </button>
+              <button
+                className={`unified-tool-button component-library-toggle-button ${showComponentLibrary ? 'active' : ''}`}
+                onClick={() => setShowComponentLibrary(!showComponentLibrary)}
+                title="Toggle Component Library"
+              >
+                📦
+              </button>
+              <button
+                className={`unified-tool-button note-toggle-button ${showNotes ? 'active' : ''}`}
+                onClick={() => setShowNotes(!showNotes)}
+                title={showNotes ? 'Hide Notes' : 'Show Notes'}
+              >
+                {showNotes ? '👁️' : '🙈'}
+              </button>
+              <button
+                className={`unified-tool-button snap-toggle-button ${snapToGrid ? 'active' : ''}`}
+                onClick={() => setSnapToGrid(!snapToGrid)}
+                title={snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+              >
+                🧲
+              </button>
+              <div className="zoom-controls">
+                <button className="zoom-button" onClick={handleZoomOut}>-</button>
+                <span className="zoom-label">{zoomLevel}%</span>
+                <button className="zoom-button" onClick={handleZoomIn}>+</button>
+              </div>
+            </div>
+            <div className="toolbar-divider"></div>
             <div className="toolbar-section pan-section">
               <button
-                className={`pan-tool-button ${(isPanMode || isSpacePressed) ? 'active' : ''}`}
+                className={`unified-tool-button pan-tool-button ${(isPanMode || isSpacePressed) ? 'active' : ''}`}
                 onClick={() => setIsPanMode(!isPanMode)}
                 title="Pan Mode: Hold space or click to toggle"
               >
@@ -538,7 +611,7 @@ function SolarWireMode(): React.ReactElement {
                 {selectionTools.map(tool => (
                   <button
                     key={tool.id}
-                    className={`selection-tool-button ${selectionTool === tool.id && !isPanMode && !isSpacePressed ? 'active' : ''}`}
+                    className={`unified-tool-button selection-tool-button ${selectionTool === tool.id && !isPanMode && !isSpacePressed ? 'active' : ''}`}
                     onClick={() => {
                       setSelectionTool(tool.id as 'select' | 'box-include' | 'box-intersect');
                       setIsPanMode(false);
@@ -551,52 +624,9 @@ function SolarWireMode(): React.ReactElement {
               </div>
             </div>
             <div className="toolbar-divider"></div>
-            <div className="toolbar-section display-section">
-              <button
-                className={`note-toggle-button ${showNotes ? 'active' : ''}`}
-                onClick={() => setShowNotes(!showNotes)}
-                title={showNotes ? 'Hide Notes' : 'Show Notes'}
-              >
-                {showNotes ? '👁️' : '🙈'}
-              </button>
-              <button
-                className={`grid-toggle-button ${showGrid ? 'active' : ''}`}
-                onClick={() => setShowGrid(!showGrid)}
-                title={showGrid ? 'Hide Grid (G)' : 'Show Grid (G)'}
-              >
-                ▦
-              </button>
-              <button
-                className={`snap-toggle-button ${snapToGrid ? 'active' : ''}`}
-                onClick={() => setSnapToGrid(!snapToGrid)}
-                title={snapToGrid ? 'Disable Snap' : 'Enable Snap'}
-              >
-                🧲
-              </button>
-              <button
-                className={`layers-toggle-button ${showLayerPanel ? 'active' : ''}`}
-                onClick={() => setShowLayerPanel(!showLayerPanel)}
-                title="Toggle Layers Panel"
-              >
-                ☰
-              </button>
-              <button
-                className={`component-library-toggle-button ${showComponentLibrary ? 'active' : ''}`}
-                onClick={() => setShowComponentLibrary(!showComponentLibrary)}
-                title="Toggle Component Library"
-              >
-                📦
-              </button>
-              <div className="zoom-controls">
-                <button className="zoom-button" onClick={handleZoomOut}>-</button>
-                <span className="zoom-label">{zoomLevel}%</span>
-                <button className="zoom-button" onClick={handleZoomIn}>+</button>
-              </div>
-            </div>
-            <div className="toolbar-divider"></div>
             <div className="toolbar-section actions-section">
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={handleBringToFront}
                 disabled={selectedElements.length === 0}
                 title="Bring to Front"
@@ -607,7 +637,7 @@ function SolarWireMode(): React.ReactElement {
             <div className="toolbar-divider"></div>
             <div className="toolbar-section align-section">
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={() => handleAlign('left')}
                 disabled={selectedElements.length < 2}
                 title="Align Left"
@@ -615,7 +645,7 @@ function SolarWireMode(): React.ReactElement {
                 <span className="tool-icon">⬅️</span>
               </button>
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={() => handleAlign('center-h')}
                 disabled={selectedElements.length < 2}
                 title="Align Center Horizontally"
@@ -623,7 +653,7 @@ function SolarWireMode(): React.ReactElement {
                 <span className="tool-icon">↔️</span>
               </button>
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={() => handleAlign('right')}
                 disabled={selectedElements.length < 2}
                 title="Align Right"
@@ -631,7 +661,7 @@ function SolarWireMode(): React.ReactElement {
                 <span className="tool-icon">➡️</span>
               </button>
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={() => handleAlign('top')}
                 disabled={selectedElements.length < 2}
                 title="Align Top"
@@ -639,7 +669,7 @@ function SolarWireMode(): React.ReactElement {
                 <span className="tool-icon">⬆️</span>
               </button>
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={() => handleAlign('center-v')}
                 disabled={selectedElements.length < 2}
                 title="Align Center Vertically"
@@ -647,7 +677,7 @@ function SolarWireMode(): React.ReactElement {
                 <span className="tool-icon">↕️</span>
               </button>
               <button
-                className="action-button"
+                className="unified-tool-button action-button"
                 onClick={() => handleAlign('bottom')}
                 disabled={selectedElements.length < 2}
                 title="Align Bottom"
@@ -662,7 +692,7 @@ function SolarWireMode(): React.ReactElement {
             <div className="toolbar-divider"></div>
             <div className="toolbar-section help-section">
               <button
-                className="help-button"
+                className="unified-tool-button help-button"
                 onClick={() => setShowShortcuts(true)}
                 title="Keyboard Shortcuts (?)"
               >

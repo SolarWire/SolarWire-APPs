@@ -275,7 +275,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
                         </button>
                       </div>
                     ) : thumbnail ? (
-                      <div dangerouslySetInnerHTML={{ __html: thumbnail }} />
+                      <div className="thumbnail-svg-container" dangerouslySetInnerHTML={{ __html: thumbnail }} />
                     ) : (
                       <div className="thumbnail-loading">
                         <div className="loading-spinner small"></div>

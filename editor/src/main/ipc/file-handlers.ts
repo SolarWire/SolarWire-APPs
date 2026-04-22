@@ -6,7 +6,7 @@ export function registerFileHandlers(): void {
     return await readFile(filePath);
   });
 
-  ipcMain.handle('file:write', async (_event, filePath: string, content: string) => {
+  ipcMain.handle('file:write', async (_event, filePath: string, content: string | ArrayBuffer | Uint8Array) => {
     await writeFile(filePath, content);
     return { success: true };
   });

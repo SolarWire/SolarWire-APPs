@@ -220,7 +220,7 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     if (sourceLibraryId === targetLibraryId) {
       await componentLibraryManager.moveComponentInCategory(sourceLibraryId, componentId, targetCategoryId, targetComponentId, position);
     } else {
-      await componentLibraryManager.moveComponentToCategory(sourceLibraryId, componentId, targetLibraryId, targetCategoryId);
+      await componentLibraryManager.moveComponentToCategory(sourceLibraryId, componentId, targetLibraryId, targetCategoryId, targetComponentId, position);
     }
     set({ libraries: componentLibraryManager.getLibraries() });
   },

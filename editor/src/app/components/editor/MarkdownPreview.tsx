@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { marked } from 'marked';
 import mermaid from 'mermaid';
 import { useEditorStore } from '../../stores/editorStore';
@@ -167,17 +168,24 @@ function MarkdownPreview(): React.ReactElement {
   };
 
   return (
-    <Scrollbar className="markdown-preview" ref={scrollContainerRef} onScroll={handleScroll}>
-      {isRendering && (
-        <div className="markdown-render-progress">
-          <div
-            className="progress-bar"
-            style={{ width: `${renderProgress}%` }}
-          />
-        </div>
+    <>
+      {createPortal(
+        isRendering && (
+          <div className="markdown-render-progress">
+            <div className="progress-bar-container">
+              <div
+                className="progress-bar"
+                style={{ width: `${renderProgress}%` }}
+              />
+            </div>
+          </div>
+        ),
+        document.body
       )}
-      <div dangerouslySetInnerHTML={{ __html: html }} />
-    </Scrollbar>
+      <Scrollbar className="markdown-preview" ref={scrollContainerRef} onScroll={handleScroll}>
+        <div dangerouslySetInnerHTML={{ __html: html }} />
+      </Scrollbar>
+    </>
   );
 }
 

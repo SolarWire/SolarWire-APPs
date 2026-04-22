@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
   readFile: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
-  writeFile: (filePath: string, content: string) => ipcRenderer.invoke('file:write', filePath, content),
+  writeFile: (filePath: string, content: string | ArrayBuffer | Uint8Array) => ipcRenderer.invoke('file:write', filePath, content),
   openFileDialog: (options?: Electron.OpenDialogOptions) => ipcRenderer.invoke('dialog:openFile', options),
   listDirectory: (dirPath: string) => ipcRenderer.invoke('file:listDirectory', dirPath),
   getFileTree: (dirPath: string) => ipcRenderer.invoke('file:getFileTree', dirPath),

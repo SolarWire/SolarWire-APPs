@@ -1,8 +1,7 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useComponentLibraryStore, TreeNodeType } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, Component, ComponentCategory } from '../../../shared/types/component';
-import { parse } from '../../../lib/parser';
-import { render } from '../../../lib/renderer';
+import SolarWirePreview from './SolarWirePreview';
 import './ComponentLibraryManagerModal.css';
 
 interface ComponentLibraryManagerModalProps {
@@ -173,6 +172,22 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     e.preventDefault();
     if (!draggedNode) return;
     if (draggedNode.id === targetId && draggedNode.type === targetType) return;
+
+    const currentSelectedLibraryId = useComponentLibraryStore.getState().selectedLibraryId;
+
+    if (targetType === 'library') {
+      if (draggedNode.libraryId !== currentSelectedLibraryId && !expandedNodes.has(targetId)) {
+        toggleNode(targetId);
+      }
+    } else if (targetType === 'category' && !expandedNodes.has(targetId)) {
+      toggleNode(targetId);
+    } else if (targetType === 'component') {
+      const targetComp = libraries.flatMap(l => l.components).find(c => c.id === targetId);
+      if (targetComp?.categoryId && !expandedNodes.has(targetComp.categoryId)) {
+        toggleNode(targetComp.categoryId);
+      }
+    }
+
     setDragOverTarget({ id: targetId, type: targetType, position: computeDropPosition(e, targetType) });
   };
 
@@ -441,7 +456,8 @@ const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
   onDragOverUncategorized, onDropOnUncategorized, onDragEnd, dragOverTarget, onCreateComponent,
   selectedNodeId, selectedNodeType,
 }) => {
-  const uncategorizedComponents = library.components.filter(c => !c.categoryId);
+  const categoryIds = new Set(library.categories.map(c => c.id));
+  const uncategorizedComponents = library.components.filter(c => !c.categoryId || !categoryIds.has(c.categoryId));
   const isDropTarget = dragOverTarget?.id === 'uncategorized' && dragOverTarget?.type === 'category';
   return (
     <div className={`tree-node tree-node-category ${isSelected ? 'selected' : ''} ${isDropTarget ? `drop-${dragOverTarget?.position}` : ''}`}>
@@ -582,7 +598,14 @@ interface ComponentEditPanelProps {
   onUpdate: (updates: Partial<Component>) => void; onDelete: () => void;
 }
 
-const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, component, activeTab, onTabChange, onUpdate, onDelete }) => (
+const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, component, activeTab, onTabChange, onUpdate, onDelete }) => {
+  const [componentCode, setComponentCode] = useState(component.code || '');
+
+  useEffect(() => {
+    setComponentCode(component.code || '');
+  }, [component.code]);
+
+  return (
   <div className="edit-panel">
     <div className="edit-panel-header">
       <div className="edit-panel-title"><span className="edit-panel-icon">🧩</span><span>{component.name}</span></div>
@@ -610,75 +633,21 @@ const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, compon
         </div>
       )}
       {activeTab === 'visual' && (
-        <div className="component-visual-edit">
-          <VisualCanvasEditor code={component.code || ''} onCodeChange={(newCode) => onUpdate({ code: newCode })} />
-        </div>
+        <SolarWirePreview
+          externalContent={component.code || ''}
+          onExternalContentChange={(newCode: string) => onUpdate({ code: newCode })}
+          zoomLevel={1}
+          selectionTool="select"
+          showNotes={false}
+        />
       )}
       {activeTab === 'code' && (
         <div className="code-editor-area">
-          <textarea className="component-code-editor" value={component.code || ''} onChange={(e) => onUpdate({ code: e.target.value })} rows={20} spellCheck={false} />
+          <textarea className="component-code-editor" value={componentCode} onChange={(e) => setComponentCode(e.target.value)} onBlur={() => onUpdate({ code: componentCode })} rows={20} spellCheck={false} />
         </div>
       )}
     </div>
   </div>
-);
-
-interface VisualCanvasEditorProps {
-  code: string; onCodeChange: (code: string) => void;
-}
-
-const VisualCanvasEditor: React.FC<VisualCanvasEditorProps> = ({ code }) => {
-  const canvasRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isPanning, setIsPanning] = useState(false);
-  const panStartRef = useRef({ x: 0, y: 0 });
-
-  const svgContent = useMemo(() => {
-    if (!code.trim()) return '';
-    try {
-      const ast = parse(code);
-      const result = render(ast, undefined, true);
-      return result.svg;
-    } catch { return ''; }
-  }, [code]);
-
-  const sanitizedSvg = useMemo(() => sanitizeSvg(svgContent), [svgContent]);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setScale(prev => Math.max(0.1, Math.min(5, prev + (e.deltaY > 0 ? -0.05 : 0.05))));
-  }, []);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 1 || (e.button === 0 && e.altKey)) {
-      setIsPanning(true);
-      panStartRef.current = { x: e.clientX - position.x, y: e.clientY - position.y };
-    }
-  }, [position]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (isPanning) setPosition({ x: e.clientX - panStartRef.current.x, y: e.clientY - panStartRef.current.y });
-  }, [isPanning]);
-
-  const handleMouseUp = useCallback(() => setIsPanning(false), []);
-
-  return (
-    <div className="visual-canvas-editor">
-      <div className="visual-canvas-toolbar">
-        <button className="toolbar-btn" onClick={() => setScale(prev => Math.max(0.1, prev - 0.1))} title="缩小">➖</button>
-        <span className="toolbar-zoom-level">{Math.round(scale * 100)}%</span>
-        <button className="toolbar-btn" onClick={() => setScale(prev => Math.min(5, prev + 0.1))} title="放大">➕</button>
-        <button className="toolbar-btn" onClick={() => { setScale(1); setPosition({ x: 0, y: 0 }); }} title="适应视图">⊡</button>
-      </div>
-      <div ref={canvasRef} className="visual-canvas-area" onWheel={handleWheel} onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
-        style={{ cursor: isPanning ? 'grabbing' : 'default' }}>
-        <div className="visual-canvas-content"
-          style={{ transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`, transformOrigin: '0 0' }}
-          dangerouslySetInnerHTML={{ __html: sanitizedSvg }} />
-      </div>
-    </div>
   );
 };
 

@@ -204,11 +204,11 @@ export function updateLineAttribute(
         line = line.replace(coordPattern, `@(${currentX}, ${attributeValue})`);
       }
     } else {
-      const hasOtherAttributes = /\s\w+=/.test(line);
-      if (hasOtherAttributes) {
-        line = line.replace(/(\s\w+=[^\s]+)/, `$1 ${attributeName}=${attributeValue}`);
+      const coordPattern = /@\(\d+,\s*\d+\)/;
+      if (!coordPattern.test(line)) {
+        line = line.trimEnd() + ` @(${attributeValue}, 0)`;
       } else {
-        line = line.trimEnd() + ` ${attributeName}=${attributeValue}`;
+        line = line.replace(coordPattern, `@(${attributeValue}, 0)`);
       }
     }
     
@@ -217,25 +217,31 @@ export function updateLineAttribute(
   }
 
   if (attributeName === 'x2' || attributeName === 'y2') {
-    // 优先处理 ->(x2, y2) 格式的终点坐标
     const lineEndPattern = /->\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/;
     const lineEndMatch = line.match(lineEndPattern);
-    
+
     if (lineEndMatch) {
       const currentX2 = parseInt(lineEndMatch[1]);
       const currentY2 = parseInt(lineEndMatch[2]);
-      
+
       if (attributeName === 'x2') {
         line = line.replace(lineEndPattern, `->(${attributeValue}, ${currentY2})`);
       } else {
         line = line.replace(lineEndPattern, `->(${currentX2}, ${attributeValue})`);
       }
-      
+
       lines[lineIndex] = line;
       return lines.join('\n');
     }
-    
-    // 如果没有 ->(x2, y2) 格式，回退到通用的 x2= / y2= 属性处理
+
+    const startCoordPattern = /@\(\d+,\s*\d+\)/;
+    if (startCoordPattern.test(line) && !lineEndPattern.test(line)) {
+      line = line.trimEnd() + ` ->(${attributeValue}, 0)`;
+      lines[lineIndex] = line;
+      return lines.join('\n');
+    }
+
+    return content;
   }
 
   if (attributeName === 'note') {

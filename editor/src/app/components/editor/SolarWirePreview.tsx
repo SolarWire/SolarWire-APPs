@@ -242,6 +242,8 @@ interface SolarWirePreviewProps {
   showGridProp?: boolean;
   snapToGridProp?: boolean;
   gridSizeProp?: number;
+  externalContent?: string;
+  onExternalContentChange?: (code: string) => void;
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -251,18 +253,22 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20 }: SolarWirePreviewProps): React.ReactElement {
+function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange }: SolarWirePreviewProps): React.ReactElement {
   const { selectedElements, selectElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
   const { currentPath } = useFileStore();
   const { primaryColor, showGrid, gridSize, snapToGrid, setShowGrid, setSnapToGrid } = useSettingsStore();
+
+  const isExternalMode = externalContent !== undefined;
+  const effectiveContent = isExternalMode ? externalContent : content;
+  const effectiveSetContent = isExternalMode ? (onExternalContentChange || (() => {})) : setContent;
   
   const effectiveShowGrid = showGrid || showGridProp;
   const effectiveSnapToGrid = snapToGrid || snapToGridProp;
   const effectiveGridSize = gridSize || gridSizeProp;
   
   // RAF-based content updater
-  const rafUpdater = useMemo(() => createRafContentUpdater(setContent), [setContent]);
+  const rafUpdater = useMemo(() => createRafContentUpdater(effectiveSetContent), [effectiveSetContent]);
 
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -285,6 +291,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     type: string;
     x: number;
     y: number;
+    code?: string;
   } | null>(null);
   const [dragElementState, setDragElementState] = useState<DragElementState | null>(null);
   const [multiDragElements, setMultiDragElements] = useState<MultiDragState[]>([]);
@@ -325,9 +332,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const h = size ? Math.round(size.height) : undefined;
     const attrStr = h ? `w=${w} h=${h}` : `w=${w}`;
     const imageElement = `<${imagePath}> @(${safeX}, ${safeY}) ${attrStr}`;
-    const newContent = content ? `${content}\n${imageElement}` : imageElement;
-    setContent(newContent);
-  }, [content, setContent, getSvgCoords]);
+    const newContent = effectiveContent ? `${effectiveContent}\n${imageElement}` : imageElement;
+    effectiveSetContent(newContent);
+  }, [effectiveContent, effectiveSetContent, getSvgCoords]);
 
   const { handleDragOver: handleImageDragOver, handleDrop: handleImageDrop } = useImageDrop({
     onImageAdded: handleImageAdded,
@@ -338,7 +345,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const { svg, ast, viewBox } = useMemo(() => {
     try {
       setError(null);
-      const safeContent = content || '';
+      const safeContent = effectiveContent || '';
       if (!safeContent.trim()) {
         return { svg: '', ast: null, viewBox: null };
       }
@@ -356,7 +363,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       setError(e.message || String(e));
       return { svg: '', ast: null, viewBox: null };
     }
-  }, [content, selectedElements, primaryColor, showNotes, currentPath, resolveImageUrl]);
+  }, [effectiveContent, selectedElements, primaryColor, showNotes, currentPath, resolveImageUrl]);
 
   useEffect(() => {
     if (!ast || !currentPath) {
@@ -1771,7 +1778,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           // 线段端点拖拽
           const lineNum = parseInt(resizeHandleState.elementId);
           if (!isNaN(lineNum)) {
-            const lines = content.split(/\r?\n/);
+            const lines = effectiveContent.split(/\r?\n/);
             if (lineNum > 0 && lineNum <= lines.length) {
               let line = lines[lineNum - 1];
               
@@ -1963,7 +1970,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           setAlignmentGuides([]);
           setEdgeGaps([]);
 
-          let newContent = updateLineAttribute(content, lineNum, 'x', newX);
+          let newContent = updateLineAttribute(effectiveContent, lineNum, 'x', newX);
           newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
           newContent = updateLineAttribute(newContent, lineNum, 'w', newW);
           newContent = updateLineAttribute(newContent, lineNum, 'h', newH);
@@ -2027,12 +2034,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const lineNum = parseInt(dragElementState.elementId);
       if (!isNaN(lineNum)) {
         if (dragElementState.isLine) {
-          const lines = content.split(/\r?\n/);
+          const lines = effectiveContent.split(/\r?\n/);
           const line = lines[lineNum - 1];
           const isEndRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
           
           handleLineDrag(
-            content,
+            effectiveContent,
             lineNum,
             dragElementState.elementX,
             dragElementState.elementY,
@@ -2047,7 +2054,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           const gridSnapSize = useGridSnap ? 10 : 0;
           
           handleElementDrag(
-            content,
+            effectiveContent,
             lineNum,
             dragElementState.elementX,
             dragElementState.elementY,
@@ -2071,7 +2078,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       
       const groupBounds = getGroupBounds(multiDragElements.map(e => e.elementId));
       if (!groupBounds) {
-        rafUpdater(content);
+        rafUpdater(effectiveContent);
         return;
       }
 
@@ -2114,7 +2121,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         setAlignmentGuides([]);
       }
 
-      let newContent = content;
+      let newContent = effectiveContent;
       
       multiDragElements.forEach((el) => {
         const lineNum = parseInt(el.elementId);
@@ -2159,9 +2166,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         currentY: e.clientY
       });
     } else {
-      // 更新悬停元素 - 使用几何检测而不是 DOM 事件传播，避免被其他元素的透明覆盖层拦截
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
-      const elementId = findElementAtPosition(svgCoords.x, svgCoords.y);
+      // 更新悬停元素 - 使用 document.elementFromPoint 获取鼠标下的实际 SVG 元素
+      const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+      const elementId = hoveredElement ? getElementIdFromSVGElement(hoveredElement as SVGElement) : null;
       setHoveredElement(elementId);
     }
   };
@@ -2219,9 +2226,22 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault();
+
+    const plainText = e.dataTransfer.getData('text/plain');
+    if (plainText) {
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      setDragPreviewElement({
+        type: 'component',
+        x: Math.round(svgCoords.x),
+        y: Math.round(svgCoords.y),
+        code: plainText
+      });
+      return;
+    }
+
     const jsonData = e.dataTransfer.getData('application/json');
     if (!jsonData) return;
-    
+
     try {
       const elementData = JSON.parse(jsonData);
       const svgCoords = getSvgCoords(e.clientX, e.clientY);
@@ -2261,32 +2281,41 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const adjustedCode = plainText
           .split(/\r?\n/)
           .map((line) => {
-            const coordMatch = line.match(/@\((\d+),\s*(\d+)\)/);
-            if (coordMatch) {
-              const origX = parseInt(coordMatch[1], 10);
-              const origY = parseInt(coordMatch[2], 10);
-              const dx = x - origX;
-              const dy = y - origY;
-              return line.replace(
-                /@\(\d+,\s*\d+\)/g,
-                (match) => {
-                  const m = match.match(/@\((\d+),\s*(\d+)\)/);
-                  if (m) {
-                    const nx = Math.max(0, parseInt(m[1], 10) + dx);
-                    const ny = Math.max(0, parseInt(m[2], 10) + dy);
-                    return `@(${nx},${ny})`;
-                  }
-                  return match;
+            let resultLine = line;
+
+            resultLine = resultLine.replace(
+              /@\((\d+),\s*(\d+)\)/g,
+              (match) => {
+                const m = match.match(/@\((\d+),\s*(\d+)\)/);
+                if (m) {
+                  const nx = Math.max(0, x + parseInt(m[1], 10));
+                  const ny = Math.max(0, y + parseInt(m[2], 10));
+                  return `@(${nx},${ny})`;
                 }
-              );
-            }
-            return line;
+                return match;
+              }
+            );
+
+            resultLine = resultLine.replace(
+              /->\(\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+              (match) => {
+                const m = match.match(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+                if (m) {
+                  const nx = Math.max(0, x + parseInt(m[1], 10));
+                  const ny = Math.max(0, y + parseInt(m[2], 10));
+                  return `->(${nx},${ny})`;
+                }
+                return match;
+              }
+            );
+
+            return resultLine;
           })
           .join('\n');
 
-        const currentContent = content || '';
+        const currentContent = effectiveContent || '';
         const newContent = currentContent.trimEnd() + '\n\n' + adjustedCode;
-        setContent(newContent);
+        effectiveSetContent(newContent);
         return;
       }
 
@@ -2328,9 +2357,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           return;
       }
 
-      const currentContent = content || '';
+      const currentContent = effectiveContent || '';
       const newContent = currentContent.trimEnd() + '\n' + newLine;
-      setContent(newContent);
+      effectiveSetContent(newContent);
 
     } catch (error) {
       console.error('Drop error:', error);
@@ -2399,6 +2428,59 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         style={{ pointerEvents: 'none' }}
       />
     );
+  };
+
+  const getComponentPreviewBounds = (code: string, mouseX: number, mouseY: number) => {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+    const lines = code.split(/\r?\n/);
+    for (const line of lines) {
+      const coordMatches = line.matchAll(/@((\d+),\s*(\d+))/g);
+      for (const match of coordMatches) {
+        const ex = parseInt(match[2], 10);
+        const ey = parseInt(match[3], 10);
+        minX = Math.min(minX, ex);
+        minY = Math.min(minY, ey);
+        maxX = Math.max(maxX, ex);
+        maxY = Math.max(maxY, ey);
+      }
+
+      const lineEndMatches = line.matchAll(/->\((\d+),\s*(\d+)\)/g);
+      for (const match of lineEndMatches) {
+        const ex = parseInt(match[2], 10);
+        const ey = parseInt(match[3], 10);
+        maxX = Math.max(maxX, ex);
+        maxY = Math.max(maxY, ey);
+      }
+
+      const widthMatch = line.match(/w=(\d+)/);
+      const heightMatch = line.match(/h=(\d+)/);
+      if (widthMatch && heightMatch) {
+        const lastCoordMatch = [...line.matchAll(/@((\d+),\s*(\d+))/g)].pop();
+        if (lastCoordMatch) {
+          const ex = parseInt(lastCoordMatch[2], 10) + parseInt(widthMatch[1], 10);
+          const ey = parseInt(lastCoordMatch[3], 10) + parseInt(heightMatch[1], 10);
+          maxX = Math.max(maxX, ex);
+          maxY = Math.max(maxY, ey);
+        }
+      }
+    }
+
+    if (minX === Infinity) {
+      return { x: mouseX, y: mouseY, width: 100, height: 50 };
+    }
+
+    const width = maxX - minX + 20;
+    const height = maxY - minY + 20;
+    const offsetX = mouseX - minX;
+    const offsetY = mouseY - minY;
+
+    return {
+      x: offsetX,
+      y: offsetY,
+      width,
+      height
+    };
   };
 
   const renderDragPreview = () => {
@@ -2537,6 +2619,24 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             />
           </g>
         );
+      case 'component':
+        if (!dragPreviewElement?.code) return null;
+        const componentBounds = getComponentPreviewBounds(dragPreviewElement.code, x, y);
+        return (
+          <rect
+            x={componentBounds.x}
+            y={componentBounds.y}
+            width={componentBounds.width}
+            height={componentBounds.height}
+            fill={hexToRgba(primaryColor, 0.15)}
+            stroke={primaryColor}
+            strokeWidth={2 / scale}
+            strokeDasharray="6,4"
+            rx={4}
+            ry={4}
+            style={{ pointerEvents: 'none' }}
+          />
+        );
       default:
         return null;
     }
@@ -2641,7 +2741,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const lineNum = parseInt(elementId);
       
       if (!isNaN(lineNum)) {
-        const contentLines = content.split(/\r?\n/);
+        const contentLines = effectiveContent.split(/\r?\n/);
         if (lineNum > 0 && lineNum <= contentLines.length) {
           const line = contentLines[lineNum - 1];
           
@@ -2940,23 +3040,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           }}
           dangerouslySetInnerHTML={{ __html: svg }}
           onSelect={(e) => e.preventDefault()}
-        />
-      )}
-
-      {effectiveShowGrid && svg && (
-        <div
-          className="grid-overlay"
-          style={{
-            position: 'absolute',
-            top: `${position.y * (1 - scale) - 50000 * scale}px`,
-            left: `${position.x * (1 - scale) - 50000 * scale}px`,
-            width: `${100000 * scale}px`,
-            height: `${100000 * scale}px`,
-            transform: `translate(${position.x}px, ${position.y}px) scale(${scale})`,
-            transformOrigin: '0 0',
-            backgroundSize: `${10 * scale}px ${10 * scale}px`,
-            pointerEvents: 'none',
-          }}
         />
       )}
 

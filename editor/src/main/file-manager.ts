@@ -74,12 +74,17 @@ export async function readFile(filePath: string): Promise<string> {
   }
 }
 
-export async function writeFile(filePath: string, content: string): Promise<void> {
+export async function writeFile(filePath: string, content: string | ArrayBuffer | Uint8Array): Promise<void> {
   try {
     validatePath(filePath);
     const dir = path.dirname(filePath);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(filePath, content, 'utf-8');
+    if (content instanceof ArrayBuffer || content instanceof Uint8Array) {
+      const buffer = Buffer.from(content as ArrayBuffer);
+      await fs.writeFile(filePath, buffer);
+    } else {
+      await fs.writeFile(filePath, content, 'utf-8');
+    }
   } catch (error) {
     if (error instanceof Error && error.message.includes('Access denied')) {
       throw error;

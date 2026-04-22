@@ -393,7 +393,14 @@ class ComponentLibraryManager {
     }
   }
 
-  async moveComponentToCategory(sourceLibraryId: string, componentId: string, targetLibraryId: string, targetCategoryId: string | null): Promise<void> {
+  async moveComponentToCategory(
+    sourceLibraryId: string,
+    componentId: string,
+    targetLibraryId: string,
+    targetCategoryId: string | null,
+    targetComponentId: string | null,
+    position: 'before' | 'after'
+  ): Promise<void> {
     const sourceLibrary = this.libraries.get(sourceLibraryId);
     const targetLibrary = this.libraries.get(targetLibraryId);
     if (!sourceLibrary || !targetLibrary) return;
@@ -405,7 +412,22 @@ class ComponentLibraryManager {
     const [movedComponent] = sourceComponents.splice(compIndex, 1);
     const updatedMovedComponent = { ...movedComponent, categoryId: targetCategoryId || undefined };
 
-    const targetComponents = [...targetLibrary.components, updatedMovedComponent];
+    let targetComponents: Component[];
+    if (targetComponentId) {
+      const insertIndex = targetLibrary.components.findIndex(c => c.id === targetComponentId);
+      if (insertIndex >= 0) {
+        const finalIndex = position === 'before' ? insertIndex : insertIndex + 1;
+        targetComponents = [
+          ...targetLibrary.components.slice(0, finalIndex),
+          updatedMovedComponent,
+          ...targetLibrary.components.slice(finalIndex)
+        ];
+      } else {
+        targetComponents = [...targetLibrary.components, updatedMovedComponent];
+      }
+    } else {
+      targetComponents = [...targetLibrary.components, updatedMovedComponent];
+    }
 
     const now = new Date().toISOString();
     const updatedSource: ComponentLibrary = {

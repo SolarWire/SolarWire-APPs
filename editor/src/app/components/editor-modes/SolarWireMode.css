@@ -89,6 +89,12 @@
   gap: 8px;
 }
 
+.sidebar-section {
+  min-width: auto;
+  flex-direction: row;
+  gap: 8px;
+}
+
 .selection-section {
   min-width: 80px;
 }
@@ -113,81 +119,6 @@
   gap: 4px;
 }
 
-.selection-tool-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.selection-tool-button:hover {
-  background: var(--border-color);
-  border-color: var(--text-muted);
-}
-
-.selection-tool-button.active {
-  background: var(--accent-opacity-35);
-  border-color: var(--accent-color);
-}
-
-.tool-icon {
-  font-size: 16px;
-}
-
-.note-toggle-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.15s ease;
-}
-
-.note-toggle-button:hover {
-  background: var(--border-color);
-  border-color: var(--text-muted);
-}
-
-.note-toggle-button.active {
-  background: var(--accent-opacity-35);
-  border-color: var(--accent-color);
-}
-
-.pan-tool-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: all 0.15s ease;
-}
-
-.pan-tool-button:hover {
-  background: var(--border-color);
-  border-color: var(--text-muted);
-}
-
-.pan-tool-button.active {
-  background: var(--accent-opacity-35);
-  border-color: var(--accent-color);
-}
-
 .zoom-controls {
   display: flex;
   align-items: center;
@@ -199,23 +130,6 @@
   font-size: 12px;
   min-width: 40px;
   text-align: center;
-}
-
-.zoom-button {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  padding: 4px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
-  transition: all 0.15s ease;
-}
-
-.zoom-button:hover {
-  background: var(--border-color);
-  border-color: var(--text-muted);
 }
 
 .preview-content {
@@ -345,28 +259,66 @@
   overflow: visible;
 }
 
-.component-library-toggle-button {
+/* 统一工具按钮样式（所有工具栏按钮使用） */
+.unified-tool-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 12px;
   transition: all 0.15s ease;
   color: var(--text-secondary);
   padding: 0;
 }
 
-.component-library-toggle-button:hover {
+.unified-tool-button:hover {
   background: var(--border-color);
   border-color: var(--text-muted);
 }
 
-.component-library-toggle-button.active {
+.unified-tool-button.active {
   background: var(--accent-opacity-35);
   border-color: var(--accent-color);
+}
+
+.unified-tool-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unified-tool-button:disabled:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.tool-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.zoom-button {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.15s ease;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
 }

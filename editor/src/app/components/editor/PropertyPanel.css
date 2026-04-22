@@ -238,7 +238,7 @@
   display: flex;
   flex-direction: column;
   margin-top: 15px;
-  padding-bottom: 6px;
+  padding-bottom: 24px;
 }
 
 .note-section .property-group-title {
@@ -258,7 +258,7 @@
   box-sizing: border-box;
   line-height: 1.4;
   white-space: pre-wrap;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .note-section textarea:focus {
