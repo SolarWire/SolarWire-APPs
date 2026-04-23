@@ -208,8 +208,12 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   },
   
   moveCategory: async (sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position) => {
-    if (sourceLibraryId === targetLibraryId && targetCategoryId) {
-      await componentLibraryManager.moveCategoryInList(sourceLibraryId, categoryId, targetCategoryId, position as 'before' | 'after');
+    if (sourceLibraryId === targetLibraryId) {
+      if (targetCategoryId) {
+        await componentLibraryManager.moveCategoryInList(sourceLibraryId, categoryId, targetCategoryId, position as 'before' | 'after');
+      } else {
+        await componentLibraryManager.moveCategoryToEnd(sourceLibraryId, categoryId, position as 'before' | 'after');
+      }
     } else {
       await componentLibraryManager.moveCategoryToLibrary(sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position);
     }

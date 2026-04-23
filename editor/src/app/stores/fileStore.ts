@@ -98,7 +98,13 @@ export const useFileStore = create<FileState>()((set, get) => ({
   openFileAtPath: async (filePath: string) => {
     try {
       useStatusStore.getState().startOperation('open', '打开文件...');
-      
+
+      const fileDir = filePath.replace(/[\\/][^\\/]*$/, '');
+      const api = (window as any).api;
+      if (api?.setAllowedRoot) {
+        await api.setAllowedRoot(fileDir);
+      }
+
       const content = await readFile(filePath);
       const name = filePath.split(/[\\/]/).pop() || filePath;
       const node: FileNode = { name, path: filePath, type: 'file' };
@@ -130,6 +136,12 @@ export const useFileStore = create<FileState>()((set, get) => ({
   },
   openSolarWireSnippet: async (snippet: SolarWireSnippet) => {
     try {
+      const sourceDir = snippet.sourceFile.replace(/[\\/][^\\/]*$/, '');
+      const api = (window as any).api;
+      if (api?.setAllowedRoot) {
+        await api.setAllowedRoot(sourceDir);
+      }
+
       const node: FileNode = { name: snippet.name, path: snippet.sourceFile, type: 'file' };
 
       let latestCode = snippet.code;
@@ -152,6 +164,12 @@ export const useFileStore = create<FileState>()((set, get) => ({
   openDirectoryAtPath: async (dirPath: string) => {
     try {
       useStatusStore.getState().startOperation('open', '打开目录...');
+
+      const api = (window as any).api;
+      if (api?.setAllowedRoot) {
+        await api.setAllowedRoot(dirPath);
+      }
+
       const tree = await getFileTree(dirPath);
       set({ currentPath: dirPath, fileTree: tree });
       useStatusStore.getState().setCurrentFilePath(dirPath);

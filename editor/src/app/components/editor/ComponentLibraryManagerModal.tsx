@@ -1,7 +1,8 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useComponentLibraryStore, TreeNodeType } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, Component, ComponentCategory } from '../../../shared/types/component';
-import SolarWirePreview from './SolarWirePreview';
+import SolarWireVisualEditor from './SolarWireVisualEditor';
+import { useSolarWireStore } from '../../stores/solarWireStore';
 import './ComponentLibraryManagerModal.css';
 
 interface ComponentLibraryManagerModalProps {
@@ -56,6 +57,7 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
   const [newLibraryData, setNewLibraryData] = useState({ name: '', id: '', description: '', version: '1.0.0', author: '' });
   const [draggedNode, setDraggedNode] = useState<DragState | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<DragOverState | null>(null);
+  const autoExpandedRef = useRef<Set<string>>(new Set());
 
   const selectedLibrary = useMemo(() => {
     if (selectedNodeType === 'library') return libraries.find(lib => lib.metadata.id === selectedNodeId) || null;
@@ -156,6 +158,7 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
   const handleDragEnd = () => {
     setDraggedNode(null);
     setDragOverTarget(null);
+    autoExpandedRef.current.clear();
   };
 
   const computeDropPosition = (e: React.DragEvent, targetType: TreeNodeType): 'before' | 'after' | 'inside' => {
@@ -173,19 +176,12 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     if (!draggedNode) return;
     if (draggedNode.id === targetId && draggedNode.type === targetType) return;
 
-    const currentSelectedLibraryId = useComponentLibraryStore.getState().selectedLibraryId;
-
-    if (targetType === 'library') {
-      if (draggedNode.libraryId !== currentSelectedLibraryId && !expandedNodes.has(targetId)) {
-        toggleNode(targetId);
-      }
-    } else if (targetType === 'category' && !expandedNodes.has(targetId)) {
+    if (targetType === 'library' && draggedNode.type !== 'library' && !expandedNodes.has(targetId) && !autoExpandedRef.current.has(targetId)) {
       toggleNode(targetId);
-    } else if (targetType === 'component') {
-      const targetComp = libraries.flatMap(l => l.components).find(c => c.id === targetId);
-      if (targetComp?.categoryId && !expandedNodes.has(targetComp.categoryId)) {
-        toggleNode(targetComp.categoryId);
-      }
+      autoExpandedRef.current.add(targetId);
+    } else if (targetType === 'category' && draggedNode.type === 'component' && !expandedNodes.has(targetId) && !autoExpandedRef.current.has(targetId)) {
+      toggleNode(targetId);
+      autoExpandedRef.current.add(targetId);
     }
 
     setDragOverTarget({ id: targetId, type: targetType, position: computeDropPosition(e, targetType) });
@@ -197,18 +193,34 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     const { id: sourceId, type: sourceType, libraryId: sourceLibraryId } = draggedNode;
     const { position } = dragOverTarget;
 
+    if (sourceId === targetId) {
+      setDraggedNode(null);
+      setDragOverTarget(null);
+      return;
+    }
+
+    if (sourceType === 'library') {
+      setDraggedNode(null);
+      setDragOverTarget(null);
+      return;
+    }
+
     if (sourceType === 'category' && targetType === 'category') {
       const resolvedPosition = position === 'inside' ? 'after' : position;
-      moveCategory(sourceLibraryId, sourceId, targetId, targetId, resolvedPosition);
+      const targetLib = libraries.find(l => l.categories.some(c => c.id === targetId));
+      const targetLibraryId = targetLib?.metadata.id || sourceLibraryId;
+      moveCategory(sourceLibraryId, sourceId, targetLibraryId, targetId, resolvedPosition);
     } else if (sourceType === 'category' && targetType === 'library') {
       moveCategory(sourceLibraryId, sourceId, targetId, null, position);
     } else if (sourceType === 'component' && targetType === 'category') {
       const targetLib = libraries.find(l => l.categories.some(c => c.id === targetId));
       const targetLibraryId = targetLib?.metadata.id || sourceLibraryId;
       if (position === 'inside') {
-        moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, '', 'after');
+        const lastCompInCat = targetLib?.components.filter(c => c.categoryId === targetId).at(-1);
+        moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, lastCompInCat?.id || '', 'after');
       } else {
-        moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, '', position);
+        const firstCompInCat = targetLib?.components.filter(c => c.categoryId === targetId).at(0);
+        moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, firstCompInCat?.id || '', position);
       }
     } else if (sourceType === 'component' && targetType === 'component') {
       const targetLib = libraries.find(l => l.components.some(c => c.id === targetId));
@@ -264,6 +276,8 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
                 onDropOnCategory={(e, id) => handleDrop(e, id, 'category')}
                 onDragOverUncategorized={(e) => { e.preventDefault(); if (draggedNode) setDragOverTarget({ id: 'uncategorized', type: 'category', position: 'inside' }); }}
                 onDropOnUncategorized={() => handleDropOnUncategorized(library.metadata.id)}
+                onDragOverComponent={(e, id) => handleDragOver(e, id, 'component')}
+                onDropOnComponent={(e, id) => handleDrop(e, id, 'component')}
                 selectedNodeId={selectedNodeId}
                 selectedNodeType={selectedNodeType}
                 expandedNodes={expandedNodes}
@@ -308,9 +322,12 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
               onCreateComponent={() => handleCreateComponent(selectedLibrary.metadata.id, selectedCategory.id)} />
           )}
           {selectedNodeType === 'component' && selectedLibrary && selectedComponent && (
-            <ComponentEditPanel library={selectedLibrary} component={selectedComponent} activeTab={componentEditTab} onTabChange={setComponentEditTab}
-              onUpdate={(updates) => updateComponent(selectedLibrary.metadata.id, selectedComponent.id, updates)}
-              onDelete={() => handleDeleteComponent(selectedLibrary.metadata.id, selectedComponent.id)} />
+            <>
+              {(console.log('[DEBUG] Rendering ComponentEditPanel, selectedNodeType:', selectedNodeType, 'selectedLibrary:', !!selectedLibrary, 'selectedComponent:', selectedComponent?.id), null)}
+              <ComponentEditPanel library={selectedLibrary} component={selectedComponent} activeTab={componentEditTab} onTabChange={setComponentEditTab}
+                onUpdate={(updates) => updateComponent(selectedLibrary.metadata.id, selectedComponent.id, updates)}
+                onDelete={() => handleDeleteComponent(selectedLibrary.metadata.id, selectedComponent.id)} />
+            </>
           )}
           {!selectedNodeType && (
             <div className="edit-empty-state">
@@ -340,6 +357,8 @@ interface LibraryTreeNodeProps {
   onDropOnCategory: (e: React.DragEvent, id: string) => void;
   onDragOverUncategorized: (e: React.DragEvent) => void;
   onDropOnUncategorized: () => void;
+  onDragOverComponent: (e: React.DragEvent, componentId: string) => void;
+  onDropOnComponent: (e: React.DragEvent, componentId: string) => void;
   selectedNodeId: string | null; selectedNodeType: TreeNodeType | null; expandedNodes: Set<string>;
   onDragStartNode: (e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => void;
 }
@@ -349,6 +368,7 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
   onDragStart, onDragOver, onDrop, onDragEnd, dragOverTarget,
   onCreateCategory, onDeleteCategory, onCreateComponent, isPreset, hasUncategorized, uncategorizedCount,
   onDragOverCategory, onDropOnCategory, onDragOverUncategorized, onDropOnUncategorized,
+  onDragOverComponent, onDropOnComponent,
   selectedNodeId, selectedNodeType, expandedNodes, onDragStartNode,
 }) => {
   const isDropTarget = dragOverTarget?.id === library.metadata.id && dragOverTarget?.type === 'library';
@@ -371,6 +391,7 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
               onToggle={() => useComponentLibraryStore.getState().toggleNode(cat.id)}
               onSelect={() => useComponentLibraryStore.getState().setSelectedNode(cat.id, 'category', library.metadata.id)}
               onDragOverCategory={onDragOverCategory} onDropOnCategory={onDropOnCategory}
+              onDragOverComponent={onDragOverComponent} onDropOnComponent={onDropOnComponent}
               onDragStart={(e, id, type, libId) => { e.stopPropagation(); onDragStartNode(e, id, type, libId); }}
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget}
               onCreateComponent={() => onCreateComponent(library.metadata.id, cat.id)}
@@ -386,6 +407,8 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
               onDragOverUncategorized={onDragOverUncategorized} onDropOnUncategorized={onDropOnUncategorized}
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget}
               onCreateComponent={() => onCreateComponent(library.metadata.id, null)}
+              onDragStartNode={onDragStartNode}
+              onDragOverComponent={onDragOverComponent} onDropOnComponent={onDropOnComponent}
               selectedNodeId={selectedNodeId} selectedNodeType={selectedNodeType} />
           )}
         </div>
@@ -401,13 +424,16 @@ interface CategoryTreeNodeProps {
   onDragStart: (e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => void;
   onDragOverCategory: (e: React.DragEvent, categoryId: string) => void;
   onDropOnCategory: (e: React.DragEvent, categoryId: string) => void;
+  onDragOverComponent: (e: React.DragEvent, componentId: string) => void;
+  onDropOnComponent: (e: React.DragEvent, componentId: string) => void;
   onDragEnd: () => void; dragOverTarget: DragOverState | null;
   selectedNodeId: string | null; selectedNodeType: TreeNodeType | null;
 }
 
 const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
   library, category, isSelected, isExpanded, onToggle, onSelect,
-  onCreateComponent, onDelete, onDragStart, onDragOverCategory, onDropOnCategory, onDragEnd, dragOverTarget,
+  onCreateComponent, onDelete, onDragStart, onDragOverCategory, onDropOnCategory,
+  onDragOverComponent, onDropOnComponent, onDragEnd, dragOverTarget,
   selectedNodeId, selectedNodeType,
 }) => {
   const components = library.components.filter(c => c.categoryId === category.id);
@@ -432,7 +458,7 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
             <ComponentTreeNode key={comp.id} component={comp} libraryId={library.metadata.id}
               isSelected={selectedNodeId === comp.id && selectedNodeType === 'component'}
               onSelect={() => useComponentLibraryStore.getState().setSelectedNode(comp.id, 'component', library.metadata.id)}
-              onDragStart={onDragStart} onDragOverComponent={onDragOverCategory} onDropOnComponent={onDropOnCategory}
+              onDragStart={onDragStart} onDragOverComponent={onDragOverComponent} onDropOnComponent={onDropOnComponent}
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget} />
           ))}
         </div>
@@ -448,13 +474,16 @@ interface UncategorizedNodeProps {
   onDropOnUncategorized: () => void;
   onDragEnd: () => void; dragOverTarget: DragOverState | null;
   onCreateComponent: () => void;
+  onDragStartNode: (e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => void;
+  onDragOverComponent: (e: React.DragEvent, componentId: string) => void;
+  onDropOnComponent: (e: React.DragEvent, componentId: string) => void;
   selectedNodeId: string | null; selectedNodeType: TreeNodeType | null;
 }
 
 const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
   library, count, isSelected, isExpanded, onToggle, onSelect,
   onDragOverUncategorized, onDropOnUncategorized, onDragEnd, dragOverTarget, onCreateComponent,
-  selectedNodeId, selectedNodeType,
+  onDragStartNode, onDragOverComponent, onDropOnComponent, selectedNodeId, selectedNodeType,
 }) => {
   const categoryIds = new Set(library.categories.map(c => c.id));
   const uncategorizedComponents = library.components.filter(c => !c.categoryId || !categoryIds.has(c.categoryId));
@@ -475,8 +504,9 @@ const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
             <ComponentTreeNode key={comp.id} component={comp} libraryId={library.metadata.id}
               isSelected={selectedNodeId === comp.id && selectedNodeType === 'component'}
               onSelect={() => useComponentLibraryStore.getState().setSelectedNode(comp.id, 'component', library.metadata.id)}
-              onDragStart={() => {}} onDragOverComponent={onDragOverUncategorized}
-              onDropOnComponent={(e) => { e.preventDefault(); onDropOnUncategorized(); }}
+              onDragStart={(e, id, type, libId) => { e.stopPropagation(); onDragStartNode(e, id, type, libId); }}
+              onDragOverComponent={onDragOverComponent}
+              onDropOnComponent={onDropOnComponent}
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget} />
           ))}
         </div>
@@ -599,11 +629,25 @@ interface ComponentEditPanelProps {
 }
 
 const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, component, activeTab, onTabChange, onUpdate, onDelete }) => {
-  const [componentCode, setComponentCode] = useState(component.code || '');
+  const codeValue = component.code ?? '';
+  const [componentCode, setComponentCode] = useState(codeValue);
+  const [localShowLayerPanel, setLocalShowLayerPanel] = useState(false);
+  const [localShowCompLibPanel, setLocalShowCompLibPanel] = useState(false);
+
+  const handleContentChange = useCallback((code: string) => {
+    onUpdate({ code });
+  }, [onUpdate]);
 
   useEffect(() => {
-    setComponentCode(component.code || '');
-  }, [component.code]);
+    setComponentCode(component.code ?? '');
+  }, [component.id, component.code]);
+
+  useEffect(() => {
+    if (activeTab !== 'visual') return;
+    return () => {
+      useSolarWireStore.getState().setSelectedElements([]);
+    };
+  }, [activeTab]);
 
   return (
   <div className="edit-panel">
@@ -633,12 +677,16 @@ const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, compon
         </div>
       )}
       {activeTab === 'visual' && (
-        <SolarWirePreview
-          externalContent={component.code || ''}
-          onExternalContentChange={(newCode: string) => onUpdate({ code: newCode })}
-          zoomLevel={1}
-          selectionTool="select"
-          showNotes={false}
+        <SolarWireVisualEditor
+          content={component.code || ''}
+          onContentChange={handleContentChange}
+          externalContent={component.code}
+          onExternalContentChange={handleContentChange}
+          showLayerPanel={localShowLayerPanel}
+          onShowLayerPanelChange={setLocalShowLayerPanel}
+          showComponentLibrary={localShowCompLibPanel}
+          onShowComponentLibraryChange={setLocalShowCompLibPanel}
+          allowImageElements={false}
         />
       )}
       {activeTab === 'code' && (

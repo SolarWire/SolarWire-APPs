@@ -172,7 +172,7 @@ export const useGitStore = create<GitState>((set, get) => ({
   fetch: async () => {
     if (!api) return;
     try {
-      useStatusStore.getState().startOperation('git-pull', '获取中...');
+      useStatusStore.getState().startOperation('git-fetch', '获取中...');
       await api.fetch();
       await get().refreshStatus();
       useStatusStore.getState().completeOperation('获取成功');

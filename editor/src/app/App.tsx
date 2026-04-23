@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
+import { ToastContainer } from './components/ui/Toast';
 import { useAppStore } from './stores/appStore';
 import { useFileStore } from './stores/fileStore';
 import { useSettingsStore } from './stores/settingsStore';
 import './styles/global.css';
+import './components/ui/Toast.css';
 
 function App(): React.ReactElement {
   const { setTheme } = useAppStore();
@@ -11,12 +13,10 @@ function App(): React.ReactElement {
   const { loadSettings } = useSettingsStore();
 
   useEffect(() => {
-    // 初始化设置
     loadSettings();
   }, [loadSettings]);
 
   useEffect(() => {
-    // 初始化主题（如果有保存的主题）
     const savedTheme = localStorage.getItem('solarwire-theme') as 'light' | 'dark' | null;
     if (savedTheme) {
       setTheme(savedTheme);
@@ -24,7 +24,6 @@ function App(): React.ReactElement {
   }, [setTheme]);
 
   useEffect(() => {
-    // 自动打开上次保存的文件夹
     if (!currentPath) {
       const lastPath = localStorage.getItem('solarwire-last-path');
       if (lastPath && openDirectoryAtPath) {
@@ -33,7 +32,6 @@ function App(): React.ReactElement {
     }
   }, [currentPath, openDirectoryAtPath]);
 
-  // 当路径改变时，保存到localStorage
   useEffect(() => {
     if (currentPath) {
       localStorage.setItem('solarwire-last-path', currentPath);
@@ -41,9 +39,12 @@ function App(): React.ReactElement {
   }, [currentPath]);
 
   return (
-    <div className="app">
-      <AppLayout />
-    </div>
+    <>
+      <div className="app">
+        <AppLayout />
+      </div>
+      <ToastContainer />
+    </>
   );
 }
 

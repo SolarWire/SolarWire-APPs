@@ -215,27 +215,33 @@ export function renderImage(
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const note = element.attributes['note'];
-  
+  const opacity = getOpacityAttribute(element.attributes);
+  const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
+
   const resolvedUrl = imageUrlResolver ? imageUrlResolver(element.url) : element.url;
-  
+  const hasValidUrl = !!resolvedUrl && resolvedUrl.length > 0;
+
   const svgParts: string[] = [];
-  
+
   svgParts.push(`<g>`);
-  svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"/>`);
-  
-  const iconSize = Math.min(w, h) * 0.3;
-  const iconX = pos.x + w / 2;
-  const iconY = pos.y + h / 2 - fontSize;
-  
-  svgParts.push(`<g transform="translate(${iconX - iconSize / 2}, ${iconY - iconSize / 2})">`);
-  svgParts.push(`<rect x="0" y="0" width="${iconSize}" height="${iconSize}" fill="none" stroke="${c}" stroke-width="2" rx="4"/>`);
-  svgParts.push(`<path d="M${iconSize * 0.2} ${iconSize * 0.3} L${iconSize * 0.5} ${iconSize * 0.6} L${iconSize * 0.8} ${iconSize * 0.3}" fill="none" stroke="${c}" stroke-width="2"/>`);
-  svgParts.push(`<circle cx="${iconSize * 0.35}" cy="${iconSize * 0.4}" r="${iconSize * 0.08}" fill="${c}"/>`);
-  svgParts.push(`</g>`);
-  
-  svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}">Image</text>`);
-  
-  svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"/>`);
+
+  if (!hasValidUrl) {
+    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${opacityAttr}/>`);
+
+    const iconSize = Math.min(w, h) * 0.3;
+    const iconX = pos.x + w / 2;
+    const iconY = pos.y + h / 2 - fontSize;
+
+    svgParts.push(`<g transform="translate(${iconX - iconSize / 2}, ${iconY - iconSize / 2})">`);
+    svgParts.push(`<rect x="0" y="0" width="${iconSize}" height="${iconSize}" fill="none" stroke="${c}" stroke-width="2" rx="4"/>`);
+    svgParts.push(`<path d="M${iconSize * 0.2} ${iconSize * 0.3} L${iconSize * 0.5} ${iconSize * 0.6} L${iconSize * 0.8} ${iconSize * 0.3}" fill="none" stroke="${c}" stroke-width="2"/>`);
+    svgParts.push(`<circle cx="${iconSize * 0.35}" cy="${iconSize * 0.4}" r="${iconSize * 0.08}" fill="${c}"/>`);
+    svgParts.push(`</g>`);
+
+    svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}"${opacityAttr}>Image</text>`);
+  } else {
+    svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"${opacityAttr}/>`);
+  }
   
   const bounds: ElementBounds = {
     x: pos.x,

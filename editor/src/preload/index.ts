@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld('api', {
   copyFile: (srcPath: string, destPath: string) => ipcRenderer.invoke('file:copy', srcPath, destPath),
   ensureDir: (dirPath: string) => ipcRenderer.invoke('file:ensureDir', dirPath),
   readImageAsBase64: (imagePath: string) => ipcRenderer.invoke('file:readImageAsBase64', imagePath),
+  setAllowedRoot: (dirPath: string) => ipcRenderer.invoke('file:setAllowedRoot', dirPath),
   
   // Git APIs
   git: {

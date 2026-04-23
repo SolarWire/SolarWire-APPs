@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { marked } from 'marked';
+import { marked, Tokens } from 'marked';
 import mermaid from 'mermaid';
 import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
@@ -8,12 +8,6 @@ import { parse } from "../../../lib/parser";
 import { render as renderSvg } from '../../../lib/renderer';
 import { Scrollbar } from '../ui/Scrollbar';
 
-/**
- * Mermaid 配置
- * - startOnLoad: false - 禁用自动渲染，由组件手动控制
- * - theme: 'default' - 使用默认主题
- * - securityLevel: 'loose' - 宽松安全级别，允许点击事件
- */
 mermaid.initialize({
   startOnLoad: false,
   theme: 'default',
@@ -23,28 +17,56 @@ mermaid.initialize({
 const markdownPreviewScrollPosition = { value: 0 };
 let mermaidRenderCounter = 0;
 
-/**
- * Mermaid 占位符前缀
- * 用于在 Markdown 渲染前替换 Mermaid 代码块，避免被 marked 解析为代码
- */
-const MERMAID_PLACEHOLDER_PREFIX = '<!--MERMAID_PLACEHOLDER_';
+interface DiagramBlock {
+  index: number;
+  code: string;
+}
 
-/**
- * Markdown 预览组件
- * 
- * 核心设计原理：
- * 1. 预处理策略：在 marked 渲染前提取 Mermaid 代码块，替换为 HTML 注释占位符
- * 2. 并行渲染：marked 渲染 Markdown 的同时，调用 mermaid.render() 渲染图表
- * 3. 一次性设置：将渲染结果合并后一次性 setHtml()，避免 DOM 后处理
- * 4. 性能优化：减少 React 重新渲染和 DOM 操作
- * 
- * 为什么选择此方案：
- * - 避免了 DOM 后处理被 React 重新渲染覆盖的问题
- * - 减少了多次 DOM 操作，提升性能
- * - 代码逻辑更清晰，易于维护
- * 
- * 注意：此渲染逻辑经过精心设计，请勿随意修改为 DOM 后处理方式
- */
+const mermaidBlocksStore: DiagramBlock[] = [];
+
+const mermaidExtension = {
+  name: 'mermaid',
+  level: 'block' as const,
+  start(src: string) {
+    return src.match(/```mermaid/)?.index;
+  },
+  tokenizer(src: string): Tokens.Generic | void {
+    const match = src.match(/^```mermaid\s*\n?([\s\S]*?)```/);
+    if (match) {
+      const block: DiagramBlock = {
+        index: mermaidBlocksStore.length,
+        code: match[1].trim(),
+      };
+      mermaidBlocksStore.push(block);
+      return {
+        type: 'mermaid',
+        raw: match[0],
+        code: match[1].trim(),
+      };
+    }
+  },
+  renderer(token: Tokens.Generic): string {
+    return `<div class="mermaid-placeholder" data-index="${mermaidBlocksStore.length - 1}"></div>`;
+  },
+};
+
+marked.use({ extensions: [mermaidExtension] });
+
+function extractGraphvizBlocks(content: string): { processed: string; blocks: DiagramBlock[] } {
+  const blocks: DiagramBlock[] = [];
+  let index = 0;
+
+  const processed = content.replace(
+    /```(?:graphviz|dot)\s*\n?([\s\S]*?)```/g,
+    (match, code) => {
+      blocks.push({ index: index++, code: code.trim() });
+      return `<div class="graphviz-placeholder" data-index="${index - 1}"></div>`;
+    }
+  );
+
+  return { processed, blocks };
+}
+
 function MarkdownPreview(): React.ReactElement {
   const { content } = useEditorStore();
   const { selectedFile, fileContent } = useFileStore();
@@ -52,6 +74,7 @@ function MarkdownPreview(): React.ReactElement {
   const [isRendering, setIsRendering] = useState<boolean>(false);
   const [renderProgress, setRenderProgress] = useState<number>(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isRenderingRef = useRef(false);
 
   useEffect(() => {
     let contentToRender = content;
@@ -59,58 +82,88 @@ function MarkdownPreview(): React.ReactElement {
       contentToRender = fileContent;
     }
 
-    if (contentToRender) {
-      setIsRendering(true);
+    if (contentToRender && !isRenderingRef.current) {
+      isRenderingRef.current = true;
       setRenderProgress(0);
 
-      // 步骤1：处理 SolarWire 代码块
-      const solarwireProcessed = contentToRender.replace(
+      const mdDir = selectedFile?.path?.replace(/[\\/][^\\/]*$/, '') || '';
+      const api = (window as any).api;
+
+      const solarwireBlocks: { match: string; code: string }[] = [];
+      const solarwirePlaceholder = contentToRender.replace(
         /```solarwire\s*([\s\S]*?)```/g,
         (match: string, code: string) => {
-          try {
-            const ast = parse(code.trim());
-            const svg = renderSvg(ast);
-            return `<div class="solarwire-code-block">${svg}</div>`;
-          } catch (error) {
-            console.error('Failed to parse SolarWire:', error);
-            return match;
-          }
+          solarwireBlocks.push({ match, code });
+          return `<<<SOLARWIRE_PLACEHOLDER_${solarwireBlocks.length - 1}>>>`;
         }
       );
 
       setRenderProgress(20);
 
-      // 步骤2：提取 Mermaid 代码块并替换为占位符
-      const mermaidBlocks: string[] = [];
-      const mermaidProcessed = solarwireProcessed.replace(
-        /```mermaid\s*([\s\S]*?)```/g,
-        (match: string, code: string) => {
-          const index = mermaidBlocks.length;
-          mermaidBlocks.push(code.trim());
-          return `${MERMAID_PLACEHOLDER_PREFIX}${index}-->`;
-        }
-      );
+      const { processed: graphvizProcessed, blocks: graphvizBlocks } = extractGraphvizBlocks(solarwirePlaceholder);
 
-      setRenderProgress(40);
+      setRenderProgress(30);
+
+      let finalProcessed = graphvizProcessed;
 
       const renderAll = async () => {
         try {
-          // 步骤3：渲染 Markdown
-          const renderedHtml = await marked(mermaidProcessed, {
+          const imageCache: Record<string, string> = {};
+
+          for (let i = 0; i < solarwireBlocks.length; i++) {
+            const code = solarwireBlocks[i].code;
+            const imageMatches = [...code.matchAll(/<([^>]+\.(?:png|jpg|jpeg|gif|webp|svg))>/gi)];
+            for (const match of imageMatches) {
+              const path = match[1];
+              if (!imageCache[path] && api?.readImageAsBase64 && mdDir) {
+                try {
+                  const absolutePath = `${mdDir}/${path}`.replace(/\\/g, '/');
+                  imageCache[path] = await api.readImageAsBase64(absolutePath);
+                } catch (e) {
+                  console.warn(`Failed to load image: ${path}`, e);
+                }
+              }
+            }
+          }
+
+          const syncImageUrlResolver = (relativePath: string): string => {
+            return imageCache[relativePath] || relativePath;
+          };
+
+          for (let i = 0; i < solarwireBlocks.length; i++) {
+            try {
+              const ast = parse(solarwireBlocks[i].code.trim());
+              const svg = renderSvg(ast, { imageUrlResolver: syncImageUrlResolver });
+              finalProcessed = finalProcessed.replace(
+                `<<<SOLARWIRE_PLACEHOLDER_${i}>>>`,
+                `<div class="solarwire-code-block">${svg}</div>`
+              );
+            } catch (error) {
+              console.error('Failed to parse SolarWire:', error);
+              finalProcessed = finalProcessed.replace(
+                `<<<SOLARWIRE_PLACEHOLDER_${i}>>>`,
+                solarwireBlocks[i].match
+              );
+            }
+          }
+
+          mermaidBlocksStore.length = 0;
+
+          const renderedHtml = await marked(finalProcessed, {
             breaks: true,
             gfm: true,
           });
 
-          setRenderProgress(60);
+          setRenderProgress(50);
 
-          // 步骤4：渲染 Mermaid 图表并替换占位符
           let finalHtml = renderedHtml;
-          for (let i = 0; i < mermaidBlocks.length; i++) {
-            const placeholder = `${MERMAID_PLACEHOLDER_PREFIX}${i}-->`;
+
+          for (let i = 0; i < mermaidBlocksStore.length; i++) {
+            const placeholder = `<div class="mermaid-placeholder" data-index="${i}"></div>`;
             try {
               mermaidRenderCounter++;
               const id = `mermaid-${Date.now()}-${mermaidRenderCounter}`;
-              const { svg } = await mermaid.render(id, mermaidBlocks[i]);
+              const { svg } = await mermaid.render(id, mermaidBlocksStore[i].code);
               finalHtml = finalHtml.replace(
                 placeholder,
                 `<div class="mermaid-container">${svg}</div>`
@@ -122,31 +175,64 @@ function MarkdownPreview(): React.ReactElement {
                 `<div class="mermaid-error">Mermaid 渲染失败</div>`
               );
             }
-            // 更新进度
-            setRenderProgress(60 + Math.round((i + 1) / mermaidBlocks.length * 30));
+            setRenderProgress(50 + Math.round((i + 1) / (mermaidBlocksStore.length + 1) * 25));
           }
 
-          // 步骤5：转换图片相对路径为 file:// 绝对路径
+          for (let i = 0; i < graphvizBlocks.length; i++) {
+            const placeholder = `<div class="graphviz-placeholder" data-index="${i}"></div>`;
+            try {
+              const viz = await import('@viz-js/viz').then(m => m.instance());
+              const result = await viz.render(graphvizBlocks[i].code, { format: 'svg' }) as { output: string };
+              const svg = result.output;
+              finalHtml = finalHtml.replace(
+                placeholder,
+                `<div class="graphviz-container">${svg}</div>`
+              );
+            } catch (error) {
+              console.error('Graphviz render error:', error);
+              finalHtml = finalHtml.replace(
+                placeholder,
+                `<div class="graphviz-error">Graphviz 渲染失败</div>`
+              );
+            }
+            setRenderProgress(75 + Math.round((i + 1) / (graphvizBlocks.length + 1) * 20));
+          }
+
           if (selectedFile?.path) {
             const mdDir = selectedFile.path.replace(/[\\/][^\\/]*$/, '');
-            finalHtml = finalHtml.replace(
-              /<img\s+([^>]*?)src="(assets\/[^"]+)"([^>]*?)>/gi,
-              (match, before, src, after) => {
-                const absolutePath = `${mdDir}/${src}`.replace(/\\/g, '/');
-                const fileUrl = `file:///${absolutePath}`;
-                return `<img ${before}src="${fileUrl}"${after}>`;
+            const imgSrcRegex = /<img\s+([^>]*?)src="(assets\/[^"]+)"([^>]*?)>/gi;
+            const imgMatches = [...finalHtml.matchAll(imgSrcRegex)];
+
+            if (imgMatches.length > 0 && mdDir) {
+              const api = (window as any).api;
+              if (api && api.readImageAsBase64) {
+                for (const match of imgMatches) {
+                  const fullMatch = match[0];
+                  const before = match[1];
+                  const src = match[2];
+                  const after = match[3];
+                  try {
+                    const absolutePath = `${mdDir}/${src}`.replace(/\\/g, '/');
+                    const base64 = await api.readImageAsBase64(absolutePath);
+                    if (base64) {
+                      const replacement = `<img ${before}src="${base64}"${after}>`;
+                      finalHtml = finalHtml.replace(fullMatch, replacement);
+                    }
+                  } catch (e) {
+                    console.warn(`Failed to load image in markdown: ${src}`, e);
+                  }
+                }
               }
-            );
+            }
           }
 
           setRenderProgress(100);
-          // 步骤6：一次性设置 HTML
           setHtml(finalHtml as string);
         } catch (error) {
           console.error('Failed to render Markdown:', error);
           setRenderProgress(100);
         } finally {
-          // 延迟关闭加载状态，确保进度条显示完整
+          isRenderingRef.current = false;
           setTimeout(() => setIsRendering(false), 300);
         }
       };

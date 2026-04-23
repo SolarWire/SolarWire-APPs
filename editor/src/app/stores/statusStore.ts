@@ -6,6 +6,7 @@ export type OperationType =
   | 'git-commit' 
   | 'git-push' 
   | 'git-pull' 
+  | 'git-fetch'
   | 'load' 
   | 'version' 
   | 'git-analysis';
@@ -38,6 +39,7 @@ const operationIcons: Record<OperationType, string> = {
   'git-commit': '📝',
   'git-push': '⬆️',
   'git-pull': '⬇️',
+  'git-fetch': '📡',
   'load': '🔄',
   'version': '📋',
   'git-analysis': '🔍',

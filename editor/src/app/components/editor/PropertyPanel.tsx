@@ -4,6 +4,7 @@ import { useEditorStore } from '../../stores/editorStore';
 import { useFileStore } from '../../stores/fileStore';
 import { parse } from "../../../lib/parser";
 import { updateLineAttribute, updateLineCoords } from '../../../shared/utils/solarwire-utils';
+import { saveImageToAssetsDir, getFileDir } from '../../hooks/useImageDrop';
 import {
   getLineStartCoords,
   getLineEndCoords
@@ -213,23 +214,29 @@ function BatchEditPanel({ selectedElements, content, setContent, ast }: BatchEdi
   );
 }
 
-function PropertyPanel(): React.ReactElement {
+interface PropertyPanelProps {
+  externalContent?: string;
+}
+
+function PropertyPanel({ externalContent }: PropertyPanelProps): React.ReactElement {
   const { selectedElements } = useSolarWireStore();
-  const { content, setContent } = useEditorStore();
-  const { currentPath } = useFileStore();
+  const editorContent = useEditorStore((state) => state.content);
+  const { setContent } = useEditorStore();
+  const { currentPath, selectedFile } = useFileStore();
   const [parseError, setParseError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageFileInputRef = useRef<HTMLInputElement>(null);
+
+  const effectiveContent = externalContent !== undefined ? externalContent : editorContent;
 
   const ast = useMemo(() => {
     try {
       setParseError(null);
-      return parse(content || '');
+      return parse(effectiveContent || '');
     } catch (e) {
       setParseError(e instanceof Error ? e.message : String(e));
       return null;
     }
-  }, [content]);
+  }, [effectiveContent]);
 
   const element = useMemo(() => {
     if (selectedElements.length !== 1) return null;
@@ -241,6 +248,11 @@ function PropertyPanel(): React.ReactElement {
   }, [ast, selectedElements]);
 
   const [localNoteValue, setLocalNoteValue] = useState('');
+  const [noteHeight, setNoteHeight] = useState(80);
+  const [isResizingNote, setIsResizingNote] = useState(false);
+  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const resizeStartYRef = useRef(0);
+  const resizeStartHeightRef = useRef(80);
   const elementLineRef = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -256,20 +268,53 @@ function PropertyPanel(): React.ReactElement {
     }
   }, [element]);
 
-  const adjustTextareaHeight = useCallback((textareaEl: HTMLTextAreaElement | null) => {
-    if (textareaEl) {
-      textareaEl.style.height = 'auto';
-      textareaEl.style.height = `${textareaEl.scrollHeight}px`;
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingNote) return;
+      const deltaY = e.clientY - resizeStartYRef.current;
+      const newHeight = Math.max(60, Math.min(300, resizeStartHeightRef.current + deltaY));
+      setNoteHeight(newHeight);
+    };
+
+    const handleMouseUp = () => {
+      if (isResizingNote) {
+        setIsResizingNote(false);
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+      }
+    };
+
+    if (isResizingNote) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     }
-  }, []);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizingNote]);
+
+  useEffect(() => {
+    const textarea = noteTextareaRef.current;
+    if (!textarea) return;
+
+    const adjustHeight = () => {
+      textarea.style.height = 'auto';
+      const newHeight = Math.max(60, Math.min(300, textarea.scrollHeight));
+      setNoteHeight(newHeight);
+    };
+
+    adjustHeight();
+  }, [localNoteValue]);
 
   const handleChange = useCallback((property: string, value: any) => {
     if (!element) return;
     const lineNum = element.location?.line;
     if (!lineNum) return;
-    const newContent = updateLineAttribute(content, lineNum, property, value);
+    const newContent = updateLineAttribute(effectiveContent, lineNum, property, value);
     setContent(newContent);
-  }, [element, content, setContent]);
+  }, [element, effectiveContent, setContent]);
   
   // 处理线段坐标变化（统一使用绝对坐标）
   const handleLineCoordChange = useCallback((
@@ -289,7 +334,7 @@ function PropertyPanel(): React.ReactElement {
     
     if (handle === 'start') {
       newContent = updateLineCoords(
-        content,
+        effectiveContent,
         lineNum,
         coord === 'x' ? value : startCoords.x,
         coord === 'y' ? value : startCoords.y,
@@ -298,7 +343,7 @@ function PropertyPanel(): React.ReactElement {
       );
     } else {
       newContent = updateLineCoords(
-        content,
+        effectiveContent,
         lineNum,
         startCoords.x,
         startCoords.y,
@@ -306,14 +351,9 @@ function PropertyPanel(): React.ReactElement {
         coord === 'y' ? value : endCoords.y
       );
     }
-    
-    setContent(newContent);
-  }, [element, content, setContent]);
 
-  // 当 localNoteValue 变化时调整 textarea 高度
-  useEffect(() => {
-    adjustTextareaHeight(textareaRef.current);
-  }, [localNoteValue, adjustTextareaHeight]);
+    setContent(newContent);
+  }, [element, effectiveContent, setContent]);
 
   // --- Early returns ---
   if (parseError) {
@@ -638,30 +678,12 @@ function PropertyPanel(): React.ReactElement {
                 style={{ display: 'none' }}
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (!file || !currentPath) return;
+                  if (!file) return;
 
                   try {
-                    const api = (window as any).api;
-                    if (!api || !api.ensureDir || !api.copyFile) {
-                      alert('File API not available');
-                      return;
-                    }
-
-                    const assetsDir = `${currentPath}/assets/images`;
-                    await api.ensureDir(assetsDir);
-
-                    const timestamp = Date.now();
-                    const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                    const destPath = `${assetsDir}/${timestamp}_${sanitizedName}`;
-
-                    const electronFile = file as File & { path?: string };
-                    if (electronFile.path) {
-                      await api.copyFile(electronFile.path, destPath);
-                    } else {
-                      await api.writeFile(destPath, await file.arrayBuffer());
-                    }
-
-                    const relativePath = `assets/images/${timestamp}_${sanitizedName}`;
+                    const dir = getFileDir(selectedFile?.path, currentPath);
+                    if (!dir) return;
+                    const relativePath = await saveImageToAssetsDir(file, dir);
                     handleChange('url', relativePath);
                   } catch (err) {
                     console.error('Failed to copy image:', err);
@@ -676,20 +698,46 @@ function PropertyPanel(): React.ReactElement {
 
           <div className="note-section">
             <PropertyGroupTitle>Note</PropertyGroupTitle>
-            <textarea
-              ref={textareaRef}
-              value={localNoteValue}
-              placeholder="Add a note..."
-              onChange={(e) => {
-                setLocalNoteValue(e.target.value);
-                handleChange('note', e.target.value);
-                adjustTextareaHeight(textareaRef.current);
-              }}
-              spellCheck={false}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-            />
+            <div className="note-textarea-wrapper">
+              <textarea
+                ref={noteTextareaRef}
+                value={localNoteValue}
+                placeholder="Add a note..."
+                style={{ height: `${noteHeight}px` }}
+                onChange={(e) => {
+                  setLocalNoteValue(e.target.value);
+                  handleChange('note', e.target.value);
+                }}
+                onMouseDown={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const isAtBottom = e.clientY > rect.bottom - 10;
+                  if (isAtBottom) {
+                    e.preventDefault();
+                    setIsResizingNote(true);
+                    resizeStartYRef.current = e.clientY;
+                    resizeStartHeightRef.current = noteHeight;
+                    document.body.style.cursor = 'ns-resize';
+                    document.body.style.userSelect = 'none';
+                  }
+                }}
+                spellCheck={false}
+                autoComplete="off"
+                autoCorrect="off"
+                autoCapitalize="off"
+              />
+              <div
+                className="note-resize-handle"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsResizingNote(true);
+                  resizeStartYRef.current = e.clientY;
+                  resizeStartHeightRef.current = noteHeight;
+                  document.body.style.cursor = 'ns-resize';
+                  document.body.style.userSelect = 'none';
+                }}
+              />
+            </div>
           </div>
         </div>
       </Scrollbar>

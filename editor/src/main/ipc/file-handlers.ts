@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64 } from '../file-manager';
+import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot } from '../file-manager';
 
 export function registerFileHandlers(): void {
   ipcMain.handle('file:read', async (_event, filePath: string) => {
@@ -35,5 +35,10 @@ export function registerFileHandlers(): void {
 
   ipcMain.handle('file:readImageAsBase64', async (_event, imagePath: string) => {
     return await readImageAsBase64(imagePath);
+  });
+
+  ipcMain.handle('file:setAllowedRoot', async (_event, dirPath: string) => {
+    setAllowedRoot(dirPath);
+    return { success: true };
   });
 }

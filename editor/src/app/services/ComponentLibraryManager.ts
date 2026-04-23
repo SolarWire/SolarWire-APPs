@@ -306,7 +306,42 @@ class ComponentLibraryManager {
     }
   }
 
+  async moveCategoryToEnd(libraryId: string, categoryId: string, position: 'before' | 'after'): Promise<void> {
+    const library = this.libraries.get(libraryId);
+    if (!library) throw new Error(`Library ${libraryId} not found`);
+
+    const categories = [...library.categories];
+    const sourceIndex = categories.findIndex(c => c.id === categoryId);
+    if (sourceIndex === -1) return;
+
+    const [moved] = categories.splice(sourceIndex, 1);
+    if (position === 'before') {
+      categories.unshift(moved);
+    } else {
+      categories.push(moved);
+    }
+
+    const updated: ComponentLibrary = {
+      ...library,
+      categories,
+      metadata: { ...library.metadata, updatedAt: new Date().toISOString() },
+    };
+
+    this.libraries.set(libraryId, updated);
+    if (!libraryId.startsWith('preset-')) {
+      await indexedDBService.saveLibrary(updated);
+    }
+  }
+
   async moveCategoryToLibrary(sourceLibraryId: string, categoryId: string, targetLibraryId: string, targetCategoryId: string | null, position: 'before' | 'after' | 'inside'): Promise<void> {
+    if (sourceLibraryId === targetLibraryId) {
+      if (targetCategoryId) {
+        return this.moveCategoryInList(sourceLibraryId, categoryId, targetCategoryId, position as 'before' | 'after');
+      } else {
+        return this.moveCategoryToEnd(sourceLibraryId, categoryId, position as 'before' | 'after');
+      }
+    }
+
     const sourceLibrary = this.libraries.get(sourceLibraryId);
     const targetLibrary = this.libraries.get(targetLibraryId);
     if (!sourceLibrary || !targetLibrary) return;
@@ -338,7 +373,11 @@ class ComponentLibraryManager {
         targetCategories.push(movedCategory);
       }
     } else {
-      targetCategories.push(movedCategory);
+      if (position === 'before') {
+        targetCategories.unshift(movedCategory);
+      } else {
+        targetCategories.push(movedCategory);
+      }
     }
 
     const now = new Date().toISOString();

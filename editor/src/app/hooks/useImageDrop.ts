@@ -6,8 +6,8 @@ interface ImageSize {
 }
 
 interface UseImageDropOptions {
-  onImageAdded: (assetPath: string, x: number, y: number, size?: ImageSize) => void;
-  projectRoot: string;
+  onImageAdded: (assetPath: string, clientX: number, clientY: number, size?: ImageSize) => void;
+  fileDir: string;
   enablePaste?: boolean;
 }
 
@@ -18,9 +18,7 @@ interface UseImageDropReturn {
   isDragOver: boolean;
 }
 
-const lastMousePosRef = { x: 0, y: 0 };
-
-function getImageSizeFromBlob(blob: Blob): Promise<ImageSize> {
+export function getImageSizeFromBlob(blob: Blob): Promise<ImageSize> {
   return new Promise((resolve) => {
     const url = URL.createObjectURL(blob);
     const img = new Image();
@@ -36,13 +34,13 @@ function getImageSizeFromBlob(blob: Blob): Promise<ImageSize> {
   });
 }
 
-async function saveImageToProject(file: File, projectRoot: string): Promise<string> {
+export async function saveImageToAssetsDir(file: File, fileDir: string): Promise<string> {
   const api = (window as any).api;
   if (!api || !api.ensureDir || !api.writeFile) {
     throw new Error('File API not available');
   }
 
-  const assetsDir = `${projectRoot}/assets/images`;
+  const assetsDir = `${fileDir}/assets/images`;
   await api.ensureDir(assetsDir);
 
   const timestamp = Date.now();
@@ -57,17 +55,16 @@ async function saveImageToProject(file: File, projectRoot: string): Promise<stri
     await api.writeFile(destPath, new Uint8Array(buffer));
   }
 
-  const relativePath = `assets/images/${timestamp}_${sanitizedName}`;
-  return relativePath;
+  return `assets/images/${timestamp}_${sanitizedName}`;
 }
 
-async function saveBlobToProject(blob: Blob, fileName: string, projectRoot: string): Promise<string> {
+export async function saveBlobToAssetsDir(blob: Blob, fileName: string, fileDir: string): Promise<string> {
   const api = (window as any).api;
   if (!api || !api.ensureDir || !api.writeFile) {
     throw new Error('File API not available');
   }
 
-  const assetsDir = `${projectRoot}/assets/images`;
+  const assetsDir = `${fileDir}/assets/images`;
   await api.ensureDir(assetsDir);
 
   const timestamp = Date.now();
@@ -77,25 +74,32 @@ async function saveBlobToProject(blob: Blob, fileName: string, projectRoot: stri
   const arrayBuffer = await blob.arrayBuffer();
   await api.writeFile(destPath, new Uint8Array(arrayBuffer));
 
-  const relativePath = `assets/images/${timestamp}_${sanitizedName}`;
-  return relativePath;
+  return `assets/images/${timestamp}_${sanitizedName}`;
+}
+
+export function getFileDir(selectedFilePath: string | null | undefined, fallbackDir: string): string {
+  if (selectedFilePath) {
+    return selectedFilePath.replace(/[\\/][^\\/]*$/, '');
+  }
+  return fallbackDir;
 }
 
 export function useImageDrop({
   onImageAdded,
-  projectRoot,
+  fileDir,
   enablePaste = true,
 }: UseImageDropOptions): UseImageDropReturn {
   const [isDragOver, setIsDragOver] = useState(false);
   const containerRef = useRef<HTMLElement | null>(null);
+  const lastMousePosRef = useRef({ x: 0, y: 0 });
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragOver(true);
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    lastMousePosRef.x = Math.max(0, Math.round(e.clientX - rect.left));
-    lastMousePosRef.y = Math.max(0, Math.round(e.clientY - rect.top));
+    lastMousePosRef.current.x = Math.max(0, Math.round(e.clientX - rect.left));
+    lastMousePosRef.current.y = Math.max(0, Math.round(e.clientY - rect.top));
     containerRef.current = e.currentTarget as HTMLElement;
   }, []);
 
@@ -105,37 +109,33 @@ export function useImageDrop({
       e.stopPropagation();
       setIsDragOver(false);
 
-      if (!projectRoot) return;
+      if (!fileDir) return;
 
       const files = Array.from(e.dataTransfer.files);
       const imageFiles = files.filter((f) => f.type.startsWith('image/'));
 
       if (imageFiles.length === 0) return;
 
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      const baseX = Math.max(0, Math.round(e.clientX - rect.left));
-      const baseY = Math.max(0, Math.round(e.clientY - rect.top));
-
       for (let i = 0; i < imageFiles.length; i++) {
         const file = imageFiles[i];
-        const relativePath = await saveImageToProject(file, projectRoot);
+        const relativePath = await saveImageToAssetsDir(file, fileDir);
         const size = await getImageSizeFromBlob(file);
-        onImageAdded(relativePath, baseX + i * 20, baseY + i * 20, size);
+        onImageAdded(relativePath, e.clientX + i * 20, e.clientY + i * 20, size);
       }
     },
-    [onImageAdded, projectRoot]
+    [onImageAdded, fileDir]
   );
 
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
-      if (!projectRoot) return;
+      if (!fileDir) return;
 
       const items = e.clipboardData?.items;
       if (!items) return;
 
       const rect = containerRef.current?.getBoundingClientRect();
-      let pasteX = rect ? Math.max(0, Math.round(lastMousePosRef.x)) : 50;
-      let pasteY = rect ? Math.max(0, Math.round(lastMousePosRef.y)) : 50;
+      let pasteClientX = rect ? Math.round(rect.left + lastMousePosRef.current.x) : 50;
+      let pasteClientY = rect ? Math.round(rect.top + lastMousePosRef.current.y) : 50;
 
       let imageIndex = 0;
       for (const item of items) {
@@ -146,14 +146,14 @@ export function useImageDrop({
           const extension = item.type.split('/')[1] || 'png';
           const fileName = `pasted_${imageIndex}.${extension}`;
 
-          const relativePath = await saveBlobToProject(blob, fileName, projectRoot);
+          const relativePath = await saveBlobToAssetsDir(blob, fileName, fileDir);
           const size = await getImageSizeFromBlob(blob);
-          onImageAdded(relativePath, pasteX + imageIndex * 30, pasteY + imageIndex * 30, size);
+          onImageAdded(relativePath, pasteClientX + imageIndex * 30, pasteClientY + imageIndex * 30, size);
           imageIndex++;
         }
       }
     },
-    [onImageAdded, projectRoot]
+    [onImageAdded, fileDir]
   );
 
   useEffect(() => {

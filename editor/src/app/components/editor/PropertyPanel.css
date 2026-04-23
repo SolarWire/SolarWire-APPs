@@ -246,10 +246,19 @@
   flex-shrink: 0;
 }
 
+.note-textarea-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .note-section textarea {
-  min-height: 40px;
+  width: 100%;
+  min-height: 60px;
+  max-height: 300px;
   resize: none;
   padding: 8px;
+  padding-bottom: 20px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 12px;
@@ -259,11 +268,57 @@
   line-height: 1.4;
   white-space: pre-wrap;
   overflow-y: auto;
+  font-family: inherit;
 }
 
 .note-section textarea:focus {
   outline: none;
   border-color: var(--accent-color);
+}
+
+.note-resize-handle {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(transparent, var(--bg-tertiary) 30%);
+  border-radius: 0 0 4px 4px;
+}
+
+.note-resize-handle::before {
+  content: '';
+  width: 30px;
+  height: 3px;
+  background: var(--border-color);
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.note-resize-handle:hover::before {
+  opacity: 1;
+}
+
+.note-section textarea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.note-section textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.note-section textarea::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.note-section textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
 }
 
 .table-editor {

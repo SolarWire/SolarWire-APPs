@@ -190,6 +190,16 @@ export function updateLineAttribute(
     // 如果没有找到匹配的元素类型，回退到添加 text= 属性（虽然这种情况不应该发生）
   }
 
+  if (attributeName === 'url') {
+    const imageUrlPattern = /<([^>]+)>/;
+    const match = line.match(imageUrlPattern);
+    if (match) {
+      line = line.replace(imageUrlPattern, `<${attributeValue}>`);
+    }
+    lines[lineIndex] = line;
+    return lines.join('\n');
+  }
+
   if (attributeName === 'x' || attributeName === 'y') {
     const coordPattern = /@\((\d+),\s*(\d+)\)/;
     const match = line.match(coordPattern);

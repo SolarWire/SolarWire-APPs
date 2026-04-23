@@ -17,7 +17,6 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
-  user-select: none;
 }
 
 .layer-count {
@@ -72,7 +71,6 @@
   font-size: 12px;
   gap: 8px;
   border-left: 3px solid transparent;
-  user-select: none;
 }
 
 .layer-item:hover {

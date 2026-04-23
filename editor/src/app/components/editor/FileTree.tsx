@@ -18,7 +18,7 @@ interface TreeItemProps {
   onSelectFile: (file: FileNode) => void;
 }
 
-const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg'];
+const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'];
 
 const isSupportedFile = (filename: string): boolean => {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
@@ -57,6 +57,14 @@ const TreeItem: React.FC<TreeItemProps> = ({
         return '⚡';
       case 'svg':
         return '🎨';
+      case 'png':
+      case 'jpg':
+      case 'jpeg':
+      case 'gif':
+      case 'webp':
+      case 'bmp':
+      case 'ico':
+        return '🖼️';
       default:
         return '📄';
     }

@@ -11,6 +11,7 @@ interface SolarWireState {
   showNotes: boolean;
   zoomLevel: number;
   isSpacePressed: boolean;
+  isPreviewFocused: boolean;
   selectElements: (ids: string[]) => void;
   setSelectedElements: (ids: string[]) => void;
   setSelectionTool: (tool: SelectionTool) => void;
@@ -20,6 +21,7 @@ interface SolarWireState {
   setShowNotes: (show: boolean) => void;
   setZoomLevel: (zoom: number) => void;
   setIsSpacePressed: (pressed: boolean) => void;
+  setIsPreviewFocused: (focused: boolean) => void;
 }
 
 export const useSolarWireStore = create<SolarWireState>((set) => ({
@@ -31,6 +33,7 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
   showNotes: true,
   zoomLevel: 100,
   isSpacePressed: false,
+  isPreviewFocused: false,
 
   selectElements: (ids: string[]) => set({ selectedElements: ids }),
   setSelectedElements: (ids: string[]) => set({ selectedElements: ids }),
@@ -41,6 +44,7 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
   setShowNotes: (show) => set({ showNotes: show }),
   setZoomLevel: (zoom) => set({ zoomLevel: zoom }),
   setIsSpacePressed: (pressed) => set({ isSpacePressed: pressed }),
+  setIsPreviewFocused: (focused) => set({ isPreviewFocused: focused }),
 }));
 
 export type { SelectionTool };

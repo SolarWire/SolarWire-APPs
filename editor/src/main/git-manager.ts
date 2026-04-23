@@ -217,7 +217,17 @@ class GitRepository {
         console.log(`Detached HEAD state detected, auto-switching to branch: ${branch}`);
         await this.git.checkout(branch);
       }
-      await this.git.push();
+      const currentBranch = await this.getCurrentBranch();
+      const remote = await this.getDefaultRemote();
+      if (!remote) {
+        throw new Error('未配置远程仓库，无法推送代码。请先使用 git remote add 添加远程仓库');
+      }
+      const hasUpstream = await this.hasUpstreamBranch(currentBranch);
+      if (hasUpstream) {
+        await this.git.push(remote, currentBranch);
+      } else {
+        await this.git.push(['-u', remote, currentBranch]);
+      }
     } catch (error) {
       console.error('Failed to push:', error);
       throw error;
@@ -227,7 +237,7 @@ class GitRepository {
   async isDetachedHead(): Promise<boolean> {
     try {
       const status = await this.git.status();
-      return status.current === null;
+      return status.current === null || status.current === '(no branch)' || status.current === 'HEAD';
     } catch (error) {
       console.error('Failed to check detached head state:', error);
       return false;
@@ -253,6 +263,30 @@ class GitRepository {
     }
   }
 
+  async getDefaultRemote(): Promise<string | null> {
+    try {
+      const remotes = await this.git.getRemotes(true);
+      if (remotes.length === 0) {
+        return null;
+      }
+      const origin = remotes.find((r) => r.name === 'origin');
+      return origin ? origin.name : remotes[0].name;
+    } catch (error) {
+      console.error('Failed to get default remote:', error);
+      return null;
+    }
+  }
+
+  async hasUpstreamBranch(branch: string): Promise<boolean> {
+    if (!branch) return false;
+    try {
+      const result = await this.git.raw(['config', `branch.${branch}.remote`]);
+      return result.trim().length > 0;
+    } catch {
+      return false;
+    }
+  }
+
   async pull(): Promise<void> {
     try {
       const isDetached = await this.isDetachedHead();
@@ -264,7 +298,12 @@ class GitRepository {
         console.log(`Detached HEAD state detected, auto-switching to branch: ${branch}`);
         await this.git.checkout(branch);
       }
-      await this.git.pull();
+      const currentBranch = await this.getCurrentBranch();
+      const remote = await this.getDefaultRemote();
+      if (!remote) {
+        throw new Error('未配置远程仓库，无法拉取代码。请先使用 git remote add 添加远程仓库');
+      }
+      await this.git.pull(remote, currentBranch);
     } catch (error) {
       console.error('Failed to pull:', error);
       throw error;
@@ -304,7 +343,11 @@ class GitRepository {
 
   async fetch(): Promise<void> {
     try {
-      await this.git.fetch();
+      const remote = await this.getDefaultRemote();
+      if (!remote) {
+        throw new Error('未配置远程仓库，无法获取远程数据。请先使用 git remote add 添加远程仓库');
+      }
+      await this.git.fetch(remote);
     } catch (error) {
       console.error('Failed to fetch:', error);
       throw error;

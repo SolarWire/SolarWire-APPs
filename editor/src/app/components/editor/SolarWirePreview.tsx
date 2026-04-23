@@ -11,10 +11,6 @@ import {
   getLineCoordinates
 } from '../../../shared/utils/coordinate-converter';
 
-/**
- * RAF-based content updater: batches content updates to the next animation frame.
- * Avoids losing intermediate updates like throttle does.
- */
 function createRafContentUpdater(setContent: (content: string) => void) {
   let rafId: number | null = null;
   let pendingContent: string | null = null;
@@ -38,14 +34,43 @@ import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useFileStore } from '../../stores/fileStore';
+import { usePreviewStore } from '../../stores/previewStore';
+import type {
+  BoxSelectionState,
+  MultiDragState,
+  DragElementState,
+  ResizeHandleState,
+  DragPreviewElement,
+  AlignmentGuide,
+  EdgeGap,
+  GuideType,
+} from '../../stores/previewStore';
 import { parse } from '../../../lib/parser';
 import { render, RenderResultWithMeta } from '../../../lib/renderer';
-import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
-import { useImageDrop } from '../../hooks/useImageDrop';
+import { updateLineAttribute, getElementRelatedLines } from '../../../shared/utils/solarwire-utils';
+import { useImageDrop, getFileDir, saveImageToAssetsDir, getImageSizeFromBlob } from '../../hooks/useImageDrop';
 import type { Document, Element as SolarWireElement } from '../../../lib/parser/types';
+import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
+import { showToast } from '../ui/Toast';
 import './SolarWirePreview.css';
 
 import type { SelectionTool } from '../../stores/solarWireStore';
+
+const isValidFileDir = (fileDir: string, currentPath: string): boolean => {
+  if (!fileDir || !currentPath) return false;
+  const normalizedFileDir = fileDir.replace(/\\/g, '/').toLowerCase();
+  const normalizedCurrentPath = currentPath.replace(/\\/g, '/').toLowerCase();
+  return normalizedFileDir.startsWith(normalizedCurrentPath);
+};
+
+const getProjectDir = (currentPath: string, selectedFilePath: string | undefined): string | null => {
+  if (selectedFilePath) {
+    const fileDir = selectedFilePath.replace(/[\\/][^\\/]*$/, '');
+    return fileDir;
+  }
+  if (currentPath) return currentPath;
+  return null;
+};
 
 // 获取元素数据，包括线段元素的终点坐标
 const getElementDataFromContent = (content: string, lineNum: number) => {
@@ -189,49 +214,6 @@ const handleElementDrag = (
   return newContent;
 };
 
-interface BoxSelectionState {
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-}
-
-interface MultiDragState {
-  elementId: string;
-  startX: number;
-  startY: number;
-  elementX: number;
-  elementY: number;
-  elementX2?: number;
-  elementY2?: number;
-  isLine?: boolean;
-}
-
-interface DragElementState {
-  elementId: string;
-  startX: number;
-  startY: number;
-  elementX: number;
-  elementY: number;
-  elementX2?: number;
-  elementY2?: number;
-  isLine?: boolean;
-}
-
-interface ResizeHandleState {
-  elementId: string;
-  handle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w' | 'start' | 'end';
-  startX: number;
-  startY: number;
-  elementX: number;
-  elementY: number;
-  elementW?: number;
-  elementH?: number;
-  elementX2?: number;
-  elementY2?: number;
-  isLine?: boolean;
-}
-
 interface SolarWirePreviewProps {
   zoomLevel: number;
   selectionTool: SelectionTool;
@@ -244,6 +226,8 @@ interface SolarWirePreviewProps {
   gridSizeProp?: number;
   externalContent?: string;
   onExternalContentChange?: (code: string) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
+  allowImageElements?: boolean;
 }
 
 function hexToRgba(hex: string, alpha: number): string {
@@ -253,11 +237,36 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange }: SolarWirePreviewProps): React.ReactElement {
+function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true }: SolarWirePreviewProps): React.ReactElement {
+  const instanceId = useRef(Math.random().toString(36).substr(2, 9)).current;
   const { selectedElements, selectElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
-  const { currentPath } = useFileStore();
+  const { currentPath, selectedFile } = useFileStore();
+  const fileDir = getFileDir(selectedFile?.path, currentPath);
   const { primaryColor, showGrid, gridSize, snapToGrid, setShowGrid, setSnapToGrid } = useSettingsStore();
+
+  const {
+    scale, setScale,
+    position, setPosition,
+    isDraggingCanvas, startCanvasDrag, endCanvasDrag,
+    dragStart,
+    isInitialized, setIsInitialized,
+    boxSelection, setBoxSelection,
+    dragElementState, setDragElementState,
+    multiDragElements, setMultiDragElements,
+    resizeHandleState, setResizeHandleState,
+    dragPreviewElement, setDragPreviewElement,
+    hoveredElement, setHoveredElement,
+    dropOverlay, setDropOverlay,
+    error: storeError, setError: setStoreError,
+    alignmentGuides, setAlignmentGuides,
+    edgeGaps, setEdgeGaps,
+    altKeyPressed, setAltKeyPressed,
+    resetInteractionStates,
+  } = usePreviewStore();
+
+  const [parseError, setParseError] = useState<string | null>(null);
+  const [lastMousePosition, setLastMousePosition] = useState({ x: 200, y: 200 });
 
   const isExternalMode = externalContent !== undefined;
   const effectiveContent = isExternalMode ? externalContent : content;
@@ -267,69 +276,50 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const effectiveSnapToGrid = snapToGrid || snapToGridProp;
   const effectiveGridSize = gridSize || gridSizeProp;
   
-  // RAF-based content updater
   const rafUpdater = useMemo(() => createRafContentUpdater(effectiveSetContent), [effectiveSetContent]);
-
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     setScale(zoomLevel / 100);
   }, [zoomLevel]);
   
-  // 使用坐标系统Hook
   const { getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
     position,
     scale
   });
 
   const svgContainerRef = useRef<HTMLDivElement>(null);
-  const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [boxSelection, setBoxSelection] = useState<BoxSelectionState | null>(null);
-  const [dragPreviewElement, setDragPreviewElement] = useState<{
-    type: string;
-    x: number;
-    y: number;
-    code?: string;
-  } | null>(null);
-  const [dragElementState, setDragElementState] = useState<DragElementState | null>(null);
-  const [multiDragElements, setMultiDragElements] = useState<MultiDragState[]>([]);
-  const [resizeHandleState, setResizeHandleState] = useState<ResizeHandleState | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [hoveredElement, setHoveredElement] = useState<string | null>(null);
-  const [dropOverlay, setDropOverlay] = useState(false);
   const imageCacheRef = useRef<Record<string, string>>({});
   const loadingUrlsRef = useRef<Set<string>>(new Set());
   const [imageCacheTick, setImageCacheTick] = useState(0);
+  const prevErrorRef = useRef<string | null>(null);
 
   const resolveImageUrl = useCallback((url: string): string => {
-    if (url && !url.startsWith('http') && !url.startsWith('data:') && currentPath) {
+    if (url && !url.startsWith('http') && !url.startsWith('data:') && fileDir) {
       return imageCacheRef.current[url] || '';
     }
     return url;
-  }, [currentPath, imageCacheTick]);
-  const [alignmentGuides, setAlignmentGuides] = useState<AlignmentGuide[]>([]);
-  const [edgeGaps, setEdgeGaps] = useState<Array<{
-    type: string;
-    targetBounds: { x: number; y: number; w: number; h: number };
-    distance: number;
-    currentEdge: number;
-    targetEdge: number;
-    hasOverlap: boolean;
-    overlapStart: number;
-    overlapEnd: number;
-  }>>([]);
-  const [altKeyPressed, setAltKeyPressed] = useState(false);
+  }, [fileDir, imageCacheTick]);
 
   const handleImageAdded = useCallback((assetPath: string, x: number, y: number, size?: { width: number; height: number }) => {
-    const worldCoords = getSvgCoords(x, y);
+    const svgCoords = getSvgCoords(x, y);
     const imagePath = assetPath;
-    const safeX = Math.max(0, Math.round(worldCoords.x));
-    const safeY = Math.max(0, Math.round(worldCoords.y));
-    const w = size ? Math.round(size.width) : 200;
-    const h = size ? Math.round(size.height) : undefined;
+    const safeX = Math.max(0, Math.round(svgCoords.x));
+    const safeY = Math.max(0, Math.round(svgCoords.y));
+    const MAX_DIM = 400;
+    let w: number;
+    let h: number | undefined;
+    if (size) {
+      if (size.width > MAX_DIM || size.height > MAX_DIM) {
+        const ratio = Math.min(MAX_DIM / size.width, MAX_DIM / size.height);
+        w = Math.round(size.width * ratio);
+        h = Math.round(size.height * ratio);
+      } else {
+        w = Math.round(size.width);
+        h = Math.round(size.height);
+      }
+    } else {
+      w = 200;
+    }
     const attrStr = h ? `w=${w} h=${h}` : `w=${w}`;
     const imageElement = `<${imagePath}> @(${safeX}, ${safeY}) ${attrStr}`;
     const newContent = effectiveContent ? `${effectiveContent}\n${imageElement}` : imageElement;
@@ -338,13 +328,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   const { handleDragOver: handleImageDragOver, handleDrop: handleImageDrop } = useImageDrop({
     onImageAdded: handleImageAdded,
-    projectRoot: currentPath || '',
+    fileDir: fileDir || '',
     enablePaste: true,
   });
 
   const { svg, ast, viewBox } = useMemo(() => {
     try {
-      setError(null);
       const safeContent = effectiveContent || '';
       if (!safeContent.trim()) {
         return { svg: '', ast: null, viewBox: null };
@@ -359,26 +348,57 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }, true) as RenderResultWithMeta;
       return { svg: renderedResult.svg, ast: parsedAST, viewBox: renderedResult.viewBox };
     } catch (e: any) {
-      console.error('Parse/Render error:', e);
-      setError(e.message || String(e));
-      return { svg: '', ast: null, viewBox: null };
+      console.error('[SolarWirePreview] Parse/Render error:', e);
+      return { svg: '', ast: null, viewBox: null, parseError: e.message || String(e) };
     }
   }, [effectiveContent, selectedElements, primaryColor, showNotes, currentPath, resolveImageUrl]);
 
+  const viewBoxOffsetX = viewBox?.x || 0;
+  const viewBoxOffsetY = viewBox?.y || 0;
+
+  const toSvgCoord = useCallback((clientX: number, clientY: number) => {
+    const world = getSvgCoords(clientX, clientY);
+    return {
+      x: world.x + viewBoxOffsetX,
+      y: world.y + viewBoxOffsetY
+    };
+  }, [getSvgCoords, viewBoxOffsetX, viewBoxOffsetY]);
+
   useEffect(() => {
-    if (!ast || !currentPath) {
+    const errorFromAst = (ast as any)?.parseError || null;
+    if (prevErrorRef.current !== errorFromAst) {
+      prevErrorRef.current = errorFromAst;
+      setParseError(errorFromAst);
+    }
+  }, [ast]);
+
+  useEffect(() => {
+    if (!ast || !fileDir) {
       imageCacheRef.current = {};
       setImageCacheTick(t => t + 1);
       return;
     }
 
-    const imageUrls: string[] = [];
+    const currentImageUrls = new Set<string>();
     ast.elements.forEach(el => {
       if (el.type === 'image' && (el as any).url) {
         const url = (el as any).url;
-        if (url && !url.startsWith('http') && !url.startsWith('data:') && !imageCacheRef.current[url]) {
-          imageUrls.push(url);
+        if (url && !url.startsWith('http') && !url.startsWith('data:')) {
+          currentImageUrls.add(url);
         }
+      }
+    });
+
+    Object.keys(imageCacheRef.current).forEach(cachedUrl => {
+      if (!currentImageUrls.has(cachedUrl)) {
+        delete imageCacheRef.current[cachedUrl];
+      }
+    });
+
+    const imageUrls: string[] = [];
+    currentImageUrls.forEach(url => {
+      if (!imageCacheRef.current[url] && !loadingUrlsRef.current.has(url)) {
+        imageUrls.push(url);
       }
     });
 
@@ -386,14 +406,14 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     const loadImages = async () => {
       const api = (window as any).api;
-      if (!api || !api.readImageAsBase64) return;
+      if (!api || !api.readImageAsBase64 || !fileDir) return;
 
       for (const url of imageUrls) {
         if (loadingUrlsRef.current.has(url)) continue;
         loadingUrlsRef.current.add(url);
 
         try {
-          const fullPath = `${currentPath}/${url}`;
+          const fullPath = `${fileDir}/${url}`;
           const base64 = await api.readImageAsBase64(fullPath);
           if (base64) {
             imageCacheRef.current[url] = base64;
@@ -409,7 +429,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     };
 
     loadImages();
-  }, [ast, currentPath]);
+  }, [ast, fileDir]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -777,29 +797,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
    */
   const SNAP_THRESHOLD = 6;
   const ALIGN_THRESHOLD = SNAP_THRESHOLD;
-
-  interface AlignmentGuide {
-    type: GuideType;
-    position: number;
-    distance?: number;
-    sourceElementId?: string;
-    sourceBounds?: { x: number; y: number; w: number; h: number };
-    relatedElementIds?: string[];
-    priority: number;
-    isSnapped: boolean;
-    isNearby?: boolean;
-    targetBounds?: { x: number; y: number; w: number; h: number };
-    currentEdge?: number;
-    isHorizontal?: boolean;
-  }
-
-  type GuideType =
-    | 'left' | 'right' | 'top' | 'bottom'
-    | 'centerX' | 'centerY'
-    | 'spacingX' | 'spacingY'
-    | 'canvasLeft' | 'canvasRight' | 'canvasTop' | 'canvasBottom' | 'canvasCenterX' | 'canvasCenterY'
-    | 'distributeX' | 'distributeY'
-    | 'userH' | 'userV';
 
   interface ActiveEdges {
     left: boolean;
@@ -1562,6 +1559,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
 
+    containerRef.current?.focus();
+    setIsPreviewFocused(true);
+
     const target = e.target as SVGElement | HTMLElement;
     
     const handleAttr = target.getAttribute('data-handle');
@@ -1642,14 +1642,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     // 如果没有直接获取到元素 ID，尝试检测附近的元素（10px 容差）
     if (!elementId && (currentTool === 'select' || currentTool === 'box-include' || currentTool === 'box-intersect')) {
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const svgCoords = toSvgCoord(e.clientX, e.clientY);
       elementId = findElementAtPosition(svgCoords.x, svgCoords.y, 10);
     }
 
     switch (currentTool) {
       case 'pan':
-        setIsDraggingCanvas(true);
-        setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+        startCanvasDrag(e.clientX - position.x, e.clientY - position.y);
         break;
 
       case 'select':
@@ -1745,9 +1744,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             currentY: e.clientY
           });
         } else {
-          // select 模式下，点击空白处拖动画布
-          setIsDraggingCanvas(true);
-          setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
+          startCanvasDrag(e.clientX - position.x, e.clientY - position.y);
           selectElements([]);
         }
         break;
@@ -1755,6 +1752,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
+    const svgCoords = getSvgCoords(e.clientX, e.clientY);
+    setLastMousePosition({
+      x: svgCoords.x + viewBoxOffsetX,
+      y: svgCoords.y + viewBoxOffsetY
+    });
+
     if (isDraggingCanvas || ((isPanMode || isSpacePressed) && isDraggingCanvas)) {
       if (isDraggingCanvas) {
         setPosition({
@@ -1994,11 +1997,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const elementH = (dragElementState as any).elementH || 50;
       
       const useGridSnap = effectiveShowGrid && effectiveSnapToGrid;
-      
+
       if (dragElementState.isLine) {
         setAlignmentGuides([]);
       } else if (!altKeyPressed) {
-        // 元素对齐吸附：不按 Alt 时始终执行（与网格吸附不互斥）
         const newX = dragElementState.elementX + dx;
         const newY = dragElementState.elementY + dy;
         const currentBounds = { x: newX, y: newY, w: elementW, h: elementH };
@@ -2175,7 +2177,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   const handleMouseUp = (e: React.MouseEvent) => {
     if (isDraggingCanvas) {
-      setIsDraggingCanvas(false);
+      endCanvasDrag();
       return;
     }
 
@@ -2213,9 +2215,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
     
-    // 更新预览元素位置
     if (dragPreviewElement) {
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const svgCoords = toSvgCoord(e.clientX, e.clientY);
       setDragPreviewElement({
         ...dragPreviewElement,
         x: Math.round(svgCoords.x),
@@ -2229,7 +2230,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     const plainText = e.dataTransfer.getData('text/plain');
     if (plainText) {
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const svgCoords = toSvgCoord(e.clientX, e.clientY);
       setDragPreviewElement({
         type: 'component',
         x: Math.round(svgCoords.x),
@@ -2244,7 +2245,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     try {
       const elementData = JSON.parse(jsonData);
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const svgCoords = toSvgCoord(e.clientX, e.clientY);
       setDragPreviewElement({
         type: elementData.type,
         x: Math.round(svgCoords.x),
@@ -2259,7 +2260,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     setDragPreviewElement(null);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setDragPreviewElement(null);
 
@@ -2274,7 +2275,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       const plainText = e.dataTransfer.getData('text/plain');
       if (plainText) {
-        const svgCoords = getSvgCoords(e.clientX, e.clientY);
+        const svgCoords = toSvgCoord(e.clientX, e.clientY);
         const x = Math.round(svgCoords.x);
         const y = Math.round(svgCoords.y);
 
@@ -2323,7 +2324,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (!jsonData) return;
 
       const elementData = JSON.parse(jsonData);
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const svgCoords = toSvgCoord(e.clientX, e.clientY);
       const x = Math.round(svgCoords.x);
       const y = Math.round(svgCoords.y);
 
@@ -2345,8 +2346,78 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           newLine = `-- @(${x},${y})->(${x + 100},${y})`;
           break;
         case 'image':
-          newLine = `<image.png> @(${x},${y}) w=100 h=100`;
-          break;
+          if (!allowImageElements) {
+            showToast('Image elements are not allowed in component editing mode', 'error', false);
+            return;
+          }
+          {
+            const api = (window as any).api;
+            if (!api || !api.openFileDialog) {
+              showToast('File dialog not available', 'error', false);
+              return;
+            }
+            const projectDir = getProjectDir(currentPath, selectedFile?.path);
+            if (!projectDir) {
+              showToast('Please open a project directory first', 'error', false);
+              return;
+            }
+            try {
+              const paths = await api.openFileDialog({
+                properties: ['openFile'],
+                filters: [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'] }],
+              });
+              if (!paths || paths.length === 0) return;
+              const filePath = paths[0];
+              const fileName = filePath.split(/[\\/]/).pop() || 'image.png';
+              const timestamp = Date.now();
+              const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+              const relativePath = `assets/images/${timestamp}_${sanitizedName}`;
+
+              showToast('Copying image...', 'info');
+
+              try {
+                await api.ensureDir(`${projectDir}/assets/images`);
+              } catch (dirErr) {
+                const errMsg = dirErr instanceof Error ? dirErr.message : String(dirErr);
+                showToast(`Failed to create assets directory: ${errMsg}`, 'error', false);
+                return;
+              }
+              try {
+                await api.copyFile(filePath, `${projectDir}/${relativePath}`);
+              } catch (copyErr) {
+                const errMsg = copyErr instanceof Error ? copyErr.message : String(copyErr);
+                showToast(`Failed to copy image file: ${errMsg}`, 'error', false);
+                return;
+              }
+
+              showToast('Image added successfully', 'success');
+
+              const img = new Image();
+              img.onload = () => {
+                const aspect = img.width / img.height;
+                const maxDim = 400;
+                let w = Math.min(maxDim, img.width);
+                let h = w / aspect;
+                if (h > maxDim) { h = maxDim; w = h * aspect; }
+                const line = `<${relativePath}> @(${x},${y}) w=${Math.round(w)} h=${Math.round(h)}`;
+                const currentContent = effectiveContent || '';
+                const newContent = currentContent.trimEnd() + '\n' + line;
+                effectiveSetContent(newContent);
+              };
+              img.onerror = () => {
+                const line = `<${relativePath}> @(${x},${y})`;
+                const currentContent = effectiveContent || '';
+                const newContent = currentContent.trimEnd() + '\n' + line;
+                effectiveSetContent(newContent);
+              };
+              img.src = filePath;
+            } catch (err) {
+              console.error('Image insert failed:', err);
+              const errMsg = err instanceof Error ? err.message : String(err);
+              showToast(`Failed to add image: ${errMsg}`, 'error', false);
+            }
+            return;
+          }
         case 'placeholder':
           newLine = `[?"Placeholder"] @(${x},${y}) w=100 h=50`;
           break;
@@ -2370,9 +2441,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
     
-    // Update preview element position for element library drops
     if (dragPreviewElement) {
-      const svgCoords = getSvgCoords(e.clientX, e.clientY);
+      const svgCoords = toSvgCoord(e.clientX, e.clientY);
       setDragPreviewElement({
         ...dragPreviewElement,
         x: Math.round(svgCoords.x),
@@ -2380,7 +2450,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       });
     }
 
-    // Also handle image drag over
     handleImageDragOver(e);
   };
 
@@ -2472,12 +2541,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     const width = maxX - minX + 20;
     const height = maxY - minY + 20;
-    const offsetX = mouseX - minX;
-    const offsetY = mouseY - minY;
 
     return {
-      x: offsetX,
-      y: offsetY,
+      x: mouseX,
+      y: mouseY,
       width,
       height
     };
@@ -2572,6 +2639,25 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           />
         );
       case 'image':
+        return (
+          <g style={{ pointerEvents: 'none' }}>
+            <rect
+              x={x}
+              y={y}
+              width={100}
+              height={80}
+              fill={hexToRgba(primaryColor, 0.15)}
+              stroke={primaryColor}
+              strokeWidth={2 / scale}
+              strokeDasharray="4,4"
+            />
+            <g transform={`translate(${x + 35}, ${y + 20}) scale(${1 / scale})`}>
+              <rect x="0" y="0" width="30" height="30" fill="none" stroke={primaryColor} strokeWidth="2" rx="4" />
+              <path d="M6 10 L15 22 L24 10" fill="none" stroke={primaryColor} strokeWidth="2" />
+              <circle cx="10" cy="13" r="2.5" fill={primaryColor} />
+            </g>
+          </g>
+        );
       case 'placeholder':
         return (
           <rect
@@ -2796,13 +2882,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   };
 
   const renderError = () => {
-    if (!error) return null;
-    
+    if (!parseError) return null;
+
     return (
       <div className="error-overlay">
         <div className="error-content">
           <div className="error-title">⚠️ Parse Error</div>
-          <pre className="error-message">{error}</pre>
+          <pre className="error-message">{parseError}</pre>
         </div>
       </div>
     );
@@ -2983,7 +3069,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   };
 
   const renderEmpty = () => {
-    if (error || svg) return null;
+    if (parseError || svg) return null;
     
     return (
       <div className="empty-overlay">
@@ -2995,7 +3081,46 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     );
   };
 
+  const { setIsPreviewFocused } = useSolarWireStore();
+
   const cursor = isSpacePressed ? 'grab' : undefined;
+
+  useEffect(() => {
+    const handleKeyDown = async (e: KeyboardEvent) => {
+      const path = e.composedPath();
+      const isInPreview = containerRef.current && path.includes(containerRef.current);
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElements.length > 0) {
+        e.preventDefault();
+        const result = await copyElements({
+          elementIds: selectedElements,
+          content: effectiveContent,
+          fileDir: fileDir || undefined
+        });
+        if (result.success) {
+          await copyToSystemClipboard();
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        e.preventDefault();
+        await pasteElements({
+          content: effectiveContent,
+          targetPosition: lastMousePosition,
+          setContent: effectiveSetContent,
+          setSelectedElements: selectElements,
+          fileDir: fileDir || undefined
+        });
+        return;
+      }
+
+      if (!isInPreview || selectedElements.length === 0) return;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedElements, effectiveContent, effectiveSetContent, selectElements, lastMousePosition, fileDir]);
 
   return (
     <div
@@ -3008,20 +3133,27 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         setHoveredElement(null);
         handleMouseUp({} as React.MouseEvent);
       }}
+      onFocus={() => setIsPreviewFocused(true)}
+      onBlur={() => setIsPreviewFocused(false)}
       onDragOver={handleDragOverCombined}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
       onContextMenu={(e) => {
-        e.preventDefault();
+        e.stopPropagation();
         if (selectedElements.length > 0) {
           selectElements([]);
         }
+        if (onContextMenu) {
+          onContextMenu(e);
+        }
       }}
-      style={{ 
+      style={{
         cursor,
-        userSelect: 'none'
+        userSelect: 'none',
+        outline: 'none'
       }}
+      tabIndex={0}
     >
       {svg && (
         <div
