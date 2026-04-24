@@ -34,7 +34,12 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
 
   const activeLibraryIdRef = activeLibrary?.metadata.id;
   const activeLibraryComponentCount = activeLibrary?.components.length;
-  const activeLibraryCodeHash = activeLibrary?.components.map(c => c.id + ':' + (c.code?.length || 0)).join('|');
+  const activeLibraryComponentIds = useMemo(() => {
+    return activeLibrary?.components.map(c => c.id).join(',') || '';
+  }, [activeLibrary?.components]);
+  const activeLibraryCategoryIds = useMemo(() => {
+    return activeLibrary?.categories.filter(c => c.parentId === null).map(c => c.id).join(',') || '';
+  }, [activeLibrary?.categories]);
 
   useEffect(() => {
     if (!activeLibrary) {
@@ -91,27 +96,44 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     return () => {
       cancelled = true;
     };
-  }, [activeLibraryIdRef, activeLibraryComponentCount, activeLibraryCodeHash]);
+  }, [activeLibraryIdRef, activeLibraryComponentCount, activeLibraryComponentIds]);
 
   const filteredComponents = useMemo(() => {
     if (!activeLibrary) return [];
 
-    let components = activeLibrary.components;
+    let components = [...activeLibrary.components];
 
     if (activeCategoryId) {
       components = components.filter(c => c.categoryId === activeCategoryId);
+    } else if (!searchQuery) {
+      const categoryOrder = activeLibrary.categories
+        .filter(c => c.parentId === null)
+        .map(c => c.id);
+      const getCatOrder = (categoryId: string | undefined) => {
+        if (!categoryId) return categoryOrder.length;
+        const idx = categoryOrder.indexOf(categoryId);
+        return idx >= 0 ? idx : categoryOrder.length;
+      };
+      components.sort((a, b) => {
+        const aCatIndex = getCatOrder(a.categoryId);
+        const bCatIndex = getCatOrder(b.categoryId);
+        if (aCatIndex !== bCatIndex) return aCatIndex - bCatIndex;
+        const aIndex = activeLibrary.components.findIndex(c => c.id === a.id);
+        const bIndex = activeLibrary.components.findIndex(c => c.id === b.id);
+        return aIndex - bIndex;
+      });
     }
 
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       components = components.filter(
-        c => c.name.toLowerCase().includes(query) || 
+        c => c.name.toLowerCase().includes(query) ||
              c.description?.toLowerCase().includes(query)
       );
     }
 
     return components;
-  }, [activeLibrary, activeCategoryId, searchQuery]);
+  }, [activeLibraryId, activeLibrary?.components, activeLibrary?.categories, activeCategoryId, searchQuery]);
 
   const handleDragStart = useCallback((e: React.DragEvent, component: Component) => {
     e.dataTransfer.setData('text/plain', component.code);
@@ -121,7 +143,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
   const categories = useMemo(() => {
     if (!activeLibrary) return [];
     return activeLibrary.categories.filter(c => c.parentId === null);
-  }, [activeLibrary]);
+  }, [activeLibraryId, activeLibrary?.categories.length]);
 
   const handleOpenManagerForFailedComponent = useCallback((libraryId: string, componentId: string) => {
     openManagerAtComponent(libraryId, componentId);
