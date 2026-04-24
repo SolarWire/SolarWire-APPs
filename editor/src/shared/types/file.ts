@@ -18,12 +18,14 @@ export interface FileState {
   currentPath: string;
   fileTree: FileNode[];
   selectedFile: FileNode | null;
+  selectedImage: { path: string } | null;
   fileContent: string;
   expandedDirectories: Set<string>;
   currentSnippet: SolarWireSnippet | null;
   setCurrentPath: (path: string) => void;
   setFileTree: (tree: FileNode[]) => void;
   setSelectedFile: (file: FileNode | null) => void;
+  setSelectedImage: (image: { path: string } | null) => void;
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => void;
   setFileContent: (content: string) => void;
   updateFileContent: (file: FileNode | string, content: string) => void;

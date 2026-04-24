@@ -5,6 +5,13 @@ import { useEditorStore } from './editorStore';
 import { useGitStore } from './gitStore';
 import { useStatusStore } from './statusStore';
 
+const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico']);
+
+function isImageFile(filePath: string): boolean {
+  const ext = filePath.split('.').pop()?.toLowerCase() || '';
+  return IMAGE_EXTENSIONS.has(ext);
+}
+
 async function writeFile(filePath: string, content: string): Promise<void> {
   const api = (window as any).api;
   if (api && typeof api.writeFile === 'function') {
@@ -72,12 +79,14 @@ export const useFileStore = create<FileState>()((set, get) => ({
   currentPath: '',
   fileTree: [],
   selectedFile: null,
+  selectedImage: null,
   fileContent: '',
   expandedDirectories: new Set(),
   currentSnippet: null,
   setCurrentPath: (path: string) => set({ currentPath: path }),
   setFileTree: (tree: FileNode[]) => set({ fileTree: tree }),
-  setSelectedFile: (file: FileNode | null) => set({ selectedFile: file, currentSnippet: null }),
+  setSelectedFile: (file: FileNode | null) => set({ selectedFile: file, currentSnippet: null, selectedImage: null }),
+  setSelectedImage: (image) => set({ selectedImage: image, selectedFile: null, currentSnippet: null }),
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => set({ currentSnippet: snippet }),
   setFileContent: (content: string) => {
     set({ fileContent: content });
@@ -99,16 +108,19 @@ export const useFileStore = create<FileState>()((set, get) => ({
     try {
       useStatusStore.getState().startOperation('open', '打开文件...');
 
-      const fileDir = filePath.replace(/[\\/][^\\/]*$/, '');
-      const api = (window as any).api;
-      if (api?.setAllowedRoot) {
-        await api.setAllowedRoot(fileDir);
+      const name = filePath.split(/[\\/]/).pop() || filePath;
+
+      if (isImageFile(filePath)) {
+        const node: FileNode = { name, path: filePath, type: 'file' };
+        set({ selectedImage: { path: filePath } });
+        useEditorStore.getState().setMode('image');
+        useStatusStore.getState().completeOperation(`已打开: ${name}`);
+        return;
       }
 
       const content = await readFile(filePath);
-      const name = filePath.split(/[\\/]/).pop() || filePath;
       const node: FileNode = { name, path: filePath, type: 'file' };
-      set({ selectedFile: node, fileContent: content });
+      set({ selectedFile: node, fileContent: content, selectedImage: null });
       useEditorStore.getState().setContent(content);
       useEditorStore.getState().setModified(false);
       useStatusStore.getState().setCurrentFilePath(filePath);
@@ -136,12 +148,6 @@ export const useFileStore = create<FileState>()((set, get) => ({
   },
   openSolarWireSnippet: async (snippet: SolarWireSnippet) => {
     try {
-      const sourceDir = snippet.sourceFile.replace(/[\\/][^\\/]*$/, '');
-      const api = (window as any).api;
-      if (api?.setAllowedRoot) {
-        await api.setAllowedRoot(sourceDir);
-      }
-
       const node: FileNode = { name: snippet.name, path: snippet.sourceFile, type: 'file' };
 
       let latestCode = snippet.code;

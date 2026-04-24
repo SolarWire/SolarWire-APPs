@@ -49,11 +49,14 @@ export function validatePath(requestedPath: string): boolean {
   const resolved = path.resolve(normalized);
 
   // 确保解析后的路径在允许的根目录下
-  if (!resolved.startsWith(allowedRootPath)) {
+  const normalizedRoot = path.resolve(allowedRootPath);
+  const isSubpath = resolved === normalizedRoot || resolved.startsWith(normalizedRoot + path.sep);
+
+  if (!isSubpath) {
     console.error(`[Security] Blocked access to path outside project root:`, {
       requested: requestedPath,
       resolved,
-      allowedRoot: allowedRootPath,
+      allowedRoot: normalizedRoot,
     });
     throw new Error('Access denied: Path outside project directory');
   }
@@ -230,7 +233,6 @@ export async function ensureDir(dirPath: string): Promise<void> {
 
 export async function copyFile(srcPath: string, destPath: string): Promise<void> {
   try {
-    validatePath(srcPath);
     validatePath(destPath);
     
     const destDir = path.dirname(destPath);

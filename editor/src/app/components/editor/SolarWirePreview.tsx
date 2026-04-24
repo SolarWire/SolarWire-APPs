@@ -3104,6 +3104,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        const clipboardItems = await navigator.clipboard.read().catch(() => []);
+        const hasImageInClipboard = clipboardItems.some(item =>
+          item.types.some(type => type.startsWith('image/'))
+        );
+
+        if (hasImageInClipboard) {
+          return;
+        }
+
         e.preventDefault();
         await pasteElements({
           content: effectiveContent,
