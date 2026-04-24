@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+type SelectionTool = 'select' | 'box-include' | 'box-intersect';
+
 const defaultFavoriteColors = [
   '#333333',
   '#AAAAAA',
@@ -19,14 +21,17 @@ export interface SettingsState {
   showGrid: boolean;
   gridSize: number;
   snapToGrid: boolean;
+  selectionTool: SelectionTool;
   setGitName: (name: string) => void;
   setGitEmail: (email: string) => void;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
+  resetFavoriteColors: () => void;
   setShowGrid: (show: boolean) => void;
   setGridSize: (size: number) => void;
   setSnapToGrid: (snap: boolean) => void;
+  setSelectionTool: (tool: SelectionTool) => void;
   loadSettings: () => void;
   saveSettings: () => void;
 }
@@ -39,6 +44,7 @@ const defaultSettings = {
   showGrid: false,
   gridSize: 20,
   snapToGrid: false,
+  selectionTool: 'select' as SelectionTool,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -80,6 +86,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     get().saveSettings();
   },
 
+  resetFavoriteColors: () => {
+    set({ favoriteColors: defaultFavoriteColors });
+    get().saveSettings();
+  },
+
   setShowGrid: (show: boolean) => {
     set({ showGrid: show });
     get().saveSettings();
@@ -92,6 +103,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setSnapToGrid: (snap: boolean) => {
     set({ snapToGrid: snap });
+    get().saveSettings();
+  },
+
+  setSelectionTool: (tool: SelectionTool) => {
+    set({ selectionTool: tool });
     get().saveSettings();
   },
 
@@ -108,6 +124,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           showGrid: parsed.showGrid ?? defaultSettings.showGrid,
           gridSize: parsed.gridSize || defaultSettings.gridSize,
           snapToGrid: parsed.snapToGrid ?? defaultSettings.snapToGrid,
+          selectionTool: parsed.selectionTool || defaultSettings.selectionTool,
         });
         // 应用主色
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);

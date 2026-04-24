@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useSettingsStore } from './settingsStore';
 
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
 
@@ -24,9 +25,14 @@ interface SolarWireState {
   setIsPreviewFocused: (focused: boolean) => void;
 }
 
+const getInitialSelectionTool = (): SelectionTool => {
+  const settings = useSettingsStore.getState();
+  return settings.selectionTool;
+};
+
 export const useSolarWireStore = create<SolarWireState>((set) => ({
   selectedElements: [],
-  selectionTool: 'box-intersect',
+  selectionTool: getInitialSelectionTool(),
   isPanMode: false,
   dragState: null,
   resizeState: null,
@@ -37,7 +43,10 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
 
   selectElements: (ids: string[]) => set({ selectedElements: ids }),
   setSelectedElements: (ids: string[]) => set({ selectedElements: ids }),
-  setSelectionTool: (tool: SelectionTool) => set({ selectionTool: tool }),
+  setSelectionTool: (tool: SelectionTool) => {
+    set({ selectionTool: tool });
+    useSettingsStore.getState().setSelectionTool(tool);
+  },
   setIsPanMode: (isPanMode: boolean) => set({ isPanMode }),
   setDragState: (state: any) => set({ dragState: state }),
   setResizeState: (state: any) => set({ resizeState: state }),

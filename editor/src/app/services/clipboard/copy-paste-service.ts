@@ -279,12 +279,21 @@ export async function pasteElements(options: PasteOptions): Promise<PasteResult>
   const clipboardLines = adjustedContent.split(/\r?\n/);
   const startLineNum = insertLine + 1;
   const newElementIds: string[] = [];
+  const processedLines = new Set<number>();
 
   for (let i = 0; i < clipboardLines.length; i++) {
     const lineContent = clipboardLines[i].trim();
-    if (lineContent.length > 0) {
-      newElementIds.push((startLineNum + i).toString());
-    }
+    if (lineContent.length === 0) continue;
+
+    const absoluteLineNum = startLineNum + i;
+    if (processedLines.has(absoluteLineNum)) continue;
+
+    const relatedLines = getElementRelatedLines(adjustedContent, i + 1);
+    newElementIds.push(absoluteLineNum.toString());
+
+    relatedLines.forEach(relLine => {
+      processedLines.add(startLineNum + relLine - 1);
+    });
   }
 
   setContent(newContent);

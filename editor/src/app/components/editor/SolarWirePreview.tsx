@@ -230,6 +230,53 @@ interface SolarWirePreviewProps {
   allowImageElements?: boolean;
 }
 
+function isInsideMultilineNote(lines: string[], lineIndex: number): boolean {
+  let inMultilineNote = false;
+  let noteStartLine = -1;
+  let noteQuoteChar = '';
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (!inMultilineNote) {
+      const noteMatch = line.match(/note=(["'`])([^"'`]*)$/);
+      if (noteMatch) {
+        const quote = noteMatch[1];
+        if (noteMatch[2].includes(quote + quote + quote)) {
+          continue;
+        }
+        if (line.includes(quote + quote + quote)) {
+          continue;
+        }
+        inMultilineNote = true;
+        noteStartLine = i;
+        noteQuoteChar = quote;
+        continue;
+      }
+    } else {
+      if (line.includes(noteQuoteChar + noteQuoteChar + noteQuoteChar)) {
+        inMultilineNote = false;
+        noteQuoteChar = '';
+      }
+    }
+  }
+
+  if (!inMultilineNote) return false;
+
+  let checkLine = lineIndex - 1;
+  while (checkLine >= noteStartLine) {
+    if (lines[checkLine].includes(noteQuoteChar + noteQuoteChar + noteQuoteChar)) {
+      return false;
+    }
+    if (!lines[checkLine].includes(noteQuoteChar)) {
+      return true;
+    }
+    checkLine--;
+  }
+
+  return lineIndex >= noteStartLine;
+}
+
 function hexToRgba(hex: string, alpha: number): string {
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
@@ -683,14 +730,32 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           w = h = radius * 2;
         }
         break;
-      case 'text':
+      case 'text': {
         const lines = (elementData as any).text ? (elementData as any).text.split('\n') : [''];
         const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
         const lineHeight = parseInt(attrs['line-height'] || '22');
         const declaredWidth = parseInt(attrs.w || '0');
-        w = declaredWidth || (lines.length > 0 ? Math.max(...lines.map((l: string) => l.length * fontSize * 0.6)) : 100);
+        if (declaredWidth) {
+          w = declaredWidth;
+        } else if (lines.length > 0) {
+          const fontFamily = attrs['font-family'] || 'sans-serif';
+          const isBold = attrs.bold !== undefined;
+          const isItalic = attrs.italic !== undefined;
+          const fontStyle = `${isBold ? 'bold' : ''} ${isItalic ? 'italic' : ''} ${fontSize}px ${fontFamily}`.trim();
+          const measureCanvas = document.createElement('canvas');
+          const ctx = measureCanvas.getContext('2d');
+          if (ctx) {
+            ctx.font = fontStyle;
+            w = Math.max(...lines.map((l: string) => ctx.measureText(l).width));
+          } else {
+            w = Math.max(...lines.map((l: string) => l.length * fontSize * 0.6));
+          }
+        } else {
+          w = 100;
+        }
         h = lines.length > 0 ? lines.length * lineHeight : fontSize;
         break;
+      }
       case 'line':
         const x2 = parseInt(attrs.x2 || String(x + 100));
         const y2 = parseInt(attrs.y2 || String(y));
@@ -2279,9 +2344,20 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const x = Math.round(svgCoords.x);
         const y = Math.round(svgCoords.y);
 
-        const adjustedCode = plainText
-          .split(/\r?\n/)
-          .map((line) => {
+        const originalLines = plainText.split(/\r?\n/);
+        const noteLineIndices = new Set<number>();
+        for (let i = 0; i < originalLines.length; i++) {
+          if (isInsideMultilineNote(originalLines, i)) {
+            noteLineIndices.add(i);
+          }
+        }
+
+        const adjustedCode = originalLines
+          .map((line, lineIndex) => {
+            if (noteLineIndices.has(lineIndex)) {
+              return line;
+            }
+
             let resultLine = line;
 
             resultLine = resultLine.replace(
@@ -3090,7 +3166,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const path = e.composedPath();
       const isInPreview = containerRef.current && path.includes(containerRef.current);
 
-      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElements.length > 0) {
+      const activeElement = document.activeElement;
+      const isEditing = activeElement && (
+        activeElement.tagName === 'INPUT' ||
+        activeElement.tagName === 'TEXTAREA' ||
+        (activeElement as HTMLElement).isContentEditable ||
+        (activeElement as any).classList?.contains('monaco-editor')
+      );
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedElements.length > 0 && !isEditing) {
         e.preventDefault();
         const result = await copyElements({
           elementIds: selectedElements,
@@ -3104,6 +3188,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+        if (isEditing) return;
+
         const clipboardItems = await navigator.clipboard.read().catch(() => []);
         const hasImageInClipboard = clipboardItems.some(item =>
           item.types.some(type => type.startsWith('image/'))

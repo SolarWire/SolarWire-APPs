@@ -101,6 +101,53 @@ export function updateLineCoords(
   return lines.join('\n');
 }
 
+function isInsideMultilineNoteContent(lines: string[], lineIndex: number): boolean {
+  if (lineIndex < 0 || lineIndex >= lines.length) return false;
+
+  let inMultilineNote = false;
+  let multilineQuote = '';
+
+  for (let i = 0; i <= lineIndex; i++) {
+    const currentLine = lines[i];
+
+    if (!inMultilineNote) {
+      if (currentLine.includes('note="""') || currentLine.includes("note='''")) {
+        if (!currentLine.includes('"""') && !currentLine.includes("'''")) {
+          inMultilineNote = true;
+          multilineQuote = currentLine.includes('note="""') ? '"""' : "'''";
+        }
+      }
+    } else {
+      if (currentLine.includes(multilineQuote)) {
+        inMultilineNote = false;
+        multilineQuote = '';
+      }
+    }
+  }
+
+  return inMultilineNote;
+}
+
+function getElementStartLine(content: string, lineNum: number): number {
+  const lines = content.split(/\r?\n/);
+  if (lineNum < 1 || lineNum > lines.length) return lineNum;
+
+  const line = lines[lineNum - 1].trim();
+
+  if (line.startsWith('##')) {
+    const { startLine } = detectTableBounds(content, lineNum);
+    return startLine;
+  }
+
+  const noteIdx = line.indexOf('note=');
+  if (noteIdx !== -1) {
+    const { startLine } = detectNoteBounds(content, lineNum);
+    return startLine;
+  }
+
+  return lineNum;
+}
+
 /**
  * 更新行的属性值
  * @param content 代码内容
@@ -116,8 +163,13 @@ export function updateLineAttribute(
   attributeValue: string | number | boolean
 ): string {
   const lines = content.split(/\r?\n/);
-  
+
   if (lineNum < 1 || lineNum > lines.length) {
+    return content;
+  }
+
+  const actualStartLine = getElementStartLine(content, lineNum);
+  if (lineNum !== actualStartLine) {
     return content;
   }
 
@@ -201,13 +253,17 @@ export function updateLineAttribute(
   }
 
   if (attributeName === 'x' || attributeName === 'y') {
+    if (isInsideMultilineNoteContent(lines, lineIndex)) {
+      return lines.join('\n');
+    }
+
     const coordPattern = /@\((\d+),\s*(\d+)\)/;
     const match = line.match(coordPattern);
-    
+
     if (match) {
       const currentX = parseInt(match[1]);
       const currentY = parseInt(match[2]);
-      
+
       if (attributeName === 'x') {
         line = line.replace(coordPattern, `@(${attributeValue}, ${currentY})`);
       } else {
@@ -221,7 +277,7 @@ export function updateLineAttribute(
         line = line.replace(coordPattern, `@(${attributeValue}, 0)`);
       }
     }
-    
+
     lines[lineIndex] = line;
     return lines.join('\n');
   }

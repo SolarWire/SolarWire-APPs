@@ -1,25 +1,112 @@
 import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { useFileStore } from '../../stores/fileStore';
-import { parse } from "../../../lib/parser";
-import { updateLineAttribute, updateLineCoords } from '../../../shared/utils/solarwire-utils';
-import { saveImageToAssetsDir, getFileDir } from '../../hooks/useImageDrop';
-import {
-  getLineStartCoords,
-  getLineEndCoords
-} from '../../../shared/utils/coordinate-converter';
-import type { Element, Document as SWDocument } from '../../../lib/parser/types';
-import { ColorPicker } from '../ui/ColorPicker';
-import { Scrollbar } from '../ui/Scrollbar';
+import { useSettingsStore } from '../../stores/settingsStore';
+import { parse } from '../../../lib/parser';
+import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
+import type { Element } from '../../../lib/parser/types';
 import './PropertyPanel.css';
+
+interface ColorPickerProps {
+  label: string;
+  value: string;
+  onChange: (color: string) => void;
+}
+
+function ColorPicker({ label, value, onChange }: ColorPickerProps): React.JSX.Element {
+  const { favoriteColors, addFavoriteColor, removeFavoriteColor, resetFavoriteColors } = useSettingsStore();
+  const [showMenu, setShowMenu] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="property-group color-picker-group" ref={wrapperRef}>
+      <label>{label}</label>
+      <div className="color-picker-wrapper">
+        <input
+          type="color"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+        />
+        <div className="color-picker-dropdown">
+          <button
+            className="color-picker-toggle"
+            onClick={() => setShowMenu(!showMenu)}
+            title="Favorite colors"
+          >
+            ▼
+          </button>
+          {showMenu && (
+            <div className="color-picker-menu" onClick={(e) => e.stopPropagation()}>
+              <div className="color-picker-section">
+                <div className="color-picker-section-title">Favorite Colors</div>
+                <div className="color-picker-grid">
+                  {favoriteColors.map((color, index) => (
+                    <button
+                      key={index}
+                      className="color-picker-swatch"
+                      style={{ backgroundColor: color }}
+                      onClick={(e) => {
+                        if (e.button === 2) {
+                          e.preventDefault();
+                          removeFavoriteColor(color);
+                        } else {
+                          onChange(color);
+                          setShowMenu(false);
+                        }
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        removeFavoriteColor(color);
+                      }}
+                      title={`Click to select, Right click to remove`}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="color-picker-divider"></div>
+              <button
+                className="color-picker-add"
+                onClick={() => {
+                  addFavoriteColor(value);
+                }}
+              >
+                Add Current Color
+              </button>
+              <button
+                className="color-picker-reset"
+                onClick={() => {
+                  resetFavoriteColors();
+                }}
+              >
+                Reset to Default
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface PropertyRowProps {
   label: string;
   children: React.ReactNode;
 }
 
-function PropertyRow({ label, children }: PropertyRowProps): React.ReactElement {
+function PropertyRow({ label, children }: PropertyRowProps): React.JSX.Element {
   return (
     <div className="property-row">
       <div className="property-group">
@@ -40,7 +127,7 @@ interface PropertyPairProps {
   type?: 'number' | 'text';
 }
 
-function PropertyPair({ label1, value1, onChange1, label2, value2, onChange2, type = 'number' }: PropertyPairProps): React.ReactElement {
+function PropertyPair({ label1, value1, onChange1, label2, value2, onChange2, type = 'number' }: PropertyPairProps): React.JSX.Element {
   return (
     <div className="property-row">
       <div className="property-group">
@@ -67,176 +154,29 @@ interface PropertyGroupTitleProps {
   children: React.ReactNode;
 }
 
-function PropertyGroupTitle({ children }: PropertyGroupTitleProps): React.ReactElement {
+function PropertyGroupTitle({ children }: PropertyGroupTitleProps): React.JSX.Element {
   return <div className="property-group-title">{children}</div>;
-}
-
-interface BatchEditPanelProps {
-  selectedElements: string[];
-  content: string;
-  setContent: (content: string) => void;
-  ast: SWDocument | null;
-}
-
-function BatchEditPanel({ selectedElements, content, setContent, ast }: BatchEditPanelProps): React.ReactElement {
-  const [batchValues, setBatchValues] = useState({
-    dx: '', dy: '', dw: '', dh: '', color: '', bg: '', fontSize: '',
-  });
-
-  const applyBatchChange = useCallback((property: string, value: string | number) => {
-    if (!ast) return;
-    
-    let newContent = content;
-    
-    selectedElements.forEach((elementId) => {
-      const lineNum = parseInt(elementId);
-      if (isNaN(lineNum)) return;
-      
-      if (property === 'dx' || property === 'dy') {
-        const el = ast.elements.find(e => e.location?.line === lineNum);
-        if (!el) return;
-        
-        const attrs = (el as any).attributes || {};
-        const currentX = parseInt(attrs.x || '0');
-        const currentY = parseInt(attrs.y || '0');
-        const offset = parseInt(value as string) || 0;
-        
-        if (property === 'dx') {
-          newContent = updateLineAttribute(newContent, lineNum, 'x', currentX + offset);
-        } else {
-          newContent = updateLineAttribute(newContent, lineNum, 'y', currentY + offset);
-        }
-      } else if (property === 'dw' || property === 'dh') {
-        const el = ast.elements.find(e => e.location?.line === lineNum);
-        if (!el) return;
-        
-        const attrs = (el as any).attributes || {};
-        const currentW = parseInt(attrs.w || '0');
-        const currentH = parseInt(attrs.h || '0');
-        const offset = parseInt(value as string) || 0;
-        
-        if (property === 'dw' && currentW > 0) {
-          newContent = updateLineAttribute(newContent, lineNum, 'w', Math.max(10, currentW + offset));
-        } else if (property === 'dh' && currentH > 0) {
-          newContent = updateLineAttribute(newContent, lineNum, 'h', Math.max(10, currentH + offset));
-        }
-      } else {
-        newContent = updateLineAttribute(newContent, lineNum, property, value);
-      }
-    });
-    
-    setContent(newContent);
-  }, [ast, content, setContent, selectedElements]);
-
-  return (
-    <div className="batch-edit-panel">
-      <PropertyGroupTitle>位置偏移</PropertyGroupTitle>
-      <div className="property-row">
-        <div className="property-group">
-          <label>ΔX</label>
-          <input
-            type="number"
-            value={batchValues.dx}
-            onChange={(e) => {
-              setBatchValues(prev => ({ ...prev, dx: e.target.value }));
-              if (e.target.value) applyBatchChange('dx', e.target.value);
-            }}
-            placeholder="0"
-          />
-        </div>
-        <div className="property-group">
-          <label>ΔY</label>
-          <input
-            type="number"
-            value={batchValues.dy}
-            onChange={(e) => {
-              setBatchValues(prev => ({ ...prev, dy: e.target.value }));
-              if (e.target.value) applyBatchChange('dy', e.target.value);
-            }}
-            placeholder="0"
-          />
-        </div>
-      </div>
-
-      <PropertyGroupTitle>尺寸调整</PropertyGroupTitle>
-      <div className="property-row">
-        <div className="property-group">
-          <label>ΔW</label>
-          <input
-            type="number"
-            value={batchValues.dw}
-            onChange={(e) => {
-              setBatchValues(prev => ({ ...prev, dw: e.target.value }));
-              if (e.target.value) applyBatchChange('dw', e.target.value);
-            }}
-            placeholder="0"
-          />
-        </div>
-        <div className="property-group">
-          <label>ΔH</label>
-          <input
-            type="number"
-            value={batchValues.dh}
-            onChange={(e) => {
-              setBatchValues(prev => ({ ...prev, dh: e.target.value }));
-              if (e.target.value) applyBatchChange('dh', e.target.value);
-            }}
-            placeholder="0"
-          />
-        </div>
-      </div>
-
-      <PropertyGroupTitle>统一属性</PropertyGroupTitle>
-      <ColorPicker
-        label="颜色"
-        value={batchValues.color || '#000000'}
-        onChange={(color) => {
-          setBatchValues(prev => ({ ...prev, color }));
-          applyBatchChange('c', color);
-        }}
-      />
-      
-      <div className="property-row">
-        <div className="property-group">
-          <label>字号</label>
-          <input
-            type="number"
-            value={batchValues.fontSize}
-            onChange={(e) => {
-              setBatchValues(prev => ({ ...prev, fontSize: e.target.value }));
-              if (e.target.value) applyBatchChange('size', e.target.value);
-            }}
-            placeholder="12"
-          />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 interface PropertyPanelProps {
   externalContent?: string;
 }
 
-function PropertyPanel({ externalContent }: PropertyPanelProps): React.ReactElement {
+function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Element {
   const { selectedElements } = useSolarWireStore();
-  const editorContent = useEditorStore((state) => state.content);
-  const { setContent } = useEditorStore();
-  const { currentPath, selectedFile } = useFileStore();
-  const [parseError, setParseError] = useState<string | null>(null);
-  const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const { content, setContent } = useEditorStore();
 
-  const effectiveContent = externalContent !== undefined ? externalContent : editorContent;
+  const [parseError, setParseError] = React.useState<string | null>(null);
 
   const ast = useMemo(() => {
     try {
       setParseError(null);
-      return parse(effectiveContent || '');
+      return parse(content || '');
     } catch (e) {
       setParseError(e instanceof Error ? e.message : String(e));
       return null;
     }
-  }, [effectiveContent]);
+  }, [content]);
 
   const element = useMemo(() => {
     if (selectedElements.length !== 1) return null;
@@ -247,118 +187,24 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.ReactElem
     }) as Element | undefined;
   }, [ast, selectedElements]);
 
-  const [localNoteValue, setLocalNoteValue] = useState('');
-  const [noteHeight, setNoteHeight] = useState(80);
-  const [isResizingNote, setIsResizingNote] = useState(false);
-  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const resizeStartYRef = useRef(0);
-  const resizeStartHeightRef = useRef(80);
-  const elementLineRef = useRef<number | undefined>(undefined);
-
-  useEffect(() => {
-    const currentElementLine = element?.location?.line;
-    if (element && currentElementLine !== elementLineRef.current) {
-      elementLineRef.current = currentElementLine;
-      const el = element as any;
-      const note = el.attributes?.note || '';
-      setLocalNoteValue(typeof note === 'string' ? note : '');
-    } else if (!element && elementLineRef.current !== undefined) {
-      elementLineRef.current = undefined;
-      setLocalNoteValue('');
-    }
-  }, [element]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizingNote) return;
-      const deltaY = e.clientY - resizeStartYRef.current;
-      const newHeight = Math.max(60, Math.min(300, resizeStartHeightRef.current + deltaY));
-      setNoteHeight(newHeight);
-    };
-
-    const handleMouseUp = () => {
-      if (isResizingNote) {
-        setIsResizingNote(false);
-        document.body.style.cursor = '';
-        document.body.style.userSelect = '';
-      }
-    };
-
-    if (isResizingNote) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizingNote]);
-
-  useEffect(() => {
-    const textarea = noteTextareaRef.current;
-    if (!textarea) return;
-
-    const adjustHeight = () => {
-      textarea.style.height = 'auto';
-      const newHeight = Math.max(60, Math.min(300, textarea.scrollHeight));
-      setNoteHeight(newHeight);
-    };
-
-    adjustHeight();
-  }, [localNoteValue]);
-
   const handleChange = useCallback((property: string, value: any) => {
     if (!element) return;
     const lineNum = element.location?.line;
     if (!lineNum) return;
-    const newContent = updateLineAttribute(effectiveContent, lineNum, property, value);
+    const newContent = updateLineAttribute(content, lineNum, property, value);
     setContent(newContent);
-  }, [element, effectiveContent, setContent]);
-  
-  // 处理线段坐标变化（统一使用绝对坐标）
-  const handleLineCoordChange = useCallback((
-    handle: 'start' | 'end',
-    coord: 'x' | 'y',
-    value: number
-  ) => {
-    if (!element || element.type !== 'line') return;
-    const lineNum = element.location?.line;
-    if (!lineNum) return;
-    
-    const lineElement = element as any;
-    const startCoords = getLineStartCoords(lineElement);
-    const endCoords = getLineEndCoords(lineElement, startCoords);
-    
-    let newContent: string;
-    
-    if (handle === 'start') {
-      newContent = updateLineCoords(
-        effectiveContent,
-        lineNum,
-        coord === 'x' ? value : startCoords.x,
-        coord === 'y' ? value : startCoords.y,
-        endCoords.x,
-        endCoords.y
-      );
-    } else {
-      newContent = updateLineCoords(
-        effectiveContent,
-        lineNum,
-        startCoords.x,
-        startCoords.y,
-        coord === 'x' ? value : endCoords.x,
-        coord === 'y' ? value : endCoords.y
-      );
-    }
+  }, [element, content, setContent]);
 
-    setContent(newContent);
-  }, [element, effectiveContent, setContent]);
-
-  // --- Early returns ---
   if (parseError) {
+    // Extract line number from error message
     const lineMatch = parseError.match(/line (\d+)/);
     const errorLine = lineMatch ? parseInt(lineMatch[1]) : null;
+
+    const handleGoToError = () => {
+      // This would need to be implemented with Monaco editor instance
+      console.log('Go to error line:', errorLine);
+      // In a real implementation, we would use the editor instance to set cursor position
+    };
 
     return (
       <div className="property-panel">
@@ -368,7 +214,10 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.ReactElem
             <pre>{parseError}</pre>
           </div>
           {errorLine && (
-            <button className="error-button">
+            <button 
+              className="error-button"
+              onClick={handleGoToError}
+            >
               Go to Error Line
             </button>
           )}
@@ -409,14 +258,33 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.ReactElem
   let x = 0;
   let y = 0;
   
-  if (type === 'line' && el.start) {
-    x = el.start.x.type === 'absolute' ? el.start.x.value : (el.start.x.value || 0);
-    y = el.start.y.type === 'absolute' ? el.start.y.value : (el.start.y.value || 0);
+  if (type === 'line') {
+    // 线段元素：从 start 属性中读取起点坐标
+    if (el.start && el.start.x && el.start.y) {
+      if (el.start.x.type === 'absolute') {
+        x = el.start.x.value;
+      } else {
+        x = parseInt(attrs.x || '0');
+      }
+      if (el.start.y.type === 'absolute') {
+        y = el.start.y.value;
+      } else {
+        y = parseInt(attrs.y || '0');
+      }
+    } else {
+      // 回退到从 attributes 中读取
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
+    }
   } else {
+    // 其他元素：正常读取坐标
     const coords = el.coordinates;
-    if (coords) {
-      x = coords.x.type === 'absolute' ? coords.x.value : (coords.x.value || 0);
-      y = coords.y.type === 'absolute' ? coords.y.value : (coords.y.value || 0);
+    if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
+      x = coords.x.value;
+      y = coords.y.value;
+    } else {
+      x = parseInt(attrs.x || '0');
+      y = parseInt(attrs.y || '0');
     }
   }
 
@@ -424,323 +292,263 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.ReactElem
   const w = attrs.w || '';
   const h = attrs.h || '';
   const r = attrs.r || '';
-  const bg = attrs.bg || 'var(--white)';
-  const borderColor = attrs.b || 'var(--text-dark)';
+  const bg = attrs.bg || '#ffffff';
+  const borderColor = attrs.b || '#333333';
   const borderSize = attrs.s || '1';
-  const textColor = attrs.c || 'var(--black)';
+  const textColor = attrs.c || '#000000';
   const fontSize = attrs.size || attrs['text-size'] || '12';
   const align = attrs.align || 'c';
   const opacity = attrs.opacity || '1';
-
-  // 处理线段元素的终点坐标（统一使用绝对坐标）
-  let x2 = 0;
-  let y2 = 0;
-  if (type === 'line' && el.end) {
-    x2 = el.end.x.type === 'absolute' ? el.end.x.value : (el.end.x.value || 0);
-    y2 = el.end.y.type === 'absolute' ? el.end.y.value : (el.end.y.value || 0);
+  // 处理三引号包裹的 note 内容
+  let note = attrs.note || '';
+  if (typeof note === 'string') {
+    // 移除可能的三引号包裹
+    note = note.replace(/^"""|"""$/g, '');
   }
 
   const showSizeControls = type !== 'text' && type !== 'line';
   const showRadiusControl = type === 'rounded-rectangle';
   const showTextControls = 'text' in element || type === 'text';
-  const showBorderControls = type !== 'line' && type !== 'text' && type !== 'table';
-  const showFillControl = type !== 'line' && type !== 'text' && type !== 'table';
+  const showBorderControls = type !== 'line' && type !== 'text';
   const showLineControls = type === 'line';
-  const showAlignControl = type === 'text' || (type !== 'circle' && 'text' in element);
+  const showAlignControl = type === 'text' || 'text' in element;
+  const isTable = type === 'table';
 
   return (
     <div className="property-panel">
-      <Scrollbar className="property-panel-scrollbar">
-        <div className="properties-section">
-          <h3>Properties - {type}</h3>
-          
-          <PropertyGroupTitle>Position</PropertyGroupTitle>
-          <PropertyPair
-            label1="X"
-            value1={x}
-            onChange1={(v) => handleChange('x', v)}
-            label2="Y"
-            value2={y}
-            onChange2={(v) => handleChange('y', v)}
-          />
+      <div className="properties-section">
+        <h3>Properties - {type}</h3>
+        
+        <PropertyGroupTitle>Position</PropertyGroupTitle>
+        <PropertyPair
+          label1="X"
+          value1={x}
+          onChange1={(v) => handleChange('x', v)}
+          label2="Y"
+          value2={y}
+          onChange2={(v) => handleChange('y', v)}
+        />
 
-          {showSizeControls && (
-            <>
-              <PropertyGroupTitle>Size</PropertyGroupTitle>
-              <PropertyPair
-                label1="Width"
-                value1={w}
-                onChange1={(v) => handleChange('w', v)}
-                label2="Height"
-                value2={h}
-                onChange2={(v) => handleChange('h', v)}
-              />
-            </>
-          )}
+        {showSizeControls && (
+          <>
+            <PropertyGroupTitle>Size</PropertyGroupTitle>
+            <PropertyPair
+              label1="Width"
+              value1={w}
+              onChange1={(v) => handleChange('w', v)}
+              label2="Height"
+              value2={h}
+              onChange2={(v) => handleChange('h', v)}
+            />
+          </>
+        )}
 
-          {showRadiusControl && (
-            <PropertyRow label="Corner Radius">
-              <input
-                type="number"
-                value={r}
-                onChange={(e) => handleChange('r', parseInt(e.target.value) || 0)}
-              />
+        {showRadiusControl && (
+          <PropertyRow label="Corner Radius">
+            <input
+              type="number"
+              value={r}
+              onChange={(e) => handleChange('r', parseInt(e.target.value) || 0)}
+            />
+          </PropertyRow>
+        )}
+
+        {showLineControls && (
+          <>
+            <PropertyGroupTitle>Line End</PropertyGroupTitle>
+            <PropertyPair
+              label1="X2"
+              value1={el.end.type === 'relative' ? el.end.dx : (el.end.x.type === 'absolute' ? el.end.x.value : '')}
+              onChange1={(v) => handleChange('x2', v)}
+              label2="Y2"
+              value2={el.end.type === 'relative' ? el.end.dy : (el.end.y.type === 'absolute' ? el.end.y.value : '')}
+              onChange2={(v) => handleChange('y2', v)}
+            />
+            <PropertyRow label="Style">
+              <select
+                value={attrs.style || 'solid'}
+                onChange={(e) => handleChange('style', e.target.value)}
+              >
+                <option value="solid">Solid</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+              </select>
             </PropertyRow>
-          )}
-
-          {showLineControls && (
-            <>
-              <PropertyGroupTitle>起点 Position</PropertyGroupTitle>
-              <PropertyPair
-                label1="X"
-                value1={x}
-                onChange1={(v) => handleLineCoordChange('start', 'x', v)}
-                label2="Y"
-                value2={y}
-                onChange2={(v) => handleLineCoordChange('start', 'y', v)}
-              />
-              
-              <PropertyGroupTitle>终点 Position</PropertyGroupTitle>
-              <PropertyPair
-                label1="X2"
-                value1={x2}
-                onChange1={(v) => handleLineCoordChange('end', 'x', v)}
-                label2="Y2"
-                value2={y2}
-                onChange2={(v) => handleLineCoordChange('end', 'y', v)}
-              />
-              <PropertyRow label="Style">
-                <select
-                  value={attrs.style || 'solid'}
-                  onChange={(e) => handleChange('style', e.target.value)}
-                >
-                  <option value="solid">Solid</option>
-                  <option value="dashed">Dashed</option>
-                  <option value="dotted">Dotted</option>
-                </select>
+            {el.label !== undefined && (
+              <PropertyRow label="Label">
+                <input
+                  type="text"
+                  value={el.label || ''}
+                  onChange={(e) => handleChange('label', e.target.value)}
+                />
               </PropertyRow>
-              {el.label !== undefined && (
-                <PropertyRow label="Label">
-                  <input
-                    type="text"
-                    value={el.label || ''}
-                    onChange={(e) => handleChange('label', e.target.value)}
-                  />
-                </PropertyRow>
-              )}
-            </>
-          )}
+            )}
+          </>
+        )}
 
-          <PropertyGroupTitle>Appearance</PropertyGroupTitle>
-          <div className="property-row">
-            {type === 'line' ? (
+        <PropertyGroupTitle>Appearance</PropertyGroupTitle>
+        <div className="property-row">
+          <ColorPicker
+            label="Fill"
+            value={bg}
+            onChange={(color) => handleChange('bg', color)}
+          />
+          {showBorderControls && (
+            <ColorPicker
+              label="Border"
+              value={borderColor}
+              onChange={(color) => handleChange('b', color)}
+            />
+          )}
+        </div>
+        
+        {showBorderControls && (
+          <PropertyRow label="Border Width">
+            <input
+              type="number"
+              value={borderSize}
+              onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
+            />
+          </PropertyRow>
+        )}
+
+        {!showLineControls && (
+          <PropertyRow label="Opacity">
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={opacity}
+              onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
+            />
+          </PropertyRow>
+        )}
+
+        {showTextControls && (
+          <>
+            <PropertyGroupTitle>Text</PropertyGroupTitle>
+            {'text' in element && (
+              <PropertyRow label="Content">
+                <input
+                  type="text"
+                  value={text}
+                  onChange={(e) => handleChange('text', e.target.value)}
+                />
+              </PropertyRow>
+            )}
+            <div className="property-row">
               <ColorPicker
                 label="Color"
                 value={textColor}
                 onChange={(color) => handleChange('c', color)}
               />
-            ) : showFillControl && (
-              <ColorPicker
-                label="Fill"
-                value={bg}
-                onChange={(color) => handleChange('bg', color)}
-              />
-            )}
-            {showBorderControls && (
-              <ColorPicker
-                label="Border"
-                value={borderColor}
-                onChange={(color) => handleChange('b', color)}
-              />
-            )}
-          </div>
-          
-          {showBorderControls && (
-            <PropertyRow label="Border Width">
-              <input
-                type="number"
-                value={borderSize}
-                onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
-              />
-            </PropertyRow>
-          )}
-
-          {!showLineControls && (
-            <PropertyRow label="Opacity">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={opacity}
-                onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
-              />
-            </PropertyRow>
-          )}
-
-          {showTextControls && (
-            <>
-              <PropertyGroupTitle>Text</PropertyGroupTitle>
-              {'text' in element && (
-                <PropertyRow label="Content">
-                  <input
-                    type="text"
-                    value={text}
-                    onChange={(e) => handleChange('text', e.target.value)}
-                  />
-                </PropertyRow>
-              )}
-              <div className="property-row">
-                <ColorPicker
-                  label="Color"
-                  value={textColor}
-                  onChange={(color) => handleChange('c', color)}
-                />
-                <div className="property-group">
-                  <label>Size</label>
-                  <input
-                    type="number"
-                    value={fontSize}
-                    onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
-                  />
-                </div>
-              </div>
-              {showAlignControl && (
-                <PropertyRow label="Align">
-                  <select
-                    value={align}
-                    onChange={(e) => handleChange('align', e.target.value)}
-                  >
-                    <option value="l">Left</option>
-                    <option value="c">Center</option>
-                    <option value="r">Right</option>
-                  </select>
-                </PropertyRow>
-              )}
-              <div className="property-row checkbox-row">
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={attrs.bold === true || attrs.bold === 'true'}
-                    onChange={(e) => handleChange('bold', e.target.checked)}
-                  />
-                  Bold
-                </label>
-                <label>
-                  <input
-                    type="checkbox"
-                    checked={attrs.italic === true || attrs.italic === 'true'}
-                    onChange={(e) => handleChange('italic', e.target.checked)}
-                  />
-                  Italic
-                </label>
-              </div>
-            </>
-          )}
-
-          {type === 'text' && (
-            <PropertyRow label="Line Height">
-              <input
-                type="number"
-                value={attrs['line-height'] || '22'}
-                onChange={(e) => handleChange('line-height', parseInt(e.target.value) || 22)}
-              />
-            </PropertyRow>
-          )}
-
-          {type === 'image' && (
-            <PropertyRow label="Image Path">
-              <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              <div className="property-group">
+                <label>Size</label>
                 <input
-                  type="text"
-                  value={el.url || ''}
-                  onChange={(e) => handleChange('url', e.target.value)}
-                  style={{ flex: 1 }}
+                  type="number"
+                  value={fontSize}
+                  onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
                 />
-                <button
-                  onClick={() => {
-                    if (!currentPath) {
-                      alert('Please open a folder first');
-                      return;
-                    }
-                    imageFileInputRef.current?.click();
-                  }}
-                  title="Select image from project"
-                  style={{ padding: '4px 8px', cursor: 'pointer' }}
-                >
-                  📁
-                </button>
               </div>
-              <input
-                ref={imageFileInputRef}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (!file) return;
-
-                  try {
-                    const dir = getFileDir(selectedFile?.path, currentPath);
-                    if (!dir) return;
-                    const relativePath = await saveImageToAssetsDir(file, dir);
-                    handleChange('url', relativePath);
-                  } catch (err) {
-                    console.error('Failed to copy image:', err);
-                    alert('Failed to copy image');
-                  }
-
-                  e.target.value = '';
-                }}
-              />
-            </PropertyRow>
-          )}
-
-          <div className="note-section">
-            <PropertyGroupTitle>Note</PropertyGroupTitle>
-            <div className="note-textarea-wrapper">
-              <textarea
-                ref={noteTextareaRef}
-                value={localNoteValue}
-                placeholder="Add a note..."
-                style={{ height: `${noteHeight}px` }}
-                onChange={(e) => {
-                  setLocalNoteValue(e.target.value);
-                  handleChange('note', e.target.value);
-                }}
-                onMouseDown={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const isAtBottom = e.clientY > rect.bottom - 10;
-                  if (isAtBottom) {
-                    e.preventDefault();
-                    setIsResizingNote(true);
-                    resizeStartYRef.current = e.clientY;
-                    resizeStartHeightRef.current = noteHeight;
-                    document.body.style.cursor = 'ns-resize';
-                    document.body.style.userSelect = 'none';
-                  }
-                }}
-                spellCheck={false}
-                autoComplete="off"
-                autoCorrect="off"
-                autoCapitalize="off"
-              />
-              <div
-                className="note-resize-handle"
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsResizingNote(true);
-                  resizeStartYRef.current = e.clientY;
-                  resizeStartHeightRef.current = noteHeight;
-                  document.body.style.cursor = 'ns-resize';
-                  document.body.style.userSelect = 'none';
-                }}
-              />
             </div>
-          </div>
-        </div>
-      </Scrollbar>
+            {showAlignControl && (
+              <PropertyRow label="Align">
+                <select
+                  value={align}
+                  onChange={(e) => handleChange('align', e.target.value)}
+                >
+                  <option value="l">Left</option>
+                  <option value="c">Center</option>
+                  <option value="r">Right</option>
+                </select>
+              </PropertyRow>
+            )}
+            <div className="property-row checkbox-row">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={attrs.bold === true || attrs.bold === 'true'}
+                  onChange={(e) => handleChange('bold', e.target.checked)}
+                />
+                Bold
+              </label>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={attrs.italic === true || attrs.italic === 'true'}
+                  onChange={(e) => handleChange('italic', e.target.checked)}
+                />
+                Italic
+              </label>
+            </div>
+          </>
+        )}
+
+        {type === 'text' && (
+          <PropertyRow label="Line Height">
+            <input
+              type="number"
+              value={attrs['line-height'] || '22'}
+              onChange={(e) => handleChange('line-height', parseInt(e.target.value) || 22)}
+            />
+          </PropertyRow>
+        )}
+
+        {type === 'image' && (
+          <PropertyRow label="URL">
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <input
+                type="text"
+                value={el.url || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button
+                onClick={async () => {
+                  try {
+                    const filePaths = await (window as any).api.openFileDialog({
+                      properties: ['openFile'],
+                      filters: [
+                        { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'] },
+                        { name: 'All Files', extensions: ['*'] }
+                      ]
+                    });
+                    if (filePaths && filePaths.length > 0) {
+                      handleChange('url', filePaths[0]);
+                    }
+                  } catch (error) {
+                    console.error('Error opening file dialog:', error);
+                  }
+                }}
+                style={{
+                  padding: '4px 8px',
+                  backgroundColor: '#f0f0f0',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '12px'
+                }}
+              >
+                Browse
+              </button>
+            </div>
+          </PropertyRow>
+        )}
+      </div>
+
+      <div className="note-section">
+        <PropertyGroupTitle>Note</PropertyGroupTitle>
+        <textarea
+          value={note}
+          placeholder="Add a note..."
+          onChange={(e) => handleChange('note', e.target.value)}
+          spellCheck={false}
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+        />
+      </div>
     </div>
   );
 }
