@@ -136,7 +136,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: () => {
     try {
-      const { gitName, gitEmail, primaryColor, favoriteColors, showGrid, gridSize, snapToGrid } = get();
+      const { gitName, gitEmail, primaryColor, favoriteColors, showGrid, gridSize, snapToGrid, selectionTool } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
         gitName,
         gitEmail,
@@ -145,6 +145,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         showGrid,
         gridSize,
         snapToGrid,
+        selectionTool,
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);

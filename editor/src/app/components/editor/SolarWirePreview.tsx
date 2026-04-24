@@ -308,7 +308,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     error: storeError, setError: setStoreError,
     alignmentGuides, setAlignmentGuides,
     edgeGaps, setEdgeGaps,
-    altKeyPressed, setAltKeyPressed,
     resetInteractionStates,
   } = usePreviewStore();
 
@@ -477,21 +476,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     loadImages();
   }, [ast, fileDir]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Alt') setAltKeyPressed(true);
-    };
-    const handleKeyUp = (e: KeyboardEvent) => {
-      if (e.key === 'Alt') setAltKeyPressed(false);
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, []);
 
   useEffect(() => {
     if (!isInitialized) {
@@ -1309,17 +1293,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     currentW: number,
     currentH: number,
     activeEdges: ActiveEdges,
-    threshold: number = ALIGN_THRESHOLD,
-    altPressed: boolean = false,
-    isResize: boolean = false
+    threshold: number = ALIGN_THRESHOLD
   ): SnapResult => {
-    if (altPressed) {
-      return {
-        x: currentX, y: currentY, w: currentW, h: currentH,
-        snapped: false, snappedGuides: [], nearbyGuides: []
-      };
-    }
-
     let resultX = currentX;
     let resultY = currentY;
     let snapped = false;
@@ -2065,7 +2040,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       if (dragElementState.isLine) {
         setAlignmentGuides([]);
-      } else if (!altKeyPressed) {
+      } else if (effectiveSnapToGrid) {
         const newX = dragElementState.elementX + dx;
         const newY = dragElementState.elementY + dy;
         const currentBounds = { x: newX, y: newY, w: elementW, h: elementH };
@@ -2086,7 +2061,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const allGuides = [...elementGuides, ...canvasGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuides(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
+        const snapped = snapToGuides(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD);
 
         if (snapped.snapped) {
           dx = snapped.x - dragElementState.elementX;
@@ -2097,7 +2072,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       } else {
         setAlignmentGuides([]);
       }
-      
+
       const lineNum = parseInt(dragElementState.elementId);
       if (!isNaN(lineNum)) {
         if (dragElementState.isLine) {
@@ -2150,8 +2125,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }
 
       const useGridSnap = effectiveShowGrid && effectiveSnapToGrid;
-      
-      if (!altKeyPressed) {
+
+      if (effectiveSnapToGrid) {
         // 多选元素对齐吸附：不按 Alt 时始终执行（与网格吸附不互斥）
         const newX = groupBounds.x + dx;
         const newY = groupBounds.y + dy;
@@ -2178,7 +2153,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const allGuides = [...elementGuides, ...canvasGuides, ...userGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD, altKeyPressed);
+        const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD);
 
         dx += snapped.snapped ? snapped.x - newX : 0;
         dy += snapped.snapped ? snapped.y - newY : 0;
