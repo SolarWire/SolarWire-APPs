@@ -98,3 +98,11 @@
   font-size: 12px;
   color: var(--text-secondary);
 }
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.export-section {
+  margin-left: auto;
+}

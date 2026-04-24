@@ -1,7 +1,9 @@
 import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useAppStore } from '../../stores/appStore';
 import { parse } from '../../../lib/parser';
 import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
 import type { Element } from '../../../lib/parser/types';
@@ -14,14 +16,17 @@ interface ColorPickerProps {
 }
 
 function ColorPicker({ label, value, onChange }: ColorPickerProps): React.JSX.Element {
-  const { favoriteColors, addFavoriteColor, removeFavoriteColor, resetFavoriteColors } = useSettingsStore();
-  const [showMenu, setShowMenu] = useState(false);
+  const { favoriteColors, addFavoriteColor, removeFavoriteColor, resetFavoriteColors, primaryColor } = useSettingsStore();
+  const [showPresets, setShowPresets] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const presetsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setShowMenu(false);
+      if (showPresets && wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+        if (presetsRef.current && !presetsRef.current.contains(event.target as Node)) {
+          setShowPresets(false);
+        }
       }
     };
 
@@ -29,7 +34,74 @@ function ColorPicker({ label, value, onChange }: ColorPickerProps): React.JSX.El
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [showPresets]);
+
+  const getPopupPosition = () => {
+    if (!wrapperRef.current) return { top: 0, left: 0 };
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const popupWidth = 180;
+    const popupHeight = 300;
+    let top = rect.bottom + 4;
+    let left = rect.left;
+    if (left + popupWidth > window.innerWidth) {
+      left = window.innerWidth - popupWidth - 8;
+    }
+    if (left < 0) left = 0;
+    if (top + popupHeight > window.innerHeight) {
+      top = rect.top - popupHeight - 4;
+    }
+    if (top < 0) top = rect.bottom + 4;
+    return { top, left };
+  };
+
+  const popupStyle = getPopupPosition();
+
+  const presetsMenu = showPresets && createPortal(
+    <div
+      ref={presetsRef}
+      className="color-picker-popup"
+      style={{
+        position: 'fixed',
+        top: popupStyle.top,
+        left: popupStyle.left,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="color-picker-section">
+        <div className="color-picker-section-title">Preset Colors</div>
+        <div className="color-picker-grid">
+          {favoriteColors.map((color, index) => (
+            <button
+              key={index}
+              className="color-picker-swatch"
+              style={{ backgroundColor: color }}
+              onClick={() => {
+                onChange(color);
+                setShowPresets(false);
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                removeFavoriteColor(color);
+              }}
+              title="Click to select, Right click to remove"
+            />
+          ))}
+        </div>
+      </div>
+      <div className="color-picker-divider"></div>
+      <button className="color-picker-add" onClick={() => addFavoriteColor(value)}>
+        + Add Current Color
+      </button>
+      <button
+        className="color-picker-reset"
+        style={{ color: primaryColor }}
+        onClick={() => resetFavoriteColors()}
+      >
+        Reset to Default
+      </button>
+    </div>,
+    document.body
+  );
 
   return (
     <div className="property-group color-picker-group" ref={wrapperRef}>
@@ -40,63 +112,15 @@ function ColorPicker({ label, value, onChange }: ColorPickerProps): React.JSX.El
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
-        <div className="color-picker-dropdown">
-          <button
-            className="color-picker-toggle"
-            onClick={() => setShowMenu(!showMenu)}
-            title="Favorite colors"
-          >
-            ▼
-          </button>
-          {showMenu && (
-            <div className="color-picker-menu" onClick={(e) => e.stopPropagation()}>
-              <div className="color-picker-section">
-                <div className="color-picker-section-title">Favorite Colors</div>
-                <div className="color-picker-grid">
-                  {favoriteColors.map((color, index) => (
-                    <button
-                      key={index}
-                      className="color-picker-swatch"
-                      style={{ backgroundColor: color }}
-                      onClick={(e) => {
-                        if (e.button === 2) {
-                          e.preventDefault();
-                          removeFavoriteColor(color);
-                        } else {
-                          onChange(color);
-                          setShowMenu(false);
-                        }
-                      }}
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        removeFavoriteColor(color);
-                      }}
-                      title={`Click to select, Right click to remove`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="color-picker-divider"></div>
-              <button
-                className="color-picker-add"
-                onClick={() => {
-                  addFavoriteColor(value);
-                }}
-              >
-                Add Current Color
-              </button>
-              <button
-                className="color-picker-reset"
-                onClick={() => {
-                  resetFavoriteColors();
-                }}
-              >
-                Reset to Default
-              </button>
-            </div>
-          )}
-        </div>
+        <button
+          className="color-picker-toggle"
+          onClick={() => setShowPresets(!showPresets)}
+          title="Preset colors"
+        >
+          ▼
+        </button>
       </div>
+      {presetsMenu}
     </div>
   );
 }
@@ -165,6 +189,7 @@ interface PropertyPanelProps {
 function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Element {
   const { selectedElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
+  const { theme } = useAppStore();
 
   const [parseError, setParseError] = React.useState<string | null>(null);
 
@@ -312,7 +337,23 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
   const showBorderControls = type !== 'line' && type !== 'text';
   const showLineControls = type === 'line';
   const showAlignControl = type === 'text' || 'text' in element;
+  const { noteTextareaHeight, setNoteTextareaHeight } = useSettingsStore();
+
   const isTable = type === 'table';
+
+  // Note 字段使用本地 state，失焦后才回写以保留换行和空格
+  const [noteValue, setNoteValue] = useState(note);
+  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    setNoteValue(note);
+  }, [note]);
+
+  const handleNoteResize = () => {
+    if (noteTextareaRef.current) {
+      setNoteTextareaHeight(noteTextareaRef.current.offsetHeight);
+    }
+  };
 
   return (
     <div className="property-panel">
@@ -523,11 +564,12 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
                 }}
                 style={{
                   padding: '4px 8px',
-                  backgroundColor: '#f0f0f0',
-                  border: '1px solid #ccc',
+                  backgroundColor: theme === 'dark' ? '#333' : '#f0f0f0',
+                  border: `1px solid ${theme === 'dark' ? '#555' : '#ccc'}`,
                   borderRadius: '4px',
                   cursor: 'pointer',
-                  fontSize: '12px'
+                  fontSize: '12px',
+                  color: theme === 'dark' ? '#fff' : '#333'
                 }}
               >
                 Browse
@@ -540,13 +582,19 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
       <div className="note-section">
         <PropertyGroupTitle>Note</PropertyGroupTitle>
         <textarea
-          value={note}
+          ref={noteTextareaRef}
+          value={noteValue}
           placeholder="Add a note..."
-          onChange={(e) => handleChange('note', e.target.value)}
-          spellCheck={false}
-          autoComplete="off"
-          autoCorrect="off"
-          autoCapitalize="off"
+          onChange={(e) => setNoteValue(e.target.value)}
+          onBlur={() => handleChange('note', noteValue)}
+          onMouseUp={handleNoteResize}
+          style={{
+            whiteSpace: 'pre-wrap',
+            height: noteTextareaHeight,
+            resize: 'vertical',
+            minHeight: 60,
+            maxHeight: 500
+          }}
         />
       </div>
     </div>

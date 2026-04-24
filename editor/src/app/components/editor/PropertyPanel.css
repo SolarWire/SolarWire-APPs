@@ -123,6 +123,12 @@
 
 .color-picker-wrapper input[type="color"] {
   flex: 1;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+  background: var(--bg-tertiary);
 }
 
 .color-picker-dropdown {
@@ -156,6 +162,27 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
   min-width: 160px;
+}
+
+.color-picker-popup {
+  position: fixed;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10001;
+  min-width: 160px;
+}
+
+.color-picker-popup .color-picker-input {
+  width: 180px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+  background: var(--bg-tertiary);
 }
 
 .color-picker-section {
@@ -246,66 +273,26 @@
   flex-shrink: 0;
 }
 
-.note-textarea-wrapper {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
 .note-section textarea {
   width: 100%;
-  min-height: 60px;
-  max-height: 300px;
-  resize: none;
-  padding: 8px;
-  padding-bottom: 20px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  font-size: 12px;
-  background: var(--bg-tertiary);
+  font-size: 13px;
   color: var(--text-primary);
+  resize: vertical;
   box-sizing: border-box;
   line-height: 1.4;
-  white-space: pre-wrap;
-  overflow-y: auto;
   font-family: inherit;
-}
-
-.note-section textarea:focus {
-  outline: none;
-  border-color: var(--accent-color);
-}
-
-.note-resize-handle {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 16px;
-  cursor: ns-resize;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(transparent, var(--bg-tertiary) 30%);
-  border-radius: 0 0 4px 4px;
-}
-
-.note-resize-handle::before {
-  content: '';
-  width: 30px;
-  height: 3px;
-  background: var(--border-color);
-  border-radius: 2px;
-  opacity: 0.6;
-  transition: opacity 0.2s;
-}
-
-.note-resize-handle:hover::before {
-  opacity: 1;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
 }
 
 .note-section textarea::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .note-section textarea::-webkit-scrollbar-track {
@@ -314,11 +301,16 @@
 
 .note-section textarea::-webkit-scrollbar-thumb {
   background: var(--border-color);
-  border-radius: 3px;
+  border-radius: 4px;
 }
 
 .note-section textarea::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
+  background: var(--text-muted);
+}
+
+.note-section textarea:focus {
+  outline: none;
+  border-color: var(--accent-color);
 }
 
 .table-editor {

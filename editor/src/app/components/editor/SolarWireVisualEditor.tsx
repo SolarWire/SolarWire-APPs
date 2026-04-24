@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import SolarWirePreview from './SolarWirePreview';
 import PropertyPanel from './PropertyPanel';
 import ComponentLibrary from './ComponentLibrary';
@@ -44,6 +44,67 @@ function SolarWireVisualEditor({
   const [internalShowLayerPanel, setInternalShowLayerPanel] = useState(false);
   const [internalShowComponentLibrary, setInternalShowComponentLibrary] = useState(false);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [exportNotification, setExportNotification] = useState<{ type: 'progress' | 'success' | 'error'; message: string; error?: string } | null>(null);
+  const getSvgContentRef = useRef<(() => string | null) | null>(null);
+
+  const handleExportSvg = useCallback(async () => {
+    if (!getSvgContentRef.current) {
+      setExportNotification({ type: 'error', message: 'Export not available' });
+      return;
+    }
+
+    const svgContent = getSvgContentRef.current();
+    if (!svgContent) {
+      setExportNotification({ type: 'error', message: 'No content to export' });
+      return;
+    }
+
+    const svgWithXmlDecl = svgContent.trim().startsWith('<?xml') ? svgContent : `<?xml version="1.0" encoding="UTF-8"?>\n${svgContent}`;
+
+    const api = (window as any).api;
+    if (!api?.saveFileDialog) {
+      const blob = new Blob([svgWithXmlDecl], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'solarwire-export.svg';
+      a.click();
+      URL.revokeObjectURL(url);
+      setExportNotification({ type: 'success', message: 'SVG downloaded!' });
+      setTimeout(() => setExportNotification(null), 3000);
+      return;
+    }
+
+    setExportNotification({ type: 'progress', message: 'Choosing location...' });
+    const result = await api.saveFileDialog({
+      filters: [{ name: 'SVG Files', extensions: ['svg'] }],
+      defaultPath: 'solarwire-export.svg'
+    });
+
+    if (!result || result.canceled) {
+      setExportNotification(null);
+      return;
+    }
+
+    if (!result.filePath) {
+      setExportNotification({ type: 'error', message: 'No file path selected' });
+      return;
+    }
+
+    setExportNotification({ type: 'progress', message: 'Saving...' });
+    try {
+      await api.writeFile(result.filePath, svgWithXmlDecl, true);
+      setExportNotification({ type: 'success', message: 'SVG saved!' });
+      setTimeout(() => setExportNotification(null), 3000);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setExportNotification({ type: 'error', message: 'Save failed', error: errorMessage });
+    }
+  }, []);
+
+  const clearExportNotification = useCallback(() => {
+    setExportNotification(null);
+  }, []);
 
   const showLayerPanel = externalShowLayerPanel !== undefined ? externalShowLayerPanel : internalShowLayerPanel;
   const showComponentLibrary = externalShowComponentLibrary !== undefined ? externalShowComponentLibrary : internalShowComponentLibrary;
@@ -329,7 +390,8 @@ function SolarWireVisualEditor({
       if (isPanMode) setIsPanMode(false);
     },
     onBringToFront: handleBringToFront,
-    onAlign: handleAlign
+    onAlign: handleAlign,
+    onExportSvg: handleExportSvg
   };
 
   return (
@@ -351,6 +413,7 @@ function SolarWireVisualEditor({
           onExternalContentChange={onExternalContentChange}
           onContextMenu={handleContextMenu}
           allowImageElements={allowImageElements}
+          onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
         />
 
         {selectedElements.length > 0 && (
@@ -368,6 +431,23 @@ function SolarWireVisualEditor({
         {showComponentLibrary && (
           <div className="component-library-panel-fixed">
             <ComponentLibrary onDropToCanvas={handleDropComponentToCanvas} />
+          </div>
+        )}
+
+        {exportNotification && (
+          <div className={`export-notification ${exportNotification.type}`}>
+            {exportNotification.type === 'progress' && <span className="spinner"></span>}
+            {exportNotification.type === 'success' && <span className="icon">✓</span>}
+            {exportNotification.type === 'error' && <span className="icon">✗</span>}
+            <div className="notification-content">
+              <span className="notification-message">{exportNotification.message}</span>
+              {exportNotification.error && (
+                <div className="notification-error">{exportNotification.error}</div>
+              )}
+            </div>
+            {exportNotification.type === 'error' && (
+              <button className="notification-close" onClick={clearExportNotification}>×</button>
+            )}
           </div>
         )}
 

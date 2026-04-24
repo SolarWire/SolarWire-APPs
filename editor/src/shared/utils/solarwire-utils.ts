@@ -881,7 +881,7 @@ function getElementCoordsAndBounds(line: string): { x: number; y: number; bounds
   let y = 0;
   let width = 100;
   let height = 100;
-  
+
   // 解析坐标
   const absoluteMatch = line.match(/@\(([\d]+),\s*([\d]+)\)/);
   if (absoluteMatch) {
@@ -894,13 +894,46 @@ function getElementCoordsAndBounds(line: string): { x: number; y: number; bounds
     if (xMatch) x = parseInt(xMatch[1]);
     if (yMatch) y = parseInt(yMatch[1]);
   }
-  
+
   // 解析尺寸
   const wMatch = line.match(/w=([\d]+)/);
   const hMatch = line.match(/h=([\d]+)/);
   if (wMatch) width = parseInt(wMatch[1]);
   if (hMatch) height = parseInt(hMatch[1]);
-  
+
+  // 特殊处理文本元素：使用与渲染器一致的边界计算
+  const textMatch = line.match(/^\s*["'](.*)["']\s*@\(/);
+  if (textMatch) {
+    const fontSizeMatch = line.match(/size=([\d]+)/);
+    const lineHeightMatch = line.match(/line-height=([\d]+)/);
+
+    const fontSize = fontSizeMatch ? parseInt(fontSizeMatch[1]) : 12;
+    const lineHeight = lineHeightMatch ? parseInt(lineHeightMatch[1]) : 22;
+    const text = textMatch[1];
+    const lines = text.split('\n');
+
+    // 计算文本宽度 - 与渲染器 calculateTextWidth 一致
+    const calculateTextWidth = (txt: string, fs: number): number => {
+      let w = 0;
+      for (let i = 0; i < txt.length; i++) {
+        const char = txt[i];
+        if (char.match(/[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/)) {
+          w += fs * 1.0;
+        } else {
+          w += fs * 0.6;
+        }
+      }
+      return w;
+    };
+
+    const estimatedWidth = lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100;
+    const estimatedHeight = lines.length > 0 ? lines.length * lineHeight : fontSize;
+
+    // 使用与渲染器一致的边界
+    width = estimatedWidth;
+    height = estimatedHeight;
+  }
+
   return { x, y, bounds: { x, y, width, height } };
 }
 
@@ -912,6 +945,10 @@ function getElementCoordsAndBounds(line: string): { x: number; y: number; bounds
  * @returns 更新后的元素行
  */
 function updateElementCoords(line: string, newX: number, newY: number): string {
+  // 确保坐标不为负数
+  newX = Math.max(0, Math.round(newX));
+  newY = Math.max(0, Math.round(newY));
+
   const absoluteMatch = line.match(/@\(([\d]+),\s*([\d]+)\)/);
   if (absoluteMatch) {
     return line.replace(absoluteMatch[0], `@(${newX}, ${newY})`);

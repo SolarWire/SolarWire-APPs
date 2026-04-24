@@ -253,6 +253,11 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   
   svgParts.push(`<?xml version="1.0" encoding="UTF-8"?>`);
   svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}" width="${viewBoxWidth}" height="${viewBoxHeight}">`);
+  svgParts.push(`<defs>`);
+  svgParts.push(`  <filter id="card-badge-shadow" x="-50%" y="-50%" width="200%" height="200%">`);
+  svgParts.push(`    <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="black" flood-opacity="0.7"/>`);
+  svgParts.push(`  </filter>`);
+  svgParts.push(`</defs>`);
   svgParts.push(`<style>`);
   svgParts.push(`  text { font-family: Arial, sans-serif; }`);
   if (!disableNotes) {
@@ -358,19 +363,13 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         
         svgParts.push(`  <g data-note-element-id="${elementId}" pointer-events="all">`);
         svgParts.push(`    <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="8" class="${cardClass}"/>`);
-        
+
         const cardBadgeX = cardX + 12;
         const cardBadgeY = cardY + 12;
         const cardBadgeRadius = 8;
-        
-        svgParts.push(`  <defs>`);
-        svgParts.push(`    <filter id="card-badge-shadow-${index}" x="-50%" y="-50%" width="200%" height="200%">`);
-        svgParts.push(`      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="black" flood-opacity="0.7"/>`);
-        svgParts.push(`    </filter>`);
-        svgParts.push(`  </defs>`);
-        
-        svgParts.push(`  <circle cx="${cardBadgeX}" cy="${cardBadgeY}" r="${cardBadgeRadius}" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow-${index})"/>`);
-        svgParts.push(`  <text x="${cardBadgeX}" y="${cardBadgeY + 3}" text-anchor="middle" class="note-card-badge-text">${note.number}</text>`);
+
+        svgParts.push(`    <circle cx="${cardBadgeX}" cy="${cardBadgeY}" r="${cardBadgeRadius}" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow)"/>`);
+        svgParts.push(`    <text x="${cardBadgeX}" y="${cardBadgeY + 3}" text-anchor="middle" class="note-card-badge-text">${note.number}</text>`);
         
         const textX = cardX + 28;
         const textY = cardY + cardPadding;

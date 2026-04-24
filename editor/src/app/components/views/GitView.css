@@ -169,6 +169,27 @@
   resize: vertical;
   margin-bottom: 8px;
   box-sizing: border-box;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.commit-message-input::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.commit-message-input::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.commit-message-input::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.commit-message-input::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .commit-message-input:focus {

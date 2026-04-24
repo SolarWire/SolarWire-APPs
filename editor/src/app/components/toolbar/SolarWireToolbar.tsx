@@ -28,6 +28,7 @@ interface ToolbarCallbacks {
   onSelectTool: (tool: SelectionTool) => void;
   onBringToFront: () => void;
   onAlign: (type: AlignmentType) => void;
+  onExportSvg: () => void;
 }
 
 interface SolarWireToolbarProps {
@@ -49,7 +50,7 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks })
   const {
     onToggleLayerPanel, onToggleComponentLibrary, onToggleNotes,
     onToggleSnap, onZoomIn, onZoomOut, onTogglePanMode, onSelectTool,
-    onBringToFront, onAlign
+    onBringToFront, onAlign, onExportSvg
   } = callbacks;
 
   return (
@@ -147,6 +148,16 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks })
       <div className="toolbar-divider"></div>
       <div className="toolbar-section elements-section">
         <ElementLibrary compact />
+      </div>
+      <div className="toolbar-spacer"></div>
+      <div className="toolbar-section export-section">
+        <button
+          className="unified-tool-button export-svg-button"
+          onClick={onExportSvg}
+          title="Export as SVG"
+        >
+          📥
+        </button>
       </div>
     </div>
   );

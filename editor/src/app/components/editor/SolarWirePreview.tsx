@@ -228,6 +228,7 @@ interface SolarWirePreviewProps {
   onExternalContentChange?: (code: string) => void;
   onContextMenu?: (e: React.MouseEvent) => void;
   allowImageElements?: boolean;
+  onRequestExportSvg?: (getSvgContent: () => string | null) => void;
 }
 
 function isInsideMultilineNote(lines: string[], lineIndex: number): boolean {
@@ -284,7 +285,7 @@ function hexToRgba(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true }: SolarWirePreviewProps): React.ReactElement {
+function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg }: SolarWirePreviewProps): React.ReactElement {
   const instanceId = useRef(Math.random().toString(36).substr(2, 9)).current;
   const { selectedElements, selectElements } = useSolarWireStore();
   const { content, setContent } = useEditorStore();
@@ -482,6 +483,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       setScale(zoomLevel / 100);
     }
   }, [zoomLevel, isInitialized]);
+
+  useEffect(() => {
+    if (onRequestExportSvg) {
+      onRequestExportSvg(() => svg);
+    }
+  }, [onRequestExportSvg, svg]);
 
 
 

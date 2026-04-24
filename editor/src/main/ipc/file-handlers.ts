@@ -6,8 +6,8 @@ export function registerFileHandlers(): void {
     return await readFile(filePath);
   });
 
-  ipcMain.handle('file:write', async (_event, filePath: string, content: string | ArrayBuffer | Uint8Array) => {
-    await writeFile(filePath, content);
+  ipcMain.handle('file:write', async (_event, filePath: string, content: string | ArrayBuffer | Uint8Array, allowOutsideProject?: boolean) => {
+    await writeFile(filePath, content, allowOutsideProject);
     return { success: true };
   });
 

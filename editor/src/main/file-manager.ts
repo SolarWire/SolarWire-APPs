@@ -77,9 +77,11 @@ export async function readFile(filePath: string): Promise<string> {
   }
 }
 
-export async function writeFile(filePath: string, content: string | ArrayBuffer | Uint8Array): Promise<void> {
+export async function writeFile(filePath: string, content: string | ArrayBuffer | Uint8Array, allowOutsideProject: boolean = false): Promise<void> {
   try {
-    validatePath(filePath);
+    if (!allowOutsideProject) {
+      validatePath(filePath);
+    }
     const dir = path.dirname(filePath);
     await fs.mkdir(dir, { recursive: true });
     if (content instanceof ArrayBuffer || content instanceof Uint8Array) {

@@ -22,6 +22,7 @@ export interface SettingsState {
   gridSize: number;
   snapToGrid: boolean;
   selectionTool: SelectionTool;
+  noteTextareaHeight: number;
   setGitName: (name: string) => void;
   setGitEmail: (email: string) => void;
   setPrimaryColor: (color: string) => void;
@@ -32,6 +33,7 @@ export interface SettingsState {
   setGridSize: (size: number) => void;
   setSnapToGrid: (snap: boolean) => void;
   setSelectionTool: (tool: SelectionTool) => void;
+  setNoteTextareaHeight: (height: number) => void;
   loadSettings: () => void;
   saveSettings: () => void;
 }
@@ -45,6 +47,7 @@ const defaultSettings = {
   gridSize: 20,
   snapToGrid: false,
   selectionTool: 'select' as SelectionTool,
+  noteTextareaHeight: 120,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -108,6 +111,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   setSelectionTool: (tool: SelectionTool) => {
     set({ selectionTool: tool });
+    get().saveSettings();
+  },
+
+  setNoteTextareaHeight: (height: number) => {
+    set({ noteTextareaHeight: height });
     get().saveSettings();
   },
 
