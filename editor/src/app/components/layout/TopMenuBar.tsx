@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppStore } from '../../stores/appStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
@@ -14,12 +14,8 @@ const TopMenuBar: React.FC = () => {
   const { isModified, mode } = useEditorStore();
   const isSpacePressed = useSolarWireStore(s => s.isSpacePressed);
   const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
-  const { showComponentManager, setShowComponentManager, initialize } = useComponentLibraryStore();
+  const { showComponentManager, setShowComponentManager } = useComponentLibraryStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  useEffect(() => {
-    initialize().catch(err => console.warn('Component library init failed:', err));
-  }, [initialize]);
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');

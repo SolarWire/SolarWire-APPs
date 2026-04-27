@@ -185,15 +185,15 @@ createdAt: 2026-04-27T00:00:00Z
 updatedAt: 2026-04-27T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=200 h=500 bg=#0f172a
+("") @(0, 0) w=200 h=780 bg=#0f172a
 "Logo" @(15, 15) c=#ffffff size=16 bold=true
 ("🏠 首页") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
 "📒 凭证" @(20, 105) c=#ffffff opacity=0.6 size=13
 "📊 报表" @(20, 150) c=#ffffff opacity=0.6 size=13
 "💰 资金" @(20, 195) c=#ffffff opacity=0.6 size=13
-("") @(200, 0) w=400 h=48 bg=#ffffff s=1
+("") @(200, 0) w=1400 h=48 bg=#ffffff s=1
 "财务中心" @(215, 14) c=#0f172a size=16 bold=true
-("") @(200, 48) w=400 h=452 bg=#f8fafc
+("") @(200, 48) w=1400 h=732 bg=#f8fafc
 ("") @(210, 58) w=120 h=80 bg=#ffffff s=1 r=6
 "营业收入" @(220, 68) c=#64748b size=12
 "¥1.23M" @(220, 88) c=#0f172a size=18 bold=true
@@ -222,9 +222,9 @@ createdAt: 2026-04-27T00:00:00Z
 updatedAt: 2026-04-27T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=200 h=500 bg=#0f172a
+("") @(0, 0) w=200 h=780 bg=#0f172a
 ("📒 凭证管理") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
-("") @(200, 48) w=400 h=452 bg=#f8fafc
+("") @(200, 48) w=1400 h=732 bg=#f8fafc
 ("搜索凭证...") @(210, 58) w=160 h=32 bg=#ffffff c=#94a3b8 size=13 s=1 r=6
 ("查询") @(380, 58) w=60 h=32 bg=#0f172a c=#ffffff size=13 r=6
 ("新建凭证") @(210, 100) w=80 h=32 bg=#0f172a c=#ffffff size=13 r=6
@@ -259,8 +259,8 @@ createdAt: 2026-04-27T00:00:00Z
 updatedAt: 2026-04-27T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=200 h=500 bg=#0f172a
-("") @(200, 48) w=400 h=452 bg=#f8fafc
+("") @(0, 0) w=200 h=780 bg=#0f172a
+("") @(200, 48) w=1400 h=732 bg=#f8fafc
 ("搜索发票...") @(210, 58) w=160 h=32 bg=#ffffff c=#94a3b8 size=13 s=1 r=6
 ("开具发票") @(380, 58) w=80 h=32 bg=#0f172a c=#ffffff size=13 r=6
 ("全部") @(210, 100) w=50 h=24 bg=#0f172a c=#ffffff size=11 r=4
@@ -297,9 +297,9 @@ createdAt: 2026-04-27T00:00:00Z
 updatedAt: 2026-04-27T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=200 h=500 bg=#0f172a
+("") @(0, 0) w=200 h=780 bg=#0f172a
 ("📊 报表中心") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
-("") @(200, 48) w=400 h=452 bg=#f8fafc
+("") @(200, 48) w=1400 h=732 bg=#f8fafc
 ("资产负债表") @(210, 58) w=90 h=28 bg=#0f172a c=#ffffff size=12 r=6
 ("利润表") @(310, 58) w=70 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
 ("现金流量表") @(390, 58) w=90 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
@@ -334,9 +334,9 @@ createdAt: 2026-04-27T00:00:00Z
 updatedAt: 2026-04-27T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=200 h=500 bg=#0f172a
+("") @(0, 0) w=200 h=780 bg=#0f172a
 ("💰 银行对账") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
-("") @(200, 48) w=400 h=452 bg=#f8fafc
+("") @(200, 48) w=1400 h=732 bg=#f8fafc
 ("自动对账") @(210, 58) w=80 h=32 bg=#0f172a c=#ffffff size=13 r=6
 ("手动匹配") @(300, 58) w=80 h=32 bg=#ffffff c=#334155 size=13 s=1 r=6
 ("") @(210, 100) w=370 h=300 bg=#ffffff s=1 r=6

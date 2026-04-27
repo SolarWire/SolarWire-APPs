@@ -336,16 +336,17 @@
   display: flex;
   gap: 4px;
   padding: 8px;
-  padding-bottom: 24px;
   flex-wrap: wrap;
-  max-height: 94px;
+  max-height: 96px;
   overflow: hidden;
   transition: max-height 0.3s ease;
+  position: relative;
 }
 
 .component-library-categories.expanded {
   max-height: none;
   overflow: visible;
+  padding-bottom: 36px;
 }
 
 .categories-expand-btn {
@@ -362,6 +363,7 @@
   font-size: 11px;
   cursor: pointer;
   text-align: center;
+  z-index: 1;
 }
 
 .categories-expand-btn:hover {

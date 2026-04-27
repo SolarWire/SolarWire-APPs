@@ -221,7 +221,6 @@
 }
 
 .tree-node-name {
-  flex: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -231,6 +230,11 @@
   font-size: 10px;
   color: var(--text-muted);
   flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.tree-node-spacer {
+  flex: 1;
 }
 
 .tree-node-edit-btn,

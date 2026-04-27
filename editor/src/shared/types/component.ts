@@ -16,7 +16,8 @@ export function makeNodeId(type: 'library' | 'category' | 'component', id: strin
 export function parseNodeId(nodeId: string): { type: 'library' | 'category' | 'component'; libraryId: string; id: string } | null {
   const parts = nodeId.split(':');
   if (parts.length < 3) return null;
-  const type = parts[0] as 'library' | 'category' | 'component';
+  const type = parts[0];
+  if (type !== 'library' && type !== 'category' && type !== 'component') return null;
   const libraryId = parts[1];
   const id = parts.slice(2).join(':');
   return { type, libraryId, id };

@@ -2,8 +2,6 @@ import { ComponentLibrary, Component, ComponentCategory, ComponentLibraryMetadat
 import { indexedDBService } from './IndexedDBService';
 import { parseSWC, serializeSWC } from '../../lib/components/swc-parser';
 
-import defaultLibrary from '../../lib/components/presets/default.swc.json';
-
 export interface LibraryLoadProgress {
   phase: 'parsing' | 'generating-thumbnails' | 'done';
   progress: number;
@@ -92,12 +90,6 @@ class ComponentLibraryManager {
 
   async initialize(): Promise<void> {
     await indexedDBService.init();
-
-    const presetLib = ensureLibraryInternalIds(defaultLibrary as unknown as ComponentLibrary);
-    this.libraries.set(presetLib.metadata.id, presetLib);
-    if (!this.libraryOrder.includes(presetLib.metadata.id)) {
-      this.libraryOrder.push(presetLib.metadata.id);
-    }
 
     const userLibraries = await indexedDBService.getAllLibraries();
     userLibraries.forEach(lib => {
@@ -295,7 +287,8 @@ class ComponentLibraryManager {
       if (index === -1) throw new Error(`Component ${componentInternalId} not found`);
 
       const updatedComponents = [...library.components];
-      updatedComponents[index] = { ...updatedComponents[index], ...updates, updatedAt: new Date().toISOString() };
+      const { internalId: _, ...safeUpdates } = updates as any;
+      updatedComponents[index] = { ...updatedComponents[index], ...safeUpdates, updatedAt: new Date().toISOString() };
 
       const updated: ComponentLibrary = {
         ...library,
@@ -364,7 +357,8 @@ class ComponentLibraryManager {
       };
 
       this.libraries.set(libraryId, updated);
-      await indexedDBService.saveLibrary(updated as unknown as ComponentLibrary);
+      const libForSave = cloneLibraryForSave(updated);
+      await indexedDBService.saveLibrary(libForSave as unknown as ComponentLibrary);
 
       return newCategory;
     });
@@ -391,7 +385,8 @@ class ComponentLibraryManager {
       };
 
       this.libraries.set(libraryId, updated);
-      await indexedDBService.saveLibrary(updated as unknown as ComponentLibrary);
+      const libForSave2 = cloneLibraryForSave(updated);
+      await indexedDBService.saveLibrary(libForSave2 as unknown as ComponentLibrary);
     });
   }
 
@@ -415,7 +410,8 @@ class ComponentLibraryManager {
       };
 
       this.libraries.set(libraryId, updated);
-      await indexedDBService.saveLibrary(updated as unknown as ComponentLibrary);
+      const libForSave3 = cloneLibraryForSave(updated);
+      await indexedDBService.saveLibrary(libForSave3 as unknown as ComponentLibrary);
     });
   }
 
@@ -443,7 +439,8 @@ class ComponentLibraryManager {
 
       this.libraries.set(libraryId, updated);
       if (!isPresetLibrary(libraryId)) {
-        await indexedDBService.saveLibrary(updated as unknown as ComponentLibrary);
+        const libForSave4 = cloneLibraryForSave(updated);
+        await indexedDBService.saveLibrary(libForSave4 as unknown as ComponentLibrary);
       }
     });
   }
@@ -472,7 +469,8 @@ class ComponentLibraryManager {
 
       this.libraries.set(libraryId, updated);
       if (!isPresetLibrary(libraryId)) {
-        await indexedDBService.saveLibrary(updated as unknown as ComponentLibrary);
+        const libForSave5 = cloneLibraryForSave(updated);
+        await indexedDBService.saveLibrary(libForSave5 as unknown as ComponentLibrary);
       }
     });
   }
@@ -715,7 +713,7 @@ class ComponentLibraryManager {
     a.href = url;
     a.download = `${library.metadata.name.replace(/\s+/g, '-').toLowerCase()}.swc`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
   async importLibrary(
@@ -772,8 +770,11 @@ class ComponentLibraryManager {
       library = ensureLibraryInternalIds(library);
       library.components = library.components.map(c => {
         if (c.internalId && allExistingInternalIds.has(c.internalId)) {
-          return { ...c, internalId: generateInternalId(allExistingInternalIds) };
+          const newId = generateInternalId(allExistingInternalIds);
+          allExistingInternalIds.add(newId);
+          return { ...c, internalId: newId };
         }
+        allExistingInternalIds.add(c.internalId);
         return c;
       });
 

@@ -410,8 +410,8 @@ const LibraryTreeNode = React.memo<LibraryTreeNodeProps>(({
       <div className="tree-node-content" draggable onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDrop} onDragEnd={onDragEnd} onClick={onToggle}>
         <span className="tree-node-toggle">{isExpanded ? '▼' : '▶'}</span>
         <span className="tree-node-icon">📦</span>
-        <span className="tree-node-name">{library.metadata.name}</span>
-        <span className="tree-node-count">({library.components.length})</span>
+        <span className="tree-node-name">{library.metadata.name}<span className="tree-node-count">({library.components.length})</span></span>
+        <span className="tree-node-spacer"></span>
         <button className="tree-node-edit-btn" title="编辑" onClick={(e) => { e.stopPropagation(); onSelect(); }}>✏️</button>
         {!isPreset && <button className="tree-node-add-btn" title="新建分类" onClick={(e) => { e.stopPropagation(); onCreateCategory(); }}>+</button>}
       </div>
@@ -483,8 +483,8 @@ const CategoryTreeNode = React.memo<CategoryTreeNodeProps>(({
         onDragEnd={onDragEnd} onClick={onToggle}>
         <span className="tree-node-toggle">{isExpanded ? '▼' : '▶'}</span>
         <span className="tree-node-icon">📁</span>
-        <span className="tree-node-name">{category.name}</span>
-        <span className="tree-node-count">({components.length})</span>
+        <span className="tree-node-name">{category.name}<span className="tree-node-count">({components.length})</span></span>
+        <span className="tree-node-spacer"></span>
         <button className="tree-node-edit-btn" title="编辑" onClick={(e) => { e.stopPropagation(); onSelect(); }}>✏️</button>
         {!isPreset && <button className="tree-node-add-btn" title="新建组件" onClick={(e) => { e.stopPropagation(); onCreateComponent(); }}>+</button>}
       </div>
@@ -533,8 +533,8 @@ const UncategorizedNode = React.memo<UncategorizedNodeProps>(({
         onDrop={(e) => { e.preventDefault(); onDropOnUncategorized(); }} onClick={onToggle}>
         <span className="tree-node-toggle">{isExpanded ? '▼' : '▶'}</span>
         <span className="tree-node-icon">📁</span>
-        <span className="tree-node-name">未分类</span>
-        <span className="tree-node-count">({count})</span>
+        <span className="tree-node-name">未分类<span className="tree-node-count">({count})</span></span>
+        <span className="tree-node-spacer"></span>
         {!isPreset && <button className="tree-node-add-btn" title="新建组件" onClick={(e) => { e.stopPropagation(); onCreateComponent(); }}>+</button>}
       </div>
       {isExpanded && (

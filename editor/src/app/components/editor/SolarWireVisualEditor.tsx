@@ -430,7 +430,7 @@ function SolarWireVisualEditor({
 
         {selectedElements.length > 0 && (
           <div className="property-panel-fixed">
-            <PropertyPanel externalContent={externalContent} />
+            <PropertyPanel externalContent={externalContent} onExternalContentChange={onExternalContentChange} />
           </div>
         )}
 

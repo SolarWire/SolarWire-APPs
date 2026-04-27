@@ -38,8 +38,12 @@ export async function generateThumbnail(code: string, width: number = 150, heigh
 function createErrorThumbnail(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="150" height="100" viewBox="0 0 150 100">
     <rect width="150" height="100" fill="#f5f5f5"/>
-    <text x="75" y="55" font-size="14" text-anchor="middle" fill="#999">Error</text>
+    <text x="75" y="55" font-size="14" text-anchor="middle" fill="#999">&#10060; Error</text>
   </svg>`;
+}
+
+function isThumbnailFailed(thumbnail: string): boolean {
+  return thumbnail.includes('&#10060;') || thumbnail.includes('❌') || thumbnail.includes('Error');
 }
 
 export async function generateThumbnailBatch(

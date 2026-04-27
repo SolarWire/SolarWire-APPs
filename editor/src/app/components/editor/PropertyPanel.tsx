@@ -184,30 +184,35 @@ function PropertyGroupTitle({ children }: PropertyGroupTitleProps): React.JSX.El
 
 interface PropertyPanelProps {
   externalContent?: string;
+  onExternalContentChange?: (content: string) => void;
 }
 
-function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Element {
+function PropertyPanel({ externalContent, onExternalContentChange }: PropertyPanelProps): React.JSX.Element {
   const selectedElements = useSolarWireStore(s => s.selectedElements);
   const { content, setContent } = useEditorStore();
   const { theme } = useAppStore();
+
+  const isExternalMode = externalContent !== undefined;
+  const effectiveContent = isExternalMode ? externalContent : content;
+  const effectiveSetContent = isExternalMode ? (c: string) => onExternalContentChange?.(c) : setContent;
 
   const [parseError, setParseError] = React.useState<string | null>(null);
 
   const ast = useMemo(() => {
     try {
       setParseError(null);
-      return parse(content || '');
+      return parse(effectiveContent || '');
     } catch (e) {
       setParseError(e instanceof Error ? e.message : String(e));
       return null;
     }
-  }, [content]);
+  }, [effectiveContent]);
 
   const element = useMemo(() => {
     if (selectedElements.length !== 1) return null;
     const elementId = selectedElements[0];
-    return ast?.elements.find((el) => {
-      const id = (el as any).id || el.location?.line?.toString();
+    return ast?.elements.find((el, index) => {
+      const id = (el as any).id || el.location?.line?.toString() || (index + 1).toString();
       return id === elementId;
     }) as Element | undefined;
   }, [ast, selectedElements]);
@@ -216,9 +221,9 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
     if (!element) return;
     const lineNum = element.location?.line;
     if (!lineNum) return;
-    const newContent = updateLineAttribute(content, lineNum, property, value);
-    setContent(newContent);
-  }, [element, content, setContent]);
+    const newContent = updateLineAttribute(effectiveContent, lineNum, property, value);
+    effectiveSetContent(newContent);
+  }, [element, effectiveContent, effectiveSetContent]);
 
   if (parseError) {
     // Extract line number from error message

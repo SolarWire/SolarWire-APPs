@@ -27,6 +27,8 @@ interface ComponentLibraryStore {
   showComponentManager: boolean;
   setShowComponentManager: (show: boolean) => void;
 
+  isInitialized: boolean;
+
   libraries: ComponentLibrary[];
   activeLibraryId: string | null;
 
@@ -80,6 +82,7 @@ interface ComponentLibraryStore {
 export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get) => ({
   showComponentLibrary: false,
   showComponentManager: false,
+  isInitialized: false,
   libraries: [],
   activeLibraryId: null,
   selectedNodeId: null,
@@ -93,13 +96,28 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   isLibraryLoading: false,
 
   setShowComponentLibrary: (show) => set({ showComponentLibrary: show }),
-  setShowComponentManager: (show) => set({ showComponentManager: show }),
+
+  setShowComponentManager: async (show) => {
+    if (show && !get().isInitialized) {
+      await componentLibraryManager.initialize();
+      set({
+        libraries: componentLibraryManager.getLibraries(),
+        activeLibraryId: componentLibraryManager.getLibraries()[0]?.metadata.id || null,
+        isInitialized: true,
+        showComponentManager: show,
+      });
+    } else {
+      set({ showComponentManager: show });
+    }
+  },
 
   initialize: async () => {
+    if (get().isInitialized) return;
     await componentLibraryManager.initialize();
     set({
       libraries: componentLibraryManager.getLibraries(),
       activeLibraryId: componentLibraryManager.getLibraries()[0]?.metadata.id || null,
+      isInitialized: true,
     });
   },
 
@@ -230,9 +248,6 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
       }
       set({ libraries: componentLibraryManager.getLibraries() });
     } catch (error) {
-      if (error instanceof Error && error.message.includes('预设组件库不可修改')) {
-        alert(error.message);
-      }
       throw error;
     }
   },
@@ -246,9 +261,6 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
       }
       set({ libraries: componentLibraryManager.getLibraries() });
     } catch (error) {
-      if (error instanceof Error && error.message.includes('预设组件库不可修改')) {
-        alert(error.message);
-      }
       throw error;
     }
   },

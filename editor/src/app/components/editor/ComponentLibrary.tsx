@@ -5,6 +5,27 @@ import { componentLibraryManager } from '../../services/ComponentLibraryManager'
 import { generateThumbnailBatch } from '../../../lib/components/thumbnail-generator';
 import './ComponentLibrary.css';
 
+function sanitizeSvg(svg: string): string {
+  if (!svg) return '';
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svg, 'image/svg+xml');
+    const removeTags = ['script', 'iframe', 'embed', 'object', 'foreignObject'];
+    removeTags.forEach(tag => doc.querySelectorAll(tag).forEach(el => el.remove()));
+    doc.querySelectorAll('*').forEach(el => {
+      Array.from(el.attributes).forEach(attr => {
+        if (attr.name.startsWith('on')) el.removeAttribute(attr.name);
+        if (attr.name === 'href' && attr.value.startsWith('javascript:')) el.removeAttribute(attr.name);
+        if (attr.name === 'xlink:href' && attr.value.startsWith('javascript:')) el.removeAttribute(attr.name);
+      });
+    });
+    const svgEl = doc.querySelector('svg');
+    return svgEl ? svgEl.outerHTML : '';
+  } catch {
+    return '';
+  }
+}
+
 interface ComponentLibraryProps {
   onDropToCanvas: (component: Component, x: number, y: number) => void;
 }
@@ -31,7 +52,7 @@ const ComponentCard = React.memo<ComponentCardProps>(({ component, thumbnail, is
           <button className="thumbnail-fix-btn" onClick={() => onFixError(component.internalId)} title="修复组件">🔧</button>
         </div>
       ) : thumbnail ? (
-        <div className="thumbnail-svg-container" dangerouslySetInnerHTML={{ __html: thumbnail }} />
+        <div className="thumbnail-svg-container" dangerouslySetInnerHTML={{ __html: sanitizeSvg(thumbnail) }} />
       ) : (
         <div className="thumbnail-loading"><div className="loading-spinner small"></div></div>
       )}
@@ -58,15 +79,13 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
   const [loadingProgress, setLoadingProgress] = useState<{ current: number; total: number } | null>(null);
   const [componentParseErrors, setComponentParseErrors] = useState<Map<string, string>>(new Map());
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
-  const [needsExpandButton, setNeedsExpandButton] = useState(false);
-  const categoriesRef = useRef<HTMLDivElement>(null);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activeLibrary = useMemo(() => {
     return libraries.find(lib => lib.metadata.id === activeLibraryId) || null;
   }, [libraries, activeLibraryId]);
 
-  const activeLibraryIdRef = activeLibrary?.metadata.id;
+  const activeLibraryIdValue = activeLibrary?.metadata.id;
   const activeLibraryComponentCount = activeLibrary?.components.length;
   const activeLibraryComponentIds = useMemo(() => {
     return activeLibrary?.components.map(c => c.internalId).join(',') || '';
@@ -125,7 +144,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     generateThumbnails();
 
     return () => { cancelled = true; };
-  }, [activeLibraryIdRef, activeLibraryComponentCount, activeLibraryComponentIds]);
+  }, [activeLibraryIdValue, activeLibraryComponentCount, activeLibraryComponentIds]);
 
   const filteredComponents = useMemo(() => {
     if (!activeLibrary) return [];
@@ -179,25 +198,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     return activeLibrary.categories;
   }, [activeLibraryId, activeLibrary?.categories.length]);
 
-  useEffect(() => {
-    const checkNeedsExpand = () => {
-      if (categoriesRef.current) {
-        const containerHeight = categoriesRef.current.clientHeight;
-        const buttonHeight = 28;
-        const rows = Math.round(containerHeight / buttonHeight);
-        setNeedsExpandButton(rows > 3);
-      }
-    };
-
-    checkNeedsExpand();
-
-    const resizeObserver = new ResizeObserver(checkNeedsExpand);
-    if (categoriesRef.current) {
-      resizeObserver.observe(categoriesRef.current);
-    }
-
-    return () => { resizeObserver.disconnect(); };
-  }, [categories]);
+  const needsExpandButton = categories.length > 6;
 
   const handleOpenManagerForFailedComponent = useCallback((libraryId: string, componentId: string) => {
     openManagerAtComponent(libraryId, componentId);
@@ -253,12 +254,12 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
       </div>
 
       <div className="component-library-search">
-        <input type="text" placeholder="搜索组件..." defaultValue={searchQuery} onChange={handleSearchChange} />
+        <input type="text" placeholder="搜索组件..." value={searchQuery} onChange={handleSearchChange} />
       </div>
 
       {categories.length > 0 && (
         <div className="component-library-categories-wrapper">
-          <div ref={categoriesRef} className={`component-library-categories ${categoriesExpanded ? 'expanded' : ''}`}>
+          <div className={`component-library-categories ${categoriesExpanded ? 'expanded' : ''}`}>
             <button className={`component-library-category-btn ${!activeCategoryId ? 'active' : ''}`} onClick={() => setActiveCategoryId(null)}>全部</button>
             {categories.map((cat) => (
               <button key={cat.id} className={`component-library-category-btn ${activeCategoryId === cat.id ? 'active' : ''}`} onClick={() => setActiveCategoryId(cat.id)}>{cat.name}</button>
