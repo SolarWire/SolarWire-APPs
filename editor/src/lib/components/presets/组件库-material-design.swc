@@ -1,0 +1,2493 @@
+# Material Design 组件库
+id: material-design
+$schema: solarwire-component-library-v1
+description: Google Material Design 3，Material You 风格、Elevation 阴影层次、动态色彩
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+## Web-通用
+id: web-general
+platform: web
+
+### 填充按钮
+id: web-btn-filled
+name: 填充按钮
+description: Material 填充按钮，高强调度
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Filled Button") @(10, 10) w=140 h=40 bg=#6200ee c=#ffffff size=14 r=20
+```
+
+### 轮廓按钮
+id: web-btn-outlined
+name: 轮廓按钮
+description: Material 轮廓按钮，中等强调度
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Outlined") @(10, 10) w=120 h=40 bg=transparent c=#6200ee size=14 s=1 r=20
+```
+
+### 文字按钮
+id: web-btn-text
+name: 文字按钮
+description: Material 文字按钮，低强调度
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Text Button" @(10, 15) c=#6200ee size=14
+```
+
+### 色调按钮
+id: web-btn-tonal
+name: 色调按钮
+description: Material 3 色调按钮，填充次要色
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Tonal Button") @(10, 10) w=130 h=40 bg=#e8def8 c=#6200ee size=14 r=20
+```
+
+### FAB 按钮
+id: web-fab
+name: FAB 按钮
+description: Material 浮动操作按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("+")) @(10, 10) w=56 h=56 bg=#6200ee c=#ffffff size=24
+```
+
+### 小型 FAB
+id: web-fab-small
+name: 小型 FAB
+description: Material 小型浮动操作按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("✏")) @(10, 10) w=40 h=40 bg=#6200ee c=#ffffff size=18
+```
+
+### 扩展 FAB
+id: web-fab-extended
+name: 扩展 FAB
+description: 带文字的扩展浮动操作按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("+ 新建") @(10, 10) w=160 h=56 bg=#6200ee c=#ffffff size=14 r=16
+```
+
+### 图标按钮
+id: web-btn-icon
+name: 图标按钮
+description: Material 图标按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("♡")) @(10, 10) w=40 h=40 bg=transparent c=#444444 size=20
+```
+
+### 芯片
+id: web-chip
+name: 芯片
+description: Material 芯片组件
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Chip") @(10, 10) w=80 h=32 bg=#e8def8 c=#6200ee size=13 r=8
+```
+
+### 选中芯片
+id: web-chip-selected
+name: 选中芯片
+description: 已选中的芯片
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Selected ✓") @(10, 10) w=110 h=32 bg=#6200ee c=#ffffff size=13 r=8
+```
+
+### 输入芯片
+id: web-chip-input
+name: 输入芯片
+description: 可删除的输入芯片
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Tag ✕") @(10, 10) w=90 h=32 bg=#e8def8 c=#6200ee size=13 r=8
+```
+
+### 头像
+id: web-avatar
+name: 头像
+description: Material 头像组件
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=40 h=40 bg=#6200ee c=#ffffff size=16
+```
+
+### 徽章
+id: web-badge
+name: 徽标
+description: Material 通知徽标
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("9") @(10, 10) w=40 h=40 bg=#f5f5f5 c=#444444 size=14 r=20
+(("9")) @(38, 2) w=20 h=20 bg=#b00020 c=#ffffff size=10
+```
+
+### 分割线
+id: web-divider
+name: 分割线
+description: Material 分割线
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+-- @(10, 20)->(290, 20) b=#e0e0e0 s=1
+```
+
+### 工具提示
+id: web-tooltip
+name: 工具提示
+description: Material Tooltip
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Tooltip text") @(10, 10) w=120 h=32 bg=#616161 c=#ffffff size=12 r=4
+```
+
+---
+
+## Web-表单
+id: web-form
+platform: web
+
+### 填充输入框
+id: web-input-filled
+name: 填充输入框
+description: Material 填充样式输入框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=240 h=56 bg=#e8def8 r=4
+("请输入内容") @(20, 20) w=220 h=36 bg=#ffffff c=#999999 size=14 r=0
+```
+
+### 轮廓输入框
+id: web-input-outlined
+name: 轮廓输入框
+description: Material 轮廓样式输入框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("请输入内容") @(10, 10) w=240 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+"Label" @(20, 2) c=#6200ee size=11
+```
+
+### 多行文本框
+id: web-textarea
+name: 多行文本框
+description: Material 多行文本输入
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("请输入备注...") @(10, 10) w=300 h=120 bg=#ffffff c=#999999 size=14 s=1 r=4
+"Label" @(20, 2) c=#6200ee size=11
+```
+
+### 下拉选择
+id: web-select
+name: 下拉选择
+description: Material 下拉选择组件
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("请选择") @(10, 10) w=240 h=56 bg=#ffffff c=#444444 size=14 s=1 r=4
+"▼" @(220, 25) c=#6200ee size=12
+```
+
+### 日期选择器
+id: web-date-picker
+name: 日期选择器
+description: Material 日期选择
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("2026-04-24") @(10, 10) w=240 h=56 bg=#ffffff c=#444444 size=14 s=1 r=4
+"📅" @(220, 25) c=#6200ee size=14
+```
+
+### 单选按钮
+id: web-radio
+name: 单选按钮
+description: Material 单选按钮
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 10) w=20 h=20 bg=#6200ee c=#ffffff size=10
+"Option A" @(40, 13) c=#444444 size=14
+(("○")) @(120, 10) w=20 h=20 bg=transparent c=#6200ee size=10 s=1
+"Option B" @(150, 13) c=#444444 size=14
+```
+
+### 复选框
+id: web-checkbox
+name: 复选框
+description: Material 复选框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("✓")) @(10, 10) w=18 h=18 bg=#6200ee c=#ffffff size=12
+"Item 1" @(36, 12) c=#444444 size=14
+((" ")) @(100, 10) w=18 h=18 bg=transparent c=#6200ee size=12 s=1
+"Item 2" @(126, 12) c=#444444 size=14
+```
+
+### 开关
+id: web-switch
+name: 开关
+description: Material Switch 开关
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=52 h=32 bg=#6200ee r=16
+(("●")) @(40, 14) w=24 h=24 bg=#ffffff size=12
+```
+
+### 滑块
+id: web-slider
+name: 滑块
+description: Material Slider 滑块
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 20) w=200 h=4 bg=#e0e0e0 r=2
+("") @(10, 20) w=100 h=4 bg=#6200ee r=2
+(("●")) @(100, 14) w=16 h=16 bg=#6200ee c=#ffffff size=8
+```
+
+### 评分
+id: web-rate
+name: 评分
+description: Material 星级评分
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("★")) @(10, 10) w=24 h=24 bg=transparent c=#6200ee size=20
+(("★")) @(40, 10) w=24 h=24 bg=transparent c=#6200ee size=20
+(("★")) @(70, 10) w=24 h=24 bg=transparent c=#6200ee size=20
+(("★")) @(100, 10) w=24 h=24 bg=transparent c=#6200ee size=20
+(("☆")) @(130, 10) w=24 h=24 bg=transparent c=#9e9e9e size=20
+```
+
+### 文件上传
+id: web-upload
+name: 文件上传
+description: Material 文件上传区域
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=240 h=120 bg=#fafafa s=1 r=12
+"☁" @(115, 35) c=#9e9e9e size=32
+"拖拽文件到此处" @(75, 75) c=#9e9e9e size=13
+("上传文件") @(80, 95) w=100 h=32 bg=#6200ee c=#ffffff size=12 r=16
+```
+
+---
+
+## Web-表格
+id: web-table
+platform: web
+
+### 基础表格
+id: web-table-basic
+name: 基础表格
+description: Material 基础数据表格
+categoryId: web-table
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+## @(10, 10) w=400
+  # bg=#6200ee bold
+    "Name"
+    "Age"
+    "City"
+  # c=#ffffff
+    "Alice"
+    "28"
+    "New York"
+  # bg=#fafafa
+    "Bob"
+    "32"
+    "London"
+  #
+    "Charlie"
+    "25"
+    "Tokyo"
+```
+
+### 带排序表格
+id: web-table-sortable
+name: 排序表格
+description: 带排序功能的表格
+categoryId: web-table
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+## @(10, 10) w=400
+  # bg=#6200ee bold
+    "Name"
+    "Age ▲" @(75, 0) c=#ffffff
+    "City"
+  # c=#ffffff
+    "Alice"
+    "28"
+    "New York"
+  # bg=#fafafa
+    "Bob"
+    "32"
+    "London"
+```
+
+### 可选中表格
+id: web-table-selectable
+name: 可选中表格
+description: 带复选框的可选中表格
+categoryId: web-table
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+## @(10, 10) w=400
+  # bg=#6200ee bold
+    ""
+    "Name"
+    "Age"
+  # c=#ffffff
+    "☑" @(15, 5) c=#ffffff size=14
+    "Alice"
+    "28"
+  # bg=#fafafa
+    "☐" @(15, 5) c=#ffffff size=14
+    "Bob"
+    "32"
+```
+
+### 分页表格
+id: web-table-pagination
+name: 分页表格
+description: 带分页的表格
+categoryId: web-table
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+## @(10, 10) w=400
+  # bg=#6200ee bold
+    "Name"
+    "Age"
+    "City"
+  # c=#ffffff
+    "Alice"
+    "28"
+    "New York"
+  # bg=#fafafa
+    "Bob"
+    "32"
+    "London"
+  #
+    "Charlie"
+    "25"
+    "Tokyo"
+("<") @(10, 110) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+("1") @(52, 110) w=36 h=36 bg=#6200ee c=#ffffff size=12 r=18
+("2") @(94, 110) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+("3") @(136, 110) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+(">") @(178, 110) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+```
+
+---
+
+## Web-列表
+id: web-list
+platform: web
+
+### 基础列表
+id: web-list-basic
+name: 基础列表
+description: Material 基础列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"List item 1" @(10, 15) c=#444444 size=14
+-- @(10, 40)->(290, 40) b=#e0e0e0 s=1
+"List item 2" @(10, 55) c=#444444 size=14
+-- @(10, 80)->(290, 80) b=#e0e0e0 s=1
+"List item 3" @(10, 95) c=#444444 size=14
+```
+
+### 三行列表
+id: web-list-three-line
+name: 三行列表
+description: Material 三行列表项
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=40 h=40 bg=#6200ee c=#ffffff size=16
+"Title" @(60, 12) c=#444444 size=14 bold=true
+"Secondary text description" @(60, 30) c=#757575 size=12
+"Additional metadata" @(60, 48) c=#9e9e9e size=11
+```
+
+### 可操作列表
+id: web-list-actionable
+name: 可操作列表
+description: 带尾部操作图标的列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("📁")) @(10, 10) w=40 h=40 bg=#e8def8 c=#6200ee size=18
+"File name.doc" @(60, 12) c=#444444 size=14
+"2.5 MB" @(60, 30) c=#757575 size=12
+(("⋮")) @(270, 15) w=24 h=24 bg=transparent c=#757575 size=18
+```
+
+### 图文列表
+id: web-list-image-text
+name: 图文列表
+description: 左侧图片+文字的列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=56 h=56 bg=#e0e0e0 r=8
+"Article Title" @(76, 15) c=#444444 size=14 bold=true
+"Description text goes here..." @(76, 35) c=#757575 size=12
+```
+
+### 消息列表
+id: web-list-message
+name: 消息列表
+description: 消息通知列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("🔔")) @(10, 10) w=40 h=40 bg=#e8def8 c=#6200ee size=16
+"New message" @(60, 12) c=#444444 size=14 bold=true
+"5 min ago" @(60, 30) c=#757575 size=12
+(("1")) @(42, 4) w=18 h=18 bg=#b00020 c=#ffffff size=10
+```
+
+---
+
+## Web-卡片
+id: web-card
+platform: web
+
+### 填充卡片
+id: web-card-filled
+name: 填充卡片
+description: Material 3 填充样式卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=150 bg=#e8def8 r=12
+"Card Title" @(20, 20) c=#1d1b20 size=16 bold=true
+"Card content description..." @(20, 45) c=#49454f size=13
+```
+
+### 轮廓卡片
+id: web-card-outlined
+name: 轮廓卡片
+description: Material 3 轮廓样式卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=150 bg=#ffffff s=1 r=12
+"Card Title" @(20, 20) c=#1d1b20 size=16 bold=true
+"Card content description..." @(20, 45) c=#49454f size=13
+```
+
+### 提升卡片
+id: web-card-elevated
+name: 提升卡片
+description: Material 3 带阴影的提升卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=150 bg=#ffffff s=2 r=12
+"Card Title" @(20, 20) c=#1d1b20 size=16 bold=true
+"Card content description..." @(20, 45) c=#49454f size=13
+```
+
+### 图文卡片
+id: web-card-image
+name: 图文卡片
+description: 顶部图片+内容的卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#ffffff s=1 r=12
+("") @(10, 10) w=300 h=120 bg=#e0e0e0 r=12
+"Image" @(135, 60) c=#9e9e9e size=14
+"Card Title" @(20, 135) c=#1d1b20 size=14 bold=true
+"Subtitle text" @(20, 155) c=#49454f size=12
+```
+
+### 带操作卡片
+id: web-card-action
+name: 带操作卡片
+description: 带底部按钮的卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=160 bg=#ffffff s=1 r=12
+"Card Title" @(20, 20) c=#1d1b20 size=14 bold=true
+"Card content" @(20, 45) c=#49454f size=13
+-- @(20, 120)->(280, 120) b=#e0e0e0 s=1
+"Cancel" @(160, 132) c=#6200ee size=12
+"OK" @(230, 132) c=#6200ee size=12
+```
+
+### 统计卡片
+id: web-card-statistic
+name: 统计卡片
+description: 数据统计展示卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=100 bg=#ffffff s=1 r=12
+"Total Users" @(20, 20) c=#49454f size=12
+"1,234" @(20, 45) c=#1d1b20 size=28 bold=true
+"+12%" @(90, 55) c=#03dac6 size=14
+```
+
+---
+
+## Web-图表
+id: web-chart
+platform: web
+
+### 折线图
+id: web-chart-line
+name: 折线图
+description: Material 风格折线图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
+"Line Chart" @(20, 20) c=#1d1b20 size=14 bold=true
+-- @(20, 150)->(280, 150) b=#e0e0e0 s=1
+-- @(20, 50)->(20, 150) b=#e0e0e0 s=1
+-- @(20, 100)->(280, 100) b=#f5f5f5 s=1
+-- @(20, 130)->(95, 60) b=#6200ee s=2
+-- @(95, 60)->(170, 80) b=#6200ee s=2
+-- @(170, 80)->(245, 40) b=#6200ee s=2
+(("●")) @(20, 130) w=8 h=8 bg=#6200ee c=#6200ee size=4
+(("●")) @(95, 60) w=8 h=8 bg=#6200ee c=#6200ee size=4
+(("●")) @(170, 80) w=8 h=8 bg=#6200ee c=#6200ee size=4
+(("●")) @(245, 40) w=8 h=8 bg=#6200ee c=#6200ee size=4
+```
+
+### 柱状图
+id: web-chart-bar
+name: 柱状图
+description: Material 风格柱状图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
+"Bar Chart" @(20, 20) c=#1d1b20 size=14 bold=true
+-- @(20, 150)->(280, 150) b=#e0e0e0 s=1
+("") @(40, 100) w=30 h=50 bg=#6200ee r=4
+("") @(90, 80) w=30 h=70 bg=#6200ee r=4
+("") @(140, 60) w=30 h=90 bg=#6200ee r=4
+("") @(190, 90) w=30 h=60 bg=#03dac6 r=4
+("") @(240, 70) w=30 h=80 bg=#03dac6 r=4
+```
+
+### 饼图
+id: web-chart-pie
+name: 饼图
+description: Material 风格饼图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
+"Pie Chart" @(20, 20) c=#1d1b20 size=14 bold=true
+(("●")) @(120, 100) w=80 h=80 bg=#6200ee c=#6200ee size=4
+(("●")) @(140, 120) w=40 h=40 bg=#03dac6 c=#03dac6 size=4
+("A") @(210, 80) c=#1d1b20 size=12 bold=true
+"30%" @(210, 95) c=#757575 size=11
+("B") @(210, 115) c=#1d1b20 size=12 bold=true
+"70%" @(210, 130) c=#757575 size=11
+```
+
+### 面积图
+id: web-chart-area
+name: 面积图
+description: Material 风格面积图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
+"Area Chart" @(20, 20) c=#1d1b20 size=14 bold=true
+-- @(20, 150)->(280, 150) b=#e0e0e0 s=1
+("") @(20, 80) w=240 h=70 bg=#6200ee opacity=0.2 r=0
+("") @(20, 80) w=240 h=3 bg=#6200ee r=0
+```
+
+### 仪表盘
+id: web-chart-gauge
+name: 仪表盘
+description: Material 进度仪表盘
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=120 bg=#ffffff s=1 r=12
+("") @(50, 50) w=100 h=50 bg=#e0e0e0 r=25
+("") @(50, 50) w=70 h=50 bg=#6200ee r=25
+("75%") @(85, 65) c=#1d1b20 size=16 bold=true
+```
+
+---
+
+## Web-搜索
+id: web-search
+platform: web
+
+### 搜索栏
+id: web-search-bar
+name: 搜索栏
+description: Material 搜索栏
+categoryId: web-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Search...") @(10, 10) w=300 h=48 bg=#f5f5f5 c=#757575 size=14 r=24
+"🔍" @(15, 22) c=#757575 size=16
+```
+
+### 搜索历史
+id: web-search-history
+name: 搜索历史
+description: 搜索历史记录
+categoryId: web-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Recent searches" @(10, 10) c=#444444 size=13 bold=true
+("keyword 1") @(10, 35) w=100 h=32 bg=#f5f5f5 c=#444444 size=12 r=8
+("keyword 2") @(120, 35) w=100 h=32 bg=#f5f5f5 c=#444444 size=12 r=8
+("keyword 3") @(230, 35) w=100 h=32 bg=#f5f5f5 c=#444444 size=12 r=8
+```
+
+### 筛选芯片
+id: web-search-filter-chips
+name: 筛选芯片
+description: 筛选条件芯片组
+categoryId: web-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("All ✓") @(10, 10) w=70 h=32 bg=#6200ee c=#ffffff size=12 r=8
+("Filter A") @(90, 10) w=80 h=32 bg=#e8def8 c=#6200ee size=12 r=8
+("Filter B") @(180, 10) w=80 h=32 bg=#e8def8 c=#6200ee size=12 r=8
+("Filter C") @(270, 10) w=80 h=32 bg=#e8def8 c=#6200ee size=12 r=8
+```
+
+### 高级筛选
+id: web-search-advanced
+name: 高级筛选
+description: 展开式高级筛选
+categoryId: web-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=120 bg=#ffffff s=1 r=12
+"Filter" @(20, 20) c=#1d1b20 size=13 bold=true
+("Keyword...") @(20, 45) w=150 h=40 bg=#f5f5f5 c=#999999 size=12 s=1 r=20
+("All") @(180, 45) w=60 h=40 bg=#6200ee c=#ffffff size=12 r=20
+("Active") @(250, 45) w=60 h=40 bg=#e8def8 c=#6200ee size=12 r=20
+("Date range") @(20, 95) w=140 h=40 bg=#f5f5f5 c=#999999 size=12 s=1 r=20
+("Reset") @(300, 45) w=60 h=40 bg=transparent c=#6200ee size=12 s=1 r=20
+("Search") @(370, 45) w=60 h=40 bg=#6200ee c=#ffffff size=12 r=20
+```
+
+---
+
+## Web-导航
+id: web-navigation
+platform: web
+
+### 面包屑
+id: web-breadcrumb
+name: 面包屑
+description: Material 面包屑导航
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Home" @(10, 15) c=#6200ee size=12
+">" @(45, 15) c=#9e9e9e size=12
+"Products" @(60, 15) c=#6200ee size=12
+">" @(115, 15) c=#9e9e9e size=12
+"Detail" @(130, 15) c=#757575 size=12
+```
+
+### 分页器
+id: web-pagination
+name: 分页器
+description: Material 分页导航
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("<") @(10, 10) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+("1") @(52, 10) w=36 h=36 bg=#6200ee c=#ffffff size=12 r=18
+("2") @(94, 10) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+("3") @(136, 10) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+("...") @(178, 10) w=36 h=36 bg=#ffffff c=#757575 size=12 r=18
+("10") @(220, 10) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+(">") @(262, 10) w=36 h=36 bg=#ffffff c=#6200ee size=12 s=1 r=18
+```
+
+### 步骤条
+id: web-stepper
+name: 步骤条
+description: Material 步骤导航
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("1")) @(10, 10) w=28 h=28 bg=#6200ee c=#ffffff size=12
+"Step 1" @(45, 15) c=#1d1b20 size=12
+-- @(38, 24)->(95, 24) b=#6200ee s=2
+(("2")) @(105, 10) w=28 h=28 bg=#6200ee c=#ffffff size=12
+"Step 2" @(140, 15) c=#1d1b20 size=12
+-- @(133, 24)->(190, 24) b=#e0e0e0 s=2
+(("3")) @(200, 10) w=28 h=28 bg=#e0e0e0 c=#757575 size=12
+"Step 3" @(235, 15) c=#757575 size=12
+```
+
+### 顶部应用栏
+id: web-top-app-bar
+name: 顶部应用栏
+description: Material 顶部应用栏
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#6200ee
+"☰" @(10, 16) c=#ffffff size=20
+"App Title" @(45, 18) c=#ffffff size=16 bold=true
+"🔍" @(250, 18) c=#ffffff size=18
+"⋮" @(285, 18) c=#ffffff size=18
+```
+
+### 侧边导航
+id: web-side-nav
+name: 侧边导航
+description: Material 侧边导航抽屉
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=220 h=400 bg=#ffffff s=1
+"App Title" @(15, 20) c=#6200ee size=14 bold=true
+-- @(0, 50)->(220, 50) b=#e0e0e0 s=1
+("🏠 Dashboard") @(10, 60) w=200 h=44 bg=#e8def8 c=#6200ee size=13 r=12
+"👥 Users" @(20, 115) c=#444444 size=13
+"📊 Analytics" @(20, 160) c=#444444 size=13
+"⚙ Settings" @(20, 205) c=#444444 size=13
+```
+
+### 底部导航
+id: web-bottom-nav
+name: 底部导航
+description: Material 底部导航栏
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#ffffff s=1
+"🏠" @(30, 8) c=#6200ee size=18
+"Home" @(25, 30) c=#6200ee size=10
+"📋" @(110, 8) c=#757575 size=18
+"Orders" @(103, 30) c=#757575 size=10
+"👤" @(190, 8) c=#757575 size=18
+"Profile" @(183, 30) c=#757575 size=10
+"⚙" @(270, 8) c=#757575 size=18
+"Settings" @(261, 30) c=#757575 size=10
+```
+
+### Tab 切换
+id: web-tabs
+name: Tab 切换
+description: Material 标签页切换
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Tab 1" @(10, 10) c=#6200ee size=13 bold=true
+"Tab 2" @(80, 10) c=#757575 size=13
+"Tab 3" @(150, 10) c=#757575 size=13
+("") @(10, 30) w=50 h=3 bg=#6200ee r=2
+-- @(10, 40)->(290, 40) b=#e0e0e0 s=1
+"Tab 1 content area" @(10, 55) c=#757575 size=12
+```
+
+### 下拉菜单
+id: web-dropdown
+name: 下拉菜单
+description: Material 下拉菜单
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=180 h=140 bg=#ffffff s=2 r=4
+"Menu Item 1" @(20, 25) c=#444444 size=13
+-- @(10, 45)->(180, 45) b=#e0e0e0 s=1
+"Menu Item 2" @(20, 55) c=#444444 size=13
+-- @(10, 75)->(180, 75) b=#e0e0e0 s=1
+"Menu Item 3" @(20, 85) c=#444444 size=13
+-- @(10, 105)->(180, 105) b=#e0e0e0 s=1
+"Menu Item 4" @(20, 115) c=#444444 size=13
+```
+
+---
+
+## Web-认证
+id: web-auth
+platform: web
+
+### 登录页
+id: web-login
+name: 登录页
+description: Material 风格登录页
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=400 h=600 bg=#fafafa
+(("🔒")) @(170, 60) w=60 h=60 bg=#6200ee c=#ffffff size=24
+"Sign In" @(160, 140) c=#1d1b20 size=24 bold=true
+("Email") @(50, 190) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+("Password") @(50, 260) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+("Sign In") @(50, 350) w=300 h=44 bg=#6200ee c=#ffffff size=14 r=22
+"Forgot password?" @(250, 310) c=#6200ee size=12
+```
+
+### 注册页
+id: web-register
+name: 注册页
+description: Material 风格注册页
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=400 h=600 bg=#fafafa
+"Create Account" @(120, 60) c=#1d1b20 size=24 bold=true
+("Full Name") @(50, 130) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+("Email") @(50, 200) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+("Password") @(50, 270) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+("Create Account") @(50, 360) w=300 h=44 bg=#6200ee c=#ffffff size=14 r=22
+"Already have an account? Sign In" @(100, 420) c=#6200ee size=12
+```
+
+### 找回密码
+id: web-forgot-password
+name: 找回密码
+description: Material 找回密码页
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=400 h=500 bg=#fafafa
+"Reset Password" @(120, 60) c=#1d1b20 size=24 bold=true
+("Email") @(50, 130) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=4
+("Send Reset Link") @(50, 220) w=300 h=44 bg=#6200ee c=#ffffff size=14 r=22
+"Back to Sign In" @(150, 290) c=#6200ee size=13
+```
+
+### 第三方登录
+id: web-third-party-login
+name: 第三方登录
+description: 第三方账号登录
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Or continue with" @(130, 50) c=#757575 size=13
+(("G")) @(80, 90) w=60 h=60 bg=#ffffff c=#444444 size=24 s=1
+(("f")) @(160, 90) w=60 h=60 bg=#1877f2 c=#ffffff size=24
+(("🍎")) @(240, 90) w=60 h=60 bg=#ffffff c=#444444 size=24 s=1
+```
+
+---
+
+## Web-反馈
+id: web-feedback
+platform: web
+
+### 成功提示
+id: web-snackbar-success
+name: 成功提示
+description: Material Snackbar 成功提示
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✓ Action completed successfully") @(10, 10) w=300 h=48 bg=#2e7d32 c=#ffffff size=13 r=4
+```
+
+### 错误提示
+id: web-snackbar-error
+name: 错误提示
+description: Material Snackbar 错误提示
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✕ Error: Network timeout") @(10, 10) w=300 h=48 bg=#b00020 c=#ffffff size=13 r=4
+```
+
+### 警告提示
+id: web-snackbar-warning
+name: 警告提示
+description: Material Snackbar 警告提示
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("⚠ Warning: Unusual activity") @(10, 10) w=300 h=48 bg=#f57c00 c=#ffffff size=13 r=4
+```
+
+### 对话框
+id: web-dialog
+name: 对话框
+description: Material Dialog 对话框
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=2 r=16
+"Confirm Delete" @(20, 25) c=#1d1b20 size=16 bold=true
+"Are you sure you want to delete this item? This action cannot be undone." @(20, 55) c=#49454f size=13
+"Cancel" @(170, 130) c=#6200ee size=13
+"Delete" @(240, 130) c=#b00020 size=13
+```
+
+### 抽屉
+id: web-drawer
+name: 抽屉
+description: Material 侧边抽屉
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=300 h=400 bg=#ffffff s=1
+"Drawer Title" @(20, 20) c=#1d1b20 size=16 bold=true
+"✕" @(260, 18) c=#757575 size=18
+-- @(0, 50)->(300, 50) b=#e0e0e0 s=1
+"Drawer content area..." @(20, 70) c=#49454f size=13
+```
+
+### 底部面板
+id: web-bottom-sheet
+name: 底部面板
+description: Material Bottom Sheet
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 200) w=300 h=200 bg=#ffffff s=2 r=16
+("") @(130, 210) w=40 h=4 bg=#e0e0e0 r=2
+"Bottom Sheet Title" @(20, 230) c=#1d1b20 size=14 bold=true
+"Content area..." @(20, 260) c=#49454f size=13
+```
+
+### 加载状态
+id: web-loading
+name: 加载状态
+description: Material 圆形进度指示器
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⟳")) @(100, 100) w=48 h=48 bg=transparent c=#6200ee size=32
+```
+
+### 线性进度
+id: web-progress-linear
+name: 线性进度
+description: Material 线性进度条
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=280 h=4 bg=#e8def8 r=2
+("") @(10, 10) w=180 h=4 bg=#6200ee r=2
+```
+
+### 骨架屏
+id: web-skeleton
+name: 骨架屏
+description: Material 骨架屏加载
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=150 bg=#ffffff s=1 r=12
+("") @(20, 20) w=120 h=16 bg=#f5f5f5 r=4
+("") @(20, 50) w=280 h=12 bg=#f5f5f5 r=3
+("") @(20, 70) w=260 h=12 bg=#f5f5f5 r=3
+("") @(20, 90) w=200 h=12 bg=#f5f5f5 r=3
+```
+
+### 空状态
+id: web-empty
+name: 空状态
+description: Material 空状态
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("📦")) @(120, 50) w=80 h=80 bg=#f5f5f5 c=#9e9e9e size=32
+"No data" @(130, 140) c=#757575 size=14
+("Add Data") @(110, 170) w=100 h=36 bg=#6200ee c=#ffffff size=13 r=18
+```
+
+---
+
+## Web-媒体
+id: web-media
+platform: web
+
+### 图片展示
+id: web-image-basic
+name: 图片展示
+description: Material 图片展示
+categoryId: web-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=150 bg=#e0e0e0 r=12
+"Image" @(80, 70) c=#9e9e9e size=14
+```
+
+### 图片画廊
+id: web-image-gallery
+name: 图片画廊
+description: 多图画廊展示
+categoryId: web-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=140 h=100 bg=#e0e0e0 r=12
+("") @(160, 10) w=140 h=100 bg=#e0e0e0 r=12
+("") @(10, 120) w=140 h=100 bg=#e0e0e0 r=12
+("") @(160, 120) w=140 h=100 bg=#e0e0e0 r=12
+```
+
+### 视频播放
+id: web-video-player
+name: 视频播放
+description: Material 视频播放器
+categoryId: web-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#000000 r=12
+"▶" @(135, 75) c=#ffffff size=32
+"00:00 / 03:24" @(120, 155) c=#ffffff size=12
+("") @(20, 165) w=260 h=4 bg=#444444 r=2
+("") @(20, 165) w=100 h=4 bg=#6200ee r=2
+```
+
+### 音频播放
+id: web-audio-player
+name: 音频播放
+description: Material 音频播放条
+categoryId: web-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=60 bg=#f5f5f5 r=12
+"▶" @(20, 25) c=#6200ee size=16
+"Audio Title" @(50, 20) c=#1d1b20 size=13 bold=true
+"00:00 / 03:24" @(200, 25) c=#757575 size=12
+```
+
+---
+
+## Web-编辑器
+id: web-editor
+platform: web
+
+### 富文本编辑器
+id: web-rich-editor
+name: 富文本编辑器
+description: Material 风格富文本编辑器
+categoryId: web-editor
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=250 bg=#ffffff s=1 r=12
+"B" @(20, 20) c=#444444 size=14 bold=true
+"I" @(45, 20) c=#444444 size=14
+"U" @(70, 20) c=#444444 size=14
+"🔗" @(100, 20) c=#444444 size=14
+"📷" @(125, 20) c=#444444 size=14
+-- @(10, 50)->(390, 50) b=#e0e0e0 s=1
+("Type content here...") @(20, 65) w=370 h=180 bg=#fafafa c=#999999 size=13 r=8
+```
+
+### 代码编辑器
+id: web-code-editor
+name: 代码编辑器
+description: Material 风格代码编辑器
+categoryId: web-editor
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=200 bg=#1e1e1e s=1 r=12
+"function" @(20, 30) c=#c586c0 size=13
+" " @(85, 30) c=#d4d4d4 size=13
+"example" @(90, 30) c=#9cdcfe size=13
+"() {" @(135, 30) c=#d4d4d4 size=13
+"  console" @(30, 55) c=#9cdcfe size=13
+".log" @(80, 55) c=#dcdcaa size=13
+"(" @(100, 55) c=#d4d4d4 size=13
+""hello"" @(105, 55) c=#ce9178 size=13
+");" @(145, 55) c=#d4d4d4 size=13
+"}" @(20, 75) c=#d4d4d4 size=13
+```
+
+---
+
+## Web-电商
+id: web-commerce
+platform: web
+
+### 商品卡片
+id: web-product-card
+name: 商品卡片
+description: Material 商品展示卡片
+categoryId: web-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=280 bg=#ffffff s=1 r=12
+("") @(10, 10) w=200 h=160 bg=#f5f5f5 r=12
+"Image" @(80, 80) c=#9e9e9e size=12
+"Product Title" @(20, 180) c=#1d1b20 size=13 bold=true
+"$299.00" @(20, 200) c=#6200ee size=16 bold=true
+("Add to Cart") @(20, 230) w=160 h=36 bg=#6200ee c=#ffffff size=12 r=18
+```
+
+### 购物车
+id: web-shopping-cart
+name: 购物车
+description: Material 购物车组件
+categoryId: web-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=12
+(("✓")) @(20, 30) w=24 h=24 bg=#6200ee c=#ffffff size=14
+("") @(55, 15) w=60 h=60 bg=#f5f5f5 r=8
+"Product Name" @(125, 25) c=#1d1b20 size=13 bold=true
+"$199.00" @(125, 50) c=#6200ee size=14
+("-") @(240, 30) w=24 h=24 bg=#f5f5f5 c=#444444 size=14 r=12
+"1" @(252, 35) c=#444444 size=12
+("+") @(270, 30) w=24 h=24 bg=#f5f5f5 c=#444444 size=14 r=12
+```
+
+### 优惠券
+id: web-coupon
+name: 优惠券
+description: Material 优惠券卡片
+categoryId: web-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=80 bg=#e8def8 r=12
+"$20" @(20, 25) c=#6200ee size=22 bold=true
+"Min. spend $100" @(20, 55) c=#6200ee size=11
+("Claim") @(140, 35) w=50 h=28 bg=#6200ee c=#ffffff size=12 r=14
+```
+
+### 订单列表
+id: web-order-list
+name: 订单列表
+description: Material 订单列表
+categoryId: web-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=100 bg=#ffffff s=1 r=12
+"Order #20260424001" @(20, 20) c=#757575 size=11
+"2026-04-24" @(300, 20) c=#757575 size=11
+"Product name..." @(20, 45) c=#1d1b20 size=13
+"$299.00" @(20, 70) c=#6200ee size=14 bold=true
+("Pending") @(300, 70) w=80 h=24 bg=#fff3e0 c=#f57c00 size=11 r=12
+```
+
+---
+
+## Web-布局
+id: web-layout
+platform: web
+
+### 页面布局
+id: web-page-layout
+name: 页面布局
+description: Material 后台页面布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#6200ee
+"App" @(10, 18) c=#ffffff size=16 bold=true
+("") @(0, 56) w=80 h=344 bg=#ffffff s=1
+"Menu" @(10, 70) c=#6200ee size=12 bold=true
+("Dashboard") @(5, 90) w=70 h=36 bg=#e8def8 c=#6200ee size=11 r=8
+"Users" @(15, 130) c=#444444 size=11
+"Settings" @(15, 160) c=#444444 size=11
+("Content") @(90, 66) w=230 h=334 bg=#fafafa c=#9e9e9e size=12 r=4
+```
+
+### 栅格系统
+id: web-grid
+name: 栅格系统
+description: Material 栅格布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=100 h=80 bg=#e8def8 s=1 r=4
+"col-4" @(35, 40) c=#6200ee size=12
+("") @(120, 10) w=100 h=80 bg=#e8def8 s=1 r=4
+"col-4" @(145, 40) c=#6200ee size=12
+("") @(230, 10) w=100 h=80 bg=#e8def8 s=1 r=4
+"col-4" @(255, 40) c=#6200ee size=12
+("") @(10, 100) w=210 h=80 bg=#e8def8 s=1 r=4
+"col-8" @(85, 130) c=#6200ee size=12
+("") @(230, 100) w=100 h=80 bg=#e8def8 s=1 r=4
+"col-4" @(255, 130) c=#6200ee size=12
+```
+
+### Flex 布局
+id: web-flex-layout
+name: Flex 布局
+description: Flex 弹性布局容器
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=90 h=60 bg=#e8def8 s=1 r=8
+"flex-1" @(30, 33) c=#6200ee size=12
+("") @(110, 10) w=90 h=60 bg=#e0f2f1 s=1 r=8
+"flex-1" @(130, 33) c=#03dac6 size=12
+("") @(210, 10) w=90 h=60 bg=#fce4ec s=1 r=8
+"flex-1" @(230, 33) c=#b00020 size=12
+```
+
+### 仪表盘布局
+id: web-dashboard-layout
+name: 仪表盘布局
+description: Material 仪表盘布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=180 h=100 bg=#ffffff s=1 r=12
+"Card 1" @(70, 50) c=#9e9e9e size=12
+("") @(200, 10) w=180 h=100 bg=#ffffff s=1 r=12
+"Card 2" @(260, 50) c=#9e9e9e size=12
+("") @(10, 120) w=370 h=180 bg=#ffffff s=1 r=12
+"Chart Area" @(160, 200) c=#9e9e9e size=12
+```
+
+---
+
+## Mobile-通用
+id: mobile-general
+platform: mobile
+
+### 填充按钮
+id: mobile-btn-filled
+name: 填充按钮
+description: Material 填充按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Filled Button") @(10, 10) w=300 h=48 bg=#6200ee c=#ffffff size=14 r=24
+```
+
+### 轮廓按钮
+id: mobile-btn-outlined
+name: 轮廓按钮
+description: Material 轮廓按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Outlined") @(10, 10) w=300 h=48 bg=transparent c=#6200ee size=14 s=1 r=24
+```
+
+### 文字按钮
+id: mobile-btn-text
+name: 文字按钮
+description: Material 文字按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Text Button" @(10, 15) c=#6200ee size=14
+```
+
+### FAB 按钮
+id: mobile-fab
+name: FAB 按钮
+description: Material 浮动操作按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("+")) @(10, 10) w=56 h=56 bg=#6200ee c=#ffffff size=24
+```
+
+### 芯片
+id: mobile-chip
+name: 芯片
+description: Material 芯片组件
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Chip") @(10, 10) w=80 h=32 bg=#e8def8 c=#6200ee size=13 r=8
+```
+
+### 头像
+id: mobile-avatar
+name: 头像
+description: Material 头像
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=48 h=48 bg=#6200ee c=#ffffff size=18
+```
+
+### 徽标
+id: mobile-badge
+name: 徽标
+description: Material 通知徽标
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("9")) @(42, 4) w=20 h=20 bg=#b00020 c=#ffffff size=10
+```
+
+### 标签
+id: mobile-tag
+name: 标签
+description: Material 标签
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Label") @(10, 10) w=70 h=28 bg=#e8def8 c=#6200ee size=12 r=8
+```
+
+---
+
+## Mobile-表单
+id: mobile-form
+platform: mobile
+
+### 填充输入框
+id: mobile-input-filled
+name: 填充输入框
+description: Material 填充输入框
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=56 bg=#e8def8 r=16
+("Enter text...") @(20, 20) w=280 h=36 bg=#ffffff c=#999999 size=14 r=0
+```
+
+### 轮廓输入框
+id: mobile-input-outlined
+name: 轮廓输入框
+description: Material 轮廓输入框
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Enter text...") @(10, 10) w=300 h=56 bg=#ffffff c=#999999 size=14 s=1 r=16
+"Label" @(20, 2) c=#6200ee size=11
+```
+
+### 下拉选择
+id: mobile-select
+name: 下拉选择
+description: Material 下拉选择
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Select option") @(10, 10) w=300 h=56 bg=#ffffff c=#444444 size=14 s=1 r=16
+"▼" @(270, 25) c=#6200ee size=12
+```
+
+### 日期选择
+id: mobile-date-picker
+name: 日期选择
+description: Material 日期选择
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("2026-04-24") @(10, 10) w=300 h=56 bg=#ffffff c=#444444 size=14 s=1 r=16
+"📅" @(270, 25) c=#6200ee size=14
+```
+
+### 单选按钮
+id: mobile-radio
+name: 单选按钮
+description: Material 单选按钮
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 12) w=22 h=22 bg=#6200ee c=#ffffff size=10
+"Option A" @(42, 16) c=#444444 size=14
+(("○")) @(10, 46) w=22 h=22 bg=transparent c=#6200ee size=10 s=1
+"Option B" @(42, 50) c=#444444 size=14
+```
+
+### 复选框
+id: mobile-checkbox
+name: 复选框
+description: Material 复选框
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("✓")) @(10, 12) w=20 h=20 bg=#6200ee c=#ffffff size=12
+"Item 1" @(40, 15) c=#444444 size=14
+((" ")) @(10, 46) w=20 h=20 bg=transparent c=#6200ee size=12 s=1
+"Item 2" @(40, 49) c=#444444 size=14
+```
+
+### 开关
+id: mobile-switch
+name: 开关
+description: Material Switch
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=52 h=32 bg=#6200ee r=16
+(("●")) @(40, 14) w=24 h=24 bg=#ffffff size=12
+```
+
+### 滑块
+id: mobile-slider
+name: 滑块
+description: Material Slider
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 18) w=280 h=4 bg=#e0e0e0 r=2
+("") @(10, 18) w=140 h=4 bg=#6200ee r=2
+(("●")) @(135, 12) w=16 h=16 bg=#6200ee c=#ffffff size=6
+```
+
+### 验证码
+id: mobile-verification
+name: 验证码
+description: 短信验证码输入
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Enter code") @(10, 10) w=180 h=48 bg=#ffffff c=#999999 size=14 s=1 r=24
+("Send Code") @(200, 10) w=110 h=48 bg=#6200ee c=#ffffff size=13 r=24
+```
+
+---
+
+## Mobile-列表
+id: mobile-list
+platform: mobile
+
+### 列表项
+id: mobile-list-item
+name: 列表项
+description: Material 列表项
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("List item") @(10, 10) w=300 h=56 bg=#ffffff c=#444444 size=14 r=0
+">" @(280, 22) c=#9e9e9e size=14
+```
+
+### 带图标列表项
+id: mobile-list-with-icon
+name: 带图标列表项
+description: 左侧带图标的列表项
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("📁")) @(10, 14) w=40 h=40 bg=#e8def8 c=#6200ee size=18
+"File name.doc" @(60, 20) c=#444444 size=14
+"2.5 MB" @(60, 40) c=#757575 size=12
+```
+
+### 三行列表
+id: mobile-list-three-line
+name: 三行列表
+description: Material 三行列表
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=48 h=48 bg=#6200ee c=#ffffff size=18
+"Title" @(68, 12) c=#444444 size=14 bold=true
+"Subtitle text" @(68, 32) c=#757575 size=12
+"Metadata" @(68, 50) c=#9e9e9e size=11
+```
+
+### 消息列表
+id: mobile-message-list
+name: 消息列表
+description: 消息通知列表
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("🔔")) @(10, 10) w=48 h=48 bg=#e8def8 c=#6200ee size=16
+"New message" @(68, 12) c=#444444 size=14 bold=true
+"Message preview..." @(68, 34) c=#757575 size=12
+"10:30" @(260, 16) c=#9e9e9e size=12
+(("1")) @(48, 4) w=18 h=18 bg=#b00020 c=#ffffff size=10
+```
+
+### 聊天列表
+id: mobile-chat-list
+name: 聊天列表
+description: 聊天会话列表
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=48 h=48 bg=#6200ee c=#ffffff size=16
+"Alice" @(68, 12) c=#444444 size=14 bold=true
+"Hello, how are you?" @(68, 34) c=#757575 size=12
+"10:30" @(260, 16) c=#9e9e9e size=12
+(("●")) @(48, 4) w=12 h=12 bg=#03dac6 c=#03dac6 size=4
+```
+
+### 折叠列表
+id: mobile-collapse-list
+name: 折叠列表
+description: 可折叠展开的列表
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Group Title") @(10, 10) w=300 h=48 bg=#f5f5f5 c=#444444 size=14 r=0
+"▼" @(280, 22) c=#757575 size=12
+("") @(10, 62) w=300 h=44 bg=#ffffff c=#666666 size=13 r=0
+("") @(10, 110) w=300 h=44 bg=#ffffff c=#666666 size=13 r=0
+```
+
+---
+
+## Mobile-滑动操作
+id: mobile-swipe
+platform: mobile
+
+### 左滑操作
+id: mobile-swipe-left
+name: 左滑操作
+description: 向左滑动显示操作
+categoryId: mobile-swipe
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=240 h=60 bg=#ffffff s=1 r=12
+"List item" @(20, 25) c=#444444 size=14
+("Edit") @(250, 10) w=60 h=60 bg=#6200ee c=#ffffff size=12 r=12
+("Delete") @(315, 10) w=60 h=60 bg=#b00020 c=#ffffff size=12 r=12
+```
+
+### 滑动删除
+id: mobile-swipe-delete
+name: 滑动删除
+description: 滑动显示删除按钮
+categoryId: mobile-swipe
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=60 bg=#ffffff s=1 r=12
+"List item" @(20, 25) c=#444444 size=14
+("Delete") @(250, 10) w=60 h=60 bg=#b00020 c=#ffffff size=12 r=12
+```
+
+### 堆叠卡片
+id: mobile-stacked-cards
+name: 堆叠卡片
+description: 滑动切换的堆叠卡片
+categoryId: mobile-swipe
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(30, 20) w=280 h=180 bg=#e8def8 s=1 r=16
+("") @(40, 30) w=280 h=180 bg=#e0f2f1 s=1 r=16
+("") @(50, 40) w=280 h=180 bg=#ffffff s=2 r=16
+"Card Content" @(150, 120) c=#9e9e9e size=14
+```
+
+---
+
+## Mobile-卡片
+id: mobile-card
+platform: mobile
+
+### 横向滚动卡片
+id: mobile-scroll-card
+name: 横向滚动卡片
+description: 横向滚动的卡片列表
+categoryId: mobile-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=120 bg=#e8def8 s=1 r=16
+"Card 1" @(75, 60) c=#6200ee size=14
+("") @(220, 10) w=200 h=120 bg=#e0f2f1 s=1 r=16
+"Card 2" @(285, 60) c=#03dac6 size=14
+("") @(430, 10) w=200 h=120 bg=#fce4ec s=1 r=16
+"Card 3" @(495, 60) c=#b00020 size=14
+```
+
+### 瀑布流卡片
+id: mobile-waterfall-card
+name: 瀑布流卡片
+description: 瀑布流布局卡片
+categoryId: mobile-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=160 h=120 bg=#f5f5f5 s=1 r=16
+("") @(10, 140) w=160 h=160 bg=#f5f5f5 s=1 r=16
+("") @(180, 10) w=160 h=180 bg=#f5f5f5 s=1 r=16
+("") @(180, 200) w=160 h=100 bg=#f5f5f5 s=1 r=16
+```
+
+### 评价卡片
+id: mobile-review-card
+name: 评价卡片
+description: 用户评价卡片
+categoryId: mobile-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=120 bg=#ffffff s=1 r=16
+(("A")) @(20, 20) w=36 h=36 bg=#6200ee c=#ffffff size=12
+"Alice" @(65, 22) c=#444444 size=13 bold=true
+"★★★★★" @(65, 45) c=#6200ee size=12
+"Great product, highly recommend..." @(20, 70) c=#757575 size=13
+```
+
+### 商品卡片
+id: mobile-product-card
+name: 商品卡片
+description: 移动端商品卡片
+categoryId: mobile-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=160 h=220 bg=#ffffff s=1 r=16
+("") @(10, 10) w=160 h=140 bg=#f5f5f5 r=16
+"$199" @(20, 155) c=#6200ee size=15 bold=true
+"Product Name" @(20, 180) c=#444444 size=12
+```
+
+---
+
+## Mobile-导航
+id: mobile-navigation
+platform: mobile
+
+### 底部导航
+id: mobile-bottom-nav
+name: 底部导航
+description: Material 底部导航栏
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#ffffff s=1
+"🏠" @(30, 8) c=#6200ee size=18
+"Home" @(25, 30) c=#6200ee size=10
+("📋") @(110, 6) w=40 h=40 bg=#e8def8 c=#6200ee size=18 r=20
+"Orders" @(103, 30) c=#6200ee size=10
+"👤" @(190, 8) c=#757575 size=18
+"Profile" @(183, 30) c=#757575 size=10
+"⚙" @(270, 8) c=#757575 size=18
+"Settings" @(261, 30) c=#757575 size=10
+```
+
+### 顶部应用栏
+id: mobile-top-app-bar
+name: 顶部应用栏
+description: Material 顶部应用栏
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#6200ee
+"←" @(10, 16) c=#ffffff size=18
+"Page Title" @(45, 18) c=#ffffff size=16 bold=true
+"🔍" @(250, 18) c=#ffffff size=18
+"⋮" @(285, 18) c=#ffffff size=18
+```
+
+### 分段器
+id: mobile-segmented
+name: 分段器
+description: Material 分段控制器
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(40, 10) w=240 h=36 bg=#e8def8 r=18
+("Tab 1") @(42, 12) w=116 h=32 bg=#6200ee c=#ffffff size=13 r=16
+"Tab 2" @(170, 18) c=#6200ee size=13
+```
+
+### 胶囊菜单
+id: mobile-capsule-menu
+name: 胶囊菜单
+description: 胶囊式分类菜单
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("All") @(10, 10) w=60 h=32 bg=#6200ee c=#ffffff size=12 r=8
+("Phones") @(80, 10) w=70 h=32 bg=#e8def8 c=#6200ee size=12 r=8
+("Laptops") @(160, 10) w=70 h=32 bg=#e8def8 c=#6200ee size=12 r=8
+("Accessories") @(240, 10) w=80 h=32 bg=#e8def8 c=#6200ee size=12 r=8
+```
+
+### 导航抽屉
+id: mobile-nav-drawer
+name: 导航抽屉
+description: Material 导航抽屉
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=280 h=400 bg=#ffffff s=1
+("") @(0, 0) w=280 h=80 bg=#6200ee
+"App Name" @(20, 30) c=#ffffff size=16 bold=true
+"user@email.com" @(20, 52) c=#ffffff opacity=0.8 size=12
+("🏠 Dashboard") @(10, 90) w=260 h=44 bg=#e8def8 c=#6200ee size=13 r=12
+"👥 Users" @(20, 140) c=#444444 size=13
+"📊 Analytics" @(20, 185) c=#444444 size=13
+"⚙ Settings" @(20, 230) c=#444444 size=13
+```
+
+---
+
+## Mobile-搜索
+id: mobile-search
+platform: mobile
+
+### 搜索栏
+id: mobile-search-bar
+name: 搜索栏
+description: Material 搜索栏
+categoryId: mobile-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Search...") @(10, 10) w=300 h=48 bg=#f5f5f5 c=#757575 size=14 r=24
+"🔍" @(15, 22) c=#757575 size=16
+```
+
+### 搜索历史
+id: mobile-search-history
+name: 搜索历史
+description: 搜索历史记录
+categoryId: mobile-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Recent" @(10, 10) c=#444444 size=13 bold=true
+("keyword 1") @(10, 35) w=90 h=32 bg=#f5f5f5 c=#444444 size=12 r=8
+("keyword 2") @(110, 35) w=90 h=32 bg=#f5f5f5 c=#444444 size=12 r=8
+("keyword 3") @(210, 35) w=90 h=32 bg=#f5f5f5 c=#444444 size=12 r=8
+```
+
+### 搜索建议
+id: mobile-search-suggest
+name: 搜索建议
+description: 搜索联想建议
+categoryId: mobile-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=16
+"📱 Phone" @(20, 25) c=#444444 size=14
+"📱 Phone case" @(20, 60) c=#444444 size=14
+"📱 Phone screen" @(20, 95) c=#444444 size=14
+"📱 Phone holder" @(20, 130) c=#444444 size=14
+```
+
+---
+
+## Mobile-个人中心
+id: mobile-profile
+platform: mobile
+
+### 用户卡片
+id: mobile-user-card
+name: 用户卡片
+description: Material 用户信息卡片
+categoryId: mobile-profile
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=120 bg=#6200ee r=16
+(("A")) @(30, 30) w=60 h=60 bg=#ffffff c=#6200ee size=24
+"Alice" @(100, 35) c=#ffffff size=18 bold=true
+"alice@email.com" @(100, 60) c=#ffffff opacity=0.8 size=12
+```
+
+### 设置列表
+id: mobile-settings-list
+name: 设置列表
+description: 设置项列表
+categoryId: mobile-profile
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#ffffff s=1 r=16
+"Settings" @(20, 20) c=#1d1b20 size=13 bold=true
+("") @(20, 45) w=260 h=44 bg=#f5f5f5 c=#444444 size=13 r=12
+"Profile" @(30, 58) c=#444444 size=13
+">" @(260, 58) c=#9e9e9e size=14
+("") @(20, 95) w=260 h=44 bg=#f5f5f5 c=#444444 size=13 r=12
+"Security" @(30, 108) c=#444444 size=13
+">" @(260, 108) c=#9e9e9e size=14
+("") @(20, 145) w=260 h=44 bg=#f5f5f5 c=#444444 size=13 r=12
+"About" @(30, 158) c=#444444 size=13
+">" @(260, 158) c=#9e9e9e size=14
+```
+
+### 会员卡片
+id: mobile-vip-card
+name: 会员卡片
+description: Material 会员卡片
+categoryId: mobile-profile
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=100 bg=linear(#1a1a2e, #16213e) s=1 r=16
+"⭐ Gold Member" @(80, 30) c=#ffd700 size=16 bold=true
+"Valid until 2027-01-01" @(80, 55) c=#ffffff opacity=0.7 size=12
+("Renew") @(220, 35) w=70 h=32 bg=#ffd700 c=#1a1a2e size=13 r=16
+```
+
+### 签到卡片
+id: mobile-checkin-card
+name: 签到卡片
+description: 每日签到组件
+categoryId: mobile-profile
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=16
+"📅 Daily Check-in" @(20, 25) c=#1d1b20 size=14 bold=true
+"7 days streak" @(20, 50) c=#757575 size=12
+("Check In") @(220, 30) w=70 h=32 bg=#6200ee c=#ffffff size=13 r=16
+```
+
+---
+
+## Mobile-聊天
+id: mobile-chat
+platform: mobile
+
+### 聊天消息
+id: mobile-chat-message
+name: 聊天消息
+description: Material 聊天气泡
+categoryId: mobile-chat
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=36 h=36 bg=#6200ee c=#ffffff size=12
+("Hello, how can I help?") @(55, 10) w=200 h=40 bg=#f5f5f5 c=#444444 size=13 r=20
+("I have a question about...") @(65, 55) w=220 h=40 bg=#6200ee c=#ffffff size=13 r=20
+(("B")) @(280, 55) w=36 h=36 bg=#03dac6 c=#ffffff size=12
+```
+
+### 表情面板
+id: mobile-emoji-panel
+name: 表情面板
+description: 表情选择面板
+categoryId: mobile-chat
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=150 bg=#ffffff s=1 r=16
+"😀" @(30, 30) c=#444444 size=24
+"😁" @(80, 30) c=#444444 size=24
+"😂" @(130, 30) c=#444444 size=24
+"😅" @(180, 30) c=#444444 size=24
+"😄" @(230, 30) c=#444444 size=24
+"😆" @(30, 75) c=#444444 size=24
+"😉" @(80, 75) c=#444444 size=24
+"😊" @(130, 75) c=#444444 size=24
+"😋" @(180, 75) c=#444444 size=24
+```
+
+### 输入工具栏
+id: mobile-chat-input
+name: 输入工具栏
+description: 聊天输入工具栏
+categoryId: mobile-chat
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#ffffff s=1
+"😀" @(10, 18) c=#444444 size=20
+("Type a message...") @(50, 14) w=180 h=36 bg=#f5f5f5 c=#999999 size=14 r=18
+"🎤" @(240, 18) c=#444444 size=20
+("Send") @(280, 14) w=50 h=36 bg=#6200ee c=#ffffff size=13 r=18
+```
+
+---
+
+## Mobile-媒体
+id: mobile-media
+platform: mobile
+
+### 图片预览
+id: mobile-image-preview
+name: 图片预览
+description: 图片预览组件
+categoryId: mobile-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#f5f5f5 r=16
+"Tap to preview" @(105, 100) c=#9e9e9e size=14
+```
+
+### 图片选择
+id: mobile-image-picker
+name: 图片选择
+description: 图片选择网格
+categoryId: mobile-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=90 h=90 bg=#f5f5f5 r=12
+"+" @(40, 40) c=#9e9e9e size=24
+("") @(110, 10) w=90 h=90 bg=#f5f5f5 r=12
+"Img 1" @(130, 45) c=#9e9e9e size=12
+("") @(210, 10) w=90 h=90 bg=#f5f5f5 r=12
+"Img 2" @(230, 45) c=#9e9e9e size=12
+```
+
+### 视频播放
+id: mobile-video-player
+name: 视频播放
+description: Material 视频播放
+categoryId: mobile-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#000000 r=16
+"▶" @(140, 80) c=#ffffff size=32
+```
+
+### 媒体上传
+id: mobile-media-upload
+name: 媒体上传
+description: 图片/视频上传
+categoryId: mobile-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=120 bg=#f5f5f5 r=16
+"+" @(145, 45) c=#9e9e9e size=32
+"Upload media" @(105, 85) c=#9e9e9e size=12
+```
+
+---
+
+## Mobile-定位
+id: mobile-location
+platform: mobile
+
+### 地图展示
+id: mobile-map
+name: 地图展示
+description: 地图组件
+categoryId: mobile-location
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#f5f5f5 r=16
+"Map" @(135, 100) c=#9e9e9e size=14
+(("📍")) @(140, 90) w=20 h=20 bg=#b00020 c=#b00020 size=8
+```
+
+### 地址列表
+id: mobile-address-list
+name: 地址列表
+description: 收货地址列表
+categoryId: mobile-location
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=16
+"🏠" @(20, 25) c=#6200ee size=18
+"Alice 138****0001" @(50, 20) c=#444444 size=14 bold=true
+"Beijing Chaoyang District..." @(50, 45) c=#757575 size=12
+("Default") @(240, 20) w=50 h=22 bg=#6200ee c=#ffffff size=11 r=11
+```
+
+---
+
+## Mobile-反馈
+id: mobile-feedback
+platform: mobile
+
+### 成功提示
+id: mobile-snackbar-success
+name: 成功提示
+description: Material Snackbar
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✓ Success") @(60, 200) w=200 h=48 bg=#2e7d32 c=#ffffff size=14 r=24
+```
+
+### 错误提示
+id: mobile-snackbar-error
+name: 错误提示
+description: Material Snackbar 错误
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✕ Error occurred") @(60, 200) w=200 h=48 bg=#b00020 c=#ffffff size=14 r=24
+```
+
+### 加载状态
+id: mobile-loading
+name: 加载状态
+description: Material 圆形进度
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⟳")) @(100, 200) w=48 h=48 bg=#000000 opacity=0.7 c=#ffffff size=28
+```
+
+### 下拉刷新
+id: mobile-pull-refresh
+name: 下拉刷新
+description: Material 下拉刷新
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("↓ Pull to refresh") @(80, 20) w=160 h=36 bg=#f5f5f5 c=#757575 size=12 r=18
+```
+
+### 空状态
+id: mobile-empty
+name: 空状态
+description: 无数据空状态
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("📦")) @(120, 150) w=80 h=80 bg=#f5f5f5 c=#9e9e9e size=32
+"No data" @(130, 250) c=#757575 size=14
+```
+
+### 操作菜单
+id: mobile-bottom-sheet
+name: 操作菜单
+description: Material Bottom Sheet
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 300) w=300 h=200 bg=#ffffff r=16
+("") @(130, 310) w=40 h=4 bg=#e0e0e0 r=2
+"Camera" @(130, 330) c=#444444 size=15
+-- @(10, 360)->(310, 360) b=#e0e0e0 s=1
+"Gallery" @(125, 370) c=#444444 size=15
+-- @(10, 400)->(310, 400) b=#e0e0e0 s=1
+"Cancel" @(130, 410) c=#757575 size=15
+```
+
+---
+
+## Mobile-电商
+id: mobile-commerce
+platform: mobile
+
+### 商品卡片
+id: mobile-product-item
+name: 商品卡片
+description: 移动端商品卡片
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=160 h=220 bg=#ffffff s=1 r=16
+("") @(10, 10) w=160 h=140 bg=#f5f5f5 r=16
+"$199" @(20, 155) c=#6200ee size=15 bold=true
+"Product" @(20, 180) c=#444444 size=12
+(("+")) @(120, 170) w=28 h=28 bg=#6200ee c=#ffffff size=14
+```
+
+### 商品详情
+id: mobile-product-detail
+name: 商品详情
+description: 商品详情页面
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=250 bg=#f5f5f5 r=16
+"Product Image" @(105, 125) c=#9e9e9e size=14
+("") @(10, 270) w=300 h=80 bg=#ffffff s=1 r=16
+"Product Title" @(20, 280) c=#1d1b20 size=15 bold=true
+"$299.00" @(20, 310) c=#6200ee size=18 bold=true
+("Buy Now") @(20, 345) w=130 h=44 bg=#6200ee c=#ffffff size=14 r=22
+("Add to Cart") @(160, 345) w=130 h=44 bg=#e8def8 c=#6200ee size=14 r=22
+```
+
+### 购物车
+id: mobile-cart
+name: 购物车
+description: 购物车页面
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=16
+(("✓")) @(20, 30) w=24 h=24 bg=#6200ee c=#ffffff size=14
+("") @(55, 15) w=60 h=60 bg=#f5f5f5 r=8
+"Product Name" @(125, 25) c=#1d1b20 size=13 bold=true
+"$199.00" @(125, 50) c=#6200ee size=14
+("-") @(230, 30) w=24 h=24 bg=#f5f5f5 c=#444444 size=14 r=12
+"1" @(242, 35) c=#444444 size=12
+("+") @(270, 30) w=24 h=24 bg=#f5f5f5 c=#444444 size=14 r=12
+```
+
+### 优惠券
+id: mobile-coupon-item
+name: 优惠券
+description: 优惠券卡片
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=100 bg=#e8def8 r=16
+"$20" @(20, 30) c=#6200ee size=28 bold=true
+"Min. spend $100" @(20, 65) c=#6200ee size=12
+("Claim") @(200, 40) w=100 h=36 bg=#6200ee c=#ffffff size=13 r=18
+```
+
+### 订单状态
+id: mobile-order-status
+name: 订单状态
+description: 订单状态展示
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=16
+"Order #20260424001" @(20, 20) c=#757575 size=12
+("Pending") @(220, 20) w=70 h=24 bg=#fff3e0 c=#f57c00 size=11 r=12
+"Product Name" @(20, 45) c=#1d1b20 size=14
+"$299.00" @(20, 68) c=#6200ee size=14 bold=true
+```
+
+---
+
+## Mobile-布局
+id: mobile-layout
+platform: mobile
+
+### 页面布局
+id: mobile-page-layout
+name: 页面布局
+description: Material 移动端页面布局
+categoryId: mobile-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#6200ee
+"Page Title" @(110, 18) c=#ffffff size=16 bold=true
+("") @(0, 56) w=320 h=600 bg=#fafafa
+"Content Area" @(110, 340) c=#9e9e9e size=14
+(("+")) @(260, 580) w=56 h=56 bg=#6200ee c=#ffffff size=24
+("") @(0, 656) w=320 h=56 bg=#ffffff s=1
+"🏠" @(30, 664) c=#6200ee size=18
+"📋" @(110, 664) c=#757575 size=18
+"👤" @(190, 664) c=#757575 size=18
+"⚙" @(270, 664) c=#757575 size=18
+```
+
+### Flex 布局
+id: mobile-flex-layout
+name: Flex 布局
+description: Flex 布局容器
+categoryId: mobile-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=90 h=60 bg=#e8def8 s=1 r=8
+"flex-1" @(30, 33) c=#6200ee size=12
+("") @(110, 10) w=90 h=60 bg=#e0f2f1 s=1 r=8
+"flex-1" @(130, 33) c=#03dac6 size=12
+("") @(210, 10) w=90 h=60 bg=#fce4ec s=1 r=8
+"flex-1" @(230, 33) c=#b00020 size=12
+```
+
+### 卡片容器
+id: mobile-card-container
+name: 卡片容器
+description: 卡片式容器
+categoryId: mobile-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=120 bg=#ffffff s=1 r=16
+"Container Title" @(20, 20) c=#1d1b20 size=14 bold=true
+"Container content area" @(20, 50) c=#757575 size=13
+```
+
+---
+
+*组件库完成 - Material Design Web+Mobile 组件库，共 28 个分类，约 260 个组件*

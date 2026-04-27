@@ -355,11 +355,35 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
     }
   };
 
+  const handleNoteResizeStart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const textarea = noteTextareaRef.current;
+    if (!textarea) return;
+    const startHeight = textarea.offsetHeight;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const delta = moveEvent.clientY - startY;
+      const newHeight = Math.max(60, Math.min(500, startHeight + delta));
+      textarea.style.height = `${newHeight}px`;
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      handleNoteResize();
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  };
+
   return (
     <div className="property-panel">
       <div className="properties-section">
         <h3>Properties - {type}</h3>
-        
+
         <PropertyGroupTitle>Position</PropertyGroupTitle>
         <PropertyPair
           label1="X"
@@ -581,21 +605,26 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
 
       <div className="note-section">
         <PropertyGroupTitle>Note</PropertyGroupTitle>
-        <textarea
-          ref={noteTextareaRef}
-          value={noteValue}
-          placeholder="Add a note..."
-          onChange={(e) => setNoteValue(e.target.value)}
-          onBlur={() => handleChange('note', noteValue)}
-          onMouseUp={handleNoteResize}
-          style={{
-            whiteSpace: 'pre-wrap',
-            height: noteTextareaHeight,
-            resize: 'vertical',
-            minHeight: 60,
-            maxHeight: 500
-          }}
-        />
+        <div className="note-textarea-wrapper">
+          <textarea
+            ref={noteTextareaRef}
+            value={noteValue}
+            placeholder="Add a note..."
+            onChange={(e) => setNoteValue(e.target.value)}
+            onBlur={() => handleChange('note', noteValue)}
+            onMouseUp={handleNoteResize}
+            style={{
+              whiteSpace: 'pre-wrap',
+              height: noteTextareaHeight,
+              minHeight: 60,
+              maxHeight: 500
+            }}
+          />
+          <div
+            className="note-resize-handle"
+            onMouseDown={handleNoteResizeStart}
+          ></div>
+        </div>
       </div>
     </div>
   );

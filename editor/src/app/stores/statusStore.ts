@@ -3,13 +3,8 @@ import { create } from 'zustand';
 export type OperationType = 
   | 'save' 
   | 'open' 
-  | 'git-commit' 
-  | 'git-push' 
-  | 'git-pull' 
-  | 'git-fetch'
   | 'load' 
-  | 'version' 
-  | 'git-analysis';
+  | 'version';
 
 export type OperationStatus = 'idle' | 'running' | 'success' | 'error';
 
@@ -36,13 +31,8 @@ interface StatusState {
 const operationIcons: Record<OperationType, string> = {
   'save': '💾',
   'open': '📂',
-  'git-commit': '📝',
-  'git-push': '⬆️',
-  'git-pull': '⬇️',
-  'git-fetch': '📡',
   'load': '🔄',
   'version': '📋',
-  'git-analysis': '🔍',
 };
 
 export const useStatusStore = create<StatusState>((set) => ({

@@ -5,7 +5,6 @@ import { ViewType } from '../../../shared/types/app';
 import FileView from './FileView';
 import RequirementView from './RequirementView';
 import SolarWireView from './SolarWireView';
-import GitView from './GitView';
 import { getSelectedItemForView } from '../../../shared/utils/file-utils';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './ViewTabs.css';
@@ -18,7 +17,6 @@ const ViewTabs: React.FC = () => {
     { type: 'file', emoji: '📁', title: '文件管理器' },
     { type: 'requirement', emoji: '📋', title: '需求文档' },
     { type: 'solarwire', emoji: '🎨', title: 'SolarWire' },
-    { type: 'git', emoji: '🔀', title: '版本控制' },
   ];
 
   const renderViewContent = () => {
@@ -29,8 +27,6 @@ const ViewTabs: React.FC = () => {
         return <RequirementView />;
       case 'solarwire':
         return <SolarWireView />;
-      case 'git':
-        return <GitView />;
       default:
         return null;
     }

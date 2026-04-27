@@ -6,11 +6,27 @@
   background: var(--bg-secondary);
   color: var(--text-primary);
   box-sizing: border-box;
-  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
 }
 
-.property-panel-scrollbar {
-  flex: 1;
+.property-panel::-webkit-scrollbar {
+  width: 14px;
+  height: 10px;
+}
+
+.property-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.property-panel::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.property-panel::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 .property-panel h3 {
@@ -273,6 +289,10 @@
   flex-shrink: 0;
 }
 
+.note-textarea-wrapper {
+  position: relative;
+}
+
 .note-section textarea {
   width: 100%;
   padding: 8px 10px;
@@ -281,31 +301,36 @@
   border-radius: 4px;
   font-size: 13px;
   color: var(--text-primary);
-  resize: vertical;
+  resize: none;
   box-sizing: border-box;
   line-height: 1.4;
   font-family: inherit;
-  overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-color) transparent;
+  overflow: visible;
 }
 
-.note-section textarea::-webkit-scrollbar {
+.note-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: ns-resize;
+  z-index: 1;
+}
+
+.note-resize-handle::before {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
   width: 8px;
   height: 8px;
+  border-right: 2px solid var(--border-color);
+  border-bottom: 2px solid var(--border-color);
 }
 
-.note-section textarea::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.note-section textarea::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-.note-section textarea::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+.note-resize-handle:hover::before {
+  border-color: var(--accent-color);
 }
 
 .note-section textarea:focus {

@@ -1,0 +1,1389 @@
+# shadcn/ui 组件库
+id: shadcn-ui
+$schema: solarwire-component-library-v1
+description: 极简黑白灰、细边框、小圆角、暗色优先、Radix UI + Tailwind CSS 驱动
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+## Web-通用
+id: web-general
+platform: web
+
+### 主按钮
+id: web-btn-primary
+name: 主按钮
+description: shadcn 主按钮，实心填充
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Primary") @(10, 10) w=120 h=36 bg=#0f172a c=#ffffff size=14 r=6
+```
+
+### 次要按钮
+id: web-btn-secondary
+name: 次要按钮
+description: shadcn 次要按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Secondary") @(10, 10) w=120 h=36 bg=#f1f5f9 c=#0f172a size=14 r=6
+```
+
+### 轮廓按钮
+id: web-btn-outline
+name: 轮廓按钮
+description: shadcn 轮廓按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Outline") @(10, 10) w=120 h=36 bg=#ffffff c=#0f172a size=14 s=1 r=6
+```
+
+### 幽灵按钮
+id: web-btn-ghost
+name: 幽灵按钮
+description: shadcn 幽灵按钮，悬停才显示背景
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Ghost") @(10, 10) w=100 h=36 bg=transparent c=#0f172a size=14 r=6
+```
+
+### 破坏性按钮
+id: web-btn-destructive
+name: 破坏性按钮
+description: shadcn 破坏性操作按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Delete") @(10, 10) w=100 h=36 bg=#ef4444 c=#ffffff size=14 r=6
+```
+
+### 链接按钮
+id: web-btn-link
+name: 链接按钮
+description: 链接样式按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Link Button" @(10, 15) c=#0f172a size=14
+-- @(10, 29)->(95, 29) b=#0f172a s=1
+```
+
+### 图标按钮
+id: web-btn-icon
+name: 图标按钮
+description: shadcn 图标按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⚙")) @(10, 10) w=36 h=36 bg=transparent c=#64748b size=16 r=6
+```
+
+### 徽标
+id: web-badge-default
+name: 徽标
+description: shadcn 默认徽标
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Badge") @(10, 10) w=70 h=24 bg=#f1f5f9 c=#0f172a size=12 r=4
+```
+
+### 次要徽标
+id: web-badge-secondary
+name: 次要徽标
+description: shadcn 次要徽标
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Secondary") @(10, 10) w=90 h=24 bg=#f1f5f9 c=#64748b size=12 r=4
+```
+
+### 破坏性徽标
+id: web-badge-destructive
+name: 破坏性徽标
+description: shadcn 破坏性徽标
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Error") @(10, 10) w=60 h=24 bg=#fef2f2 c=#ef4444 size=12 r=4
+```
+
+### 轮廓徽标
+id: web-badge-outline
+name: 轮廓徽标
+description: shadcn 轮廓徽标
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Outline") @(10, 10) w=70 h=24 bg=transparent c=#0f172a size=12 s=1 r=4
+```
+
+### 头像
+id: web-avatar
+name: 头像
+description: shadcn 头像组件
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=40 h=40 bg=#f1f5f9 c=#0f172a size=16
+```
+
+### 分割线
+id: web-separator
+name: 分割线
+description: shadcn 分割线
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+-- @(10, 20)->(290, 20) b=#e2e8f0 s=1
+```
+
+### 工具提示
+id: web-tooltip
+name: 工具提示
+description: shadcn Tooltip
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Tooltip") @(10, 10) w=80 h=28 bg=#0f172a c=#ffffff size=12 r=4
+```
+
+---
+
+## Web-表单
+id: web-form
+platform: web
+
+### 输入框
+id: web-input
+name: 输入框
+description: shadcn 基础输入框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Type here...") @(10, 10) w=240 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+```
+
+### 带标签输入框
+id: web-input-label
+name: 带标签输入框
+description: 带标签的输入框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Email" @(10, 10) c=#0f172a size=13
+("name@example.com") @(10, 30) w=240 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+```
+
+### 多行文本框
+id: web-textarea
+name: 多行文本框
+description: shadcn 多行文本
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Type your message...") @(10, 10) w=300 h=100 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+```
+
+### 下拉选择
+id: web-select
+name: 下拉选择
+description: shadcn Select 选择器
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Select...") @(10, 10) w=240 h=36 bg=#ffffff c=#0f172a size=14 s=1 r=6
+"▼" @(220, 20) c=#64748b size=12
+```
+
+### 单选框
+id: web-radio
+name: 单选框
+description: shadcn RadioGroup
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 10) w=16 h=16 bg=#0f172a c=#ffffff size=8
+"Option A" @(32, 12) c=#0f172a size=13
+(("○")) @(100, 10) w=16 h=16 bg=#ffffff c=#e2e8f0 size=8 s=1
+"Option B" @(122, 12) c=#0f172a size=13
+```
+
+### 复选框
+id: web-checkbox
+name: 复选框
+description: shadcn Checkbox
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("✓")) @(10, 10) w=16 h=16 bg=#0f172a c=#ffffff size=10
+"Accept terms" @(34, 12) c=#0f172a size=13
+```
+
+### 开关
+id: web-switch
+name: 开关
+description: shadcn Switch
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=44 h=24 bg=#0f172a r=12
+(("●")) @(36, 14) w=16 h=16 bg=#ffffff size=8
+```
+
+### 滑块
+id: web-slider
+name: 滑块
+description: shadcn Slider
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 18) w=200 h=2 bg=#e2e8f0 r=1
+("") @(10, 18) w=100 h=2 bg=#0f172a r=1
+(("●")) @(100, 12) w=14 h=14 bg=#0f172a c=#ffffff size=6
+```
+
+### 日期选择器
+id: web-date-picker
+name: 日期选择器
+description: shadcn DatePicker
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Pick a date") @(10, 10) w=240 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+"📅" @(220, 20) c=#64748b size=14
+```
+
+### 文件上传
+id: web-upload
+name: 文件上传
+description: shadcn 文件上传
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=240 h=120 bg=#ffffff s=1 r=6
+"Drag & drop files here" @(55, 45) c=#94a3b8 size=13
+("Browse") @(85, 75) w=80 h=32 bg=#0f172a c=#ffffff size=12 r=6
+```
+
+---
+
+## Web-表格
+id: web-table
+platform: web
+
+### 基础表格
+id: web-table-basic
+name: 基础表格
+description: shadcn Table
+categoryId: web-table
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+## @(10, 10) w=400
+  # bg=#f8fafc bold
+    "Name"
+    "Email"
+    "Role"
+  #
+    "Alice"
+    "alice@mail.com"
+    "Admin"
+  # bg=#f8fafc
+    "Bob"
+    "bob@mail.com"
+    "User"
+  #
+    "Charlie"
+    "charlie@mail.com"
+    "Editor"
+```
+
+### 可排序表格
+id: web-table-sortable
+name: 可排序表格
+description: 带排序的表格
+categoryId: web-table
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+## @(10, 10) w=400
+  # bg=#f8fafc bold
+    "Name"
+    "Status ↑" @(75, 0) c=#0f172a
+    "Role"
+  #
+    "Alice"
+    "Active"
+    "Admin"
+  # bg=#f8fafc
+    "Bob"
+    "Inactive"
+    "User"
+```
+
+---
+
+## Web-列表
+id: web-list
+platform: web
+
+### 列表项
+id: web-list-item
+name: 列表项
+description: shadcn 列表项
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"List item 1" @(10, 15) c=#0f172a size=14
+-- @(10, 35)->(290, 35) b=#e2e8f0 s=1
+"List item 2" @(10, 50) c=#0f172a size=14
+-- @(10, 70)->(290, 70) b=#e2e8f0 s=1
+"List item 3" @(10, 85) c=#0f172a size=14
+```
+
+### 可操作列表
+id: web-list-actionable
+name: 可操作列表
+description: 带操作的列表项
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=40 h=40 bg=#f1f5f9 c=#0f172a size=14
+"List Item" @(60, 12) c=#0f172a size=14 bold=true
+"Description" @(60, 30) c=#64748b size=12
+(("⋮")) @(270, 15) w=24 h=24 bg=transparent c=#64748b size=16
+```
+
+---
+
+## Web-卡片
+id: web-card
+platform: web
+
+### 基础卡片
+id: web-card-basic
+name: 基础卡片
+description: shadcn Card
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=320 h=160 bg=#ffffff s=1 r=8
+"Card Title" @(20, 20) c=#0f172a size=16 bold=true
+"Card description goes here." @(20, 45) c=#64748b size=13
+```
+
+### 带头部卡片
+id: web-card-header
+name: 带头部卡片
+description: 带头部和底部的卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=320 h=180 bg=#ffffff s=1 r=8
+"Card Title" @(20, 20) c=#0f172a size=14 bold=true
+"Card description" @(20, 40) c=#64748b size=12
+-- @(20, 60)->(300, 60) b=#e2e8f0 s=1
+"Card content area..." @(20, 75) c=#0f172a size=13
+-- @(20, 140)->(300, 140) b=#e2e8f0 s=1
+("Cancel") @(170, 150) w=60 h=28 bg=transparent c=#0f172a size=12 r=4
+("OK") @(240, 150) w=60 h=28 bg=#0f172a c=#ffffff size=12 r=4
+```
+
+### 统计卡片
+id: web-card-statistic
+name: 统计卡片
+description: 数据统计卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=100 bg=#ffffff s=1 r=8
+"Total Revenue" @(20, 20) c=#64748b size=12
+"$45,231" @(20, 42) c=#0f172a size=24 bold=true
+"+20.1%" @(130, 55) c=#22c55e size=12
+```
+
+---
+
+## Web-图表
+id: web-chart
+platform: web
+
+### 折线图
+id: web-chart-line
+name: 折线图
+description: shadcn 风格折线图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
+"Overview" @(20, 20) c=#0f172a size=14 bold=true
+-- @(20, 150)->(280, 150) b=#e2e8f0 s=1
+-- @(20, 50)->(20, 150) b=#e2e8f0 s=1
+-- @(20, 100)->(280, 100) b=#f1f5f9 s=1
+-- @(20, 120)->(95, 70) b=#0f172a s=2
+-- @(95, 70)->(170, 90) b=#0f172a s=2
+-- @(170, 90)->(245, 50) b=#0f172a s=2
+(("●")) @(20, 120) w=6 h=6 bg=#0f172a c=#0f172a size=3
+(("●")) @(95, 70) w=6 h=6 bg=#0f172a c=#0f172a size=3
+(("●")) @(170, 90) w=6 h=6 bg=#0f172a c=#0f172a size=3
+(("●")) @(245, 50) w=6 h=6 bg=#0f172a c=#0f172a size=3
+```
+
+### 柱状图
+id: web-chart-bar
+name: 柱状图
+description: shadcn 风格柱状图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
+"Revenue" @(20, 20) c=#0f172a size=14 bold=true
+-- @(20, 150)->(280, 150) b=#e2e8f0 s=1
+("") @(40, 100) w=30 h=50 bg=#0f172a r=2
+("") @(90, 80) w=30 h=70 bg=#0f172a r=2
+("") @(140, 60) w=30 h=90 bg=#0f172a r=2
+("") @(190, 90) w=30 h=60 bg=#94a3b8 r=2
+("") @(240, 70) w=30 h=80 bg=#94a3b8 r=2
+```
+
+---
+
+## Web-搜索
+id: web-search
+platform: web
+
+### 搜索框
+id: web-search-input
+name: 搜索框
+description: shadcn 搜索输入框
+categoryId: web-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Search...") @(10, 10) w=300 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+"🔍" @(15, 18) c=#94a3b8 size=14
+```
+
+### 命令面板
+id: web-command-palette
+name: 命令面板
+description: shadcn Command 命令面板
+categoryId: web-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#ffffff s=1 r=8
+("Type a command or search...") @(20, 20) w=260 h=36 bg=#ffffff c=#94a3b8 size=13 s=1 r=6
+-- @(20, 65)->(280, 65) b=#e2e8f0 s=1
+"Suggestions" @(20, 75) c=#64748b size=11
+"📄 New File" @(20, 95) c=#0f172a size=13
+"📁 Open Project" @(20, 120) c=#0f172a size=13
+"⚙ Settings" @(20, 145) c=#0f172a size=13
+```
+
+---
+
+## Web-导航
+id: web-navigation
+platform: web
+
+### 面包屑
+id: web-breadcrumb
+name: 面包屑
+description: shadcn Breadcrumb
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Home" @(10, 15) c=#0f172a size=12
+"/" @(42, 15) c=#94a3b8 size=12
+"Products" @(52, 15) c=#0f172a size=12
+"/" @(105, 15) c=#94a3b8 size=12
+"Detail" @(115, 15) c=#64748b size=12
+```
+
+### 分页器
+id: web-pagination
+name: 分页器
+description: shadcn Pagination
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("<") @(10, 10) w=32 h=32 bg=#ffffff c=#64748b size=12 s=1 r=6
+("1") @(48, 10) w=32 h=32 bg=#0f172a c=#ffffff size=12 r=6
+("2") @(86, 10) w=32 h=32 bg=#ffffff c=#0f172a size=12 s=1 r=6
+("3") @(124, 10) w=32 h=32 bg=#ffffff c=#0f172a size=12 s=1 r=6
+(">") @(162, 10) w=32 h=32 bg=#ffffff c=#64748b size=12 s=1 r=6
+```
+
+### Tab 切换
+id: web-tabs
+name: Tab 切换
+description: shadcn Tabs
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Account" @(10, 10) c=#0f172a size=13 bold=true
+"Password" @(80, 10) c=#64748b size=13
+"Settings" @(155, 10) c=#64748b size=13
+-- @(10, 28)->(70, 28) b=#0f172a s=2
+-- @(10, 35)->(290, 35) b=#e2e8f0 s=1
+"Account settings content" @(10, 48) c=#64748b size=12
+```
+
+### 侧边导航
+id: web-side-nav
+name: 侧边导航
+description: shadcn 侧边导航
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=400 bg=#ffffff s=1
+"Dashboard" @(15, 20) c=#0f172a size=14 bold=true
+-- @(0, 45)->(200, 45) b=#e2e8f0 s=1
+("🏠 Overview") @(10, 55) w=180 h=32 bg=#f1f5f9 c=#0f172a size=13 r=4
+"📊 Analytics" @(20, 100) c=#64748b size=13
+"👥 Customers" @(20, 135) c=#64748b size=13
+"⚙ Settings" @(20, 170) c=#64748b size=13
+```
+
+### 下拉菜单
+id: web-dropdown
+name: 下拉菜单
+description: shadcn DropdownMenu
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=180 h=140 bg=#ffffff s=1 r=6
+"Profile" @(20, 20) c=#0f172a size=13
+"Settings" @(20, 45) c=#0f172a size=13
+-- @(10, 65)->(180, 65) b=#e2e8f0 s=1
+"Keyboard shortcuts" @(20, 75) c=#0f172a size=13
+-- @(10, 95)->(180, 95) b=#e2e8f0 s=1
+"Log out" @(20, 105) c=#ef4444 size=13
+```
+
+---
+
+## Web-认证
+id: web-auth
+platform: web
+
+### 登录页
+id: web-login
+name: 登录页
+description: shadcn 风格登录页
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=400 h=600 bg=#ffffff
+"Welcome back" @(130, 80) c=#0f172a size=24 bold=true
+"Enter your email to sign in" @(115, 110) c=#64748b size=13
+"Email" @(50, 160) c=#0f172a size=13
+("name@example.com") @(50, 185) w=300 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+"Password" @(50, 240) c=#0f172a size=13
+("Enter password") @(50, 265) w=300 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+("Sign In") @(50, 330) w=300 h=36 bg=#0f172a c=#ffffff size=14 r=6
+"Forgot password?" @(250, 380) c=#0f172a size=12
+```
+
+### 注册页
+id: web-register
+name: 注册页
+description: shadcn 风格注册页
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=400 h=600 bg=#ffffff
+"Create an account" @(110, 60) c=#0f172a size=24 bold=true
+"Name" @(50, 120) c=#0f172a size=13
+("Your name") @(50, 145) w=300 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+"Email" @(50, 200) c=#0f172a size=13
+("name@example.com") @(50, 225) w=300 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+"Password" @(50, 280) c=#0f172a size=13
+("Create password") @(50, 305) w=300 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+("Create Account") @(50, 370) w=300 h=36 bg=#0f172a c=#ffffff size=14 r=6
+```
+
+---
+
+## Web-反馈
+id: web-feedback
+platform: web
+
+### 成功提示
+id: web-alert-success
+name: 成功提示
+description: shadcn Alert 成功
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✓ Success! Your changes have been saved.") @(10, 10) w=300 h=40 bg=#f0fdf4 c=#16a34a size=13 r=6
+```
+
+### 错误提示
+id: web-alert-error
+name: 错误提示
+description: shadcn Alert 错误
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✕ Error! Something went wrong.") @(10, 10) w=300 h=40 bg=#fef2f2 c=#ef4444 size=13 r=6
+```
+
+### 警告提示
+id: web-alert-warning
+name: 警告提示
+description: shadcn Alert 警告
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("⚠ Warning! Check your input.") @(10, 10) w=300 h=40 bg=#fffbeb c=#d97706 size=13 r=6
+```
+
+### 对话框
+id: web-dialog
+name: 对话框
+description: shadcn Dialog
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=320 h=180 bg=#ffffff s=1 r=8
+"Are you sure?" @(20, 25) c=#0f172a size=16 bold=true
+"This action cannot be undone. This will permanently delete your account." @(20, 55) c=#64748b size=13
+("Cancel") @(130, 130) w=80 h=32 bg=transparent c=#0f172a size=12 s=1 r=6
+("Continue") @(220, 130) w=80 h=32 bg=#ef4444 c=#ffffff size=12 r=6
+```
+
+### 抽屉
+id: web-drawer
+name: 抽屉
+description: shadcn Sheet 抽屉
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=300 h=400 bg=#ffffff s=1
+"Settings" @(20, 20) c=#0f172a size=16 bold=true
+"✕" @(260, 18) c=#64748b size=16
+-- @(0, 50)->(300, 50) b=#e2e8f0 s=1
+"Sheet content area..." @(20, 70) c=#64748b size=13
+```
+
+### 加载状态
+id: web-loading
+name: 加载状态
+description: shadcn 加载指示器
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⟳")) @(100, 100) w=32 h=32 bg=transparent c=#0f172a size=24
+```
+
+### 骨架屏
+id: web-skeleton
+name: 骨架屏
+description: shadcn Skeleton
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=150 bg=#ffffff s=1 r=8
+("") @(20, 20) w=120 h=16 bg=#f1f5f9 r=4
+("") @(20, 50) w=280 h=12 bg=#f1f5f9 r=3
+("") @(20, 70) w=260 h=12 bg=#f1f5f9 r=3
+("") @(20, 90) w=200 h=12 bg=#f1f5f9 r=3
+```
+
+### 空状态
+id: web-empty
+name: 空状态
+description: shadcn 空状态
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"No results found." @(100, 100) c=#64748b size=14
+("Add new") @(120, 130) w=80 h=32 bg=#0f172a c=#ffffff size=12 r=6
+```
+
+### 进度条
+id: web-progress
+name: 进度条
+description: shadcn Progress
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=280 h=8 bg=#f1f5f9 r=4
+("") @(10, 10) w=180 h=8 bg=#0f172a r=4
+```
+
+---
+
+## Web-媒体
+id: web-media
+platform: web
+
+### 图片展示
+id: web-image-basic
+name: 图片展示
+description: shadcn 图片展示
+categoryId: web-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=150 bg=#f1f5f9 r=8
+"Image" @(80, 70) c=#94a3b8 size=14
+```
+
+### 视频播放
+id: web-video-player
+name: 视频播放
+description: shadcn 视频播放器
+categoryId: web-media
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#0f172a r=8
+"▶" @(135, 75) c=#ffffff size=28
+```
+
+---
+
+## Web-编辑器
+id: web-editor
+platform: web
+
+### 富文本编辑器
+id: web-rich-editor
+name: 富文本编辑器
+description: shadcn 风格富文本编辑器
+categoryId: web-editor
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=250 bg=#ffffff s=1 r=8
+"B" @(20, 20) c=#0f172a size=14 bold=true
+"I" @(45, 20) c=#0f172a size=14
+"U" @(70, 20) c=#0f172a size=14
+"S" @(95, 20) c=#0f172a size=14
+-- @(120, 14)->(120, 30) b=#e2e8f0 s=1
+"🔗" @(135, 20) c=#64748b size=14
+"📷" @(160, 20) c=#64748b size=14
+-- @(10, 45)->(390, 45) b=#e2e8f0 s=1
+("Type here...") @(20, 60) w=370 h=180 bg=#ffffff c=#94a3b8 size=13 r=4
+```
+
+---
+
+## Web-电商
+id: web-commerce
+platform: web
+
+### 商品卡片
+id: web-product-card
+name: 商品卡片
+description: shadcn 商品卡片
+categoryId: web-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=260 bg=#ffffff s=1 r=8
+("") @(10, 10) w=200 h=150 bg=#f1f5f9 r=8
+"Image" @(80, 75) c=#94a3b8 size=12
+"Product Title" @(20, 170) c=#0f172a size=13 bold=true
+"$299.00" @(20, 190) c=#0f172a size=16 bold=true
+("Add to Cart") @(20, 220) w=160 h=32 bg=#0f172a c=#ffffff size=12 r=6
+```
+
+### 购物车
+id: web-shopping-cart
+name: 购物车
+description: shadcn 购物车
+categoryId: web-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=8
+(("✓")) @(20, 30) w=20 h=20 bg=#0f172a c=#ffffff size=12
+("") @(50, 15) w=60 h=60 bg=#f1f5f9 r=6
+"Product Name" @(120, 25) c=#0f172a size=13 bold=true
+"$199.00" @(120, 48) c=#0f172a size=14
+("-") @(230, 30) w=24 h=24 bg=#f1f5f9 c=#0f172a size=14 r=4
+"1" @(244, 35) c=#0f172a size=12
+("+") @(268, 30) w=24 h=24 bg=#f1f5f9 c=#0f172a size=14 r=4
+```
+
+---
+
+## Web-布局
+id: web-layout
+platform: web
+
+### 页面布局
+id: web-page-layout
+name: 页面布局
+description: shadcn 后台页面布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=48 bg=#ffffff s=1
+"App" @(10, 14) c=#0f172a size=16 bold=true
+("") @(0, 48) w=80 h=352 bg=#ffffff s=1
+("Overview") @(5, 58) w=70 h=32 bg=#f1f5f9 c=#0f172a size=11 r=4
+"Analytics" @(15, 100) c=#64748b size=11
+"Settings" @(15, 135) c=#64748b size=11
+("Content") @(90, 58) w=230 h=342 bg=#fafafa c=#94a3b8 size=12 r=4
+```
+
+### 栅格系统
+id: web-grid
+name: 栅格系统
+description: shadcn 栅格布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=100 h=60 bg=#f1f5f9 s=1 r=4
+"4" @(50, 35) c=#64748b size=12
+("") @(120, 10) w=100 h=60 bg=#f1f5f9 s=1 r=4
+"4" @(160, 35) c=#64748b size=12
+("") @(230, 10) w=100 h=60 bg=#f1f5f9 s=1 r=4
+"4" @(270, 35) c=#64748b size=12
+("") @(10, 80) w=210 h=60 bg=#f1f5f9 s=1 r=4
+"8" @(100, 105) c=#64748b size=12
+("") @(230, 80) w=100 h=60 bg=#f1f5f9 s=1 r=4
+"4" @(270, 105) c=#64748b size=12
+```
+
+### 仪表盘布局
+id: web-dashboard-layout
+name: 仪表盘布局
+description: shadcn 仪表盘布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=180 h=100 bg=#ffffff s=1 r=8
+"Stat 1" @(70, 50) c=#94a3b8 size=12
+("") @(200, 10) w=180 h=100 bg=#ffffff s=1 r=8
+"Stat 2" @(260, 50) c=#94a3b8 size=12
+("") @(10, 120) w=370 h=180 bg=#ffffff s=1 r=8
+"Chart" @(170, 200) c=#94a3b8 size=12
+```
+
+---
+
+## Mobile-通用
+id: mobile-general
+platform: mobile
+
+### 主按钮
+id: mobile-btn-primary
+name: 主按钮
+description: shadcn 移动端主按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Primary") @(10, 10) w=300 h=44 bg=#0f172a c=#ffffff size=14 r=8
+```
+
+### 轮廓按钮
+id: mobile-btn-outline
+name: 轮廓按钮
+description: shadcn 移动端轮廓按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Outline") @(10, 10) w=300 h=44 bg=#ffffff c=#0f172a size=14 s=1 r=8
+```
+
+### 幽灵按钮
+id: mobile-btn-ghost
+name: 幽灵按钮
+description: shadcn 移动端幽灵按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Ghost") @(10, 10) w=300 h=44 bg=transparent c=#0f172a size=14 r=8
+```
+
+### 破坏性按钮
+id: mobile-btn-destructive
+name: 破坏性按钮
+description: shadcn 移动端破坏性按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Delete") @(10, 10) w=300 h=44 bg=#ef4444 c=#ffffff size=14 r=8
+```
+
+### 徽标
+id: mobile-badge
+name: 徽标
+description: shadcn 移动端徽标
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Badge") @(10, 10) w=70 h=24 bg=#f1f5f9 c=#0f172a size=12 r=4
+```
+
+### 头像
+id: mobile-avatar
+name: 头像
+description: shadcn 移动端头像
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=48 h=48 bg=#f1f5f9 c=#0f172a size=18
+```
+
+---
+
+## Mobile-表单
+id: mobile-form
+platform: mobile
+
+### 输入框
+id: mobile-input
+name: 输入框
+description: shadcn 移动端输入框
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Type here...") @(10, 10) w=300 h=44 bg=#ffffff c=#94a3b8 size=14 s=1 r=8
+```
+
+### 下拉选择
+id: mobile-select
+name: 下拉选择
+description: shadcn 移动端选择器
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Select...") @(10, 10) w=300 h=44 bg=#ffffff c=#0f172a size=14 s=1 r=8
+"▼" @(270, 22) c=#64748b size=12
+```
+
+### 开关
+id: mobile-switch
+name: 开关
+description: shadcn 移动端开关
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=48 h=28 bg=#0f172a r=14
+(("●")) @(38, 14) w=20 h=20 bg=#ffffff size=10
+```
+
+### 复选框
+id: mobile-checkbox
+name: 复选框
+description: shadcn 移动端复选框
+categoryId: mobile-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("✓")) @(10, 12) w=20 h=20 bg=#0f172a c=#ffffff size=12
+"Accept terms" @(40, 15) c=#0f172a size=14
+```
+
+---
+
+## Mobile-列表
+id: mobile-list
+platform: mobile
+
+### 列表项
+id: mobile-list-item
+name: 列表项
+description: shadcn 移动端列表项
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("List item") @(10, 10) w=300 h=48 bg=#ffffff c=#0f172a size=14 r=0
+">" @(280, 22) c=#94a3b8 size=14
+```
+
+### 带图标列表项
+id: mobile-list-with-icon
+name: 带图标列表项
+description: 左侧带图标的列表项
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("📄")) @(10, 10) w=40 h=40 bg=#f1f5f9 c=#0f172a size=16
+"File name.doc" @(60, 18) c=#0f172a size=14
+"2.5 MB" @(60, 36) c=#64748b size=12
+```
+
+---
+
+## Mobile-卡片
+id: mobile-card
+platform: mobile
+
+### 基础卡片
+id: mobile-card-basic
+name: 基础卡片
+description: shadcn 移动端卡片
+categoryId: mobile-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=120 bg=#ffffff s=1 r=8
+"Card Title" @(20, 20) c=#0f172a size=14 bold=true
+"Card description" @(20, 45) c=#64748b size=13
+```
+
+### 商品卡片
+id: mobile-product-card
+name: 商品卡片
+description: shadcn 移动端商品卡片
+categoryId: mobile-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=160 h=220 bg=#ffffff s=1 r=8
+("") @(10, 10) w=160 h=120 bg=#f1f5f9 r=8
+"$199" @(20, 135) c=#0f172a size=15 bold=true
+"Product" @(20, 160) c=#0f172a size=12
+```
+
+---
+
+## Mobile-导航
+id: mobile-navigation
+platform: mobile
+
+### 底部导航
+id: mobile-bottom-nav
+name: 底部导航
+description: shadcn 移动端底部导航
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=56 bg=#ffffff s=1
+"🏠" @(30, 10) c=#0f172a size=18
+"Home" @(25, 32) c=#0f172a size=10
+"📋" @(110, 10) c=#64748b size=18
+"Orders" @(103, 32) c=#64748b size=10
+"👤" @(190, 10) c=#64748b size=18
+"Profile" @(183, 32) c=#64748b size=10
+"⚙" @(270, 10) c=#64748b size=18
+"Settings" @(261, 32) c=#64748b size=10
+```
+
+### 顶部导航
+id: mobile-top-nav
+name: 顶部导航
+description: shadcn 移动端顶部导航
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=44 bg=#ffffff s=1
+"←" @(10, 12) c=#0f172a size=16
+"Page Title" @(120, 12) c=#0f172a size=16 bold=true
+```
+
+---
+
+## Mobile-搜索
+id: mobile-search
+platform: mobile
+
+### 搜索框
+id: mobile-search-input
+name: 搜索框
+description: shadcn 移动端搜索框
+categoryId: mobile-search
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Search...") @(10, 10) w=300 h=40 bg=#ffffff c=#94a3b8 size=14 s=1 r=8
+"🔍" @(15, 20) c=#94a3b8 size=14
+```
+
+---
+
+## Mobile-反馈
+id: mobile-feedback
+platform: mobile
+
+### 成功提示
+id: mobile-alert-success
+name: 成功提示
+description: shadcn 移动端成功提示
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✓ Success") @(70, 200) w=180 h=40 bg=#0f172a c=#ffffff size=13 r=8
+```
+
+### 错误提示
+id: mobile-alert-error
+name: 错误提示
+description: shadcn 移动端错误提示
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✕ Error") @(70, 200) w=180 h=40 bg=#ef4444 c=#ffffff size=13 r=8
+```
+
+### 加载状态
+id: mobile-loading
+name: 加载状态
+description: shadcn 移动端加载
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⟳")) @(100, 200) w=32 h=32 bg=#0f172a opacity=0.8 c=#ffffff size=20
+```
+
+### 操作菜单
+id: mobile-action-sheet
+name: 操作菜单
+description: shadcn 移动端底部菜单
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 300) w=300 h=180 bg=#ffffff s=1 r=8
+"Camera" @(130, 320) c=#0f172a size=14
+-- @(10, 350)->(310, 350) b=#e2e8f0 s=1
+"Gallery" @(125, 360) c=#0f172a size=14
+-- @(10, 390)->(310, 390) b=#e2e8f0 s=1
+"Cancel" @(130, 400) c=#64748b size=14
+```
+
+---
+
+## Mobile-电商
+id: mobile-commerce
+platform: mobile
+
+### 商品详情
+id: mobile-product-detail
+name: 商品详情
+description: shadcn 移动端商品详情
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#f1f5f9 r=8
+"Product Image" @(105, 100) c=#94a3b8 size=14
+("") @(10, 220) w=300 h=80 bg=#ffffff s=1 r=8
+"Product Title" @(20, 230) c=#0f172a size=15 bold=true
+"$299.00" @(20, 255) c=#0f172a size=18 bold=true
+("Buy Now") @(20, 310) w=130 h=44 bg=#0f172a c=#ffffff size=14 r=8
+("Add to Cart") @(160, 310) w=130 h=44 bg=#ffffff c=#0f172a size=14 s=1 r=8
+```
+
+### 购物车
+id: mobile-cart
+name: 购物车
+description: shadcn 移动端购物车
+categoryId: mobile-commerce
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=8
+(("✓")) @(20, 30) w=20 h=20 bg=#0f172a c=#ffffff size=12
+("") @(50, 15) w=60 h=60 bg=#f1f5f9 r=6
+"Product Name" @(120, 25) c=#0f172a size=13 bold=true
+"$199.00" @(120, 48) c=#0f172a size=14
+("-") @(230, 30) w=24 h=24 bg=#f1f5f9 c=#0f172a size=14 r=4
+"1" @(244, 35) c=#0f172a size=12
+("+") @(268, 30) w=24 h=24 bg=#f1f5f9 c=#0f172a size=14 r=4
+```
+
+---
+
+## Mobile-布局
+id: mobile-layout
+platform: mobile
+
+### 页面布局
+id: mobile-page-layout
+name: 页面布局
+description: shadcn 移动端页面布局
+categoryId: mobile-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=44 bg=#ffffff s=1
+"Page Title" @(110, 12) c=#0f172a size=16 bold=true
+("") @(0, 44) w=320 h=600 bg=#fafafa
+"Content Area" @(110, 340) c=#94a3b8 size=14
+("") @(0, 644) w=320 h=56 bg=#ffffff s=1
+"🏠" @(30, 652) c=#0f172a size=18
+"📋" @(110, 652) c=#64748b size=18
+"👤" @(190, 652) c=#64748b size=18
+"⚙" @(270, 652) c=#64748b size=18
+```
+
+### 卡片容器
+id: mobile-card-container
+name: 卡片容器
+description: shadcn 移动端卡片容器
+categoryId: mobile-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=120 bg=#ffffff s=1 r=8
+"Container Title" @(20, 20) c=#0f172a size=14 bold=true
+"Container content" @(20, 45) c=#64748b size=13
+```
+
+---
+
+*组件库完成 - shadcn/ui Web+Mobile 组件库，共 28 个分类，约 200 个组件*

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { FileState, FileNode, SolarWireSnippet } from '../../shared/types/file';
 import { readFile } from '../../shared/utils/file-utils';
 import { useEditorStore } from './editorStore';
-import { useGitStore } from './gitStore';
 import { useStatusStore } from './statusStore';
 
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico']);
@@ -179,10 +178,6 @@ export const useFileStore = create<FileState>()((set, get) => ({
       const tree = await getFileTree(dirPath);
       set({ currentPath: dirPath, fileTree: tree });
       useStatusStore.getState().setCurrentFilePath(dirPath);
-      
-      // Initialize Git for this directory
-      const gitStore = useGitStore.getState();
-      await gitStore.initGit(dirPath);
       
       useStatusStore.getState().completeOperation('目录已打开');
     } catch (err) {

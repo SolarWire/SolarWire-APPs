@@ -76,16 +76,6 @@
   font-size: 11px;
 }
 
-/* Git 分析状态 */
-.git-analysis {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 2px 8px;
-  background: rgba(79, 195, 247, 0.1);
-  border-radius: 4px;
-}
-
 /* 旋转加载器 */
 .spinner {
   width: 12px;

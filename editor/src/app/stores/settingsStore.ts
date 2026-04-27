@@ -14,8 +14,6 @@ const defaultFavoriteColors = [
 ];
 
 export interface SettingsState {
-  gitName: string;
-  gitEmail: string;
   primaryColor: string;
   favoriteColors: string[];
   showGrid: boolean;
@@ -23,8 +21,6 @@ export interface SettingsState {
   snapToGrid: boolean;
   selectionTool: SelectionTool;
   noteTextareaHeight: number;
-  setGitName: (name: string) => void;
-  setGitEmail: (email: string) => void;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
@@ -39,8 +35,6 @@ export interface SettingsState {
 }
 
 const defaultSettings = {
-  gitName: '',
-  gitEmail: '',
   primaryColor: '#FCA506',
   favoriteColors: defaultFavoriteColors,
   showGrid: false,
@@ -53,29 +47,17 @@ const defaultSettings = {
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   ...defaultSettings,
 
-  setGitName: (name: string) => {
-    set({ gitName: name });
-    get().saveSettings();
-  },
-
-  setGitEmail: (email: string) => {
-    set({ gitEmail: email });
-    get().saveSettings();
-  },
-
   setPrimaryColor: (color: string) => {
     set({ primaryColor: color });
     get().saveSettings();
-    // 应用到 CSS 变量
     document.documentElement.style.setProperty('--accent-color', color);
   },
 
   addFavoriteColor: (color: string) => {
     const { favoriteColors } = get();
-    // 确保颜色格式一致（去重）
     const normalizedColor = color.toUpperCase();
     if (!favoriteColors.includes(normalizedColor)) {
-      const newColors = [...favoriteColors, normalizedColor].slice(-20); // 最多20个
+      const newColors = [...favoriteColors, normalizedColor].slice(-20);
       set({ favoriteColors: newColors });
       get().saveSettings();
     }
@@ -125,8 +107,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (saved) {
         const parsed = JSON.parse(saved);
         set({
-          gitName: parsed.gitName || defaultSettings.gitName,
-          gitEmail: parsed.gitEmail || defaultSettings.gitEmail,
           primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
           favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
           showGrid: parsed.showGrid ?? defaultSettings.showGrid,
@@ -134,7 +114,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           snapToGrid: parsed.snapToGrid ?? defaultSettings.snapToGrid,
           selectionTool: parsed.selectionTool || defaultSettings.selectionTool,
         });
-        // 应用主色
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
       }
     } catch (error) {
@@ -144,10 +123,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: () => {
     try {
-      const { gitName, gitEmail, primaryColor, favoriteColors, showGrid, gridSize, snapToGrid, selectionTool } = get();
+      const { primaryColor, favoriteColors, showGrid, gridSize, snapToGrid, selectionTool } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
-        gitName,
-        gitEmail,
         primaryColor,
         favoriteColors,
         showGrid,

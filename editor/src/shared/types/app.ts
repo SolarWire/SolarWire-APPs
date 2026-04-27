@@ -1,4 +1,4 @@
-export type ViewType = 'file' | 'requirement' | 'solarwire' | 'git';
+export type ViewType = 'file' | 'requirement' | 'solarwire';
 export type Theme = 'dark' | 'light';
 
 export interface AppState {

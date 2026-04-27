@@ -8,21 +8,15 @@ interface SettingsModalProps {
 }
 
 function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElement | null {
-  const { gitName, gitEmail, primaryColor, setGitName, setGitEmail, setPrimaryColor } = useSettingsStore();
-  const [tempGitName, setTempGitName] = useState(gitName);
-  const [tempGitEmail, setTempGitEmail] = useState(gitEmail);
+  const { primaryColor, setPrimaryColor } = useSettingsStore();
   const [tempPrimaryColor, setTempPrimaryColor] = useState(primaryColor);
   const DEFAULT_PRIMARY_COLOR = '#FCA506';
 
   useEffect(() => {
-    setTempGitName(gitName);
-    setTempGitEmail(gitEmail);
     setTempPrimaryColor(primaryColor);
-  }, [gitName, gitEmail, primaryColor, isOpen]);
+  }, [primaryColor, isOpen]);
 
   const handleSave = () => {
-    setGitName(tempGitName);
-    setGitEmail(tempGitEmail);
     setPrimaryColor(tempPrimaryColor);
     onClose();
   };
@@ -51,28 +45,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
 
         <div className="settings-modal-content">
           <div className="settings-section">
-            <h3>Git Configuration</h3>
-            <div className="settings-field">
-              <label>Name</label>
-              <input
-                type="text"
-                value={tempGitName}
-                onChange={(e) => setTempGitName(e.target.value)}
-                placeholder="Your name"
-              />
-            </div>
-            <div className="settings-field">
-              <label>Email</label>
-              <input
-                type="email"
-                value={tempGitEmail}
-                onChange={(e) => setTempGitEmail(e.target.value)}
-                placeholder="your@email.com"
-              />
-            </div>
-          </div>
-
-          <div className="settings-section">
             <h3>Appearance</h3>
             <div className="settings-field">
               <label>Color</label>
@@ -89,8 +61,8 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
                     onChange={(e) => setTempPrimaryColor(e.target.value)}
                     className="color-input"
                   />
-                  <button 
-                    className="color-reset-button" 
+                  <button
+                    className="color-reset-button"
                     onClick={handleResetColor}
                     title="Reset to default"
                   >
