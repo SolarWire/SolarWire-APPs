@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useComponentLibraryStore, TreeNodeType } from '../../stores/componentLibraryStore';
-import { ComponentLibrary, Component, ComponentCategory } from '../../../shared/types/component';
+import { ComponentLibrary, Component, ComponentCategory, makeNodeId, makeUncategorizedKey, isPresetLibrary } from '../../../shared/types/component';
 import SolarWireVisualEditor from './SolarWireVisualEditor';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import './ComponentLibraryManagerModal.css';
@@ -47,7 +47,7 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     libraries, selectedNodeId, selectedNodeType, expandedNodes,
     setSelectedNode, toggleNode, removeLibrary, exportLibrary, updateLibrary,
     createLibrary, createCategory, updateCategory, deleteCategory,
-    createComponent, updateComponent, deleteComponent, moveCategory, moveComponent,
+    createComponent, updateComponent, deleteComponent, moveCategory, moveComponent, moveLibrary,
   } = useComponentLibraryStore();
 
   const [libraryEditTab, setLibraryEditTab] = useState<EditTabType>('properties');
@@ -59,20 +59,24 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
   const [dragOverTarget, setDragOverTarget] = useState<DragOverState | null>(null);
   const autoExpandedRef = useRef<Set<string>>(new Set());
 
+  const selectedLibraryId = useComponentLibraryStore(s => s.selectedLibraryId);
+  const selectedComponentId = useComponentLibraryStore(s => s.selectedComponentId);
+  const selectedCategoryId = useComponentLibraryStore(s => s.selectedCategoryId);
+
   const selectedLibrary = useMemo(() => {
-    if (selectedNodeType === 'library') return libraries.find(lib => lib.metadata.id === selectedNodeId) || null;
-    return libraries.find(lib => lib.metadata.id === useComponentLibraryStore.getState().selectedLibraryId) || null;
-  }, [libraries, selectedNodeId, selectedNodeType]);
+    if (!selectedLibraryId) return null;
+    return libraries.find(lib => lib.metadata.id === selectedLibraryId) || null;
+  }, [libraries, selectedLibraryId]);
 
   const selectedCategory = useMemo(() => {
-    if (!selectedLibrary || selectedNodeType !== 'category' || !selectedNodeId) return null;
-    return selectedLibrary.categories.find(c => c.id === selectedNodeId) || null;
-  }, [selectedLibrary, selectedNodeId, selectedNodeType]);
+    if (!selectedLibrary || !selectedCategoryId) return null;
+    return selectedLibrary.categories.find(c => c.id === selectedCategoryId) || null;
+  }, [selectedLibrary, selectedCategoryId]);
 
   const selectedComponent = useMemo(() => {
-    if (!selectedLibrary || selectedNodeType !== 'component' || !selectedNodeId) return null;
-    return selectedLibrary.components.find(c => c.id === selectedNodeId) || null;
-  }, [selectedLibrary, selectedNodeId, selectedNodeType]);
+    if (!selectedLibrary || !selectedComponentId) return null;
+    return selectedLibrary.components.find(c => c.internalId === selectedComponentId) || null;
+  }, [selectedLibrary, selectedComponentId]);
 
   const getUncategorizedComponents = useCallback((library: ComponentLibrary | null) => {
     if (!library) return [];
@@ -80,15 +84,21 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     return library.components.filter(c => !c.categoryId || !categoryIds.has(c.categoryId));
   }, []);
 
-  const handleCreateLibrary = async () => {
+  const handleCreateLibrary = useCallback(async () => {
     if (!newLibraryData.name.trim()) return;
-    const lib = await createLibrary({ ...newLibraryData, id: newLibraryData.id || `lib-${Date.now()}` });
-    setShowNewLibraryForm(false);
-    setNewLibraryData({ name: '', id: '', description: '', version: '1.0.0', author: '' });
-    setSelectedNode(lib.metadata.id, 'library', lib.metadata.id);
-  };
+    try {
+      const lib = await createLibrary({ ...newLibraryData, id: newLibraryData.id || undefined });
+      setShowNewLibraryForm(false);
+      setNewLibraryData({ name: '', id: '', description: '', version: '1.0.0', author: '' });
+      setSelectedNode(lib.metadata.id, 'library', lib.metadata.id);
+    } catch (err) {
+      if (err instanceof Error) {
+        alert(err.message);
+      }
+    }
+  }, [newLibraryData, createLibrary, setSelectedNode]);
 
-  const handleImportLibrary = () => {
+  const handleImportLibrary = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.swc,.json';
@@ -103,18 +113,18 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
       }
     };
     input.click();
-  };
+  }, []);
 
-  const handleRemoveLibrary = async (libraryId: string) => {
+  const handleRemoveLibrary = useCallback(async (libraryId: string) => {
     const lib = libraries.find(l => l.metadata.id === libraryId);
     if (!lib) return;
     if (window.confirm(`确定要从编辑器中移除「${lib.metadata.name}」吗？\n\n此操作仅从编辑器中移除引用，不会删除实际文件。`)) {
       await removeLibrary(libraryId);
-      if (selectedNodeId === libraryId) setSelectedNode(null, null, null);
+      setSelectedNode(null, null, null);
     }
-  };
+  }, [libraries, removeLibrary, setSelectedNode]);
 
-  const handleDeleteCategory = async (libraryId: string, categoryId: string) => {
+  const handleDeleteCategory = useCallback(async (libraryId: string, categoryId: string) => {
     const cat = selectedLibrary?.categories.find(c => c.id === categoryId);
     if (!cat) return;
     const comps = selectedLibrary?.components.filter(c => c.categoryId === categoryId) || [];
@@ -122,46 +132,62 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
       ? `确定要删除「${cat.name}」吗？\n\n该分类下的 ${comps.length} 个组件将移到未分类。`
       : `确定要删除「${cat.name}」吗？`;
     if (window.confirm(msg)) {
-      await deleteCategory(libraryId, categoryId);
-      if (selectedNodeId === categoryId) setSelectedNode(null, null, null);
+      try {
+        await deleteCategory(libraryId, categoryId);
+        setSelectedNode(null, null, null);
+      } catch (err) {
+        if (err instanceof Error) alert(err.message);
+      }
     }
-  };
+  }, [selectedLibrary, deleteCategory, setSelectedNode]);
 
-  const handleDeleteComponent = async (libraryId: string, componentId: string) => {
-    const comp = selectedLibrary?.components.find(c => c.id === componentId);
+  const handleDeleteComponent = useCallback(async (libraryId: string, componentInternalId: string) => {
+    const comp = selectedLibrary?.components.find(c => c.internalId === componentInternalId);
     if (!comp) return;
     if (window.confirm(`确定要删除「${comp.name}」吗？`)) {
-      await deleteComponent(libraryId, componentId);
-      if (selectedNodeId === componentId) setSelectedNode(null, null, null);
+      try {
+        await deleteComponent(libraryId, componentInternalId);
+        setSelectedNode(null, null, null);
+      } catch (err) {
+        if (err instanceof Error) alert(err.message);
+      }
     }
-  };
+  }, [selectedLibrary, deleteComponent, setSelectedNode]);
 
-  const handleCreateCategory = async (libraryId: string) => {
-    const cat = await createCategory(libraryId, { name: '新分类' });
-    toggleNode(libraryId);
-    setSelectedNode(cat.id, 'category', libraryId);
-  };
+  const handleCreateCategory = useCallback(async (libraryId: string) => {
+    try {
+      const cat = await createCategory(libraryId, { name: '新分类' });
+      toggleNode(libraryId);
+      setSelectedNode(cat.id, 'category', libraryId);
+    } catch (err) {
+      if (err instanceof Error) alert(err.message);
+    }
+  }, [createCategory, toggleNode, setSelectedNode]);
 
-  const handleCreateComponent = async (libraryId: string, categoryId: string | null) => {
-    const comp = await createComponent(libraryId, categoryId, { name: '新组件', code: '' });
-    if (categoryId) toggleNode(categoryId);
-    setSelectedNode(comp.id, 'component', libraryId);
-    setComponentEditTab('code');
-  };
+  const handleCreateComponent = useCallback(async (libraryId: string, categoryId: string | null) => {
+    try {
+      const comp = await createComponent(libraryId, categoryId, { name: '新组件', code: '' });
+      if (categoryId) toggleNode(categoryId);
+      setSelectedNode(comp.internalId, 'component', libraryId);
+      setComponentEditTab('code');
+    } catch (err) {
+      if (err instanceof Error) alert(err.message);
+    }
+  }, [createComponent, toggleNode, setSelectedNode]);
 
-  const handleDragStart = (e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => {
+  const handleDragStart = useCallback((e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => {
     setDraggedNode({ id, type, libraryId });
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', JSON.stringify({ id, type, libraryId }));
-  };
+  }, []);
 
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     setDraggedNode(null);
     setDragOverTarget(null);
     autoExpandedRef.current.clear();
-  };
+  }, []);
 
-  const computeDropPosition = (e: React.DragEvent, targetType: TreeNodeType): 'before' | 'after' | 'inside' => {
+  const computeDropPosition = useCallback((e: React.DragEvent, targetType: TreeNodeType): 'before' | 'after' | 'inside' => {
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
     const y = e.clientY - rect.top;
     const height = rect.height;
@@ -169,25 +195,25 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     if (y < height * 0.33) return 'before';
     if (y > height * 0.66) return 'after';
     return 'inside';
-  };
+  }, []);
 
-  const handleDragOver = (e: React.DragEvent, targetId: string, targetType: TreeNodeType) => {
+  const handleDragOver = useCallback((e: React.DragEvent, targetId: string, targetType: TreeNodeType, targetLibraryId: string) => {
     e.preventDefault();
     if (!draggedNode) return;
     if (draggedNode.id === targetId && draggedNode.type === targetType) return;
 
-    if (targetType === 'library' && draggedNode.type !== 'library' && !expandedNodes.has(targetId) && !autoExpandedRef.current.has(targetId)) {
-      toggleNode(targetId);
-      autoExpandedRef.current.add(targetId);
+    if (targetType === 'library' && draggedNode.type !== 'library' && !expandedNodes.has(targetLibraryId) && !autoExpandedRef.current.has(targetLibraryId)) {
+      toggleNode(targetLibraryId);
+      autoExpandedRef.current.add(targetLibraryId);
     } else if (targetType === 'category' && draggedNode.type === 'component' && !expandedNodes.has(targetId) && !autoExpandedRef.current.has(targetId)) {
       toggleNode(targetId);
       autoExpandedRef.current.add(targetId);
     }
 
     setDragOverTarget({ id: targetId, type: targetType, position: computeDropPosition(e, targetType) });
-  };
+  }, [draggedNode, expandedNodes, toggleNode, computeDropPosition]);
 
-  const handleDrop = (e: React.DragEvent, targetId: string, targetType: TreeNodeType) => {
+  const handleDrop = useCallback((e: React.DragEvent, targetId: string, targetType: TreeNodeType, targetLibraryId: string) => {
     e.preventDefault();
     if (!draggedNode || !dragOverTarget) return;
     const { id: sourceId, type: sourceType, libraryId: sourceLibraryId } = draggedNode;
@@ -199,42 +225,49 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
       return;
     }
 
-    if (sourceType === 'library') {
+    if (sourceType === 'library' && targetType === 'library') {
+      const resolvedPosition = position === 'inside' ? 'after' : position;
+      moveLibrary(sourceId, targetId, resolvedPosition);
+    } else if (sourceType === 'library') {
       setDraggedNode(null);
       setDragOverTarget(null);
       return;
-    }
-
-    if (sourceType === 'category' && targetType === 'category') {
+    } else if (sourceType === 'category' && targetType === 'category') {
       const resolvedPosition = position === 'inside' ? 'after' : position;
-      const targetLib = libraries.find(l => l.categories.some(c => c.id === targetId));
-      const targetLibraryId = targetLib?.metadata.id || sourceLibraryId;
       moveCategory(sourceLibraryId, sourceId, targetLibraryId, targetId, resolvedPosition);
     } else if (sourceType === 'category' && targetType === 'library') {
       moveCategory(sourceLibraryId, sourceId, targetId, null, position);
     } else if (sourceType === 'component' && targetType === 'category') {
-      const targetLib = libraries.find(l => l.categories.some(c => c.id === targetId));
-      const targetLibraryId = targetLib?.metadata.id || sourceLibraryId;
+      const targetLib = libraries.find(l => l.metadata.id === targetLibraryId);
+      const catComponents = targetLib?.components.filter(c => c.categoryId === targetId) || [];
       if (position === 'inside') {
-        const lastCompInCat = targetLib?.components.filter(c => c.categoryId === targetId).at(-1);
-        moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, lastCompInCat?.id || '', 'after');
+        if (catComponents.length > 0) {
+          const lastCompInCat = catComponents[catComponents.length - 1];
+          moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, lastCompInCat.internalId, 'after');
+        } else {
+          moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, '', 'after');
+        }
       } else {
-        const firstCompInCat = targetLib?.components.filter(c => c.categoryId === targetId).at(0);
-        moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, firstCompInCat?.id || '', position);
+        if (catComponents.length > 0) {
+          const firstCompInCat = catComponents[0];
+          moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, firstCompInCat.internalId, position);
+        } else {
+          moveComponent(sourceLibraryId, sourceId, targetLibraryId, targetId, '', 'after');
+        }
       }
     } else if (sourceType === 'component' && targetType === 'component') {
-      const targetLib = libraries.find(l => l.components.some(c => c.id === targetId));
-      const targetComp = targetLib?.components.find(c => c.id === targetId);
+      const targetLib = libraries.find(l => l.metadata.id === targetLibraryId);
+      const targetComp = targetLib?.components.find(c => c.internalId === targetId);
       const resolvedCategoryId = targetComp?.categoryId || null;
       const resolvedPosition = position === 'inside' ? 'after' : position;
-      moveComponent(sourceLibraryId, sourceId, targetLib?.metadata.id || sourceLibraryId, resolvedCategoryId, targetId, resolvedPosition);
+      moveComponent(sourceLibraryId, sourceId, targetLibraryId, resolvedCategoryId, targetId, resolvedPosition);
     }
 
     setDraggedNode(null);
     setDragOverTarget(null);
-  };
+  }, [draggedNode, dragOverTarget, libraries, moveLibrary, moveCategory, moveComponent]);
 
-  const handleDropOnUncategorized = (libraryId: string) => {
+  const handleDropOnUncategorized = useCallback((libraryId: string) => {
     if (!draggedNode) return;
     const { id: sourceId, type: sourceType, libraryId: sourceLibraryId } = draggedNode;
     if (sourceType === 'component') {
@@ -242,7 +275,7 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     }
     setDraggedNode(null);
     setDragOverTarget(null);
-  };
+  }, [draggedNode, moveComponent]);
 
   return (
     <div className="component-library-manager-overlay">
@@ -257,28 +290,30 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
               <LibraryTreeNode
                 key={library.metadata.id}
                 library={library}
-                isSelected={selectedNodeId === library.metadata.id && selectedNodeType === 'library'}
+                isSelected={selectedLibraryId === library.metadata.id && selectedNodeType === 'library'}
                 isExpanded={expandedNodes.has(library.metadata.id)}
                 onToggle={() => toggleNode(library.metadata.id)}
                 onSelect={() => setSelectedNode(library.metadata.id, 'library', library.metadata.id)}
                 onDragStart={(e) => handleDragStart(e, library.metadata.id, 'library', library.metadata.id)}
-                onDragOver={(e) => handleDragOver(e, library.metadata.id, 'library')}
-                onDrop={(e) => handleDrop(e, library.metadata.id, 'library')}
+                onDragOver={(e) => handleDragOver(e, library.metadata.id, 'library', library.metadata.id)}
+                onDrop={(e) => handleDrop(e, library.metadata.id, 'library', library.metadata.id)}
                 onDragEnd={handleDragEnd}
                 dragOverTarget={dragOverTarget}
                 onCreateCategory={() => handleCreateCategory(library.metadata.id)}
                 onDeleteCategory={handleDeleteCategory}
                 onCreateComponent={handleCreateComponent}
-                isPreset={library.metadata.id.startsWith('preset-')}
+                isPreset={isPresetLibrary(library.metadata.id)}
                 hasUncategorized={getUncategorizedComponents(library).length > 0}
                 uncategorizedCount={getUncategorizedComponents(library).length}
-                onDragOverCategory={(e, id) => handleDragOver(e, id, 'category')}
-                onDropOnCategory={(e, id) => handleDrop(e, id, 'category')}
-                onDragOverUncategorized={(e) => { e.preventDefault(); if (draggedNode) setDragOverTarget({ id: 'uncategorized', type: 'category', position: 'inside' }); }}
+                onDragOverCategory={(e, id) => handleDragOver(e, id, 'category', library.metadata.id)}
+                onDropOnCategory={(e, id) => handleDrop(e, id, 'category', library.metadata.id)}
+                onDragOverUncategorized={(e) => { e.preventDefault(); if (draggedNode) setDragOverTarget({ id: makeUncategorizedKey(library.metadata.id), type: 'category', position: 'inside' }); }}
                 onDropOnUncategorized={() => handleDropOnUncategorized(library.metadata.id)}
-                onDragOverComponent={(e, id) => handleDragOver(e, id, 'component')}
-                onDropOnComponent={(e, id) => handleDrop(e, id, 'component')}
-                selectedNodeId={selectedNodeId}
+                onDragOverComponent={(e, id) => handleDragOver(e, id, 'component', library.metadata.id)}
+                onDropOnComponent={(e, id) => handleDrop(e, id, 'component', library.metadata.id)}
+                selectedLibraryId={selectedLibraryId}
+                selectedCategoryId={selectedCategoryId}
+                selectedComponentId={selectedComponentId}
                 selectedNodeType={selectedNodeType}
                 expandedNodes={expandedNodes}
                 onDragStartNode={handleDragStart}
@@ -309,25 +344,22 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
         <div className="manager-edit-panel">
           {selectedNodeType === 'library' && selectedLibrary && (
             <LibraryEditPanel library={selectedLibrary} activeTab={libraryEditTab} onTabChange={setLibraryEditTab}
-              onUpdate={(updates) => updateLibrary(selectedLibrary.metadata.id, updates)}
+              onUpdate={(updates) => { updateLibrary(selectedLibrary.metadata.id, updates).catch(err => { if (err instanceof Error) alert(err.message); }); }}
               onExport={() => exportLibrary(selectedLibrary.metadata.id)}
               onRemove={() => handleRemoveLibrary(selectedLibrary.metadata.id)}
               onCreateCategory={() => handleCreateCategory(selectedLibrary.metadata.id)}
-              isPreset={selectedLibrary.metadata.id.startsWith('preset-')} />
+              isPreset={isPresetLibrary(selectedLibrary.metadata.id)} />
           )}
           {selectedNodeType === 'category' && selectedLibrary && selectedCategory && (
             <CategoryEditPanel library={selectedLibrary} category={selectedCategory} activeTab={categoryEditTab} onTabChange={setCategoryEditTab}
-              onUpdate={(updates) => updateCategory(selectedLibrary.metadata.id, selectedCategory.id, updates)}
+              onUpdate={(updates) => { updateCategory(selectedLibrary.metadata.id, selectedCategory.id, updates).catch(err => { if (err instanceof Error) alert(err.message); }); }}
               onDelete={() => handleDeleteCategory(selectedLibrary.metadata.id, selectedCategory.id)}
               onCreateComponent={() => handleCreateComponent(selectedLibrary.metadata.id, selectedCategory.id)} />
           )}
           {selectedNodeType === 'component' && selectedLibrary && selectedComponent && (
-            <>
-              {(console.log('[DEBUG] Rendering ComponentEditPanel, selectedNodeType:', selectedNodeType, 'selectedLibrary:', !!selectedLibrary, 'selectedComponent:', selectedComponent?.id), null)}
-              <ComponentEditPanel library={selectedLibrary} component={selectedComponent} activeTab={componentEditTab} onTabChange={setComponentEditTab}
-                onUpdate={(updates) => updateComponent(selectedLibrary.metadata.id, selectedComponent.id, updates)}
-                onDelete={() => handleDeleteComponent(selectedLibrary.metadata.id, selectedComponent.id)} />
-            </>
+            <ComponentEditPanel library={selectedLibrary} component={selectedComponent} activeTab={componentEditTab} onTabChange={setComponentEditTab}
+              onUpdate={(updates) => { updateComponent(selectedLibrary.metadata.id, selectedComponent.internalId, updates).catch(err => { if (err instanceof Error) alert(err.message); }); }}
+              onDelete={() => handleDeleteComponent(selectedLibrary.metadata.id, selectedComponent.internalId)} />
           )}
           {!selectedNodeType && (
             <div className="edit-empty-state">
@@ -359,19 +391,20 @@ interface LibraryTreeNodeProps {
   onDropOnUncategorized: () => void;
   onDragOverComponent: (e: React.DragEvent, componentId: string) => void;
   onDropOnComponent: (e: React.DragEvent, componentId: string) => void;
-  selectedNodeId: string | null; selectedNodeType: TreeNodeType | null; expandedNodes: Set<string>;
+  selectedLibraryId: string | null; selectedCategoryId: string | null; selectedComponentId: string | null; selectedNodeType: TreeNodeType | null; expandedNodes: Set<string>;
   onDragStartNode: (e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => void;
 }
 
-const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
+const LibraryTreeNode = React.memo<LibraryTreeNodeProps>(({
   library, isSelected, isExpanded, onToggle, onSelect,
   onDragStart, onDragOver, onDrop, onDragEnd, dragOverTarget,
   onCreateCategory, onDeleteCategory, onCreateComponent, isPreset, hasUncategorized, uncategorizedCount,
   onDragOverCategory, onDropOnCategory, onDragOverUncategorized, onDropOnUncategorized,
   onDragOverComponent, onDropOnComponent,
-  selectedNodeId, selectedNodeType, expandedNodes, onDragStartNode,
+  selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, onDragStartNode,
 }) => {
   const isDropTarget = dragOverTarget?.id === library.metadata.id && dragOverTarget?.type === 'library';
+  const uncategorizedKey = makeUncategorizedKey(library.metadata.id);
   return (
     <div className={`tree-node tree-node-library ${isSelected ? 'selected' : ''} ${isDropTarget ? `drop-${dragOverTarget?.position}` : ''}`}>
       <div className="tree-node-content" draggable onDragStart={onDragStart} onDragOver={onDragOver} onDrop={onDrop} onDragEnd={onDragEnd} onClick={onToggle}>
@@ -380,13 +413,13 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
         <span className="tree-node-name">{library.metadata.name}</span>
         <span className="tree-node-count">({library.components.length})</span>
         <button className="tree-node-edit-btn" title="编辑" onClick={(e) => { e.stopPropagation(); onSelect(); }}>✏️</button>
-        <button className="tree-node-add-btn" title="新建分类" onClick={(e) => { e.stopPropagation(); onCreateCategory(); }}>+</button>
+        {!isPreset && <button className="tree-node-add-btn" title="新建分类" onClick={(e) => { e.stopPropagation(); onCreateCategory(); }}>+</button>}
       </div>
       {isExpanded && (
         <div className="tree-node-children">
           {library.categories.map((cat) => (
             <CategoryTreeNode key={cat.id} library={library} category={cat}
-              isSelected={selectedNodeId === cat.id && selectedNodeType === 'category'}
+              isSelected={selectedCategoryId === cat.id && selectedLibraryId === library.metadata.id && selectedNodeType === 'category'}
               isExpanded={expandedNodes.has(cat.id)}
               onToggle={() => useComponentLibraryStore.getState().toggleNode(cat.id)}
               onSelect={() => useComponentLibraryStore.getState().setSelectedNode(cat.id, 'category', library.metadata.id)}
@@ -396,26 +429,28 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget}
               onCreateComponent={() => onCreateComponent(library.metadata.id, cat.id)}
               onDelete={() => onDeleteCategory(library.metadata.id, cat.id)}
-              selectedNodeId={selectedNodeId} selectedNodeType={selectedNodeType} />
+              isPreset={isPreset}
+              selectedComponentId={selectedComponentId} selectedLibraryId={selectedLibraryId} selectedNodeType={selectedNodeType} />
           ))}
           {hasUncategorized && (
             <UncategorizedNode library={library} count={uncategorizedCount}
-              isSelected={selectedNodeId === 'uncategorized' && selectedNodeType === 'category'}
-              isExpanded={expandedNodes.has('uncategorized')}
-              onToggle={() => useComponentLibraryStore.getState().toggleNode('uncategorized')}
-              onSelect={() => useComponentLibraryStore.getState().setSelectedNode('uncategorized', 'category', library.metadata.id)}
+              isSelected={selectedCategoryId === makeUncategorizedKey(library.metadata.id) && selectedLibraryId === library.metadata.id && selectedNodeType === 'category'}
+              isExpanded={expandedNodes.has(uncategorizedKey)}
+              onToggle={() => useComponentLibraryStore.getState().toggleNode(uncategorizedKey)}
+              onSelect={() => useComponentLibraryStore.getState().setSelectedNode(makeUncategorizedKey(library.metadata.id), 'category', library.metadata.id)}
               onDragOverUncategorized={onDragOverUncategorized} onDropOnUncategorized={onDropOnUncategorized}
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget}
               onCreateComponent={() => onCreateComponent(library.metadata.id, null)}
               onDragStartNode={onDragStartNode}
               onDragOverComponent={onDragOverComponent} onDropOnComponent={onDropOnComponent}
-              selectedNodeId={selectedNodeId} selectedNodeType={selectedNodeType} />
+              selectedComponentId={selectedComponentId} selectedLibraryId={selectedLibraryId} selectedNodeType={selectedNodeType}
+              isPreset={isPreset} />
           )}
         </div>
       )}
     </div>
   );
-};
+});
 
 interface CategoryTreeNodeProps {
   library: ComponentLibrary; category: ComponentCategory;
@@ -427,14 +462,15 @@ interface CategoryTreeNodeProps {
   onDragOverComponent: (e: React.DragEvent, componentId: string) => void;
   onDropOnComponent: (e: React.DragEvent, componentId: string) => void;
   onDragEnd: () => void; dragOverTarget: DragOverState | null;
-  selectedNodeId: string | null; selectedNodeType: TreeNodeType | null;
+  isPreset: boolean;
+  selectedComponentId: string | null; selectedLibraryId: string | null; selectedNodeType: TreeNodeType | null;
 }
 
-const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
+const CategoryTreeNode = React.memo<CategoryTreeNodeProps>(({
   library, category, isSelected, isExpanded, onToggle, onSelect,
   onCreateComponent, onDelete, onDragStart, onDragOverCategory, onDropOnCategory,
   onDragOverComponent, onDropOnComponent, onDragEnd, dragOverTarget,
-  selectedNodeId, selectedNodeType,
+  isPreset, selectedComponentId, selectedLibraryId, selectedNodeType,
 }) => {
   const components = library.components.filter(c => c.categoryId === category.id);
   const isDropTarget = dragOverTarget?.id === category.id && dragOverTarget?.type === 'category';
@@ -450,14 +486,14 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
         <span className="tree-node-name">{category.name}</span>
         <span className="tree-node-count">({components.length})</span>
         <button className="tree-node-edit-btn" title="编辑" onClick={(e) => { e.stopPropagation(); onSelect(); }}>✏️</button>
-        <button className="tree-node-add-btn" title="新建组件" onClick={(e) => { e.stopPropagation(); onCreateComponent(); }}>+</button>
+        {!isPreset && <button className="tree-node-add-btn" title="新建组件" onClick={(e) => { e.stopPropagation(); onCreateComponent(); }}>+</button>}
       </div>
       {isExpanded && (
         <div className="tree-node-children">
           {components.map((comp) => (
-            <ComponentTreeNode key={comp.id} component={comp} libraryId={library.metadata.id}
-              isSelected={selectedNodeId === comp.id && selectedNodeType === 'component'}
-              onSelect={() => useComponentLibraryStore.getState().setSelectedNode(comp.id, 'component', library.metadata.id)}
+            <ComponentTreeNode key={comp.internalId} component={comp} libraryId={library.metadata.id}
+              isSelected={selectedComponentId === comp.internalId && selectedLibraryId === library.metadata.id && selectedNodeType === 'component'}
+              onSelect={() => useComponentLibraryStore.getState().setSelectedNode(comp.internalId, 'component', library.metadata.id)}
               onDragStart={onDragStart} onDragOverComponent={onDragOverComponent} onDropOnComponent={onDropOnComponent}
               onDragEnd={onDragEnd} dragOverTarget={dragOverTarget} />
           ))}
@@ -465,7 +501,7 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
       )}
     </div>
   );
-};
+});
 
 interface UncategorizedNodeProps {
   library: ComponentLibrary; count: number;
@@ -477,17 +513,20 @@ interface UncategorizedNodeProps {
   onDragStartNode: (e: React.DragEvent, id: string, type: TreeNodeType, libraryId: string) => void;
   onDragOverComponent: (e: React.DragEvent, componentId: string) => void;
   onDropOnComponent: (e: React.DragEvent, componentId: string) => void;
-  selectedNodeId: string | null; selectedNodeType: TreeNodeType | null;
+  selectedComponentId: string | null; selectedLibraryId: string | null; selectedNodeType: TreeNodeType | null;
+  isPreset: boolean;
 }
 
-const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
+const UncategorizedNode = React.memo<UncategorizedNodeProps>(({
   library, count, isSelected, isExpanded, onToggle, onSelect,
   onDragOverUncategorized, onDropOnUncategorized, onDragEnd, dragOverTarget, onCreateComponent,
-  onDragStartNode, onDragOverComponent, onDropOnComponent, selectedNodeId, selectedNodeType,
+  onDragStartNode, onDragOverComponent, onDropOnComponent, selectedComponentId, selectedLibraryId, selectedNodeType,
+  isPreset,
 }) => {
   const categoryIds = new Set(library.categories.map(c => c.id));
   const uncategorizedComponents = library.components.filter(c => !c.categoryId || !categoryIds.has(c.categoryId));
-  const isDropTarget = dragOverTarget?.id === 'uncategorized' && dragOverTarget?.type === 'category';
+  const uncategorizedKey = makeUncategorizedKey(library.metadata.id);
+  const isDropTarget = dragOverTarget?.id === uncategorizedKey && dragOverTarget?.type === 'category';
   return (
     <div className={`tree-node tree-node-category ${isSelected ? 'selected' : ''} ${isDropTarget ? `drop-${dragOverTarget?.position}` : ''}`}>
       <div className="tree-node-content" onDragOver={onDragOverUncategorized}
@@ -496,14 +535,14 @@ const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
         <span className="tree-node-icon">📁</span>
         <span className="tree-node-name">未分类</span>
         <span className="tree-node-count">({count})</span>
-        <button className="tree-node-add-btn" title="新建组件" onClick={(e) => { e.stopPropagation(); onCreateComponent(); }}>+</button>
+        {!isPreset && <button className="tree-node-add-btn" title="新建组件" onClick={(e) => { e.stopPropagation(); onCreateComponent(); }}>+</button>}
       </div>
       {isExpanded && (
         <div className="tree-node-children">
           {uncategorizedComponents.map((comp) => (
-            <ComponentTreeNode key={comp.id} component={comp} libraryId={library.metadata.id}
-              isSelected={selectedNodeId === comp.id && selectedNodeType === 'component'}
-              onSelect={() => useComponentLibraryStore.getState().setSelectedNode(comp.id, 'component', library.metadata.id)}
+            <ComponentTreeNode key={comp.internalId} component={comp} libraryId={library.metadata.id}
+              isSelected={selectedComponentId === comp.internalId && selectedLibraryId === library.metadata.id && selectedNodeType === 'component'}
+              onSelect={() => useComponentLibraryStore.getState().setSelectedNode(comp.internalId, 'component', library.metadata.id)}
               onDragStart={(e, id, type, libId) => { e.stopPropagation(); onDragStartNode(e, id, type, libId); }}
               onDragOverComponent={onDragOverComponent}
               onDropOnComponent={onDropOnComponent}
@@ -513,7 +552,7 @@ const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
       )}
     </div>
   );
-};
+});
 
 interface ComponentTreeNodeProps {
   component: Component; libraryId: string;
@@ -524,17 +563,17 @@ interface ComponentTreeNodeProps {
   onDragEnd: () => void; dragOverTarget: DragOverState | null;
 }
 
-const ComponentTreeNode: React.FC<ComponentTreeNodeProps> = ({
+const ComponentTreeNode = React.memo<ComponentTreeNodeProps>(({
   component, libraryId, isSelected, onSelect,
   onDragStart, onDragOverComponent, onDropOnComponent, onDragEnd, dragOverTarget,
 }) => {
-  const isDropTarget = dragOverTarget?.id === component.id && dragOverTarget?.type === 'component';
+  const isDropTarget = dragOverTarget?.id === component.internalId && dragOverTarget?.type === 'component';
   return (
     <div className={`tree-node tree-node-component ${isSelected ? 'selected' : ''} ${isDropTarget ? `drop-${dragOverTarget?.position}` : ''}`}>
       <div className="tree-node-content" draggable
-        onDragStart={(e) => { e.stopPropagation(); onDragStart(e, component.id, 'component', libraryId); }}
-        onDragOver={(e) => onDragOverComponent(e, component.id)}
-        onDrop={(e) => onDropOnComponent(e, component.id)}
+        onDragStart={(e) => { e.stopPropagation(); onDragStart(e, component.internalId, 'component', libraryId); }}
+        onDragOver={(e) => onDragOverComponent(e, component.internalId)}
+        onDrop={(e) => onDropOnComponent(e, component.internalId)}
         onDragEnd={onDragEnd} onClick={onSelect}>
         <span className="tree-node-indent"></span>
         <span className="tree-node-icon">🧩</span>
@@ -542,7 +581,7 @@ const ComponentTreeNode: React.FC<ComponentTreeNodeProps> = ({
       </div>
     </div>
   );
-};
+});
 
 interface LibraryEditPanelProps {
   library: ComponentLibrary; activeTab: EditTabType; onTabChange: (tab: EditTabType) => void;
@@ -550,12 +589,12 @@ interface LibraryEditPanelProps {
   onCreateCategory: () => void; isPreset: boolean;
 }
 
-const LibraryEditPanel: React.FC<LibraryEditPanelProps> = ({ library, activeTab, onTabChange, onUpdate, onExport, onRemove, onCreateCategory, isPreset }) => (
+const LibraryEditPanel = React.memo<LibraryEditPanelProps>(({ library, activeTab, onTabChange, onUpdate, onExport, onRemove, onCreateCategory, isPreset }) => (
   <div className="edit-panel">
     <div className="edit-panel-header">
       <div className="edit-panel-title"><span className="edit-panel-icon">📦</span><span>{library.metadata.name}</span></div>
       <div className="edit-panel-actions">
-        <button className="btn-icon-btn" onClick={onCreateCategory} title="新建分类">📁+</button>
+        {!isPreset && <button className="btn-icon-btn" onClick={onCreateCategory} title="新建分类">+</button>}
         <button className="btn-icon-btn" onClick={onExport} title="导出">💾</button>
         {!isPreset && <button className="btn-icon-btn btn-danger" onClick={onRemove} title="移除">🗑️</button>}
       </div>
@@ -567,22 +606,30 @@ const LibraryEditPanel: React.FC<LibraryEditPanelProps> = ({ library, activeTab,
     <div className="edit-tab-content">
       {activeTab === 'properties' && (
         <div className="properties-form">
-          <div className="form-group"><label>名称</label><input type="text" value={library.metadata.name} onChange={(e) => onUpdate({ metadata: { ...library.metadata, name: e.target.value } })} /></div>
-          <div className="form-group"><label>描述</label><textarea value={library.metadata.description || ''} onChange={(e) => onUpdate({ metadata: { ...library.metadata, description: e.target.value } })} rows={3} /></div>
-          <div className="form-group"><label>版本</label><input type="text" value={library.metadata.version} onChange={(e) => onUpdate({ metadata: { ...library.metadata, version: e.target.value } })} /></div>
-          <div className="form-group"><label>作者</label><input type="text" value={library.metadata.author || ''} onChange={(e) => onUpdate({ metadata: { ...library.metadata, author: e.target.value } })} /></div>
+          <div className="form-group"><label>名称</label><input type="text" value={library.metadata.name} onChange={(e) => onUpdate({ metadata: { ...library.metadata, name: e.target.value } })} disabled={isPreset} /></div>
+          <div className="form-group"><label>描述</label><textarea value={library.metadata.description || ''} onChange={(e) => onUpdate({ metadata: { ...library.metadata, description: e.target.value } })} rows={3} disabled={isPreset} /></div>
+          <div className="form-group"><label>版本</label><input type="text" value={library.metadata.version} onChange={(e) => onUpdate({ metadata: { ...library.metadata, version: e.target.value } })} disabled={isPreset} /></div>
+          <div className="form-group"><label>作者</label><input type="text" value={library.metadata.author || ''} onChange={(e) => onUpdate({ metadata: { ...library.metadata, author: e.target.value } })} disabled={isPreset} /></div>
           <div className="form-group"><label>ID</label><span className="readonly-value">{library.metadata.id}</span></div>
           <div className="form-group"><label>$schema</label><span className="readonly-value">{library.$schema}</span></div>
+          {isPreset && <div className="form-group"><label>类型</label><span className="readonly-value" style={{color:'#e67e22'}}>预设组件库（只读）</span></div>}
         </div>
       )}
       {activeTab === 'code' && (
         <div className="code-editor-area">
-          <textarea className="metadata-code-editor" value={`id: ${library.metadata.id}\n$schema: ${library.$schema}\nname: ${library.metadata.name}\ndescription: ${library.metadata.description || ''}\nversion: ${library.metadata.version}\nauthor: ${library.metadata.author || ''}\ncreatedAt: ${library.metadata.createdAt}\nupdatedAt: ${library.metadata.updatedAt}`} readOnly rows={12} />
+          <pre className="metadata-code-display">{`id: ${library.metadata.id}
+$schema: ${library.$schema}
+name: ${library.metadata.name}
+description: ${library.metadata.description || ''}
+version: ${library.metadata.version}
+author: ${library.metadata.author || ''}
+createdAt: ${library.metadata.createdAt}
+updatedAt: ${library.metadata.updatedAt}`}</pre>
         </div>
       )}
     </div>
   </div>
-);
+));
 
 interface CategoryEditPanelProps {
   library: ComponentLibrary; category: ComponentCategory;
@@ -590,15 +637,16 @@ interface CategoryEditPanelProps {
   onUpdate: (updates: Partial<ComponentCategory>) => void; onDelete: () => void; onCreateComponent: () => void;
 }
 
-const CategoryEditPanel: React.FC<CategoryEditPanelProps> = ({ library, category, activeTab, onTabChange, onUpdate, onDelete, onCreateComponent }) => {
+const CategoryEditPanel = React.memo<CategoryEditPanelProps>(({ library, category, activeTab, onTabChange, onUpdate, onDelete, onCreateComponent }) => {
   const componentCount = library.components.filter(c => c.categoryId === category.id).length;
+  const isPreset = isPresetLibrary(library.metadata.id);
   return (
     <div className="edit-panel">
       <div className="edit-panel-header">
         <div className="edit-panel-title"><span className="edit-panel-icon">📁</span><span>{category.name}</span><span className="edit-panel-badge">{componentCount} 个组件</span></div>
         <div className="edit-panel-actions">
-          <button className="btn-icon-btn" onClick={onCreateComponent} title="新建组件">➕</button>
-          <button className="btn-icon-btn btn-danger" onClick={onDelete} title="删除分类">🗑️</button>
+          {!isPreset && <button className="btn-icon-btn" onClick={onCreateComponent} title="新建组件">➕</button>}
+          {!isPreset && <button className="btn-icon-btn btn-danger" onClick={onDelete} title="删除分类">🗑️</button>}
         </div>
       </div>
       <div className="edit-tabs">
@@ -608,19 +656,21 @@ const CategoryEditPanel: React.FC<CategoryEditPanelProps> = ({ library, category
       <div className="edit-tab-content">
         {activeTab === 'properties' && (
           <div className="properties-form">
-            <div className="form-group"><label>名称</label><input type="text" value={category.name} onChange={(e) => onUpdate({ name: e.target.value })} /></div>
+            <div className="form-group"><label>名称</label><input type="text" value={category.name} onChange={(e) => onUpdate({ name: e.target.value })} disabled={isPreset} /></div>
             <div className="form-group"><label>ID</label><span className="readonly-value">{category.id}</span></div>
           </div>
         )}
         {activeTab === 'code' && (
           <div className="code-editor-area">
-            <textarea className="metadata-code-editor" value={`id: ${category.id}\nname: ${category.name}\nparentId: ${category.parentId || 'null'}`} readOnly rows={6} />
+            <pre className="metadata-code-display">{`id: ${category.id}
+name: ${category.name}
+parentId: ${category.parentId || 'null'}`}</pre>
           </div>
         )}
       </div>
     </div>
   );
-};
+});
 
 interface ComponentEditPanelProps {
   library: ComponentLibrary; component: Component;
@@ -628,7 +678,7 @@ interface ComponentEditPanelProps {
   onUpdate: (updates: Partial<Component>) => void; onDelete: () => void;
 }
 
-const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, component, activeTab, onTabChange, onUpdate, onDelete }) => {
+const ComponentEditPanel = React.memo<ComponentEditPanelProps>(({ library, component, activeTab, onTabChange, onUpdate, onDelete }) => {
   const codeValue = component.code ?? '';
   const [componentCode, setComponentCode] = useState(codeValue);
   const [localShowLayerPanel, setLocalShowLayerPanel] = useState(false);
@@ -640,7 +690,7 @@ const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, compon
 
   useEffect(() => {
     setComponentCode(component.code ?? '');
-  }, [component.id, component.code]);
+  }, [component.internalId, component.code]);
 
   useEffect(() => {
     if (activeTab !== 'visual') return;
@@ -697,6 +747,6 @@ const ComponentEditPanel: React.FC<ComponentEditPanelProps> = ({ library, compon
     </div>
   </div>
   );
-};
+});
 
 export default ComponentLibraryManagerModal;

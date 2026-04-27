@@ -12,7 +12,8 @@ const TopMenuBar: React.FC = () => {
   const { theme, setTheme } = useAppStore();
   const { saveFile } = useFileStore();
   const { isModified, mode } = useEditorStore();
-  const { isSpacePressed, setIsSpacePressed } = useSolarWireStore();
+  const isSpacePressed = useSolarWireStore(s => s.isSpacePressed);
+  const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
   const { showComponentManager, setShowComponentManager, initialize } = useComponentLibraryStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 

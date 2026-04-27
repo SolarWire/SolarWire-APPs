@@ -442,6 +442,31 @@
   font-family: inherit;
 }
 
+.form-group textarea {
+  resize: vertical;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.form-group textarea::-webkit-scrollbar {
+  width: 14px;
+  height: 10px;
+}
+
+.form-group textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.form-group textarea::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.form-group textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -483,11 +508,6 @@
   min-height: 200px;
 }
 
-.component-visual-editor {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
 
 .component-visual-content {
   width: 100%;

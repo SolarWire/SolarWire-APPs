@@ -41,7 +41,8 @@ interface NoteInfo {
 
 function LayerPanel({ onSelectElement, onReorderElements }: LayerPanelProps): React.ReactElement {
   const { content } = useEditorStore();
-  const { selectedElements, selectElements } = useSolarWireStore();
+  const selectedElements = useSolarWireStore(s => s.selectedElements);
+  const selectElements = useSolarWireStore(s => s.selectElements);
   const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number } | null>(null);
   const [hoveredNote, setHoveredNote] = useState<NoteInfo | null>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());

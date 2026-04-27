@@ -29,19 +29,17 @@ interface ComponentEditorProps {
 }
 
 const ComponentEditor: React.FC<ComponentEditorProps> = ({ library }) => {
-  const {
-    selectedComponentId,
-    setSelectedComponent,
-    updateComponent,
-    deleteComponent,
-  } = useComponentLibraryStore();
+  const selectedComponentId = useComponentLibraryStore(s => s.selectedComponentId);
+  const setSelectedNode = useComponentLibraryStore(s => s.setSelectedNode);
+  const updateComponent = useComponentLibraryStore(s => s.updateComponent);
+  const deleteComponent = useComponentLibraryStore(s => s.deleteComponent);
 
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [componentCode, setComponentCode] = useState('');
   const [componentName, setComponentName] = useState('');
   const [componentDescription, setComponentDescription] = useState('');
 
-  const selectedComponent = library.components.find(c => c.id === selectedComponentId) || null;
+  const selectedComponent = library.components.find((c: Component) => c.internalId === selectedComponentId) || null;
   const selectedComponentCode = selectedComponent?.code;
   const selectedComponentName = selectedComponent?.name;
   const selectedComponentDescription = selectedComponent?.description;
@@ -56,7 +54,7 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({ library }) => {
 
   const handleSave = async () => {
     if (!selectedComponent) return;
-    await updateComponent(library.metadata.id, selectedComponent.id, {
+    await updateComponent(library.metadata.id, selectedComponent.internalId, {
       code: componentCode,
       name: componentName,
       description: componentDescription,
@@ -66,8 +64,8 @@ const ComponentEditor: React.FC<ComponentEditorProps> = ({ library }) => {
   const handleDelete = async () => {
     if (!selectedComponent) return;
     if (confirm('确定要删除此组件吗？')) {
-      await deleteComponent(library.metadata.id, selectedComponent.id);
-      setSelectedComponent(null);
+      await deleteComponent(library.metadata.id, selectedComponent.internalId);
+      setSelectedNode(null, null, null);
     }
   };
 

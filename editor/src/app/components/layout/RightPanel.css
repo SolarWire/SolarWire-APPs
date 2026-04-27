@@ -1,3 +1,7 @@
+/* ================================================
+   CSS 链说明见 MainContent.css
+   ================================================ */
+
 .right-panel {
   flex: 1;
   height: 100%;
@@ -6,6 +10,12 @@
   flex-direction: column;
   margin: 0;
   box-sizing: border-box;
+}
+
+/* editor-content 必须是 overflow: visible 以支持属性面板滚动 */
+.editor-content {
+  flex: 1;
+  overflow: visible;
 }
 
 .mode-tabs {
@@ -34,9 +44,4 @@
 .mode-tab.active {
   background: var(--bg-selected);
   color: var(--white);
-}
-
-.editor-content {
-  flex: 1;
-  overflow: hidden;
 }

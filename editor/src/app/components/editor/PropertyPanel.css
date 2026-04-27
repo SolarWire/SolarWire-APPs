@@ -305,28 +305,49 @@
   box-sizing: border-box;
   line-height: 1.4;
   font-family: inherit;
-  overflow: visible;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
 }
 
+.note-section textarea::-webkit-scrollbar {
+  width: 14px;
+  height: 10px;
+}
+
+.note-section textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.note-section textarea::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.note-section textarea::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 拖动改变高度的把手 - 水平线条样式 */
 .note-resize-handle {
   position: absolute;
   bottom: 0;
+  left: 0;
   right: 0;
-  width: 20px;
-  height: 20px;
+  height: 16px;
   cursor: ns-resize;
   z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .note-resize-handle::before {
   content: '';
-  position: absolute;
-  bottom: 4px;
-  right: 4px;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--border-color);
-  border-bottom: 2px solid var(--border-color);
+  width: 32px;
+  height: 3px;
+  border-top: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .note-resize-handle:hover::before {

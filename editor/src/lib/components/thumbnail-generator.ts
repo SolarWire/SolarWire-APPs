@@ -43,8 +43,8 @@ function createErrorThumbnail(): string {
 }
 
 export async function generateThumbnailBatch(
-  components: Array<{ id: string; code: string }>,
-  onProgress?: (completed: number, total: number, componentId: string, success: boolean) => void,
+  components: Array<{ internalId: string; code: string }>,
+  onProgress?: (completed: number, total: number, componentInternalId: string, success: boolean) => void,
   width: number = 150,
   height: number = 100
 ): Promise<Map<string, string>> {
@@ -54,12 +54,11 @@ export async function generateThumbnailBatch(
   for (let i = 0; i < components.length; i++) {
     const component = components[i];
     const thumbnail = await generateThumbnail(component.code, width, height);
-    thumbnails.set(component.id, thumbnail);
+    thumbnails.set(component.internalId, thumbnail);
 
     const success = !thumbnail.includes('&#10060;');
-    onProgress?.(i + 1, total, component.id, success);
+    onProgress?.(i + 1, total, component.internalId, success);
 
-    // Yield to allow UI updates
     if (i % 5 === 4) {
       await new Promise(resolve => setTimeout(resolve, 0));
     }

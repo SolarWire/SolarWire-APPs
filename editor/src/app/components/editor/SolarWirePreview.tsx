@@ -287,7 +287,8 @@ function hexToRgba(hex: string, alpha: number): string {
 
 function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg }: SolarWirePreviewProps): React.ReactElement {
   const instanceId = useRef(Math.random().toString(36).substr(2, 9)).current;
-  const { selectedElements, selectElements } = useSolarWireStore();
+  const selectedElements = useSolarWireStore(s => s.selectedElements);
+  const selectElements = useSolarWireStore(s => s.selectElements);
   const { content, setContent } = useEditorStore();
   const { currentPath, selectedFile } = useFileStore();
   const fileDir = getFileDir(selectedFile?.path, currentPath);
@@ -3139,7 +3140,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     );
   };
 
-  const { setIsPreviewFocused } = useSolarWireStore();
+  const setIsPreviewFocused = useSolarWireStore(s => s.setIsPreviewFocused);
 
   const cursor = isSpacePressed ? 'grab' : undefined;
 

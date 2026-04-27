@@ -1,4 +1,4 @@
-import { ComponentLibrary, Component, ComponentCategory } from '../../shared/types/component';
+import { ComponentLibrary, Component, ComponentCategory, UNCATEGORIZED_NODE_ID } from '../../shared/types/component';
 
 export interface SWCParseResult {
   library: ComponentLibrary;
@@ -23,6 +23,8 @@ export function parseSWC(content: string): SWCParseResult {
   let metadata: Record<string, string> = {};
   let categories: ComponentCategory[] = [];
   let components: Component[] = [];
+  const seenCategoryIds = new Set<string>();
+  const seenComponentIds = new Set<string>();
 
   let currentSection: 'metadata' | 'category' | 'component' | 'none' = 'none';
   let currentCategory: ComponentCategory | null = null;
@@ -38,7 +40,6 @@ export function parseSWC(content: string): SWCParseResult {
     const lineNum = i + 1;
     const trimmed = line.trim();
 
-    // Handle code block end
     if (inCodeBlock) {
       if (trimmed === '```') {
         inCodeBlock = false;
@@ -53,23 +54,29 @@ export function parseSWC(content: string): SWCParseResult {
       continue;
     }
 
-    // Handle code block start
     if (trimmed === '```solarwire') {
       inCodeBlock = true;
       codeBlockStarted = true;
       continue;
     }
 
-    // Skip empty lines
     if (trimmed === '') continue;
 
-    // Handle component declaration (###)
     if (trimmed.startsWith('### ')) {
-      // Save previous component if exists
       if (currentComponent) {
         finalizeComponent(currentComponent, currentCategory?.id || null, now);
         if (currentComponent.id) {
-          components.push(currentComponent as Component);
+          if (seenComponentIds.has(currentComponent.id)) {
+            errors.push({
+              componentId: currentComponent.id,
+              componentName: currentComponent.name,
+              line: lineNum,
+              message: `组件 ID 重复: ${currentComponent.id}，已忽略重复项`
+            });
+          } else {
+            seenComponentIds.add(currentComponent.id);
+            components.push(currentComponent as Component);
+          }
         } else {
           errors.push({ line: lineNum, message: '组件缺少 id 属性' });
         }
@@ -79,16 +86,26 @@ export function parseSWC(content: string): SWCParseResult {
       continue;
     }
 
-    // Handle category declaration (##)
     if (trimmed.startsWith('## ')) {
-      if (currentCategory && currentCategory.id && !categories.find(c => c.id === currentCategory!.id)) {
-        categories.push(currentCategory);
+      if (currentCategory && currentCategory.id) {
+        if (seenCategoryIds.has(currentCategory.id)) {
+          errors.push({
+            line: lineNum,
+            message: `分类 ID 重复: ${currentCategory.id}，已忽略重复项`
+          });
+        } else {
+          seenCategoryIds.add(currentCategory.id);
+          categories.push(currentCategory);
+        }
       }
 
       if (currentComponent) {
         finalizeComponent(currentComponent, currentCategory?.id || null, now);
         if (currentComponent.id) {
-          components.push(currentComponent as Component);
+          if (!seenComponentIds.has(currentComponent.id)) {
+            seenComponentIds.add(currentComponent.id);
+            components.push(currentComponent as Component);
+          }
         }
         currentComponent = null;
       }
@@ -98,13 +115,14 @@ export function parseSWC(content: string): SWCParseResult {
       continue;
     }
 
-    // Handle library declaration (#)
     if (trimmed.startsWith('# ')) {
-      // Save previous component if exists
       if (currentComponent) {
         finalizeComponent(currentComponent, currentCategory?.id || null, now);
         if (currentComponent.id) {
-          components.push(currentComponent as Component);
+          if (!seenComponentIds.has(currentComponent.id)) {
+            seenComponentIds.add(currentComponent.id);
+            components.push(currentComponent as Component);
+          }
         }
         currentComponent = null;
       }
@@ -114,7 +132,6 @@ export function parseSWC(content: string): SWCParseResult {
       continue;
     }
 
-    // Handle key-value properties
     const kvMatch = trimmed.match(/^(\w[\w-]*):\s*(.*)$/);
     if (kvMatch) {
       const key = kvMatch[1];
@@ -126,24 +143,18 @@ export function parseSWC(content: string): SWCParseResult {
         if (key === 'id') currentCategory.id = value;
         else if (key === 'name') currentCategory.name = value;
         else if (key === 'parentId') currentCategory.parentId = value || null;
-        else {
-          (currentCategory as any)[key] = value;
-        }
       } else if (currentSection === 'component' && currentComponent) {
         if (key === 'id') currentComponent.id = value;
         else if (key === 'name') currentComponent.name = value;
         else if (key === 'description') currentComponent.description = value || undefined;
         else if (key === 'categoryId') currentComponent.categoryId = value || undefined;
-        else if (key === 'thumbnail') currentComponent.thumbnail = value;
         else if (key === 'code') currentComponent.code = value;
         else if (key === 'createdAt') currentComponent.createdAt = value;
         else if (key === 'updatedAt') currentComponent.updatedAt = value;
-        else (currentComponent as any)[key] = value;
       }
     }
   }
 
-  // Handle code block not closed
   if (inCodeBlock && currentComponent) {
     currentComponent.code = codeBuffer.trimEnd();
     errors.push({
@@ -154,19 +165,35 @@ export function parseSWC(content: string): SWCParseResult {
     });
   }
 
-  // Save last component
   if (currentComponent) {
     finalizeComponent(currentComponent, currentCategory?.id || null, now);
     if (currentComponent.id) {
-      components.push(currentComponent as Component);
+      if (seenComponentIds.has(currentComponent.id)) {
+        errors.push({
+          componentId: currentComponent.id,
+          componentName: currentComponent.name,
+          line: lines.length,
+          message: `组件 ID 重复: ${currentComponent.id}，已忽略重复项`
+        });
+      } else {
+        seenComponentIds.add(currentComponent.id);
+        components.push(currentComponent as Component);
+      }
     } else {
       errors.push({ line: lines.length, message: '组件缺少 id 属性' });
     }
   }
 
-  // Save last category
-  if (currentCategory && !categories.find(c => c.id === currentCategory.id)) {
-    categories.push(currentCategory);
+  if (currentCategory && currentCategory.id) {
+    if (seenCategoryIds.has(currentCategory.id)) {
+      errors.push({
+        line: lines.length,
+        message: `分类 ID 重复: ${currentCategory.id}，已忽略重复项`
+      });
+    } else {
+      seenCategoryIds.add(currentCategory.id);
+      categories.push(currentCategory);
+    }
   }
 
   const library: ComponentLibrary = {
@@ -192,7 +219,6 @@ function finalizeComponent(comp: Partial<Component>, defaultCategoryId: string |
   if (!comp.name) comp.name = comp.id;
   if (!comp.categoryId) comp.categoryId = defaultCategoryId || undefined;
   if (!comp.code) comp.code = '';
-  // thumbnail is now optional
   if (!comp.createdAt) comp.createdAt = now;
   if (!comp.updatedAt) comp.updatedAt = now;
 }
@@ -200,7 +226,6 @@ function finalizeComponent(comp: Partial<Component>, defaultCategoryId: string |
 export function serializeSWC(library: ComponentLibrary): string {
   let output = '';
 
-  // Library declaration
   output += `# ${library.metadata.name}\n`;
   output += `id: ${library.metadata.id}\n`;
   if (library.$schema) output += `$schema: ${library.$schema}\n`;
@@ -235,8 +260,8 @@ export function serializeSWC(library: ComponentLibrary): string {
   const categoryIds = new Set(library.categories.map(c => c.id));
   const uncategorizedComponents = library.components.filter(c => !c.categoryId || !categoryIds.has(c.categoryId));
   if (uncategorizedComponents.length > 0) {
-    output += '\n## 未分类\n';
-    output += `id: uncategorized\n`;
+    output += `\n## 未分类\n`;
+    output += `id: ${UNCATEGORIZED_NODE_ID}\n`;
     for (const component of uncategorizedComponents) {
       output += `\n### ${component.name}\n`;
       output += `id: ${component.id}\n`;

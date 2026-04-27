@@ -1,0 +1,711 @@
+# 社区/社交行业模板 - Tailwind UI 风格
+id: industry-social-tailwind-ui
+$schema: solarwire-component-library-v1
+description: 社区/社交行业模板库，Tailwind UI风格，主色#4f46e5、圆角r=8、渐变色彩、现代感
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+## Web-行业组件
+id: web-industry-components
+platform: web
+
+### 帖子卡片
+id: web-so-post-card
+name: 帖子卡片
+description: 用户头像+内容+互动
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=500 h=180 bg=#ffffff s=1 r=8
+("") @(20, 16) w=36 h=36 bg=#e0e7ff r=18
+"用户名" @(64, 20) c=#1e1b4b size=13 bold=true
+"@username" @(64, 36) c=#a5b4fc size=11
+"2小时前" @(430, 24) c=#a5b4fc size=11
+"今天分享一个超实用的技巧，让你的工作效率提升200%！推荐给大家试试看..." @(20, 62) c=#374151 size=13
+("") @(20, 90) w=460 h=60 bg=#f5f3ff r=8
+"❤ 128  💬 32  ↗ 56  ⋯" @(20, 160) c=#818cf8 size=12
+```
+
+### 评论组件
+id: web-so-comment
+name: 评论组件
+description: 评论列表+回复
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=480 h=120 bg=#ffffff s=1 r=8
+("") @(20, 16) w=28 h=28 bg=#e0e7ff r=14
+"评论者" @(56, 18) c=#1e1b4b size=12 bold=true
+"3小时前" @(430, 20) c=#a5b4fc size=10
+"这个方法真的很实用，我已经试过了！" @(56, 42) c=#374151 size=12
+("回复") @(56, 64) c=#818cf8 size=11
+"❤ 12" @(120, 64) c=#818cf8 size=11
+("") @(56, 84) w=400 h=30 bg=#f5f3ff s=1 r=8
+("") @(66, 90) w=20 h=20 bg=#e0e7ff r=10
+"回复者" @(92, 92) c=#1e1b4b size=11
+"谢谢分享！" @(92, 106) c=#818cf8 size=11
+```
+
+### 点赞收藏按钮
+id: web-so-like-favorite
+name: 点赞收藏按钮
+description: 点赞+收藏+分享
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("❤ 128") @(10, 10) w=70 h=28 bg=#ffffff c=#818cf8 size=12 s=1 r=8
+("⭐ 收藏") @(90, 10) w=70 h=28 bg=#ffffff c=#818cf8 size=12 s=1 r=8
+("↗ 分享") @(170, 10) w=70 h=28 bg=#ffffff c=#818cf8 size=12 s=1 r=8
+("❤ 128") @(260, 10) w=70 h=28 bg=#fce7f3 c=#ec4899 size=12 s=1 r=8
+("⭐ 已收藏") @(340, 10) w=80 h=28 bg=#fef3c7 c=#f59e0b size=12 s=1 r=8
+```
+
+### 用户关注卡片
+id: web-so-user-follow
+name: 用户关注卡片
+description: 用户信息+关注按钮
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=280 h=60 bg=#ffffff s=1 r=8
+("") @(16, 14) w=32 h=32 bg=#e0e7ff r=16
+"用户名" @(56, 16) c=#1e1b4b size=13 bold=true
+"128帖子 · 256关注者" @(56, 34) c=#818cf8 size=11
+("关注") @(210, 16) w=56 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+```
+
+### 话题标签
+id: web-so-topic-tag
+name: 话题标签
+description: 话题名称+帖子数
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("# 技术分享") @(10, 10) w=100 h=28 bg=#e0e7ff c=#4f46e5 size=12 r=8
+("# 生活日常") @(120, 10) w=100 h=28 bg=#e0e7ff c=#4f46e5 size=12 r=8
+("# 热门讨论") @(230, 10) w=100 h=28 bg=#e0e7ff c=#4f46e5 size=12 r=8
+("# 新手入门") @(10, 46) w=100 h=28 bg=#f5f3ff c=#818cf8 size=12 s=1 r=8
+```
+
+### 通知徽章
+id: web-so-notification-badge
+name: 通知徽章
+description: 通知类型+数量+时间
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=50 bg=#ffffff s=1 r=8
+("") @(16, 14) w=24 h=24 bg=#fce7f3 r=12
+"❤" @(20, 18) c=#ec4899 size=12
+"用户A 赞了你的帖子" @(48, 18) c=#1e1b4b size=12
+"5分钟前" @(240, 20) c=#a5b4fc size=10
+("") @(280, 14) w=8 h=8 bg=#ec4899 r=4
+```
+
+### 内容编辑器
+id: web-so-editor
+name: 内容编辑器
+description: 富文本编辑+工具栏
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=500 h=200 bg=#ffffff s=1 r=8
+("") @(10, 10) w=500 h=36 bg=#f5f3ff s=1 r=8
+"B I U S 🔗 📷 @ #" @(20, 18) c=#818cf8 size=12
+("") @(10, 50) w=500 h=1 bg=#e0e7ff
+"分享你的想法..." @(20, 62) c=#a5b4fc size=13
+("") @(10, 150) w=500 h=50 bg=#f5f3ff s=1 r=0
+("发布") @(410, 158) w=70 h=32 bg=#4f46e5 c=#ffffff size=12 r=8
+```
+
+### 分享按钮组
+id: web-so-share-buttons
+name: 分享按钮组
+description: 多平台分享按钮
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("微信") @(10, 10) w=60 h=28 bg=#07c160 c=#ffffff size=11 r=8
+("微博") @(80, 10) w=60 h=28 bg=#e6162d c=#ffffff size=11 r=8
+("QQ") @(150, 10) w=60 h=28 bg=#12b7f5 c=#ffffff size=11 r=8
+("链接") @(220, 10) w=60 h=28 bg=#e0e7ff c=#4f46e5 size=11 r=8
+```
+
+### 热门话题排行
+id: web-so-trending
+name: 热门话题排行
+description: 热搜列表+排名
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=280 h=220 bg=#ffffff s=1 r=8
+"热门话题" @(20, 16) c=#1e1b4b size=13 bold=true
+("1") @(20, 40) c=#ec4899 size=12 bold=true
+"# 年度技术趋势" @(40, 40) c=#1e1b4b size=12
+"2.3万讨论" @(200, 40) c=#a5b4fc size=10
+("2") @(20, 64) c=#f97316 size=12 bold=true
+"# AI应用实践" @(40, 64) c=#1e1b4b size=12
+"1.8万讨论" @(200, 64) c=#a5b4fc size=10
+("3") @(20, 88) c=#eab308 size=12 bold=true
+"# 远程办公" @(40, 88) c=#1e1b4b size=12
+"1.2万讨论" @(200, 88) c=#a5b4fc size=10
+"4  # 开源项目推荐" @(20, 112) c=#374151 size=12
+"5  # 职场成长" @(20, 136) c=#374151 size=12
+"6  # 读书笔记" @(20, 160) c=#374151 size=12
+("查看更多") @(180, 188) c=#4f46e5 size=11
+```
+
+### 用户等级标签
+id: web-so-user-level
+name: 用户等级标签
+description: 用户等级+徽章
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("Lv.1 新手") @(10, 10) w=70 h=20 bg=#f5f3ff c=#818cf8 size=10 r=4
+("Lv.5 达人") @(90, 10) w=70 h=20 bg=#dbeafe c=#3b82f6 size=10 r=4
+("Lv.8 专家") @(170, 10) w=70 h=20 bg=#fef3c7 c=#d97706 size=10 r=4
+("Lv.10 大神") @(250, 10) w=70 h=20 bg=#fce7f3 c=#db2777 size=10 r=4
+```
+
+### 侧边热门推荐
+id: web-so-sidebar-recommend
+name: 侧边热门推荐
+description: 推荐用户+推荐话题
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=280 h=200 bg=#ffffff s=1 r=8
+"推荐关注" @(20, 16) c=#1e1b4b size=13 bold=true
+("换一批") @(220, 14) c=#4f46e5 size=11
+("") @(20, 40) w=32 h=32 bg=#e0e7ff r=16
+"技术博主A" @(60, 42) c=#1e1b4b size=12 bold=true
+("关注") @(220, 42) w=50 h=22 bg=#4f46e5 c=#ffffff size=10 r=4
+("") @(20, 80) w=32 h=32 bg=#e0e7ff r=16
+"设计师B" @(60, 82) c=#1e1b4b size=12 bold=true
+("关注") @(220, 82) w=50 h=22 bg=#4f46e5 c=#ffffff size=10 r=4
+("") @(20, 120) w=32 h=32 bg=#e0e7ff r=16
+"产品经理C" @(60, 122) c=#1e1b4b size=12 bold=true
+("关注") @(220, 122) w=50 h=22 bg=#4f46e5 c=#ffffff size=10 r=4
+```
+
+### 媒体网格
+id: web-so-media-grid
+name: 媒体网格
+description: 图片/视频网格展示
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=200 bg=#ffffff s=1 r=8
+("") @(10, 10) w=145 h=95 bg=#f5f3ff r=8
+("") @(165, 10) w=145 h=95 bg=#f5f3ff r=8
+("") @(10, 115) w=145 h=95 bg=#f5f3ff r=8
+("") @(165, 115) w=145 h=95 bg=#f5f3ff r=8
+("+3") @(280, 170) c=#ffffff size=16 bold=true
+```
+
+## Web-页面模板
+id: web-page-templates
+platform: web
+
+### 社区首页
+id: web-so-home
+name: 社区首页
+description: 帖子流+侧边栏
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f5f3ff
+("") @(0, 0) w=1200 h=48 bg=#ffffff s=1 r=0
+"Community" @(20, 14) c=#1e1b4b size=16 bold=true
+("首页") @(200, 14) c=#4f46e5 size=14
+("发现") @(260, 14) c=#818cf8 size=14
+("消息") @(320, 14) c=#818cf8 size=14
+("") @(400, 10) w=300 h=28 bg=#f5f3ff s=1 r=8
+"搜索..." @(410, 16) c=#a5b4fc size=12
+("登录") @(1100, 10) w=70 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("") @(20, 68) w=820 h=200 bg=#ffffff s=1 r=8
+("") @(36, 78) w=36 h=36 bg=#e0e7ff r=18
+"用户名" @(80, 82) c=#1e1b4b size=13 bold=true
+"2小时前" @(760, 84) c=#a5b4fc size=11
+"今天分享一个超实用的技巧..." @(36, 124) c=#374151 size=13
+"❤ 128  💬 32  ↗ 56" @(36, 160) c=#818cf8 size=12
+("") @(20, 288) w=820 h=200 bg=#ffffff s=1 r=8
+("") @(36, 298) w=36 h=36 bg=#e0e7ff r=18
+"另一个用户" @(80, 302) c=#1e1b4b size=13 bold=true
+"5小时前" @(760, 304) c=#a5b4fc size=11
+"周末去了一个很美的地方..." @(36, 344) c=#374151 size=13
+"❤ 256  💬 48  ↗ 92" @(36, 380) c=#818cf8 size=12
+("") @(860, 68) w=320 h=200 bg=#ffffff s=1 r=8
+"热门话题" @(870, 78) c=#1e1b4b size=13 bold=true
+"1  # 年度技术趋势" @(870, 102) c=#1e1b4b size=12
+"2  # AI应用实践" @(870, 124) c=#1e1b4b size=12
+"3  # 远程办公" @(870, 146) c=#1e1b4b size=12
+("") @(860, 288) w=320 h=200 bg=#ffffff s=1 r=8
+"推荐关注" @(870, 298) c=#1e1b4b size=13 bold=true
+```
+
+### 帖子详情页
+id: web-so-post-detail
+name: 帖子详情页
+description: 帖子内容+评论区
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f5f3ff
+("") @(0, 0) w=1200 h=48 bg=#ffffff s=1 r=0
+"Community" @(20, 14) c=#1e1b4b size=16 bold=true
+("") @(20, 68) w=820 h=700 bg=#ffffff s=1 r=8
+("") @(36, 78) w=40 h=40 bg=#e0e7ff r=20
+"用户名" @(86, 82) c=#1e1b4b size=14 bold=true
+"@username" @(86, 100) c=#a5b4fc size=11
+("关注") @(720, 84) w=70 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+"今天分享一个超实用的技巧，让你的工作效率提升200%！详细步骤如下..." @(36, 130) c=#374151 size=14
+("") @(36, 180) w=760 h=200 bg=#f5f3ff r=8
+"❤ 128  💬 32  ↗ 56  ⭐ 收藏" @(36, 394) c=#818cf8 size=13
+"评论区 (32)" @(36, 430) c=#1e1b4b size=14 bold=true
+("") @(36, 460) w=760 h=36 bg=#f5f3ff s=1 r=8
+"写下你的评论..." @(46, 468) c=#a5b4fc size=12
+("") @(36, 510) w=760 h=60 bg=#ffffff s=1 r=0
+("") @(36, 520) w=28 h=28 bg=#e0e7ff r=14
+"评论者A" @(72, 522) c=#1e1b4b size=12 bold=true
+"这个方法真的很实用！" @(72, 540) c=#374151 size=12
+("") @(860, 68) w=320 h=200 bg=#ffffff s=1 r=8
+"作者其他帖子" @(870, 78) c=#1e1b4b size=13 bold=true
+```
+
+### 用户主页
+id: web-so-user-profile
+name: 用户主页
+description: 用户信息+帖子列表
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f5f3ff
+("") @(0, 0) w=1200 h=48 bg=#ffffff s=1 r=0
+"Community" @(20, 14) c=#1e1b4b size=16 bold=true
+("") @(20, 68) w=820 h=140 bg=#ffffff s=1 r=8
+("") @(36, 78) w=64 h=64 bg=#e0e7ff r=32
+"用户名" @(112, 82) c=#1e1b4b size=18 bold=true
+("Lv.8 专家") @(200, 86) w=60 h=18 bg=#fef3c7 c=#d97706 size=10 r=4
+"全栈开发者 | 开源爱好者" @(112, 108) c=#818cf8 size=12
+("128") @(112, 132) c=#1e1b4b size=14 bold=true
+"帖子" @(146, 134) c=#818cf8 size=11
+("256") @(196, 132) c=#1e1b4b size=14 bold=true
+"关注者" @(230, 134) c=#818cf8 size=11
+("86") @(286, 132) c=#1e1b4b size=14 bold=true
+"关注中" @(316, 134) c=#818cf8 size=11
+("关注") @(720, 100) w=70 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("帖子") @(36, 224) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("收藏") @(96, 224) w=50 h=28 bg=#f5f3ff c=#818cf8 size=12 r=8
+("点赞") @(156, 224) w=50 h=28 bg=#f5f3ff c=#818cf8 size=12 r=8
+("") @(20, 268) w=820 h=120 bg=#ffffff s=1 r=8
+("") @(36, 278) w=36 h=36 bg=#e0e7ff r=18
+"用户名" @(80, 282) c=#1e1b4b size=13 bold=true
+"帖子内容摘要..." @(36, 322) c=#374151 size=13
+```
+
+### 话题页
+id: web-so-topic-page
+name: 话题页
+description: 话题详情+相关帖子
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f5f3ff
+("") @(0, 0) w=1200 h=48 bg=#ffffff s=1 r=0
+"Community" @(20, 14) c=#1e1b4b size=16 bold=true
+("") @(20, 68) w=820 h=100 bg=#ffffff s=1 r=8
+"# 年度技术趋势" @(36, 78) c=#1e1b4b size=20 bold=true
+"2.3万讨论 · 1.2万关注者" @(36, 106) c=#818cf8 size=12
+("关注话题") @(720, 84) w=80 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("最新") @(36, 184) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("最热") @(96, 184) w=50 h=28 bg=#f5f3ff c=#818cf8 size=12 r=8
+("精华") @(156, 184) w=50 h=28 bg=#f5f3ff c=#818cf8 size=12 r=8
+("") @(20, 228) w=820 h=120 bg=#ffffff s=1 r=8
+("") @(36, 238) w=36 h=36 bg=#e0e7ff r=18
+"用户A" @(80, 242) c=#1e1b4b size=13 bold=true
+"2026年最值得关注的5个技术趋势..." @(36, 282) c=#374151 size=13
+"❤ 256  💬 48" @(36, 316) c=#818cf8 size=12
+```
+
+### 发布页
+id: web-so-publish
+name: 发布页
+description: 内容编辑+发布
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f5f3ff
+("") @(0, 0) w=1200 h=48 bg=#ffffff s=1 r=0
+"Community" @(20, 14) c=#1e1b4b size=16 bold=true
+("取消") @(1040, 14) c=#818cf8 size=14
+("发布") @(1100, 10) w=70 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("") @(20, 68) w=820 h=600 bg=#ffffff s=1 r=8
+("") @(20, 68) w=820 h=40 bg=#f5f3ff s=1 r=8
+"B I U S 🔗 📷 @ #" @(36, 78) c=#818cf8 size=13
+"标题" @(36, 124) c=#1e1b4b size=20 bold=true
+("") @(36, 152) w=760 h=1 bg=#e0e7ff
+"分享你的想法..." @(36, 168) c=#a5b4fc size=14
+("") @(860, 68) w=320 h=200 bg=#ffffff s=1 r=8
+"发布设置" @(870, 78) c=#1e1b4b size=13 bold=true
+"话题" @(870, 108) c=#818cf8 size=12
+("") @(870, 126) w=280 h=32 bg=#f5f3ff s=1 r=8
+"添加话题标签..." @(880, 132) c=#a5b4fc size=12
+"可见性" @(870, 174) c=#818cf8 size=12
+("公开") @(870, 192) w=50 h=24 bg=#4f46e5 c=#ffffff size=11 r=8
+("仅关注者") @(930, 192) w=70 h=24 bg=#f5f3ff c=#818cf8 size=11 r=8
+```
+
+### 后台管理
+id: web-so-admin
+name: 后台管理
+description: 内容审核+用户管理
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f5f3ff
+("") @(0, 0) w=200 h=800 bg=#1e1b4b
+"社区管理" @(20, 20) c=#ffffff size=14 bold=true
+("仪表盘") @(20, 56) c=#ffffff size=13
+("内容审核") @(20, 80) c=#a5b4fc size=13
+("用户管理") @(20, 104) c=#a5b4fc size=13
+("举报处理") @(20, 128) c=#a5b4fc size=13
+("话题管理") @(20, 152) c=#a5b4fc size=13
+("") @(220, 20) w=960 h=90 bg=#ffffff s=1 r=8
+"今日新增帖子" @(230, 30) c=#818cf8 size=12
+"1,256" @(230, 50) c=#1e1b4b size=24 bold=true
+"待审核" @(500, 30) c=#818cf8 size=12
+"23" @(500, 50) c=#ec4899 size=24 bold=true
+"举报待处理" @(720, 30) c=#818cf8 size=12
+"8" @(720, 50) c=#f59e0b size=24 bold=true
+("") @(220, 130) w=960 h=400 bg=#ffffff s=1 r=8
+"待审核内容" @(230, 140) c=#1e1b4b size=14 bold=true
+("通过") @(1060, 136) w=50 h=24 bg=#4f46e5 c=#ffffff size=11 r=8
+("拒绝") @(1120, 136) w=50 h=24 bg=#ffffff c=#ec4899 size=11 s=1 r=8
+"帖子ID | 作者 | 内容摘要 | 举报原因 | 状态" @(230, 170) c=#a5b4fc size=11
+"#12856 | 用户A | 技术分享... | 无 | 待审核" @(230, 194) c=#374151 size=12
+"#12855 | 用户B | 推广内容... | 垃圾信息 | 待审核" @(230, 218) c=#374151 size=12
+```
+
+## Mobile-行业组件
+id: mobile-industry-components
+platform: mobile
+
+### 帖子卡片(移动版)
+id: mob-so-post-card
+name: 帖子卡片(移动版)
+description: 移动端帖子卡片
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=160 bg=#ffffff s=1 r=12
+("") @(16, 14) w=32 h=32 bg=#e0e7ff r=16
+"用户名" @(56, 16) c=#1e1b4b size=13 bold=true
+"2小时前" @(290, 20) c=#a5b4fc size=10
+"今天分享一个超实用的技巧..." @(16, 54) c=#374151 size=13
+("") @(16, 78) w=318 h=50 bg=#f5f3ff r=8
+"❤ 128  💬 32  ↗" @(16, 136) c=#818cf8 size=12
+```
+
+### 评论输入框
+id: mob-so-comment-input
+name: 评论输入框
+description: 底部评论输入+发送
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=44 bg=#ffffff s=1 r=0
+("") @(16, 14) w=260 h=32 bg=#f5f3ff s=1 r=16
+"写下你的评论..." @(28, 20) c=#a5b4fc size=12
+("发送") @(286, 12) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+```
+
+### 表情面板
+id: mob-so-emoji-panel
+name: 表情面板
+description: Emoji选择面板
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=200 bg=#ffffff s=1 r=12
+("") @(160, 16) w=30 h=4 bg=#e0e7ff r=2
+"😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🤐" @(20, 30) c=#00000000 size=22
+"🙃 😉 😊 😇 🥰 😍 🤩 😘 😗 😚" @(20, 60) c=#00000000 size=22
+"😙 🥲 😋 😛 😜 🤪 😝 🤑 🤗 🤭" @(20, 90) c=#00000000 size=22
+("常用") @(20, 140) w=40 h=24 bg=#e0e7ff c=#4f46e5 size=11 r=8
+("表情") @(70, 140) w=40 h=24 bg=#ffffff c=#818cf8 size=11 r=8
+("手势") @(120, 140) w=40 h=24 bg=#ffffff c=#818cf8 size=11 r=8
+```
+
+### 图片选择器
+id: mob-so-image-picker
+name: 图片选择器
+description: 图片选择+预览
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=100 bg=#ffffff s=1 r=12
+("") @(16, 14) w=70 h=70 bg=#f5f3ff r=8
+("") @(96, 14) w=70 h=70 bg=#f5f3ff r=8
+("") @(176, 14) w=70 h=70 bg=#f5f3ff r=8
+("+") @(196, 28) c=#a5b4fc size=28
+("3/9") @(300, 70) c=#818cf8 size=11
+```
+
+### 分享面板
+id: mob-so-share-panel
+name: 分享面板
+description: 底部分享操作面板
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=180 bg=#ffffff s=1 r=12
+("") @(160, 16) w=30 h=4 bg=#e0e7ff r=2
+"分享到" @(20, 30) c=#1e1b4b size=14 bold=true
+("") @(20, 56) w=48 h=48 bg=#f5f3ff r=24
+"微信" @(26, 110) c=#374151 size=10
+("") @(80, 56) w=48 h=48 bg=#f5f3ff r=24
+"朋友圈" @(80, 110) c=#374151 size=10
+("") @(140, 56) w=48 h=48 bg=#f5f3ff r=24
+"微博" @(148, 110) c=#374151 size=10
+("") @(200, 56) w=48 h=48 bg=#f5f3ff r=24
+"QQ" @(210, 110) c=#374151 size=10
+("") @(260, 56) w=48 h=48 bg=#f5f3ff r=24
+"链接" @(268, 110) c=#374151 size=10
+("取消") @(20, 136) w=310 h=36 bg=#f5f3ff c=#818cf8 size=13 r=8
+```
+
+## Mobile-页面模板
+id: mobile-page-templates
+platform: mobile
+
+### 动态流
+id: mob-so-feed
+name: 动态流
+description: 帖子信息流
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f3ff
+("") @(0, 0) w=375 h=44 bg=#ffffff s=1 r=0
+("推荐") @(20, 14) c=#1e1b4b size=14 bold=true
+("关注") @(80, 14) c=#818cf8 size=14
+("热点") @(140, 14) c=#818cf8 size=14
+("🔍") @(340, 14) c=#818cf8 size=16
+("") @(0, 54) w=375 h=160 bg=#ffffff s=1 r=0
+("") @(16, 64) w=32 h=32 bg=#e0e7ff r=16
+"用户名" @(56, 66) c=#1e1b4b size=13 bold=true
+"2小时前" @(310, 70) c=#a5b4fc size=10
+"今天分享一个超实用的技巧..." @(16, 104) c=#374151 size=13
+"❤ 128  💬 32  ↗" @(16, 136) c=#818cf8 size=12
+("") @(0, 224) w=375 h=160 bg=#ffffff s=1 r=0
+("") @(16, 234) w=32 h=32 bg=#e0e7ff r=16
+"另一个用户" @(56, 236) c=#1e1b4b size=13 bold=true
+"5小时前" @(310, 240) c=#a5b4fc size=10
+"周末去了一个很美的地方..." @(16, 274) c=#374151 size=13
+"❤ 256  💬 48  ↗" @(16, 306) c=#818cf8 size=12
+("") @(0, 730) w=375 h=82 bg=#ffffff s=1 r=0
+("首页") @(40, 748) c=#4f46e5 size=11
+("发现") @(130, 748) c=#818cf8 size=11
+("+") @(170, 738) w=36 h=36 bg=#4f46e5 c=#ffffff size=18 r=18
+("消息") @(280, 748) c=#818cf8 size=11
+("我的") @(340, 748) c=#818cf8 size=11
+```
+
+### 发帖页
+id: mob-so-publish
+name: 发帖页
+description: 编辑+发布帖子
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#ffffff
+("") @(0, 0) w=375 h=44 bg=#ffffff s=1 r=0
+("取消") @(16, 12) c=#818cf8 size=14
+("发布") @(310, 8) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+"分享你的想法..." @(16, 60) c=#a5b4fc size=16
+("") @(0, 600) w=375 h=44 bg=#f5f3ff s=1 r=0
+("📷") @(20, 612) c=#818cf8 size=18
+("#") @(60, 612) c=#818cf8 size=18
+("@") @(100, 612) c=#818cf8 size=18
+("📍") @(140, 612) c=#818cf8 size=18
+```
+
+### 帖子详情
+id: mob-so-post-detail
+name: 帖子详情
+description: 帖子内容+评论
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f3ff
+("") @(0, 0) w=375 h=44 bg=#ffffff s=1 r=0
+("←") @(16, 12) c=#1e1b4b size=18
+"帖子详情" @(150, 12) c=#1e1b4b size=16 bold=true
+("⋯") @(340, 12) c=#818cf8 size=18
+("") @(0, 54) w=375 h=300 bg=#ffffff s=1 r=0
+("") @(16, 64) w=36 h=36 bg=#e0e7ff r=18
+"用户名" @(60, 68) c=#1e1b4b size=14 bold=true
+("关注") @(300, 70) w=50 h=24 bg=#4f46e5 c=#ffffff size=11 r=8
+"今天分享一个超实用的技巧，让你的工作效率提升200%！" @(16, 112) c=#374151 size=14
+"❤ 128  💬 32  ↗ 56  ⭐" @(16, 160) c=#818cf8 size=13
+"评论区 (32)" @(16, 194) c=#1e1b4b size=14 bold=true
+("") @(0, 360) w=375 h=60 bg=#ffffff s=1 r=0
+("") @(16, 370) w=28 h=28 bg=#e0e7ff r=14
+"评论者A" @(52, 372) c=#1e1b4b size=12 bold=true
+"5分钟前" @(310, 374) c=#a5b4fc size=10
+"这个方法真的很实用！" @(16, 402) c=#374151 size=12
+("") @(0, 730) w=375 h=82 bg=#ffffff s=1 r=0
+("") @(16, 746) w=260 h=32 bg=#f5f3ff s=1 r=16
+"写下你的评论..." @(28, 752) c=#a5b4fc size=12
+("发送") @(286, 746) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+```
+
+### 消息页
+id: mob-so-messages
+name: 消息页
+description: 通知+私信列表
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f3ff
+("") @(0, 0) w=375 h=44 bg=#ffffff s=1 r=0
+"消息" @(165, 12) c=#1e1b4b size=16 bold=true
+("通知") @(20, 54) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("私信") @(80, 54) w=50 h=28 bg=#f5f3ff c=#818cf8 size=12 r=8
+("") @(0, 94) w=375 h=70 bg=#ffffff s=1 r=0
+("") @(16, 104) w=44 h=44 bg=#fce7f3 r=22
+"❤" @(28, 114) c=#ec4899 size=16
+"用户A 赞了你的帖子" @(70, 108) c=#1e1b4b size=13
+"5分钟前" @(70, 128) c=#a5b4fc size=11
+("") @(0, 174) w=375 h=70 bg=#ffffff s=1 r=0
+("") @(16, 184) w=44 h=44 bg=#dbeafe r=22
+"💬" @(28, 194) c=#3b82f6 size=16
+"用户B 评论了你的帖子" @(70, 188) c=#1e1b4b size=13
+"12分钟前" @(70, 208) c=#a5b4fc size=11
+("") @(0, 254) w=375 h=70 bg=#ffffff s=1 r=0
+("") @(16, 264) w=44 h=44 bg=#e0e7ff r=22
+"👤" @(28, 274) c=#818cf8 size=16
+"用户C 关注了你" @(70, 268) c=#1e1b4b size=13
+"1小时前" @(70, 288) c=#a5b4fc size=11
+```
+
+### 个人主页
+id: mob-so-profile
+name: 个人主页
+description: 个人信息+帖子
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f3ff
+("") @(0, 0) w=375 h=44 bg=#ffffff s=1 r=0
+("←") @(16, 12) c=#1e1b4b size=18
+"用户名" @(150, 12) c=#1e1b4b size=16 bold=true
+("⋯") @(340, 12) c=#818cf8 size=18
+("") @(0, 54) w=375 h=120 bg=#ffffff s=1 r=0
+("") @(150, 64) w=56 h=56 bg=#e0e7ff r=28
+"用户名" @(140, 128) c=#1e1b4b size=16 bold=true
+("Lv.8 专家") @(230, 132) w=50 h=16 bg=#fef3c7 c=#d97706 size=9 r=4
+("128") @(90, 154) c=#1e1b4b size=14 bold=true
+"帖子" @(82, 170) c=#818cf8 size=10
+("256") @(170, 154) c=#1e1b4b size=14 bold=true
+"关注者" @(158, 170) c=#818cf8 size=10
+("86") @(260, 154) c=#1e1b4b size=14 bold=true
+"关注" @(252, 170) c=#818cf8 size=10
+("关注") @(130, 190) w=100 h=32 bg=#4f46e5 c=#ffffff size=13 r=8
+("私信") @(240, 190) w=80 h=32 bg=#f5f3ff c=#4f46e5 size=13 s=1 r=8
+("帖子") @(20, 240) w=50 h=28 bg=#4f46e5 c=#ffffff size=12 r=8
+("收藏") @(80, 240) w=50 h=28 bg=#f5f3ff c=#818cf8 size=12 r=8
+("") @(0, 280) w=375 h=120 bg=#ffffff s=1 r=0
+("") @(16, 290) w=32 h=32 bg=#e0e7ff r=16
+"用户名" @(56, 292) c=#1e1b4b size=13 bold=true
+"帖子内容摘要..." @(16, 330) c=#374151 size=13
+```
+
+### 搜索页
+id: mob-so-search
+name: 搜索页
+description: 搜索+结果+话题
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f3ff
+("") @(0, 0) w=375 h=44 bg=#ffffff s=1 r=0
+("←") @(16, 12) c=#1e1b4b size=18
+("") @(44, 8) w=280 h=30 bg=#f5f3ff s=1 r=8
+"搜索用户、话题..." @(54, 14) c=#a5b4fc size=13
+("取消") @(334, 12) c=#818cf8 size=13
+"热门搜索" @(20, 60) c=#1e1b4b size=14 bold=true
+("# 年度技术趋势") @(20, 86) c=#374151 size=13
+("# AI应用实践") @(20, 110) c=#374151 size=13
+("# 远程办公") @(20, 134) c=#374151 size=13
+"# 开源项目" @(20, 158) c=#818cf8 size=13
+"# 职场成长" @(20, 182) c=#818cf8 size=13
+"搜索发现" @(20, 220) c=#1e1b4b size=14 bold=true
+("") @(0, 250) w=375 h=70 bg=#ffffff s=1 r=0
+("") @(16, 260) w=44 h=44 bg=#e0e7ff r=22
+"技术博主A" @(70, 264) c=#1e1b4b size=14 bold=true
+"1.2万关注者" @(70, 284) c=#a5b4fc size=11
+("关注") @(300, 268) w=50 h=24 bg=#4f46e5 c=#ffffff size=11 r=8
+```

@@ -1,0 +1,492 @@
+# 财务系统行业模板 - shadcn/ui 风格
+id: industry-finance-shadcn-ui
+$schema: solarwire-component-library-v1
+description: 财务系统行业模板库，shadcn/ui 风格，极简黑白灰、细边框、slate灰色系
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+## Web-行业组件
+id: web-industry-components
+platform: web
+
+### 会计科目树
+id: web-fin-account-tree
+name: 会计科目树
+description: 科目分类 + 余额
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=250 bg=#ffffff s=1 r=6
+"▼ 资产类" @(20, 20) c=#0f172a size=13 bold=true
+"  ▼ 流动资产" @(20, 45) c=#334155 size=12
+"    库存现金" @(20, 70) c=#0f172a size=12
+"    银行存款" @(20, 95) c=#64748b size=12
+"  ▶ 非流动资产" @(20, 120) c=#64748b size=12
+"▼ 负债类" @(20, 145) c=#0f172a size=13 bold=true
+"  ▶ 流动负债" @(20, 170) c=#64748b size=12
+"▼ 权益类" @(20, 195) c=#0f172a size=13 bold=true
+```
+
+### 凭证录入行
+id: web-fin-voucher-row
+name: 凭证录入行
+description: 摘要+科目+借方+贷方
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=500 h=36 bg=#ffffff s=1 r=4
+("收到货款") @(15, 16) w=120 h=28 bg=#ffffff c=#94a3b8 size=12 s=1 r=6
+("银行存款") @(140, 16) w=120 h=28 bg=#ffffff c=#94a3b8 size=12 s=1 r=6
+("10,000.00") @(265, 16) w=100 h=28 bg=#ffffff c=#0f172a size=12 s=1 r=6
+("") @(370, 16) w=100 h=28 bg=#ffffff c=#94a3b8 size=12 s=1 r=6
+("") @(10, 50) w=500 h=36 bg=#f8fafc s=1 r=4
+("收到货款") @(15, 56) w=120 h=28 bg=#ffffff c=#94a3b8 size=12 s=1 r=6
+("应收账款") @(140, 56) w=120 h=28 bg=#ffffff c=#94a3b8 size=12 s=1 r=6
+("") @(265, 56) w=100 h=28 bg=#ffffff c=#94a3b8 size=12 s=1 r=6
+("10,000.00") @(370, 56) w=100 h=28 bg=#ffffff c=#0f172a size=12 s=1 r=6
+```
+
+### 发票信息卡
+id: web-fin-invoice-card
+name: 发票信息卡
+description: 发票号+金额+状态
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=6
+"FP-2026-00128" @(20, 20) c=#94a3b8 size=11
+"增值税专用发票" @(20, 40) c=#0f172a size=14 bold=true
+("已认证") @(20, 62) w=50 h=18 bg=#f0fdf4 c=#16a34a size=10 r=4
+"¥50,000.00" @(180, 62) c=#0f172a size=14 bold=true
+```
+
+### 余额汇总卡
+id: web-fin-balance-card
+name: 余额汇总卡
+description: 期初+本期借方+本期贷方+期末
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=60 bg=#ffffff s=1 r=6
+"银行存款" @(20, 25) c=#0f172a size=13 bold=true
+"期初: 100,000" @(120, 25) c=#94a3b8 size=11
+"借方: 50,000" @(220, 25) c=#16a34a size=11
+"贷方: 30,000" @(310, 25) c=#dc2626 size=11
+"期末: 120,000" @(20, 45) c=#0f172a size=12 bold=true
+```
+
+### 报表指标卡
+id: web-fin-report-metric
+name: 报表指标卡
+description: 指标名+数值+同比
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=140 h=80 bg=#ffffff s=1 r=6
+"营业收入" @(20, 20) c=#64748b size=12
+"¥1,234,567" @(20, 42) c=#0f172a size=16 bold=true
+"+12.5%" @(100, 60) c=#16a34a size=11
+("") @(160, 10) w=140 h=80 bg=#ffffff s=1 r=6
+"净利润" @(170, 20) c=#64748b size=12
+"¥345,678" @(170, 42) c=#0f172a size=16 bold=true
+"+8.3%" @(250, 60) c=#16a34a size=11
+("") @(310, 10) w=140 h=80 bg=#ffffff s=1 r=6
+"资产负债率" @(320, 20) c=#64748b size=12
+"45.6%" @(320, 42) c=#0f172a size=16 bold=true
+"-2.1%" @(400, 60) c=#16a34a size=11
+```
+
+### 费用报销单
+id: web-fin-expense-form
+name: 费用报销单
+description: 费用明细+金额+审批
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=160 bg=#ffffff s=1 r=6
+"费用报销单" @(20, 20) c=#0f172a size=14 bold=true
+-- @(20, 40)->(380, 40) b=#e2e8f0 s=1
+"差旅费" @(20, 55) c=#334155 size=12
+"¥3,500.00" @(300, 55) c=#0f172a size=12
+"交通费" @(20, 80) c=#334155 size=12
+"¥580.00" @(300, 80) c=#0f172a size=12
+"住宿费" @(20, 105) c=#334155 size=12
+"¥1,200.00" @(300, 105) c=#0f172a size=12
+-- @(20, 125)->(380, 125) b=#e2e8f0 s=1
+"合计" @(20, 135) c=#0f172a size=13 bold=true
+"¥5,280.00" @(280, 135) c=#0f172a size=14 bold=true
+```
+
+### 税率选择器
+id: web-fin-tax-selector
+name: 税率选择器
+description: 税种+税率+税额
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("增值税") @(10, 10) w=80 h=28 bg=#0f172a c=#ffffff size=12 r=6
+("13%") @(100, 10) w=50 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+("9%") @(160, 10) w=50 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+("6%") @(220, 10) w=50 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+"税额: ¥6,500.00" @(10, 48) c=#0f172a size=13
+```
+
+### 银行对账条目
+id: web-fin-bank-reconcile
+name: 银行对账条目
+description: 银行流水+系统记录+匹配状态
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=500 h=40 bg=#ffffff s=1 r=4
+("✓") @(20, 18) w=16 h=16 bg=#16a34a c=#ffffff size=10
+"2026-04-27" @(45, 18) c=#0f172a size=12
+"收款-张三" @(130, 18) c=#0f172a size=12
+"10,000.00" @(280, 18) c=#16a34a size=12
+("已匹配") @(400, 14) w=50 h=22 bg=#f0fdf4 c=#16a34a size=10 r=4
+("") @(10, 55) w=500 h=40 bg=#f8fafc s=1 r=4
+("○") @(20, 63) w=16 h=16 bg=#ffffff c=#94a3b8 size=10 s=1
+"2026-04-26" @(45, 63) c=#0f172a size=12
+"付款-供应商A" @(130, 63) c=#0f172a size=12
+"5,000.00" @(280, 63) c=#dc2626 size=12
+("未匹配") @(400, 59) w=50 h=22 bg=#fff1f0 c=#dc2626 size=10 r=4
+```
+
+---
+
+## Web-页面模板
+id: web-pages
+platform: web
+
+### 财务首页
+id: web-fin-page-home
+name: 财务首页
+description: 指标卡+图表+待办
+categoryId: web-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=500 bg=#0f172a
+"Logo" @(15, 15) c=#ffffff size=16 bold=true
+("🏠 首页") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
+"📒 凭证" @(20, 105) c=#ffffff opacity=0.6 size=13
+"📊 报表" @(20, 150) c=#ffffff opacity=0.6 size=13
+"💰 资金" @(20, 195) c=#ffffff opacity=0.6 size=13
+("") @(200, 0) w=400 h=48 bg=#ffffff s=1
+"财务中心" @(215, 14) c=#0f172a size=16 bold=true
+("") @(200, 48) w=400 h=452 bg=#f8fafc
+("") @(210, 58) w=120 h=80 bg=#ffffff s=1 r=6
+"营业收入" @(220, 68) c=#64748b size=12
+"¥1.23M" @(220, 88) c=#0f172a size=18 bold=true
+("+12%") @(300, 100) c=#16a34a size=11
+("") @(340, 58) w=120 h=80 bg=#ffffff s=1 r=6
+"净利润" @(350, 68) c=#64748b size=12
+"¥345K" @(350, 88) c=#0f172a size=18 bold=true
+("+8%") @(430, 100) c=#16a34a size=11
+("") @(210, 148) w=250 h=180 bg=#ffffff s=1 r=6
+"收支趋势" @(220, 158) c=#0f172a size=14 bold=true
+("本月") @(380, 156) w=40 h=24 bg=#0f172a c=#ffffff size=11 r=4
+-- @(230, 300)->(440, 300) b=#e2e8f0 s=1
+-- @(230, 180)->(230, 300) b=#e2e8f0 s=1
+("") @(470, 148) w=120 h=180 bg=#ffffff s=1 r=6
+"待办" @(480, 158) c=#0f172a size=14 bold=true
+("3张凭证待审核") @(480, 185) c=#94a3b8 size=11
+("2笔对账未完成") @(480, 210) c=#94a3b8 size=11
+```
+
+### 凭证管理页
+id: web-fin-page-voucher
+name: 凭证管理页
+description: 凭证列表+录入
+categoryId: web-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=500 bg=#0f172a
+("📒 凭证管理") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
+("") @(200, 48) w=400 h=452 bg=#f8fafc
+("搜索凭证...") @(210, 58) w=160 h=32 bg=#ffffff c=#94a3b8 size=13 s=1 r=6
+("查询") @(380, 58) w=60 h=32 bg=#0f172a c=#ffffff size=13 r=6
+("新建凭证") @(210, 100) w=80 h=32 bg=#0f172a c=#ffffff size=13 r=6
+("") @(210, 142) w=370 h=280 bg=#ffffff s=1 r=6
+## @(220, 152) w=350
+  # bg=#f8fafc bold
+    "凭证号"
+    "日期"
+    "摘要"
+    "金额"
+    "状态"
+  #
+    "PZ-20260427-001"
+    "2026-04-27"
+    "收到货款"
+    "¥10,000"
+    "已审核"
+  # bg=#f8fafc
+    "PZ-20260426-012"
+    "2026-04-26"
+    "支付租金"
+    "¥5,000"
+    "待审核"
+```
+
+### 发票管理页
+id: web-fin-page-invoice
+name: 发票管理页
+description: 发票列表+认证+开具
+categoryId: web-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=500 bg=#0f172a
+("") @(200, 48) w=400 h=452 bg=#f8fafc
+("搜索发票...") @(210, 58) w=160 h=32 bg=#ffffff c=#94a3b8 size=13 s=1 r=6
+("开具发票") @(380, 58) w=80 h=32 bg=#0f172a c=#ffffff size=13 r=6
+("全部") @(210, 100) w=50 h=24 bg=#0f172a c=#ffffff size=11 r=4
+("待认证") @(270, 100) w=60 h=24 bg=#f1f5f9 c=#334155 size=11 r=4
+("已认证") @(340, 100) w=60 h=24 bg=#f1f5f9 c=#334155 size=11 r=4
+("") @(210, 134) w=370 h=280 bg=#ffffff s=1 r=6
+## @(220, 144) w=350
+  # bg=#f8fafc bold
+    "发票号"
+    "类型"
+    "金额"
+    "状态"
+    "操作"
+  #
+    "FP-2026-00128"
+    "专票"
+    "¥50,000"
+    "已认证"
+    "详情"
+  # bg=#f8fafc
+    "FP-2026-00127"
+    "普票"
+    "¥3,200"
+    "待认证"
+    "认证 详情"
+```
+
+### 报表中心页
+id: web-fin-page-report
+name: 报表中心页
+description: 资产负债表+利润表+现金流量表
+categoryId: web-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=500 bg=#0f172a
+("📊 报表中心") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
+("") @(200, 48) w=400 h=452 bg=#f8fafc
+("资产负债表") @(210, 58) w=90 h=28 bg=#0f172a c=#ffffff size=12 r=6
+("利润表") @(310, 58) w=70 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+("现金流量表") @(390, 58) w=90 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+("") @(210, 96) w=370 h=300 bg=#ffffff s=1 r=6
+"资产负债表" @(220, 106) c=#0f172a size=14 bold=true
+"2026年4月" @(480, 108) c=#94a3b8 size=12
+## @(220, 130) w=350
+  # bg=#f8fafc bold
+    "项目"
+    "期末余额"
+    "期初余额"
+  #
+    "流动资产合计"
+    "¥2,345,678"
+    "¥2,100,000"
+  # bg=#f8fafc
+    "非流动资产合计"
+    "¥1,234,567"
+    "¥1,200,000"
+  #
+    "资产总计"
+    "¥3,580,245"
+    "¥3,300,000"
+```
+
+### 银行对账页
+id: web-fin-page-reconcile
+name: 银行对账页
+description: 银行流水+系统记录+匹配
+categoryId: web-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=500 bg=#0f172a
+("💰 银行对账") @(10, 55) w=180 h=40 bg=#1e293b c=#ffffff size=13 r=4
+("") @(200, 48) w=400 h=452 bg=#f8fafc
+("自动对账") @(210, 58) w=80 h=32 bg=#0f172a c=#ffffff size=13 r=6
+("手动匹配") @(300, 58) w=80 h=32 bg=#ffffff c=#334155 size=13 s=1 r=6
+("") @(210, 100) w=370 h=300 bg=#ffffff s=1 r=6
+## @(220, 110) w=350
+  # bg=#f8fafc bold
+    "日期"
+    "摘要"
+    "收入"
+    "支出"
+    "状态"
+  #
+    "2026-04-27"
+    "收款-张三"
+    "10,000"
+    ""
+    "已匹配"
+  # bg=#f8fafc
+    "2026-04-26"
+    "付款-供应商A"
+    ""
+    "5,000"
+    "未匹配"
+```
+
+---
+
+## Mobile-行业组件
+id: mobile-industry-components
+platform: mobile
+
+### 凭证卡片
+id: mob-fin-voucher-card
+name: 凭证卡片
+description: 凭证号+摘要+金额
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=70 bg=#ffffff s=1 r=8
+"PZ-20260427-001" @(20, 20) c=#94a3b8 size=11
+"收到货款" @(20, 40) c=#0f172a size=14 bold=true
+"¥10,000.00" @(210, 35) c=#0f172a size=14 bold=true
+("已审核") @(230, 55) w=50 h=18 bg=#f0fdf4 c=#16a34a size=10 r=4
+```
+
+### 报销进度
+id: mob-fin-expense-progress
+name: 报销进度
+description: 报销单+审批进度
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=8
+"差旅报销 ¥5,280" @(20, 20) c=#0f172a size=14 bold=true
+(("●")) @(20, 50) w=8 h=8 bg=#16a34a c=#16a34a size=3
+-- @(28, 54)->(80, 54) b=#16a34a s=1
+(("●")) @(80, 50) w=8 h=8 bg=#0f172a c=#0f172a size=3
+-- @(88, 54)->(140, 54) b=#e2e8f0 s=1
+(("●")) @(140, 50) w=8 h=8 bg=#e2e8f0 c=#e2e8f0 size=3
+"提交" @(15, 62) c=#94a3b8 size=9
+"主管审批" @(65, 62) c=#0f172a size=9
+"财务审核" @(125, 62) c=#94a3b8 size=9
+```
+
+### 发票扫描卡
+id: mob-fin-invoice-scan
+name: 发票扫描卡
+description: 扫描+识别+确认
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(60, 10) w=200 h=120 bg=#f8fafc s=1 r=8
+"📷 点击扫描发票" @(100, 60) c=#94a3b8 size=13
+("手动录入") @(110, 140) w=100 h=32 bg=#0f172a c=#ffffff size=13 r=16
+```
+
+---
+
+## Mobile-页面模板
+id: mobile-pages
+platform: mobile
+
+### 财务首页
+id: mob-fin-page-home
+name: 财务首页
+description: 指标+快捷+待办
+categoryId: mobile-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=44 bg=#0f172a
+"财务中心" @(120, 12) c=#ffffff size=16 bold=true
+("") @(0, 44) w=320 h=474 bg=#f8fafc
+("") @(10, 54) w=140 h=70 bg=#ffffff s=1 r=8
+"本月收入" @(20, 64) c=#64748b size=11
+"¥1,234,567" @(20, 84) c=#0f172a size=16 bold=true
+("") @(170, 54) w=140 h=70 bg=#ffffff s=1 r=8
+"本月支出" @(180, 64) c=#64748b size=11
+"¥890,123" @(180, 84) c=#0f172a size=16 bold=true
+("") @(10, 134) w=90 h=60 bg=#ffffff s=1 r=8
+"📒" @(40, 144) c=#0f172a size=16
+"凭证" @(35, 170) c=#334155 size=11
+("") @(110, 134) w=90 h=60 bg=#ffffff s=1 r=8
+"📄" @(140, 144) c=#0f172a size=16
+"发票" @(135, 170) c=#334155 size=11
+("") @(210, 134) w=90 h=60 bg=#ffffff s=1 r=8
+"📊" @(240, 144) c=#0f172a size=16
+"报表" @(235, 170) c=#334155 size=11
+"待办事项" @(10, 210) c=#0f172a size=14 bold=true
+("") @(10, 235) w=300 h=60 bg=#ffffff s=1 r=8
+("3张凭证待审核") @(20, 255) c=#334155 size=13
+">" @(280, 255) c=#cbd5e1 size=14
+("") @(0, 518) w=320 h=50 bg=#ffffff s=1
+"🏠" @(30, 526) c=#0f172a size=18
+"📊" @(110, 526) c=#94a3b8 size=18
+"💰" @(190, 526) c=#94a3b8 size=18
+"👤" @(270, 526) c=#94a3b8 size=18
+```
+
+### 报销申请页
+id: mob-fin-page-expense
+name: 报销申请页
+description: 费用明细+提交
+categoryId: mobile-pages
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=44 bg=#0f172a
+"←" @(10, 12) c=#ffffff size=16
+"报销申请" @(120, 12) c=#ffffff size=16 bold=true
+("") @(0, 44) w=320 h=474 bg=#f8fafc
+("") @(10, 54) w=300 h=200 bg=#ffffff s=1 r=8
+"费用类型" @(20, 64) c=#0f172a size=13
+("差旅") @(20, 84) w=50 h=28 bg=#0f172a c=#ffffff size=12 r=6
+("交通") @(80, 84) w=50 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+("住宿") @(140, 84) w=50 h=28 bg=#f1f5f9 c=#334155 size=12 r=6
+"金额" @(20, 125) c=#0f172a size=13
+("¥0.00") @(20, 145) w=260 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+"备注" @(20, 195) c=#0f172a size=13
+("请输入备注...") @(20, 215) w=260 h=36 bg=#ffffff c=#94a3b8 size=14 s=1 r=6
+("提交申请") @(10, 480) w=300 h=44 bg=#0f172a c=#ffffff size=16 r=22
+```
+
+---
+
+*财务系统行业模板完成 - shadcn/ui 风格，Web 8行业组件+5页面，Mobile 3行业组件+2页面*

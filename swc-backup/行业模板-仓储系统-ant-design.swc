@@ -1,0 +1,583 @@
+# 仓储系统行业模板 - Ant Design 风格
+id: industry-warehouse-ant-design
+$schema: solarwire-component-library-v1
+description: 仓储系统行业模板库，Ant Design 风格，主色#1890ff、圆角r=6、企业中后台风格
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+## Web-行业组件
+id: web-industry-components
+platform: web
+
+### 库位可视化
+id: web-wh-location-visual
+name: 库位可视化
+description: 仓库区域+货架+库位状态
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=260 bg=#ffffff s=1 r=6
+"A区" @(20, 20) c=#1890ff size=13 bold=true
+("") @(20, 40) w=170 h=100 bg=#f0f5ff s=1 r=4
+"A-01" @(30, 50) c=#1890ff size=11
+("") @(30, 68) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(65, 68) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(100, 68) w=30 h=30 bg=#faad14 s=1 r=2
+("") @(135, 68) w=30 h=30 bg=#ff4d4f s=1 r=2
+("") @(30, 103) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(65, 103) w=30 h=30 bg=#d9d9d9 s=1 r=2
+("") @(100, 103) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(135, 103) w=30 h=30 bg=#52c41a s=1 r=2
+"B区" @(210, 20) c=#1890ff size=13 bold=true
+("") @(210, 40) w=170 h=100 bg=#f0f5ff s=1 r=4
+"B-01" @(220, 50) c=#1890ff size=11
+("") @(220, 68) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(255, 68) w=30 h=30 bg=#ff4d4f s=1 r=2
+("") @(290, 68) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(325, 68) w=30 h=30 bg=#faad14 s=1 r=2
+("") @(220, 103) w=30 h=30 bg=#d9d9d9 s=1 r=2
+("") @(255, 103) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(290, 103) w=30 h=30 bg=#52c41a s=1 r=2
+("") @(325, 103) w=30 h=30 bg=#d9d9d9 s=1 r=2
+"● 空闲  ● 占用  ● 预警  ● 锁定" @(20, 160) c=#8c8c8c size=11
+("● 空闲") @(20, 160) c=#d9d9d9 size=11
+("● 占用") @(70, 160) c=#52c41a size=11
+("● 预警") @(120, 160) c=#faad14 size=11
+("● 锁定") @(170, 160) c=#ff4d4f size=11
+```
+
+### 批次追溯链
+id: web-wh-batch-trace
+name: 批次追溯链
+description: 批次号+来源+去向+状态
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=500 h=120 bg=#ffffff s=1 r=6
+"BH-20260427-001" @(20, 20) c=#1890ff size=13 bold=true
+("入库") @(20, 42) w=50 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+("质检") @(80, 42) w=50 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+("上架") @(140, 42) w=50 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"→" @(75, 48) c=#8c8c8c size=14
+"→" @(135, 48) c=#8c8c8c size=14
+"供应商: 华东材料厂" @(20, 72) c=#595959 size=12
+"入库时间: 2026-04-25" @(20, 92) c=#8c8c8c size=11
+"当前库位: A-01-03" @(200, 92) c=#8c8c8c size=11
+"数量: 500件" @(350, 92) c=#595959 size=12
+```
+
+### 库存预警标签
+id: web-wh-stock-alert
+name: 库存预警标签
+description: 库存状态标签+数量
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("充足") @(10, 10) w=50 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+("正常") @(70, 10) w=50 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+("偏低") @(130, 10) w=50 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
+("告急") @(190, 10) w=50 h=22 bg=#fff2f0 c=#ff4d4f size=11 r=4
+("缺货") @(250, 10) w=50 h=22 bg=#ff4d4f c=#ffffff size=11 r=4
+```
+
+### 扫码输入框
+id: web-wh-scan-input
+name: 扫码输入框
+description: 条码/二维码输入+扫码按钮
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=400 h=40 bg=#ffffff s=1 r=6
+("") @(20, 16) w=280 h=28 bg=#f5f5f5 s=1 r=4
+"请扫描或输入条码..." @(28, 22) c=#bfbfbf size=12
+("扫码") @(310, 16) w=70 h=28 bg=#1890ff c=#ffffff size=12 r=4
+```
+
+### 仓库平面图
+id: web-wh-warehouse-map
+name: 仓库平面图
+description: 仓库区域俯视图
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=500 h=300 bg=#fafafa s=1 r=6
+("收货区") @(20, 20) w=100 h=60 bg=#e6f7ff s=1 r=4
+("质检区") @(130, 20) w=100 h=60 bg=#fff7e6 s=1 r=4
+("暂存区") @(240, 20) w=100 h=60 bg=#f6ffed s=1 r=4
+("退货区") @(350, 20) w=140 h=60 bg=#fff2f0 s=1 r=4
+("A区-货架") @(20, 100) w=220 h=80 bg=#ffffff s=1 r=4
+("B区-货架") @(250, 100) w=220 h=80 bg=#ffffff s=1 r=4
+("C区-货架") @(20, 200) w=220 h=80 bg=#ffffff s=1 r=4
+("D区-货架") @(250, 200) w=220 h=80 bg=#ffffff s=1 r=4
+"通道" @(230, 120) c=#bfbfbf size=10
+"通道" @(230, 220) c=#bfbfbf size=10
+```
+
+### 货架标签
+id: web-wh-shelf-label
+name: 货架标签
+description: 货架编号+层数+使用率
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=120 h=80 bg=#ffffff s=1 r=6
+"A-01" @(20, 20) c=#1890ff size=16 bold=true
+"4层 / 6层" @(20, 42) c=#595959 size=11
+("") @(20, 60) w=80 h=6 bg=#f0f0f0 r=3
+("") @(20, 60) w=53 h=6 bg=#1890ff r=3
+"67%" @(105, 56) c=#1890ff size=10
+```
+
+### 入库明细行
+id: web-wh-inbound-row
+name: 入库明细行
+description: 商品+批次+数量+库位
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=600 h=40 bg=#ffffff s=1 r=4
+"SKU-10086" @(20, 20) c=#262626 size=12
+"蓝牙耳机Pro" @(110, 20) c=#595959 size=12
+"BH-0427-01" @(230, 20) c=#8c8c8c size=12
+"200" @(340, 20) c=#262626 size=12 bold=true
+"A-01-03" @(400, 20) c=#1890ff size=12
+("确认") @(470, 14) w=50 h=24 bg=#1890ff c=#ffffff size=11 r=4
+```
+
+### 拣货清单
+id: web-wh-pick-list
+name: 拣货清单
+description: 拣货单号+商品列表+进度
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=200 bg=#ffffff s=1 r=6
+"拣货单 PK-20260427-003" @(20, 20) c=#262626 size=13 bold=true
+("进行中") @(230, 16) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"进度: 3/5" @(20, 46) c=#8c8c8c size=11
+("") @(20, 64) w=310 h=6 bg=#f0f0f0 r=3
+("") @(20, 64) w=186 h=6 bg=#1890ff r=3
+"☑ SKU-1001 蓝牙耳机 ×50" @(20, 82) c=#52c41a size=12
+"☑ SKU-1002 充电线 ×200" @(20, 102) c=#52c41a size=12
+"☑ SKU-1003 手机壳 ×100" @(20, 122) c=#52c41a size=12
+"☐ SKU-1004 数据线 ×150" @(20, 142) c=#595959 size=12
+"☐ SKU-1005 保护膜 ×300" @(20, 162) c=#595959 size=12
+```
+
+### 盘点任务卡
+id: web-wh-stocktake-card
+name: 盘点任务卡
+description: 盘点单号+区域+状态+进度
+categoryId: web-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=140 bg=#ffffff s=1 r=6
+"PD-20260427-001" @(20, 20) c=#262626 size=13 bold=true
+("待盘点") @(210, 16) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
+"盘点区域: A区 1-4排" @(20, 46) c=#595959 size=12
+"计划数量: 1,200 件" @(20, 66) c=#595959 size=12
+("开始盘点") @(20, 96) w=80 h=30 bg=#1890ff c=#ffffff size=12 r=4
+("查看详情") @(110, 96) w=80 h=30 bg=#ffffff c=#1890ff size=12 s=1 r=4
+```
+
+## Web-页面模板
+id: web-page-templates
+platform: web
+
+### 仓库看板
+id: web-wh-dashboard
+name: 仓库看板
+description: 仓库运营数据总览
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f0f2f5
+("") @(0, 0) w=1200 h=48 bg=#001529
+"仓储管理系统" @(20, 14) c=#ffffff size=16 bold=true
+("首页") @(200, 14) c=#ffffff size=14
+("入库") @(260, 14) c=#ffffffa6 size=14
+("出库") @(320, 14) c=#ffffffa6 size=14
+("库存") @(380, 14) c=#ffffffa6 size=14
+("盘点") @(440, 14) c=#ffffffa6 size=14
+("") @(20, 68) w=280 h=90 bg=#ffffff s=1 r=6
+"今日入库" @(30, 78) c=#8c8c8c size=12
+"1,286" @(30, 100) c=#1890ff size=28 bold=true
+"件" @(110, 112) c=#8c8c8c size=12
+"↑ 12%" @(200, 112) c=#52c41a size=12
+("") @(320, 68) w=280 h=90 bg=#ffffff s=1 r=6
+"今日出库" @(330, 78) c=#8c8c8c size=12
+"956" @(330, 100) c=#52c41a size=28 bold=true
+"件" @(395, 112) c=#8c8c8c size=12
+"↑ 8%" @(480, 112) c=#52c41a size=12
+("") @(620, 68) w=280 h=90 bg=#ffffff s=1 r=6
+"库存总量" @(630, 78) c=#8c8c8c size=12
+"45,680" @(630, 100) c=#262626 size=28 bold=true
+"件" @(730, 112) c=#8c8c8c size=12
+("") @(920, 68) w=260 h=90 bg=#ffffff s=1 r=6
+"库存预警" @(930, 78) c=#8c8c8c size=12
+"23" @(930, 100) c=#ff4d4f size=28 bold=true
+"项" @(970, 112) c=#8c8c8c size=12
+("") @(20, 178) w=580 h=300 bg=#ffffff s=1 r=6
+"出入库趋势" @(30, 188) c=#262626 size=14 bold=true
+("") @(30, 220) w=540 h=240 bg=#fafafa s=1 r=4
+("") @(620, 178) w=560 h=300 bg=#ffffff s=1 r=6
+"库位使用率" @(630, 188) c=#262626 size=14 bold=true
+("") @(630, 220) w=520 h=240 bg=#fafafa s=1 r=4
+("") @(20, 498) w=1160 h=280 bg=#ffffff s=1 r=6
+"最近入库单" @(30, 508) c=#262626 size=14 bold=true
+("查看全部") @(1060, 508) c=#1890ff size=12
+```
+
+### 入库单页
+id: web-wh-inbound-page
+name: 入库单页
+description: 入库单详情+商品明细
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f0f2f5
+("") @(0, 0) w=1200 h=48 bg=#001529
+"仓储管理系统" @(20, 14) c=#ffffff size=16 bold=true
+("") @(20, 68) w=1160 h=120 bg=#ffffff s=1 r=6
+"入库单 RK-20260427-001" @(30, 78) c=#262626 size=16 bold=true
+("待审核") @(250, 74) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
+"供应商: 华东材料厂" @(30, 108) c=#595959 size=12
+"入库类型: 采购入库" @(250, 108) c=#595959 size=12
+"创建时间: 2026-04-27 10:30" @(430, 108) c=#8c8c8c size=12
+"创建人: 张三" @(680, 108) c=#8c8c8c size=12
+("") @(20, 208) w=1160 h=350 bg=#ffffff s=1 r=6
+"商品明细" @(30, 218) c=#262626 size=14 bold=true
+("添加商品") @(1060, 214) w=80 h=28 bg=#1890ff c=#ffffff size=12 r=4
+"商品编码 | 商品名称 | 批次号 | 数量 | 库位 | 状态" @(30, 252) c=#8c8c8c size=11
+"SKU-1001 | 蓝牙耳机Pro | BH-0427 | 200 | A-01-03 | 已上架" @(30, 276) c=#262626 size=12
+"SKU-1002 | 充电线Type-C | BH-0427 | 500 | A-02-01 | 已上架" @(30, 300) c=#262626 size=12
+"SKU-1003 | 手机壳 | BH-0427 | 300 | B-01-02 | 待上架" @(30, 324) c=#262626 size=12
+("") @(20, 578) w=1160 h=60 bg=#ffffff s=1 r=6
+"合计: 1,000 件" @(30, 598) c=#262626 size=13 bold=true
+("提交审核") @(920, 590) w=100 h=32 bg=#1890ff c=#ffffff size=13 r=4
+("保存草稿") @(1030, 590) w=100 h=32 bg=#ffffff c=#1890ff size=13 s=1 r=4
+```
+
+### 出库单页
+id: web-wh-outbound-page
+name: 出库单页
+description: 出库单详情+拣货信息
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f0f2f5
+("") @(0, 0) w=1200 h=48 bg=#001529
+"仓储管理系统" @(20, 14) c=#ffffff size=16 bold=true
+("") @(20, 68) w=1160 h=120 bg=#ffffff s=1 r=6
+"出库单 CK-20260427-005" @(30, 78) c=#262626 size=16 bold=true
+("拣货中") @(250, 74) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"客户: 深圳电子科技" @(30, 108) c=#595959 size=12
+"出库类型: 销售出库" @(250, 108) c=#595959 size=12
+"创建时间: 2026-04-27 14:20" @(430, 108) c=#8c8c8c size=12
+"拣货人: 李四" @(680, 108) c=#8c8c8c size=12
+("") @(20, 208) w=1160 h=300 bg=#ffffff s=1 r=6
+"拣货明细" @(30, 218) c=#262626 size=14 bold=true
+"商品编码 | 商品名称 | 数量 | 库位 | 拣货状态" @(30, 252) c=#8c8c8c size=11
+"SKU-1001 | 蓝牙耳机Pro | 50 | A-01-03 | ☑ 已拣" @(30, 276) c=#262626 size=12
+"SKU-1002 | 充电线Type-C | 200 | A-02-01 | ☑ 已拣" @(30, 300) c=#262626 size=12
+"SKU-1003 | 手机壳 | 100 | B-01-02 | ☐ 待拣" @(30, 324) c=#595959 size=12
+("") @(20, 528) w=1160 h=60 bg=#ffffff s=1 r=6
+"合计: 350 件 | 已拣: 250 件" @(30, 548) c=#262626 size=13 bold=true
+("确认出库") @(920, 540) w=100 h=32 bg=#1890ff c=#ffffff size=13 r=4
+("打印拣货单") @(1030, 540) w=100 h=32 bg=#ffffff c=#1890ff size=13 s=1 r=4
+```
+
+### 库存查询页
+id: web-wh-stock-query-page
+name: 库存查询页
+description: 库存搜索+列表+详情
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f0f2f5
+("") @(0, 0) w=1200 h=48 bg=#001529
+"仓储管理系统" @(20, 14) c=#ffffff size=16 bold=true
+("") @(20, 68) w=1160 h=50 bg=#ffffff s=1 r=6
+("") @(30, 78) w=300 h=30 bg=#f5f5f5 s=1 r=4
+"搜索商品编码/名称..." @(38, 84) c=#bfbfbf size=12
+("搜索") @(340, 78) w=60 h=30 bg=#1890ff c=#ffffff size=12 r=4
+("筛选") @(410, 78) w=60 h=30 bg=#ffffff c=#595959 size=12 s=1 r=4
+("导出") @(480, 78) w=60 h=30 bg=#ffffff c=#595959 size=12 s=1 r=4
+("") @(20, 138) w=1160 h=640 bg=#ffffff s=1 r=6
+"商品编码 | 商品名称 | 仓库 | 库位 | 批次 | 数量 | 状态" @(30, 148) c=#8c8c8c size=11
+"SKU-1001 | 蓝牙耳机Pro | 主仓 | A-01-03 | BH-0427 | 200 | 充足" @(30, 172) c=#262626 size=12
+"SKU-1002 | 充电线Type-C | 主仓 | A-02-01 | BH-0426 | 50 | 偏低" @(30, 196) c=#262626 size=12
+"SKU-1003 | 手机壳 | 主仓 | B-01-02 | BH-0425 | 5 | 告急" @(30, 220) c=#262626 size=12
+"SKU-1004 | 数据线 | 副仓 | C-03-01 | BH-0424 | 0 | 缺货" @(30, 244) c=#262626 size=12
+```
+
+### 盘点管理页
+id: web-wh-stocktake-page
+name: 盘点管理页
+description: 盘点任务列表+创建
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f0f2f5
+("") @(0, 0) w=1200 h=48 bg=#001529
+"仓储管理系统" @(20, 14) c=#ffffff size=16 bold=true
+("") @(20, 68) w=1160 h=50 bg=#ffffff s=1 r=6
+"盘点管理" @(30, 82) c=#262626 size=16 bold=true
+("新建盘点") @(1060, 78) w=100 h=30 bg=#1890ff c=#ffffff size=12 r=4
+("") @(20, 138) w=380 h=120 bg=#ffffff s=1 r=6
+"PD-20260427-001" @(30, 148) c=#262626 size=13 bold=true
+("待盘点") @(280, 144) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
+"区域: A区 1-4排" @(30, 174) c=#595959 size=12
+"计划: 1,200件" @(30, 194) c=#595959 size=12
+("开始") @(280, 200) w=60 h=26 bg=#1890ff c=#ffffff size=11 r=4
+("") @(420, 138) w=380 h=120 bg=#ffffff s=1 r=6
+"PD-20260426-003" @(430, 148) c=#262626 size=13 bold=true
+("进行中") @(680, 144) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"区域: B区 1-6排" @(430, 174) c=#595959 size=12
+"进度: 560/800件" @(430, 194) c=#595959 size=12
+("") @(820, 138) w=380 h=120 bg=#ffffff s=1 r=6
+"PD-20260425-002" @(830, 148) c=#262626 size=13 bold=true
+("已完成") @(1080, 144) w=60 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+"区域: C区 全部" @(830, 174) c=#595959 size=12
+"差异: 3件" @(830, 194) c=#595959 size=12
+```
+
+### 库位管理页
+id: web-wh-location-page
+name: 库位管理页
+description: 库位列表+可视化+编辑
+categoryId: web-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=1200 h=800 bg=#f0f2f5
+("") @(0, 0) w=1200 h=48 bg=#001529
+"仓储管理系统" @(20, 14) c=#ffffff size=16 bold=true
+("") @(20, 68) w=760 h=710 bg=#ffffff s=1 r=6
+"库位可视化" @(30, 78) c=#262626 size=14 bold=true
+("A区") @(30, 108) w=60 h=26 bg=#e6f7ff c=#1890ff size=12 r=4
+("B区") @(100, 108) w=60 h=26 bg=#ffffff c=#595959 size=12 s=1 r=4
+("C区") @(170, 108) w=60 h=26 bg=#ffffff c=#595959 size=12 s=1 r=4
+("") @(30, 144) w=720 h=620 bg=#fafafa s=1 r=4
+("") @(800, 68) w=380 h=710 bg=#ffffff s=1 r=6
+"库位详情" @(810, 78) c=#262626 size=14 bold=true
+"A-01-03" @(810, 108) c=#1890ff size=18 bold=true
+("占用") @(900, 112) w=50 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+"货架: A区01号" @(810, 142) c=#595959 size=12
+"层数: 第3层" @(810, 162) c=#595959 size=12
+"当前商品: 蓝牙耳机Pro" @(810, 192) c=#262626 size=12
+"数量: 200件" @(810, 212) c=#262626 size=12
+("编辑") @(810, 248) w=80 h=30 bg=#1890ff c=#ffffff size=12 r=4
+```
+
+## Mobile-行业组件
+id: mobile-industry-components
+platform: mobile
+
+### 扫码组件
+id: mob-wh-scan
+name: 扫码组件
+description: 相机扫码+手动输入
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=200 bg=#000000 r=12
+("") @(75, 30) w=200 h=160 bg=#00000000 s=2 c=#1890ff r=0
+("") @(75, 30) w=20 h=20 bg=#00000000 s=2 c=#1890ff r=0
+("") @(255, 30) w=20 h=20 bg=#00000000 s=2 c=#1890ff r=0
+("") @(75, 170) w=20 h=20 bg=#00000000 s=2 c=#1890ff r=0
+("") @(255, 170) w=20 h=20 bg=#00000000 s=2 c=#1890ff r=0
+"将条码放入框内" @(120, 210) c=#ffffff80 size=12
+("手动输入") @(110, 240) w=130 h=36 bg=#ffffff20 c=#ffffff size=13 r=18
+```
+
+### 库位导航
+id: mob-wh-location-nav
+name: 库位导航
+description: 当前位置+目标库位+路径
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=120 bg=#ffffff s=1 r=12
+"当前位置: A区入口" @(20, 24) c=#8c8c8c size=11
+"目标库位" @(20, 46) c=#262626 size=14 bold=true
+"A-03-05" @(110, 46) c=#1890ff size=14 bold=true
+"距离: 约15米" @(20, 70) c=#595959 size=12
+("导航") @(260, 56) w=70 h=32 bg=#1890ff c=#ffffff size=12 r=16
+"→ 直行10米 → 左转 → 右侧第3排" @(20, 96) c=#8c8c8c size=11
+```
+
+### 快捷入库/出库
+id: mob-wh-quick-io
+name: 快捷入库/出库
+description: 扫码后快速入库/出库操作
+categoryId: mobile-industry-components
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=350 h=160 bg=#ffffff s=1 r=12
+"SKU-1001 蓝牙耳机Pro" @(20, 24) c=#262626 size=14 bold=true
+"批次: BH-0427-01" @(20, 48) c=#8c8c8c size=12
+"数量" @(20, 76) c=#595959 size=12
+("-") @(70, 70) w=32 h=32 bg=#f5f5f5 c=#262626 size=16 r=6
+("50") @(110, 70) w=80 h=32 bg=#f5f5f5 c=#262626 size=14 r=6
+("+") @(198, 70) w=32 h=32 bg=#f5f5f5 c=#262626 size=16 r=6
+("确认入库") @(20, 118) w=150 h=36 bg=#1890ff c=#ffffff size=14 r=18
+("确认出库") @(180, 118) w=150 h=36 bg=#ff4d4f c=#ffffff size=14 r=18
+```
+
+## Mobile-页面模板
+id: mobile-page-templates
+platform: mobile
+
+### 扫码入库
+id: mob-wh-scan-inbound
+name: 扫码入库
+description: 扫码→确认→入库
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f5f5
+("") @(0, 0) w=375 h=44 bg=#ffffff
+("←") @(16, 12) c=#262626 size=18
+"扫码入库" @(150, 12) c=#262626 size=16 bold=true
+("") @(0, 44) w=375 h=250 bg=#000000
+("") @(87, 64) w=200 h=180 bg=#00000000 s=2 c=#1890ff r=0
+("") @(0, 304) w=375 h=80 bg=#ffffff s=1 r=0
+("手动输入条码") @(20, 314) w=335 h=36 bg=#f5f5f5 c=#8c8c8c size=13 r=18
+("") @(0, 394) w=375 h=120 bg=#ffffff s=1 r=0
+"最近入库" @(20, 404) c=#262626 size=14 bold=true
+"SKU-1001 蓝牙耳机Pro ×200" @(20, 430) c=#595959 size=12
+"SKU-1002 充电线 ×500" @(20, 454) c=#595959 size=12
+("") @(0, 730) w=375 h=82 bg=#ffffff s=1 r=0
+("确认入库") @(20, 746) w=335 h=44 bg=#1890ff c=#ffffff size=16 r=22
+```
+
+### 出库确认
+id: mob-wh-outbound-confirm
+name: 出库确认
+description: 出库单详情+确认出库
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f5f5
+("") @(0, 0) w=375 h=44 bg=#ffffff
+("←") @(16, 12) c=#262626 size=18
+"出库确认" @(150, 12) c=#262626 size=16 bold=true
+("") @(0, 44) w=375 h=100 bg=#ffffff s=1 r=0
+"CK-20260427-005" @(20, 58) c=#262626 size=14 bold=true
+("拣货中") @(230, 54) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"客户: 深圳电子科技" @(20, 84) c=#595959 size=12
+"出库类型: 销售出库" @(200, 84) c=#8c8c8c size=12
+("") @(0, 154) w=375 h=200 bg=#ffffff s=1 r=0
+"拣货明细" @(20, 164) c=#262626 size=14 bold=true
+"☑ 蓝牙耳机Pro ×50" @(20, 190) c=#52c41a size=13
+"☑ 充电线Type-C ×200" @(20, 214) c=#52c41a size=13
+"☐ 手机壳 ×100" @(20, 238) c=#595959 size=13
+"☐ 数据线 ×150" @(20, 262) c=#595959 size=13
+("") @(0, 364) w=375 h=80 bg=#ffffff s=1 r=0
+"合计: 500件 | 已拣: 250件" @(20, 384) c=#262626 size=13 bold=true
+("") @(0, 730) w=375 h=82 bg=#ffffff s=1 r=0
+("确认出库") @(20, 746) w=335 h=44 bg=#ff4d4f c=#ffffff size=16 r=22
+```
+
+### 库存查询
+id: mob-wh-stock-query
+name: 库存查询
+description: 搜索+库存列表
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f5f5
+("") @(0, 0) w=375 h=44 bg=#ffffff
+("←") @(16, 12) c=#262626 size=18
+"库存查询" @(150, 12) c=#262626 size=16 bold=true
+("") @(0, 44) w=375 h=50 bg=#ffffff s=1 r=0
+("") @(16, 52) w=343 h=34 bg=#f5f5f5 c=#8c8c8c size=13 r=17
+"搜索商品编码/名称..." @(30, 60) c=#bfbfbf size=13
+("") @(0, 104) w=375 h=80 bg=#ffffff s=1 r=0
+"SKU-1001 蓝牙耳机Pro" @(20, 114) c=#262626 size=14
+"A-01-03 | 200件" @(20, 138) c=#8c8c8c size=12
+("充足") @(300, 118) w=50 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+("") @(0, 194) w=375 h=80 bg=#ffffff s=1 r=0
+"SKU-1002 充电线Type-C" @(20, 204) c=#262626 size=14
+"A-02-01 | 50件" @(20, 228) c=#8c8c8c size=12
+("偏低") @(300, 208) w=50 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
+("") @(0, 284) w=375 h=80 bg=#ffffff s=1 r=0
+"SKU-1003 手机壳" @(20, 294) c=#262626 size=14
+"B-01-02 | 5件" @(20, 318) c=#8c8c8c size=12
+("告急") @(300, 298) w=50 h=22 bg=#fff2f0 c=#ff4d4f size=11 r=4
+```
+
+### 盘点页
+id: mob-wh-stocktake
+name: 盘点页
+description: 盘点任务+录入
+categoryId: mobile-page-templates
+createdAt: 2026-04-27T00:00:00Z
+updatedAt: 2026-04-27T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=375 h=812 bg=#f5f5f5
+("") @(0, 0) w=375 h=44 bg=#ffffff
+("←") @(16, 12) c=#262626 size=18
+"盘点" @(165, 12) c=#262626 size=16 bold=true
+("") @(0, 44) w=375 h=80 bg=#ffffff s=1 r=0
+"PD-20260427-001 A区" @(20, 58) c=#262626 size=14 bold=true
+("进行中") @(280, 54) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"进度: 560/1,200" @(20, 82) c=#8c8c8c size=12
+("") @(20, 102) w=335 h=6 bg=#f0f0f0 r=3
+("") @(20, 102) w=156 h=6 bg=#1890ff r=3
+("") @(0, 134) w=375 h=100 bg=#ffffff s=1 r=0
+"当前库位: A-01-03" @(20, 148) c=#262626 size=14 bold=true
+"系统数量: 200件" @(20, 172) c=#595959 size=13
+"实盘数量" @(20, 196) c=#595959 size=12
+("200") @(100, 190) w=120 h=32 bg=#f5f5f5 c=#262626 size=14 r=6
+("") @(0, 244) w=375 h=60 bg=#ffffff s=1 r=0
+("扫码录入") @(20, 254) w=160 h=40 bg=#1890ff c=#ffffff size=14 r=20
+("手动录入") @(195, 254) w=160 h=40 bg=#ffffff c=#1890ff size=14 s=1 r=20
+("") @(0, 730) w=375 h=82 bg=#ffffff s=1 r=0
+("提交盘点") @(20, 746) w=335 h=44 bg=#1890ff c=#ffffff size=16 r=22
+```

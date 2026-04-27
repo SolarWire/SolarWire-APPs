@@ -187,7 +187,7 @@ interface PropertyPanelProps {
 }
 
 function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Element {
-  const { selectedElements } = useSolarWireStore();
+  const selectedElements = useSolarWireStore(s => s.selectedElements);
   const { content, setContent } = useEditorStore();
   const { theme } = useAppStore();
 
@@ -227,7 +227,6 @@ function PropertyPanel({ externalContent }: PropertyPanelProps): React.JSX.Eleme
 
     const handleGoToError = () => {
       // This would need to be implemented with Monaco editor instance
-      console.log('Go to error line:', errorLine);
       // In a real implementation, we would use the editor instance to set cursor position
     };
 

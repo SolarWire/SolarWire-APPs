@@ -203,20 +203,14 @@ export const useFileStore = create<FileState>()((set, get) => ({
       const isSnippet = currentSnippet && currentSnippet.type === 'snippet';
       const hasSnippetIndex = currentSnippet && currentSnippet.snippetIndex !== undefined;
       
-      console.log('saveFile:', { isSnippet, hasSnippetIndex, currentSnippet });
-      
       // 如果当前正在编辑的是一个 snippet，就只替换对应的代码块
       if (isSnippet && hasSnippetIndex) {
-        // 读取原始的 md 文件内容
         const originalContent = await readFile(selectedFile.path);
-        console.log('Original content length:', originalContent.length);
-        // 替换对应的 solarwire 代码块
         contentToSave = replaceSolarWireSnippetInMarkdown(
           originalContent,
           currentSnippet.snippetIndex ?? 0,
           editorState.content
         );
-        console.log('Modified content length:', contentToSave.length);
       }
       
       await writeFile(selectedFile.path, contentToSave);

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { ComponentLibrary, Component, ComponentCategory } from '../../shared/types/component';
-import { componentLibraryManager, LibraryLoadProgress, DropTarget } from '../services/ComponentLibraryManager';
+import { ComponentLibrary, Component, ComponentCategory, makeNodeId, parseNodeId, makeUncategorizedKey, isPresetLibrary } from '../../shared/types/component';
+import { componentLibraryManager, LibraryLoadProgress, DropTarget, LibraryConflictError } from '../services/ComponentLibraryManager';
 
 export interface FailedComponentInfo {
   libraryId: string;
@@ -29,54 +29,52 @@ interface ComponentLibraryStore {
 
   libraries: ComponentLibrary[];
   activeLibraryId: string | null;
-  
+
+  selectedNodeId: string | null;
+  selectedNodeType: TreeNodeType | null;
   selectedLibraryId: string | null;
   selectedComponentId: string | null;
   selectedCategoryId: string | null;
-  selectedNodeId: string | null;
-  selectedNodeType: TreeNodeType | null;
-  
+
   expandedNodes: Set<string>;
-  
+
   searchQuery: string;
   activeCategoryId: string | null;
-  
+
   isLibraryLoading: boolean;
-  
+
   initialize: () => Promise<void>;
-  
+
   setActiveLibrary: (libraryId: string | null) => void;
-  setSelectedLibrary: (libraryId: string | null) => void;
-  setSelectedComponent: (componentId: string | null) => void;
-  setSelectedCategory: (categoryId: string | null) => void;
   setSelectedNode: (nodeId: string | null, nodeType: TreeNodeType | null, libraryId: string | null) => void;
   toggleNode: (nodeId: string) => void;
   setSearchQuery: (query: string) => void;
   setActiveCategoryId: (categoryId: string | null) => void;
-  
+
   addComponent: (libraryId: string, component: Component) => Promise<void>;
-  updateComponent: (libraryId: string, componentId: string, updates: Partial<Component>) => Promise<void>;
-  deleteComponent: (libraryId: string, componentId: string) => Promise<void>;
+  updateComponent: (libraryId: string, componentInternalId: string, updates: Partial<Component>) => Promise<void>;
+  deleteComponent: (libraryId: string, componentInternalId: string) => Promise<void>;
   createComponent: (libraryId: string, categoryId: string | null, component: Partial<Component>) => Promise<Component>;
-  
+
   addLibrary: (library: ComponentLibrary) => Promise<void>;
   removeLibrary: (libraryId: string) => Promise<void>;
   updateLibrary: (libraryId: string, updates: Partial<ComponentLibrary>) => Promise<void>;
   createLibrary: (metadata: { name: string; id?: string; description?: string; version?: string; author?: string }) => Promise<ComponentLibrary>;
   exportLibrary: (libraryId: string) => void;
   importLibrary: (file: File) => Promise<void>;
-  
+
   createCategory: (libraryId: string, category: { name: string; id?: string }) => Promise<ComponentCategory>;
   updateCategory: (libraryId: string, categoryId: string, updates: Partial<ComponentCategory>) => Promise<void>;
   deleteCategory: (libraryId: string, categoryId: string) => Promise<void>;
-  
+
   moveCategory: (sourceLibraryId: string, categoryId: string, targetLibraryId: string, targetCategoryId: string | null, position: 'before' | 'after' | 'inside') => void;
-  moveComponent: (sourceLibraryId: string, componentId: string, targetLibraryId: string, targetCategoryId: string | null, targetComponentId: string, position: 'before' | 'after') => void;
-  
-  getComponentThumbnail: (libraryId: string, componentId: string) => string | null;
-  setComponentThumbnail: (libraryId: string, componentId: string, thumbnail: string) => void;
-  
-  openManagerAtComponent: (libraryId: string, componentId: string) => void;
+  moveComponent: (sourceLibraryId: string, componentInternalId: string, targetLibraryId: string, targetCategoryId: string | null, targetComponentInternalId: string, position: 'before' | 'after') => void;
+  moveLibrary: (sourceLibraryId: string, targetLibraryId: string, position: 'before' | 'after') => void;
+
+  getComponentThumbnail: (libraryId: string, componentInternalId: string) => string | null;
+  setComponentThumbnail: (libraryId: string, componentInternalId: string, thumbnail: string) => void;
+
+  openManagerAtComponent: (libraryId: string, componentInternalId: string) => void;
 }
 
 export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get) => ({
@@ -84,11 +82,11 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   showComponentManager: false,
   libraries: [],
   activeLibraryId: null,
+  selectedNodeId: null,
+  selectedNodeType: null,
   selectedLibraryId: null,
   selectedComponentId: null,
   selectedCategoryId: null,
-  selectedNodeId: null,
-  selectedNodeType: null,
   expandedNodes: new Set(),
   searchQuery: '',
   activeCategoryId: null,
@@ -99,25 +97,37 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
 
   initialize: async () => {
     await componentLibraryManager.initialize();
-    set({ 
-      libraries: componentLibraryManager.getLibraries(), 
+    set({
+      libraries: componentLibraryManager.getLibraries(),
       activeLibraryId: componentLibraryManager.getLibraries()[0]?.metadata.id || null,
     });
   },
 
   setActiveLibrary: (libraryId) => set({ activeLibraryId: libraryId }),
-  setSelectedLibrary: (libraryId) => set({ selectedLibraryId: libraryId }),
-  setSelectedComponent: (componentId) => set({ selectedComponentId: componentId }),
-  setSelectedCategory: (categoryId) => set({ selectedCategoryId: categoryId }),
-  
-  setSelectedNode: (nodeId, nodeType, libraryId) => set({ 
-    selectedNodeId: nodeId, 
-    selectedNodeType: nodeType,
-    selectedLibraryId: nodeType === 'library' ? nodeId : libraryId,
-    selectedComponentId: nodeType === 'component' ? nodeId : null,
-    selectedCategoryId: nodeType === 'category' ? nodeId : null,
-  }),
-  
+
+  setSelectedNode: (nodeId, nodeType, libraryId) => {
+    if (!nodeId || !nodeType) {
+      set({
+        selectedNodeId: null,
+        selectedNodeType: null,
+        selectedLibraryId: null,
+        selectedComponentId: null,
+        selectedCategoryId: null,
+      });
+      return;
+    }
+
+    const namespacedId = makeNodeId(nodeType, nodeId, libraryId || '');
+
+    set({
+      selectedNodeId: namespacedId,
+      selectedNodeType: nodeType,
+      selectedLibraryId: nodeType === 'library' ? nodeId : libraryId,
+      selectedComponentId: nodeType === 'component' ? nodeId : null,
+      selectedCategoryId: nodeType === 'category' ? nodeId : null,
+    });
+  },
+
   toggleNode: (nodeId) => set((state) => {
     const newExpanded = new Set(state.expandedNodes);
     if (newExpanded.has(nodeId)) {
@@ -127,7 +137,7 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     }
     return { expandedNodes: newExpanded };
   }),
-  
+
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setActiveCategoryId: (activeCategoryId) => set({ activeCategoryId }),
 
@@ -136,13 +146,13 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     set({ libraries: componentLibraryManager.getLibraries() });
   },
 
-  updateComponent: async (libraryId, componentId, updates) => {
-    await componentLibraryManager.updateComponent(libraryId, componentId, updates);
+  updateComponent: async (libraryId, componentInternalId, updates) => {
+    await componentLibraryManager.updateComponent(libraryId, componentInternalId, updates);
     set({ libraries: componentLibraryManager.getLibraries() });
   },
 
-  deleteComponent: async (libraryId, componentId) => {
-    await componentLibraryManager.deleteComponent(libraryId, componentId);
+  deleteComponent: async (libraryId, componentInternalId) => {
+    await componentLibraryManager.deleteComponent(libraryId, componentInternalId);
     set({ libraries: componentLibraryManager.getLibraries() });
   },
 
@@ -181,7 +191,7 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     set({ isLibraryLoading: true });
     try {
       await componentLibraryManager.importLibrary(file);
-      set({ 
+      set({
         libraries: componentLibraryManager.getLibraries(),
         isLibraryLoading: false,
       });
@@ -190,59 +200,79 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
       throw error;
     }
   },
-  
+
   createCategory: async (libraryId, category) => {
     const newCategory = await componentLibraryManager.createCategory(libraryId, category);
     set({ libraries: componentLibraryManager.getLibraries() });
     return newCategory;
   },
-  
+
   updateCategory: async (libraryId, categoryId, updates) => {
     await componentLibraryManager.updateCategory(libraryId, categoryId, updates);
     set({ libraries: componentLibraryManager.getLibraries() });
   },
-  
+
   deleteCategory: async (libraryId, categoryId) => {
     await componentLibraryManager.deleteCategory(libraryId, categoryId);
     set({ libraries: componentLibraryManager.getLibraries() });
   },
-  
+
   moveCategory: async (sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position) => {
-    if (sourceLibraryId === targetLibraryId) {
-      if (targetCategoryId) {
-        await componentLibraryManager.moveCategoryInList(sourceLibraryId, categoryId, targetCategoryId, position as 'before' | 'after');
+    try {
+      if (sourceLibraryId === targetLibraryId) {
+        if (targetCategoryId) {
+          await componentLibraryManager.moveCategoryInList(sourceLibraryId, categoryId, targetCategoryId, position as 'before' | 'after');
+        } else {
+          await componentLibraryManager.moveCategoryToEnd(sourceLibraryId, categoryId, position as 'before' | 'after');
+        }
       } else {
-        await componentLibraryManager.moveCategoryToEnd(sourceLibraryId, categoryId, position as 'before' | 'after');
+        await componentLibraryManager.moveCategoryToLibrary(sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position);
       }
-    } else {
-      await componentLibraryManager.moveCategoryToLibrary(sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position);
+      set({ libraries: componentLibraryManager.getLibraries() });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('预设组件库不可修改')) {
+        alert(error.message);
+      }
+      throw error;
     }
+  },
+
+  moveComponent: async (sourceLibraryId, componentInternalId, targetLibraryId, targetCategoryId, targetComponentInternalId, position) => {
+    try {
+      if (sourceLibraryId === targetLibraryId) {
+        await componentLibraryManager.moveComponentInCategory(sourceLibraryId, componentInternalId, targetCategoryId, targetComponentInternalId, position);
+      } else {
+        await componentLibraryManager.moveComponentToCategory(sourceLibraryId, componentInternalId, targetLibraryId, targetCategoryId, targetComponentInternalId, position);
+      }
+      set({ libraries: componentLibraryManager.getLibraries() });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('预设组件库不可修改')) {
+        alert(error.message);
+      }
+      throw error;
+    }
+  },
+
+  moveLibrary: async (sourceLibraryId, targetLibraryId, position) => {
+    await componentLibraryManager.moveLibraryInList(sourceLibraryId, targetLibraryId, position);
     set({ libraries: componentLibraryManager.getLibraries() });
   },
-  
-  moveComponent: async (sourceLibraryId, componentId, targetLibraryId, targetCategoryId, targetComponentId, position) => {
-    if (sourceLibraryId === targetLibraryId) {
-      await componentLibraryManager.moveComponentInCategory(sourceLibraryId, componentId, targetCategoryId, targetComponentId, position);
-    } else {
-      await componentLibraryManager.moveComponentToCategory(sourceLibraryId, componentId, targetLibraryId, targetCategoryId, targetComponentId, position);
-    }
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
-  
+
   getComponentThumbnail: (libraryId, componentId) => {
     return componentLibraryManager.getComponentThumbnail(libraryId, componentId);
   },
-  
+
   setComponentThumbnail: (libraryId, componentId, thumbnail) => {
     componentLibraryManager.setComponentThumbnail(libraryId, componentId, thumbnail);
   },
-  
-  openManagerAtComponent: (libraryId, componentId) => {
-    set({ 
+
+  openManagerAtComponent: (libraryId, componentInternalId) => {
+    set({
       selectedLibraryId: libraryId,
-      selectedComponentId: componentId,
-      selectedNodeId: componentId,
+      selectedComponentId: componentInternalId,
+      selectedNodeId: makeNodeId('component', componentInternalId, libraryId),
       selectedNodeType: 'component',
+      selectedCategoryId: null,
       showComponentManager: true,
     });
   },

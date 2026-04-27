@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import SolarWirePreview from './SolarWirePreview';
 import PropertyPanel from './PropertyPanel';
 import ComponentLibrary from './ComponentLibrary';
@@ -111,7 +111,19 @@ function SolarWireVisualEditor({
   const setShowLayerPanel = onShowLayerPanelChange || setInternalShowLayerPanel;
   const setShowComponentLibrary = onShowComponentLibraryChange || setInternalShowComponentLibrary;
 
-  const { selectedElements, selectionTool, isPanMode, setSelectionTool, setIsPanMode, showNotes, setShowNotes, zoomLevel, setZoomLevel, isSpacePressed, setIsSpacePressed, setSelectedElements, selectElements } = useSolarWireStore();
+  const selectedElements = useSolarWireStore(s => s.selectedElements);
+  const selectionTool = useSolarWireStore(s => s.selectionTool);
+  const isPanMode = useSolarWireStore(s => s.isPanMode);
+  const setSelectionTool = useSolarWireStore(s => s.setSelectionTool);
+  const setIsPanMode = useSolarWireStore(s => s.setIsPanMode);
+  const showNotes = useSolarWireStore(s => s.showNotes);
+  const setShowNotes = useSolarWireStore(s => s.setShowNotes);
+  const zoomLevel = useSolarWireStore(s => s.zoomLevel);
+  const setZoomLevel = useSolarWireStore(s => s.setZoomLevel);
+  const isSpacePressed = useSolarWireStore(s => s.isSpacePressed);
+  const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
+  const setSelectedElements = useSolarWireStore(s => s.setSelectedElements);
+  const selectElements = useSolarWireStore(s => s.selectElements);
   const { showGrid, gridSize, snapToGrid, setShowGrid, setGridSize, setSnapToGrid } = useSettingsStore();
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
@@ -365,7 +377,7 @@ function SolarWireVisualEditor({
     };
   }, [contextMenu, closeContextMenu]);
 
-  const toolbarState = {
+  const toolbarState = useMemo(() => ({
     showLayerPanel,
     showComponentLibrary,
     showNotes,
@@ -375,9 +387,9 @@ function SolarWireVisualEditor({
     isSpacePressed,
     selectionTool,
     selectedCount: selectedElements.length
-  };
+  }), [showLayerPanel, showComponentLibrary, showNotes, snapToGrid, zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedElements.length]);
 
-  const toolbarCallbacks = {
+  const toolbarCallbacks = useMemo(() => ({
     onToggleLayerPanel: () => setShowLayerPanel(!showLayerPanel),
     onToggleComponentLibrary: () => setShowComponentLibrary(!showComponentLibrary),
     onToggleNotes: () => setShowNotes(!showNotes),
@@ -392,7 +404,7 @@ function SolarWireVisualEditor({
     onBringToFront: handleBringToFront,
     onAlign: handleAlign,
     onExportSvg: handleExportSvg
-  };
+  }), [showLayerPanel, showComponentLibrary, showNotes, snapToGrid, isPanMode, handleZoomIn, handleZoomOut, handleBringToFront, handleAlign, handleExportSvg]);
 
   return (
     <div className="solarwire-visual-editor">

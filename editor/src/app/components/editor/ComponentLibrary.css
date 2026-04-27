@@ -328,11 +328,45 @@
   font-size: 12px;
 }
 
+.component-library-categories-wrapper {
+  position: relative;
+}
+
 .component-library-categories {
   display: flex;
   gap: 4px;
   padding: 8px;
+  padding-bottom: 24px;
   flex-wrap: wrap;
+  max-height: 94px;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.component-library-categories.expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.categories-expand-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  padding: 4px;
+  background: var(--bg-secondary);
+  border: none;
+  border-top: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.categories-expand-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
 }
 
 .component-library-category-btn {
