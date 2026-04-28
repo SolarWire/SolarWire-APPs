@@ -1,0 +1,583 @@
+import React, { useRef, useCallback, useEffect } from 'react';
+import Editor from '@monaco-editor/react';
+import { useAppStore } from '../../stores/appStore';
+import './MonacoEditor.css';
+
+// 全局保存的滚动位置记录
+let globalSavedScrollPosition: Record<string, number> = {};
+
+/**
+ * Monaco 编辑器组件属性接口
+ */
+interface MonacoEditorProps {
+  /** 编辑器语言 */
+  language: string;
+  /** 编辑器内容 */
+  value: string;
+  /** 内容变化回调 */
+  onChange: (value: string) => void;
+  /** 编辑器高度 */
+  height?: string;
+  /** 高亮行号列表 */
+  highlightLines?: number[];
+  /** 错误行号列表 */
+  errorLines?: number[];
+  /** 滚动触发器（用于触发滚动操作） */
+  scrollTrigger?: number;
+  /** 高亮触发器（用于触发高亮更新） */
+  highlightTrigger?: number;
+  /** 是否自动滚动 */
+  autoScroll?: boolean;
+  /** 是否保持滚动位置 */
+  preserveScrollPosition?: boolean;
+  /** 滚动位置键（用于区分不同的编辑器实例） */
+  scrollKey?: string;
+}
+
+/**
+ * Monaco 编辑器组件
+ * 封装 Monaco Editor，提供 SolarWire 语言支持
+ */
+function MonacoEditor({
+  language,
+  value,
+  onChange,
+  height = '100%',
+  highlightLines = [],
+  errorLines = [],
+  scrollTrigger,
+  highlightTrigger,
+  preserveScrollPosition = false,
+  scrollKey
+}: MonacoEditorProps): React.ReactElement {
+  // 主题
+  const { theme } = useAppStore();
+  // Monaco 实例引用
+  const monacoRef = useRef<any>(null);
+  // 编辑器实例引用
+  const editorRef = useRef<any>(null);
+  // 装饰器引用
+  const decorationsRef = useRef<string[]>([]);
+  // 上次滚动触发器
+  const prevScrollTriggerRef = useRef<number>(0);
+  // 上次高亮触发器
+  const prevHighlightTriggerRef = useRef<number>(0);
+  // 高亮行号引用
+  const highlightLinesRef = useRef<number[]>(highlightLines);
+
+  // 保存待应用的高亮/滚动数据，用于编辑器挂载后应用
+  const pendingHighlightRef = useRef<{lines: number[], trigger: number} | null>(null);
+  const pendingScrollRef = useRef<{scrollTrigger: number, line: number} | null>(null);
+
+  // 始终同步 highlightLines 到 ref，确保滚动时使用最新值
+  highlightLinesRef.current = highlightLines;
+
+  /**
+   * 编辑器挂载完成回调
+   */
+  const handleEditorDidMount = useCallback((editor: any, monaco: any) => {
+    editorRef.current = editor;
+    monacoRef.current = monaco;
+    
+    if (preserveScrollPosition && scrollKey) {
+      const savedPosition = globalSavedScrollPosition[scrollKey];
+      if (savedPosition && savedPosition > 0) {
+        editor.revealLine(savedPosition);
+      }
+      
+      const scrollListener = () => {
+        const topLine = editor.getScrollTop();
+        const lineHeight = editor.getOption(monaco.editor.EditorOption.lineHeight);
+        if (lineHeight > 0) {
+          globalSavedScrollPosition[scrollKey] = Math.round(topLine / lineHeight) + 1;
+        }
+      };
+      editor.onDidScrollChange(scrollListener);
+    }
+  }, [preserveScrollPosition, scrollKey]);
+
+  // Effect 1: 更新高亮装饰（包括错误行高亮）
+  useEffect(() => {
+    if (!editorRef.current) {
+      pendingHighlightRef.current = { lines: highlightLines, trigger: highlightTrigger || 0 };
+      return;
+    }
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+
+    let newDecorations: any[] = [];
+    
+    // 添加普通高亮行
+    if (highlightLines.length > 0) {
+      newDecorations = highlightLines.map(line => ({
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight-line',
+          inlineClassName: 'highlight-line-inline',
+          glyphMarginClassName: 'highlight-line-glyph'
+        }
+      }));
+    }
+    
+    // 添加错误行高亮
+    if (errorLines && errorLines.length > 0) {
+      const errorDecorations = errorLines.map(line => ({
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'error-line-highlight',
+          glyphMarginClassName: 'error-line-glyph'
+        }
+      }));
+      newDecorations = [...newDecorations, ...errorDecorations];
+    }
+    
+    decorationsRef.current = editor.deltaDecorations([], newDecorations);
+    pendingHighlightRef.current = null;
+
+    // Check if there is pending scroll data to apply
+    if (pendingScrollRef.current) {
+      editor.revealLineInCenter(pendingScrollRef.current.line);
+      pendingScrollRef.current = null;
+    }
+  }, [highlightLines, errorLines, highlightTrigger]);
+    
+    // Check if there is pending highlight data to apply
+    if (pendingHighlightRef.current && pendingHighlightRef.current.lines.length > 0) {
+      const newDecorations = pendingHighlightRef.current.lines.map(line => ({
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight-line',
+          inlineClassName: 'highlight-line-inline',
+          glyphMarginClassName: 'highlight-line-glyph'
+        }
+      }));
+      decorationsRef.current = editor.deltaDecorations([], newDecorations);
+      pendingHighlightRef.current = null;
+    }
+
+    // Check if there is pending scroll data to apply
+    if (pendingScrollRef.current) {
+      editor.revealLineInCenter(pendingScrollRef.current.line);
+      pendingScrollRef.current = null;
+    }
+    
+    if (monaco) {
+      if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'solarwire')) {
+        monaco.languages.register({ id: 'solarwire' });
+        
+        monaco.languages.setMonarchTokensProvider('solarwire', {
+          tokenizer: {
+            root: [
+              [/\/\/.*$/, 'comment'],
+              [/\("[^"]*"\)/, 'type'],
+              [/\('[^']*'\)/, 'type'],
+              [/\["[^"]*"\]/, 'type'],
+              [/\('[^']*'\)/, 'type'],
+              [/\[[^\]]*\]/, 'type'],
+              [/"[^"]*"/, 'string'],
+              [/'[^']*'/, 'string'],
+              [/--/, 'keyword'],
+              [/##/, 'namespace'],
+              [/\[\?"[^"]*"\]/, 'type'],
+              [/<[^>]+>/, 'type'],
+              [/@\([^)]+\)/, 'number'],
+              [/->\([^)]+\)/, 'number'],
+              [/->\(\+\s*\d+\s*,\s*\+\s*\d+\)/, 'number'],
+              [/\b\w+\s*=\s*"[^"]*"/, 'attribute'],
+              [/\b\w+\s*=\s*'[^']*'/, 'attribute'],
+              [/\b\w+\s*=\s*[^\s]+/, 'attribute'],
+              [/\bbold\b/, 'attribute'],
+              [/\bitalic\b/, 'attribute'],
+              [/\bnote\b/, 'attribute'],
+              [/\b\d+\b/, 'number'],
+              [/#[0-9a-fA-F]{3,8}/, 'string'],
+              [/"""/, 'string.delimiter']
+            ]
+          }
+        });
+        
+        monaco.languages.setLanguageConfiguration('solarwire', {
+          comments: { lineComment: '//' },
+          brackets: [['(', ')'], ['[', ']'], ['{', '}']]
+        });
+
+        // 自动补全
+        monaco.languages.registerCompletionItemProvider('solarwire', {
+          triggerCharacters: ['=', '(', '[', '"', "'", '@', '-', '!', '#'],
+          provideCompletionItems: (model: any, position: any) => {
+            const line = model.getLineContent(position.lineNumber);
+            const lineUntilPosition = line.substring(0, position.column - 1);
+            const suggestions: any[] = [];
+
+            // 上下文感知补全
+            if (lineUntilPosition.includes('=')) {
+              // 属性值补全
+              const attrMatch = lineUntilPosition.match(/(\w+)\s*=\s*"?$/);
+              if (attrMatch) {
+                const attr = attrMatch[1];
+                
+                if (attr === 'align') {
+                  suggestions.push(
+                    { label: 'start', kind: monaco.languages.CompletionItemKind.Enum, detail: '左对齐', documentation: '文本左对齐' },
+                    { label: 'middle', kind: monaco.languages.CompletionItemKind.Enum, detail: '居中对齐', documentation: '文本居中对齐' },
+                    { label: 'end', kind: monaco.languages.CompletionItemKind.Enum, detail: '右对齐', documentation: '文本右对齐' }
+                  );
+                } else if (attr === 'bold' || attr === 'italic') {
+                  suggestions.push(
+                    { label: 'true', kind: monaco.languages.CompletionItemKind.Boolean, detail: '启用', documentation: '启用该属性' },
+                    { label: 'false', kind: monaco.languages.CompletionItemKind.Boolean, detail: '禁用', documentation: '禁用该属性' }
+                  );
+                } else if (attr === 'opacity') {
+                  for (let i = 0; i <= 10; i++) {
+                    suggestions.push({ label: (i / 10).toString(), kind: monaco.languages.CompletionItemKind.Value, detail: `透明度 ${i * 10}%`, documentation: '元素透明度' });
+                  }
+                }
+              }
+            } else if (lineUntilPosition.match(/@\($/)) {
+              // 坐标方向补全
+              suggestions.push(
+                { label: 'L', kind: monaco.languages.CompletionItemKind.Enum, detail: '左', documentation: '左侧' },
+                { label: 'R', kind: monaco.languages.CompletionItemKind.Enum, detail: '右', documentation: '右侧' },
+                { label: 'T', kind: monaco.languages.CompletionItemKind.Enum, detail: '上', documentation: '顶部' },
+                { label: 'B', kind: monaco.languages.CompletionItemKind.Enum, detail: '下', documentation: '底部' },
+                { label: 'C', kind: monaco.languages.CompletionItemKind.Enum, detail: '中心', documentation: '中心' }
+              );
+            } else {
+              // 默认补全
+              suggestions.push(
+                // 元素类型
+                { label: '[]', kind: monaco.languages.CompletionItemKind.Class, detail: '矩形', documentation: '矩形元素，通过 r 属性控制圆角', insertText: '[] ${1:} @(${2:10},${3:10}) w=${4:100} h=${5:50}' },
+                { label: '()', kind: monaco.languages.CompletionItemKind.Class, detail: '圆形', documentation: '圆形元素', insertText: '() ${1:} @(${2:10},${3:10}) w=${4:100} h=${5:100}' },
+                { label: '""', kind: monaco.languages.CompletionItemKind.Class, detail: '文本', documentation: '文本元素', insertText: '"${1:Text}" @(${2:10},${3:10})' },
+                { label: '--', kind: monaco.languages.CompletionItemKind.Class, detail: '线段', documentation: '线段元素', insertText: '-- @(${1:10},${2:10})->(${3:100},${4:10})' },
+                { label: '##', kind: monaco.languages.CompletionItemKind.Class, detail: '表格', documentation: '表格元素', insertText: '## @(${1:10},${2:10})' },
+                { label: '#', kind: monaco.languages.CompletionItemKind.Class, detail: '表格行', documentation: '表格行元素', insertText: '#' },
+                { label: '[?]', kind: monaco.languages.CompletionItemKind.Class, detail: '占位符', documentation: '占位符元素', insertText: '[?] @(${1:10},${2:10}) w=${3:100} h=${4:50}' },
+                { label: '<>', kind: monaco.languages.CompletionItemKind.Class, detail: '图片', documentation: '图片元素', insertText: '<${1:image.png}> @(${2:10},${3:10}) w=${4:100} h=${5:80}' },
+                
+                // 属性
+                { label: 'w', kind: monaco.languages.CompletionItemKind.Property, detail: '宽度', documentation: '元素宽度', insertText: 'w=${1:100}' },
+                { label: 'h', kind: monaco.languages.CompletionItemKind.Property, detail: '高度', documentation: '元素高度', insertText: 'h=${1:50}' },
+                { label: 'r', kind: monaco.languages.CompletionItemKind.Property, detail: '圆角半径', documentation: '圆角半径（仅矩形）', insertText: 'r=${1:6}' },
+                { label: 'bg', kind: monaco.languages.CompletionItemKind.Property, detail: '背景色', documentation: '背景颜色', insertText: 'bg="${1:#ffffff}"' },
+                { label: 'c', kind: monaco.languages.CompletionItemKind.Property, detail: '文字颜色', documentation: '文字颜色', insertText: 'c="${1:#000000}"' },
+                { label: 'b', kind: monaco.languages.CompletionItemKind.Property, detail: '边框颜色', documentation: '边框颜色', insertText: 'b="${1:#333333}"' },
+                { label: 's', kind: monaco.languages.CompletionItemKind.Property, detail: '边框宽度', documentation: '边框宽度', insertText: 's=${1:1}' },
+                { label: 'text-size', kind: monaco.languages.CompletionItemKind.Property, detail: '字体大小', documentation: '字体大小', insertText: 'text-size=${1:12}' },
+                { label: 'line-height', kind: monaco.languages.CompletionItemKind.Property, detail: '行高', documentation: '行高', insertText: 'line-height=${1:22}' },
+                { label: 'bold', kind: monaco.languages.CompletionItemKind.Property, detail: '粗体', documentation: '粗体文字', insertText: 'bold=${1:true}' },
+                { label: 'italic', kind: monaco.languages.CompletionItemKind.Property, detail: '斜体', documentation: '斜体文字', insertText: 'italic=${1:true}' },
+                { label: 'opacity', kind: monaco.languages.CompletionItemKind.Property, detail: '透明度', documentation: '元素透明度 (0-1)', insertText: 'opacity=${1:1}' },
+                { label: 'align', kind: monaco.languages.CompletionItemKind.Property, detail: '对齐', documentation: '文本对齐', insertText: 'align=${1:start}' },
+                { label: 'shadow-x', kind: monaco.languages.CompletionItemKind.Property, detail: '阴影X偏移', documentation: '阴影X方向偏移', insertText: 'shadow-x=${1:4}' },
+                { label: 'shadow-y', kind: monaco.languages.CompletionItemKind.Property, detail: '阴影Y偏移', documentation: '阴影Y方向偏移', insertText: 'shadow-y=${1:4}' },
+                { label: 'shadow-blur', kind: monaco.languages.CompletionItemKind.Property, detail: '阴影模糊', documentation: '阴影模糊半径', insertText: 'shadow-blur=${1:8}' },
+                { label: 'shadow-color', kind: monaco.languages.CompletionItemKind.Property, detail: '阴影颜色', documentation: '阴影颜色', insertText: 'shadow-color="${1:#00000040}"' },
+                { label: 'note', kind: monaco.languages.CompletionItemKind.Property, detail: '备注', documentation: '元素备注', insertText: 'note="${1:}"' },
+                
+                // 方向
+                { label: 'L', kind: monaco.languages.CompletionItemKind.Enum, detail: '左', documentation: '左侧' },
+                { label: 'R', kind: monaco.languages.CompletionItemKind.Enum, detail: '右', documentation: '右侧' },
+                { label: 'T', kind: monaco.languages.CompletionItemKind.Enum, detail: '上', documentation: '顶部' },
+                { label: 'B', kind: monaco.languages.CompletionItemKind.Enum, detail: '下', documentation: '底部' },
+                { label: 'C', kind: monaco.languages.CompletionItemKind.Enum, detail: '中心', documentation: '中心' },
+                
+                // 声明
+                { label: '!', kind: monaco.languages.CompletionItemKind.Keyword, detail: '声明', documentation: '文档声明', insertText: '!${1:key}=${2:value}' }
+              );
+            }
+
+            return { suggestions };
+          }
+        });
+
+        // 语法错误检测 - 使用 Monaco Editor 的 markers API
+        const updateDiagnostics = (model: any) => {
+          const diagnostics: any[] = [];
+          const lines = model.getLinesContent();
+
+          lines.forEach((line: string, lineIndex: number) => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('!')) return;
+
+            // 检查未闭合的括号
+            const openBrackets = (line.match(/\(/g) || []).length;
+            const closeBrackets = (line.match(/\)/g) || []).length;
+            if (openBrackets !== closeBrackets) {
+              diagnostics.push({
+                severity: monaco.MarkerSeverity.Error,
+                startLineNumber: lineIndex + 1,
+                startColumn: 1,
+                endLineNumber: lineIndex + 1,
+                endColumn: line.length + 1,
+                message: '括号不匹配',
+                source: 'SolarWire'
+              });
+            }
+
+            const openSquare = (line.match(/\[/g) || []).length;
+            const closeSquare = (line.match(/\]/g) || []).length;
+            if (openSquare !== closeSquare) {
+              diagnostics.push({
+                severity: monaco.MarkerSeverity.Error,
+                startLineNumber: lineIndex + 1,
+                startColumn: 1,
+                endLineNumber: lineIndex + 1,
+                endColumn: line.length + 1,
+                message: '方括号不匹配',
+                source: 'SolarWire'
+              });
+            }
+
+            // 检查属性格式
+            const attrMatch = line.match(/(\w+)\s*=\s*([^\s]+)/g);
+            if (attrMatch) {
+              attrMatch.forEach((attr: string) => {
+                const [, key, value] = attr.match(/(\w+)\s*=\s*([^\s]+)/) || [];
+                if (value && !value.startsWith('"') && !value.startsWith("'") && !/^[0-9.-]+$/.test(value) && !/^#[0-9a-fA-F]{3,8}$/.test(value)) {
+                  diagnostics.push({
+                    severity: monaco.MarkerSeverity.Warning,
+                    startLineNumber: lineIndex + 1,
+                    startColumn: line.indexOf(attr) + 1,
+                    endLineNumber: lineIndex + 1,
+                    endColumn: line.indexOf(attr) + attr.length + 1,
+                    message: `属性值建议使用引号包裹: ${key}="${value}"`,
+                    source: 'SolarWire'
+                  });
+                }
+              });
+            }
+
+            // 检查坐标格式
+            if (line.includes('@(')) {
+              const coordMatch = line.match(/@\(([^)]+)\)/);
+              if (coordMatch) {
+                const coords = coordMatch[1].split(',');
+                if (coords.length !== 2) {
+                  diagnostics.push({
+                    severity: monaco.MarkerSeverity.Error,
+                    startLineNumber: lineIndex + 1,
+                    startColumn: line.indexOf('@(') + 1,
+                    endLineNumber: lineIndex + 1,
+                    endColumn: line.indexOf('@(') + coordMatch[0].length + 1,
+                    message: '坐标格式应为 @(x,y)',
+                    source: 'SolarWire'
+                  });
+                }
+              }
+            }
+
+            // 检查线段格式
+            if (line.startsWith('--')) {
+              if (!line.includes('->')) {
+                diagnostics.push({
+                  severity: monaco.MarkerSeverity.Error,
+                  startLineNumber: lineIndex + 1,
+                  startColumn: 1,
+                  endLineNumber: lineIndex + 1,
+                  endColumn: line.length + 1,
+                  message: '线段缺少箭头 ->',
+                  source: 'SolarWire'
+                });
+              }
+            }
+
+            // 检查颜色格式
+            const colorMatch = line.match(/#[0-9a-fA-F]+/g);
+            if (colorMatch) {
+              colorMatch.forEach((color: string) => {
+                if (color.length !== 4 && color.length !== 7 && color.length !== 5 && color.length !== 9) {
+                  diagnostics.push({
+                    severity: monaco.MarkerSeverity.Warning,
+                    startLineNumber: lineIndex + 1,
+                    startColumn: line.indexOf(color) + 1,
+                    endLineNumber: lineIndex + 1,
+                    endColumn: line.indexOf(color) + color.length + 1,
+                    message: '颜色格式应为 #RGB, #RGBA, #RRGGBB 或 #RRGGBBAA',
+                    source: 'SolarWire'
+                  });
+                }
+              });
+            }
+
+            // 检查数字属性范围
+            const numAttrMatch = line.match(/(w|h|r|s|text-size|line-height|shadow-x|shadow-y|shadow-blur)\s*=\s*(\d+)/g);
+            if (numAttrMatch) {
+              numAttrMatch.forEach((match: string) => {
+                const [, attr, value] = match.match(/(\w+)\s*=\s*(\d+)/) || [];
+                const numValue = parseInt(value);
+                
+                if (attr === 'r' && numValue < 0) {
+                  diagnostics.push({
+                    severity: monaco.MarkerSeverity.Warning,
+                    startLineNumber: lineIndex + 1,
+                    startColumn: line.indexOf(match) + 1,
+                    endLineNumber: lineIndex + 1,
+                    endColumn: line.indexOf(match) + match.length + 1,
+                    message: '圆角半径不能为负数',
+                    source: 'SolarWire'
+                  });
+                }
+                
+                if ((attr === 'w' || attr === 'h' || attr === 'text-size' || attr === 'line-height') && numValue <= 0) {
+                  diagnostics.push({
+                    severity: monaco.MarkerSeverity.Warning,
+                    startLineNumber: lineIndex + 1,
+                    startColumn: line.indexOf(match) + 1,
+                    endLineNumber: lineIndex + 1,
+                    endColumn: line.indexOf(match) + match.length + 1,
+                    message: `${attr} 必须大于 0`,
+                    source: 'SolarWire'
+                  });
+                }
+                
+                if (attr === 'opacity' && (numValue < 0 || numValue > 1)) {
+                  diagnostics.push({
+                    severity: monaco.MarkerSeverity.Warning,
+                    startLineNumber: lineIndex + 1,
+                    startColumn: line.indexOf(match) + 1,
+                    endLineNumber: lineIndex + 1,
+                    endColumn: line.indexOf(match) + match.length + 1,
+                    message: 'opacity 应在 0 到 1 之间',
+                    source: 'SolarWire'
+                  });
+                }
+              });
+            }
+          });
+
+          monaco.editor.setModelMarkers(model, 'solarwire', diagnostics);
+        };
+
+        // 监听编辑器模型变化 - 暂时禁用，API 不兼容
+        /*
+        if (monaco.editor.onDidChangeModel) {
+          const disposable = monaco.editor.onDidChangeModel((e: any) => {
+            if (e.newModel && e.newModel.getLanguageId() === 'solarwire') {
+              updateDiagnostics(e.newModel);
+              e.newModel.onDidChangeContent(() => {
+                updateDiagnostics(e.newModel);
+              });
+            }
+          });
+
+          return () => {
+            disposable?.dispose();
+          };
+        }
+        */
+
+        // 如果已经有模型，立即更新
+        if (editor.getModel()) {
+          const model = editor.getModel();
+          updateDiagnostics(model);
+          model.onDidChangeContent(() => {
+            updateDiagnostics(model);
+          });
+        }
+      }
+    }
+  }, [preserveScrollPosition, scrollKey, language]);
+
+  // Effect 1: 更新高亮装饰（不滚动）
+  useEffect(() => {
+    if (!editorRef.current) {
+      pendingHighlightRef.current = { lines: highlightLines, trigger: highlightTrigger || 0 };
+      return;
+    }
+    const monaco = monacoRef.current;
+    if (!monaco) return;
+
+    let newDecorations: any[] = [];
+    if (highlightLines.length > 0) {
+      newDecorations = highlightLines.map(line => ({
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'highlight-line',
+          inlineClassName: 'highlight-line-inline',
+          glyphMarginClassName: 'highlight-line-glyph'
+        }
+      }));
+    }
+
+    decorationsRef.current = editorRef.current.deltaDecorations(
+      decorationsRef.current,
+      newDecorations
+    );
+  }, [highlightLines]);
+
+  // Effect 2: 仅在 scrollTrigger 变化时滚动一次
+  useEffect(() => {
+    if (scrollTrigger === undefined || scrollTrigger === 0) return;
+    if (scrollTrigger === prevScrollTriggerRef.current) return;
+    
+    prevScrollTriggerRef.current = scrollTrigger;
+    
+    // 使用 ref 获取最新的 highlightLines，避免将其加入依赖数组
+    if (highlightLinesRef.current.length === 0) return;
+
+    const firstLine = Math.min(...highlightLinesRef.current);
+    
+    if (!editorRef.current) {
+      // 编辑器未准备好，保存待滚动的数据
+      pendingScrollRef.current = { scrollTrigger, line: firstLine };
+      return;
+    }
+    
+    editorRef.current.revealLineInCenter(firstLine);
+  }, [scrollTrigger]);
+
+  // Effect 3: 仅在 highlightTrigger 变化时强制更新高亮装饰
+  useEffect(() => {
+    if (!editorRef.current) return;
+    if (highlightTrigger === undefined || highlightTrigger === 0) return;
+    if (highlightTrigger === prevHighlightTriggerRef.current) return;
+    
+    prevHighlightTriggerRef.current = highlightTrigger;
+    
+    const monaco = monacoRef.current;
+    if (!monaco || highlightLinesRef.current.length === 0) return;
+
+    const newDecorations = highlightLinesRef.current.map(line => ({
+      range: new monaco.Range(line, 1, line, 1),
+      options: {
+        isWholeLine: true,
+        className: 'highlight-line',
+        inlineClassName: 'highlight-line-inline',
+        glyphMarginClassName: 'highlight-line-glyph'
+      }
+    }));
+
+    decorationsRef.current = editorRef.current.deltaDecorations(
+      decorationsRef.current,
+      newDecorations
+    );
+  }, [highlightTrigger]);
+  
+  return (
+    <div className="monaco-editor">
+      <Editor
+        height={height}
+        language={language}
+        value={value}
+        onChange={(val) => onChange(val || '')}
+        theme={theme === 'dark' ? 'vs-dark' : 'vs'}
+        onMount={handleEditorDidMount}
+        options={{
+          minimap: { enabled: false },
+          fontSize: 14,
+          lineNumbers: 'on',
+          scrollBeyondLastLine: false,
+          automaticLayout: true,
+          wordWrap: 'on',
+        }}
+      />
+    </div>
+  );
+}
+
+export default MonacoEditor;

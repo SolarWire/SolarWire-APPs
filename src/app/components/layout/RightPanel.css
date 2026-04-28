@@ -1,0 +1,47 @@
+/* ================================================
+   CSS 链说明见 MainContent.css
+   ================================================ */
+
+.right-panel {
+  flex: 1;
+  height: 100%;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+/* editor-content 必须是 overflow: visible 以支持属性面板滚动 */
+.editor-content {
+  flex: 1;
+  overflow: visible;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-dark);
+}
+
+.mode-tab {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.mode-tab:hover {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.mode-tab.active {
+  background: var(--bg-selected);
+  color: var(--white);
+}

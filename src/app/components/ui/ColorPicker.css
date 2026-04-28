@@ -1,0 +1,141 @@
+/* ColorPicker 组件样式 */
+.color-picker-group {
+  margin-bottom: 16px;
+}
+
+.color-picker-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.color-picker-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-picker-wrapper input[type="color"] {
+  width: 40px;
+  height: 32px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 2px;
+  background: var(--bg-tertiary);
+}
+
+.color-picker-hex-input {
+  flex: 1;
+  height: 32px;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  font-family: 'Menlo', 'Consolas', monospace;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.color-picker-hex-input:focus {
+  border-color: var(--accent-color);
+}
+
+.color-picker-dropdown {
+  position: relative;
+}
+
+.color-picker-toggle {
+  height: 32px;
+  width: 32px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+.color-picker-toggle:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.color-picker-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  min-width: 200px;
+  z-index: 1000;
+}
+
+.color-picker-section {
+  margin-bottom: 8px;
+}
+
+.color-picker-section-title {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.color-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+
+.color-picker-swatch {
+  width: 28px;
+  height: 28px;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+}
+
+.color-picker-swatch:hover {
+  border-color: var(--accent-color);
+  transform: scale(1.1);
+}
+
+.color-picker-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 8px 0;
+}
+
+.color-picker-add {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.color-picker-add:hover {
+  background: var(--border-color);
+}

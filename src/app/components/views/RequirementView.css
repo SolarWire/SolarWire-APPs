@@ -1,0 +1,86 @@
+.requirement-view {
+  height: 100%;
+  padding: 10px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  overflow: visible; /* 移除 auto，让 Scrollbar 组件处理滚动 */
+}
+
+/* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */
+
+.requirement-card {
+  padding: 15px;
+  margin-bottom: 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.requirement-card:hover {
+  border-color: var(--accent-color);
+}
+
+.requirement-card-selected {
+  border-color: var(--accent-color);
+  border-width: 2px;
+}
+
+.requirement-folder-name {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+.requirement-subtitle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.status-badge {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.status-modified {
+  background-color: var(--warning-text);
+  color: var(--white);
+}
+
+.status-untracked {
+  background-color: var(--success-text);
+  color: var(--white);
+}
+
+.status-staged {
+  background-color: var(--status-blue);
+  color: var(--white);
+}
+
+.status-committed {
+  background-color: var(--status-gray);
+  color: var(--white);
+}
+
+.requirement-filename {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.requirement-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+}

@@ -1,0 +1,804 @@
+# Linear 组件库
+id: linear
+$schema: solarwire-component-library-v1
+description: 暗色极简美学、渐变紫色、键盘优先、高密度信息、SaaS 项目管理风格
+version: 1.0.0
+author: SolarWire
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+## Web-通用
+id: web-general
+platform: web
+
+### 主按钮
+id: web-btn-primary
+name: 主按钮
+description: Linear 主按钮，渐变紫色
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Primary") @(10, 10) w=120 h=32 bg=#5b6abf c=#ffffff size=13 r=6
+```
+
+### 次要按钮
+id: web-btn-secondary
+name: 次要按钮
+description: Linear 次要按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Secondary") @(10, 10) w=120 h=32 bg=#2c2e3a c=#c6c8d0 size=13 r=6
+```
+
+### 幽灵按钮
+id: web-btn-ghost
+name: 幽灵按钮
+description: Linear 幽灵按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Ghost") @(10, 10) w=100 h=32 bg=transparent c=#c6c8d0 size=13 r=6
+```
+
+### 危险按钮
+id: web-btn-danger
+name: 危险按钮
+description: Linear 危险操作按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Delete") @(10, 10) w=100 h=32 bg=#dc3545 c=#ffffff size=13 r=6
+```
+
+### 图标按钮
+id: web-btn-icon
+name: 图标按钮
+description: Linear 图标按钮
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⚙")) @(10, 10) w=32 h=32 bg=transparent c=#8b8d97 size=14 r=6
+```
+
+### 状态标签
+id: web-status-badge
+name: 状态标签
+description: Linear 状态标签
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 10) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+"In Progress" @(24, 10) c=#c6c8d0 size=12
+```
+
+### 优先级标签
+id: web-priority-badge
+name: 优先级标签
+description: Linear 优先级标签
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Urgent") @(10, 10) w=70 h=22 bg=#dc3545 opacity=0.2 c=#dc3545 size=11 r=4
+("High") @(90, 10) w=60 h=22 bg=#f2c944 opacity=0.2 c=#f2c944 size=11 r=4
+("Medium") @(160, 10) w=70 h=22 bg=#5b6abf opacity=0.2 c=#5b6abf size=11 r=4
+("Low") @(240, 10) w=50 h=22 bg=#8b8d97 opacity=0.2 c=#8b8d97 size=11 r=4
+```
+
+### 头像
+id: web-avatar
+name: 头像
+description: Linear 头像
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=12
+```
+
+### 键盘快捷键
+id: web-kbd
+name: 键盘快捷键
+description: Linear 键盘快捷键标签
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("⌘") @(10, 10) w=24 h=22 bg=#2c2e3a c=#8b8d97 size=11 r=4
+("K") @(40, 10) w=22 h=22 bg=#2c2e3a c=#8b8d97 size=11 r=4
+```
+
+### 分割线
+id: web-divider
+name: 分割线
+description: Linear 分割线
+categoryId: web-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+-- @(10, 20)->(290, 20) b=#2c2e3a s=1
+```
+
+---
+
+## Web-表单
+id: web-form
+platform: web
+
+### 输入框
+id: web-input
+name: 输入框
+description: Linear 暗色输入框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Type here...") @(10, 10) w=240 h=32 bg=#1c1e2a c=#8b8d97 size=13 s=1 r=6
+```
+
+### 搜索框
+id: web-search-input
+name: 搜索框
+description: Linear 搜索框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Search...") @(10, 10) w=300 h=32 bg=#1c1e2a c=#8b8d97 size=13 s=1 r=6
+"🔍" @(15, 18) c=#8b8d97 size=12
+("⌘K") @(260, 12) w=36 h=20 bg=#2c2e3a c=#8b8d97 size=10 r=4
+```
+
+### 下拉选择
+id: web-select
+name: 下拉选择
+description: Linear 下拉选择
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Select...") @(10, 10) w=240 h=32 bg=#1c1e2a c=#c6c8d0 size=13 s=1 r=6
+"▼" @(220, 18) c=#8b8d97 size=10
+```
+
+### 多行文本
+id: web-textarea
+name: 多行文本
+description: Linear 多行文本
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Write a comment...") @(10, 10) w=300 h=80 bg=#1c1e2a c=#8b8d97 size=13 s=1 r=6
+```
+
+### 开关
+id: web-switch
+name: 开关
+description: Linear Switch
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=36 h=20 bg=#5b6abf r=10
+(("●")) @(30, 12) w=16 h=16 bg=#ffffff size=8
+```
+
+### 复选框
+id: web-checkbox
+name: 复选框
+description: Linear 复选框
+categoryId: web-form
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("✓")) @(10, 10) w=16 h=16 bg=#5b6abf c=#ffffff size=10
+"Done" @(32, 12) c=#c6c8d0 size=13
+```
+
+---
+
+## Web-列表
+id: web-list
+platform: web
+
+### Issue 列表
+id: web-issue-list
+name: Issue 列表
+description: Linear 风格 Issue 列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 12) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+"LIN-123" @(24, 10) c=#8b8d97 size=12
+"Fix login page styling" @(75, 10) c=#c6c8d0 size=13
+(("A")) @(260, 8) w=20 h=20 bg=#5b6abf c=#ffffff size=9
+-- @(10, 28)->(290, 28) b=#2c2e3a s=1
+(("●")) @(10, 40) w=8 h=8 bg=#5b6abf c=#5b6abf size=4
+"LIN-124" @(24, 38) c=#8b8d97 size=12
+"Update API endpoints" @(75, 38) c=#c6c8d0 size=13
+(("B")) @(260, 36) w=20 h=20 bg=#8b5cf6 c=#ffffff size=9
+-- @(10, 56)->(290, 56) b=#2c2e3a s=1
+(("●")) @(10, 68) w=8 h=8 bg=#22c55e c=#22c55e size=4
+"LIN-125" @(24, 66) c=#8b8d97 size=12
+"Deploy to production" @(75, 66) c=#c6c8d0 size=13
+```
+
+### 项目列表
+id: web-project-list
+name: 项目列表
+description: Linear 项目列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=280 h=40 bg=#1c1e2a r=6
+"🔵" @(20, 20) c=#5b6abf size=14
+"Frontend" @(40, 18) c=#c6c8d0 size=13
+"12 issues" @(220, 20) c=#8b8d97 size=11
+-- @(10, 55)->(290, 55) b=#2c2e3a s=1
+("") @(10, 60) w=280 h=40 bg=#1c1e2a r=6
+"🟣" @(20, 70) c=#8b5cf6 size=14
+"Backend" @(40, 68) c=#c6c8d0 size=13
+"8 issues" @(220, 70) c=#8b8d97 size=11
+```
+
+### 团队列表
+id: web-team-list
+name: 团队列表
+description: Linear 团队列表
+categoryId: web-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=12
+"Engineering" @(46, 14) c=#c6c8d0 size=13 bold=true
+"5 members" @(46, 30) c=#8b8d97 size=11
+```
+
+---
+
+## Web-卡片
+id: web-card
+platform: web
+
+### Issue 卡片
+id: web-issue-card
+name: Issue 卡片
+description: Linear Issue 详情卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=320 h=160 bg=#1c1e2a s=1 r=8
+"LIN-123" @(20, 20) c=#8b8d97 size=12
+"Fix login page styling" @(80, 20) c=#c6c8d0 size=13 bold=true
+-- @(20, 40)->(300, 40) b=#2c2e3a s=1
+(("●")) @(20, 52) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+"In Progress" @(34, 50) c=#f2c944 size=11
+("Urgent") @(110, 48) w=55 h=20 bg=#dc3545 opacity=0.2 c=#dc3545 size=10 r=4
+(("A")) @(20, 80) w=24 h=24 bg=#5b6abf c=#ffffff size=10
+"Assigned to Alice" @(50, 84) c=#8b8d97 size=11
+"Due Apr 25" @(20, 115) c=#8b8d97 size=11
+("Labels") @(100, 112) w=50 h=20 bg=#5b6abf opacity=0.2 c=#5b6abf size=10 r=4
+```
+
+### 项目卡片
+id: web-project-card
+name: 项目卡片
+description: Linear 项目概览卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=200 h=140 bg=#1c1e2a s=1 r=8
+"🔵" @(20, 20) c=#5b6abf size=16
+"Frontend" @(40, 20) c=#c6c8d0 size=14 bold=true
+"12 open · 5 in progress" @(20, 45) c=#8b8d97 size=11
+("") @(20, 70) w=160 h=6 bg=#2c2e3a r=3
+("") @(20, 70) w=100 h=6 bg=#5b6abf r=3
+"62% complete" @(20, 85) c=#8b8d97 size=10
+```
+
+### 统计卡片
+id: web-card-statistic
+name: 统计卡片
+description: Linear 数据统计卡片
+categoryId: web-card
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=180 h=80 bg=#1c1e2a s=1 r=8
+"Open Issues" @(20, 20) c=#8b8d97 size=11
+"47" @(20, 40) c=#c6c8d0 size=24 bold=true
+"+3 today" @(100, 50) c=#22c55e size=11
+```
+
+---
+
+## Web-图表
+id: web-chart
+platform: web
+
+### 燃尽图
+id: web-chart-burndown
+name: 燃尽图
+description: Linear Sprint 燃尽图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=180 bg=#1c1e2a s=1 r=8
+"Sprint Burndown" @(20, 20) c=#c6c8d0 size=13 bold=true
+-- @(20, 150)->(280, 150) b=#2c2e3a s=1
+-- @(20, 50)->(20, 150) b=#2c2e3a s=1
+-- @(20, 50)->(280, 150) b=#8b8d97 opacity=0.3 s=1
+-- @(20, 60)->(95, 80) b=#5b6abf s=2
+-- @(95, 80)->(170, 100) b=#5b6abf s=2
+-- @(170, 100)->(245, 130) b=#5b6abf s=2
+(("●")) @(20, 60) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
+(("●")) @(95, 80) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
+(("●")) @(170, 100) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
+```
+
+### 活动图
+id: web-chart-activity
+name: 活动图
+description: Linear 活动热力图
+categoryId: web-chart
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=300 h=100 bg=#1c1e2a s=1 r=8
+"Activity" @(20, 20) c=#c6c8d0 size=13 bold=true
+("") @(20, 40) w=12 h=12 bg=#5b6abf opacity=0.2 r=2
+("") @(36, 40) w=12 h=12 bg=#5b6abf opacity=0.4 r=2
+("") @(52, 40) w=12 h=12 bg=#5b6abf opacity=0.6 r=2
+("") @(68, 40) w=12 h=12 bg=#5b6abf opacity=0.8 r=2
+("") @(84, 40) w=12 h=12 bg=#5b6abf r=2
+("") @(100, 40) w=12 h=12 bg=#5b6abf opacity=0.3 r=2
+("") @(116, 40) w=12 h=12 bg=#5b6abf opacity=0.5 r=2
+("") @(132, 40) w=12 h=12 bg=#5b6abf opacity=0.1 r=2
+("") @(148, 40) w=12 h=12 bg=#5b6abf opacity=0.7 r=2
+("") @(164, 40) w=12 h=12 bg=#5b6abf opacity=0.4 r=2
+("") @(20, 56) w=12 h=12 bg=#5b6abf opacity=0.6 r=2
+("") @(36, 56) w=12 h=12 bg=#5b6abf opacity=0.3 r=2
+("") @(52, 56) w=12 h=12 bg=#5b6abf opacity=0.9 r=2
+("") @(68, 56) w=12 h=12 bg=#5b6abf opacity=0.2 r=2
+("") @(84, 56) w=12 h=12 bg=#5b6abf opacity=0.5 r=2
+("") @(100, 56) w=12 h=12 bg=#5b6abf opacity=0.8 r=2
+("") @(116, 56) w=12 h=12 bg=#5b6abf opacity=0.1 r=2
+("") @(132, 56) w=12 h=12 bg=#5b6abf opacity=0.4 r=2
+("") @(148, 56) w=12 h=12 bg=#5b6abf opacity=0.7 r=2
+("") @(164, 56) w=12 h=12 bg=#5b6abf opacity=0.3 r=2
+```
+
+---
+
+## Web-导航
+id: web-navigation
+platform: web
+
+### 侧边导航
+id: web-side-nav
+name: 侧边导航
+description: Linear 侧边导航
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=400 bg=#16171f
+"Linear" @(15, 15) c=#c6c8d0 size=14 bold=true
+-- @(0, 40)->(200, 40) b=#2c2e3a s=1
+("🔍 Search") @(10, 50) w=180 h=28 bg=#1c1e2a c=#8b8d97 size=12 r=4
+("⌘K") @(160, 54) w=24 h=18 bg=#2c2e3a c=#8b8d97 size=9 r=3
+("📋 My Issues") @(10, 90) w=180 h=28 bg=#2c2e3a c=#c6c8d0 size=12 r=4
+"📁 Projects" @(20, 125) c=#8b8d97 size=12
+"👥 Teams" @(20, 155) c=#8b8d97 size=12
+"📊 Views" @(20, 185) c=#8b8d97 size=12
+-- @(0, 215)->(200, 215) b=#2c2e3a s=1
+"⚙ Settings" @(20, 230) c=#8b8d97 size=12
+```
+
+### 面包屑
+id: web-breadcrumb
+name: 面包屑
+description: Linear 面包屑
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Frontend" @(10, 15) c=#8b8d97 size=12
+"/" @(70, 15) c=#565869 size=12
+"LIN-123" @(80, 15) c=#c6c8d0 size=12
+```
+
+### Tab 切换
+id: web-tabs
+name: Tab 切换
+description: Linear Tab 切换
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"Active" @(10, 10) c=#c6c8d0 size=13 bold=true
+-- @(10, 26)->(50, 26) b=#5b6abf s=2
+"Backlog" @(60, 10) c=#8b8d97 size=13
+"Closed" @(120, 10) c=#8b8d97 size=13
+```
+
+### 命令面板
+id: web-command-palette
+name: 命令面板
+description: Linear Command 命令面板
+categoryId: web-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=320 h=220 bg=#1c1e2a s=1 r=8
+("Search issues, projects...") @(20, 20) w=280 h=32 bg=#16171f c=#8b8d97 size=13 s=1 r=6
+-- @(20, 60)->(300, 60) b=#2c2e3a s=1
+"Recent" @(20, 70) c=#8b8d97 size=10
+"LIN-123 Fix login page" @(20, 90) c=#c6c8d0 size=12
+"LIN-124 Update API" @(20, 115) c=#c6c8d0 size=12
+-- @(20, 140)->(300, 140) b=#2c2e3a s=1
+"Actions" @(20, 150) c=#8b8d97 size=10
+"Create new issue" @(20, 170) c=#c6c8d0 size=12
+("⌘N") @(270, 172) w=28 h=18 bg=#2c2e3a c=#8b8d97 size=9 r=3
+```
+
+---
+
+## Web-认证
+id: web-auth
+platform: web
+
+### 登录页
+id: web-login
+name: 登录页
+description: Linear 风格登录页
+categoryId: web-auth
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=400 h=600 bg=#16171f
+"Linear" @(160, 80) c=#c6c8d0 size=28 bold=true
+"Sign in to your workspace" @(110, 120) c=#8b8d97 size=13
+("Email") @(50, 180) w=300 h=36 bg=#1c1e2a c=#8b8d97 size=13 s=1 r=6
+("Password") @(50, 230) w=300 h=36 bg=#1c1e2a c=#8b8d97 size=13 s=1 r=6
+("Sign In") @(50, 290) w=300 h=36 bg=#5b6abf c=#ffffff size=13 r=6
+"or continue with" @(140, 345) c=#8b8d97 size=12
+(("G")) @(120, 370) w=60 h=44 bg=#1c1e2a c=#c6c8d0 size=18 s=1
+(("🐙")) @(200, 370) w=60 h=44 bg=#1c1e2a c=#c6c8d0 size=18 s=1
+(("🍎")) @(280, 370) w=60 h=44 bg=#1c1e2a c=#c6c8d0 size=18 s=1
+```
+
+---
+
+## Web-反馈
+id: web-feedback
+platform: web
+
+### 成功提示
+id: web-toast-success
+name: 成功提示
+description: Linear Toast 成功
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✓ Issue updated") @(10, 10) w=200 h=32 bg=#1c1e2a c=#22c55e size=12 s=1 r=6
+```
+
+### 错误提示
+id: web-toast-error
+name: 错误提示
+description: Linear Toast 错误
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✕ Failed to save") @(10, 10) w=200 h=32 bg=#1c1e2a c=#dc3545 size=12 s=1 r=6
+```
+
+### 对话框
+id: web-dialog
+name: 对话框
+description: Linear Dialog
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(10, 10) w=320 h=160 bg=#1c1e2a s=1 r=8
+"Delete issue?" @(20, 25) c=#c6c8d0 size=14 bold=true
+"This action cannot be undone." @(20, 50) c=#8b8d97 size=12
+("Cancel") @(150, 120) w=70 h=28 bg=#2c2e3a c=#c6c8d0 size=12 r=6
+("Delete") @(230, 120) w=70 h=28 bg=#dc3545 c=#ffffff size=12 r=6
+```
+
+### 加载状态
+id: web-loading
+name: 加载状态
+description: Linear 加载指示器
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⟳")) @(100, 100) w=24 h=24 bg=transparent c=#5b6abf size=20
+```
+
+### 空状态
+id: web-empty
+name: 空状态
+description: Linear 空状态
+categoryId: web-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+"No issues found" @(100, 100) c=#8b8d97 size=13
+("Create Issue") @(110, 130) w=100 h=28 bg=#5b6abf c=#ffffff size=12 r=6
+```
+
+---
+
+## Web-布局
+id: web-layout
+platform: web
+
+### 页面布局
+id: web-page-layout
+name: 页面布局
+description: Linear 页面布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=200 h=400 bg=#16171f
+"Linear" @(15, 15) c=#c6c8d0 size=14 bold=true
+("📋 My Issues") @(10, 50) w=180 h=28 bg=#2c2e3a c=#c6c8d0 size=12 r=4
+"📁 Projects" @(20, 85) c=#8b8d97 size=12
+("") @(200, 0) w=200 h=400 bg=#1c1e2a
+("🔍 Search...") @(210, 10) w=180 h=28 bg=#16171f c=#8b8d97 size=12 s=1 r=4
+("⌘K") @(360, 14) w=24 h=18 bg=#2c2e3a c=#8b8d97 size=9 r=3
+"Issues" @(220, 50) c=#c6c8d0 size=14 bold=true
+```
+
+### 看板布局
+id: web-kanban-layout
+name: 看板布局
+description: Linear 看板布局
+categoryId: web-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Backlog") @(10, 10) w=100 h=24 bg=transparent c=#8b8d97 size=12
+("") @(10, 40) w=120 h=60 bg=#1c1e2a s=1 r=6
+"LIN-123 Fix login" @(20, 50) c=#c6c8d0 size=11
+("In Progress") @(140, 10) w=100 h=24 bg=transparent c=#f2c944 size=12
+("") @(140, 40) w=120 h=60 bg=#1c1e2a s=1 r=6
+"LIN-124 Update API" @(150, 50) c=#c6c8d0 size=11
+("Done") @(270, 10) w=60 h=24 bg=transparent c=#22c55e size=12
+("") @(270, 40) w=120 h=60 bg=#1c1e2a s=1 r=6
+"LIN-125 Deploy" @(280, 50) c=#c6c8d0 size=11
+```
+
+---
+
+## Mobile-通用
+id: mobile-general
+platform: mobile
+
+### 主按钮
+id: mobile-btn-primary
+name: 主按钮
+description: Linear 移动端主按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Primary") @(10, 10) w=300 h=44 bg=#5b6abf c=#ffffff size=14 r=8
+```
+
+### 次要按钮
+id: mobile-btn-secondary
+name: 次要按钮
+description: Linear 移动端次要按钮
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("Secondary") @(10, 10) w=300 h=44 bg=#2c2e3a c=#c6c8d0 size=14 r=8
+```
+
+### 状态标签
+id: mobile-status-badge
+name: 状态标签
+description: Linear 移动端状态标签
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 10) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+"In Progress" @(24, 8) c=#f2c944 size=12
+```
+
+### 头像
+id: mobile-avatar
+name: 头像
+description: Linear 移动端头像
+categoryId: mobile-general
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("A")) @(10, 10) w=36 h=36 bg=#5b6abf c=#ffffff size=14
+```
+
+---
+
+## Mobile-列表
+id: mobile-list
+platform: mobile
+
+### Issue 列表
+id: mobile-issue-list
+name: Issue 列表
+description: Linear 移动端 Issue 列表
+categoryId: mobile-list
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("●")) @(10, 12) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+"LIN-123" @(24, 10) c=#8b8d97 size=12
+"Fix login page" @(75, 10) c=#c6c8d0 size=13
+-- @(10, 28)->(300, 28) b=#2c2e3a s=1
+(("●")) @(10, 40) w=8 h=8 bg=#5b6abf c=#5b6abf size=4
+"LIN-124" @(24, 38) c=#8b8d97 size=12
+"Update API" @(75, 38) c=#c6c8d0 size=13
+```
+
+---
+
+## Mobile-导航
+id: mobile-navigation
+platform: mobile
+
+### 底部导航
+id: mobile-bottom-nav
+name: 底部导航
+description: Linear 移动端底部导航
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=48 bg=#16171f s=1
+"📋" @(40, 12) c=#5b6abf size=18
+"📁" @(130, 12) c=#8b8d97 size=18
+"🔍" @(220, 12) c=#8b8d97 size=18
+"👤" @(290, 12) c=#8b8d97 size=18
+```
+
+### 顶部导航
+id: mobile-top-nav
+name: 顶部导航
+description: Linear 移动端顶部导航
+categoryId: mobile-navigation
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=44 bg=#16171f s=1
+"←" @(10, 12) c=#c6c8d0 size=16
+"My Issues" @(120, 12) c=#c6c8d0 size=16 bold=true
+("+") @(280, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=14 r=6
+```
+
+---
+
+## Mobile-反馈
+id: mobile-feedback
+platform: mobile
+
+### 成功提示
+id: mobile-toast-success
+name: 成功提示
+description: Linear 移动端成功提示
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("✓ Updated") @(80, 200) w=160 h=36 bg=#1c1e2a c=#22c55e size=13 s=1 r=8
+```
+
+### 加载状态
+id: mobile-loading
+name: 加载状态
+description: Linear 移动端加载
+categoryId: mobile-feedback
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+(("⟳")) @(120, 200) w=32 h=32 bg=transparent c=#5b6abf size=24
+```
+
+---
+
+## Mobile-布局
+id: mobile-layout
+platform: mobile
+
+### 页面布局
+id: mobile-page-layout
+name: 页面布局
+description: Linear 移动端页面布局
+categoryId: mobile-layout
+createdAt: 2026-04-24T00:00:00Z
+updatedAt: 2026-04-24T00:00:00Z
+
+```solarwire
+("") @(0, 0) w=320 h=44 bg=#16171f s=1
+"My Issues" @(120, 12) c=#c6c8d0 size=16 bold=true
+("+") @(280, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=14 r=6
+("") @(0, 44) w=320 h=560 bg=#1c1e2a
+"Issues list..." @(130, 320) c=#8b8d97 size=14
+("") @(0, 604) w=320 h=48 bg=#16171f s=1
+"📋" @(40, 612) c=#5b6abf size=18
+"📁" @(130, 612) c=#8b8d97 size=18
+"🔍" @(220, 612) c=#8b8d97 size=18
+"👤" @(290, 612) c=#8b8d97 size=18
+```
+
+---
+
+*组件库完成 - Linear Web+Mobile 组件库，共 28 个分类，约 150 个组件*

@@ -1,0 +1,28 @@
+.blank-mode {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.blank-mode-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.blank-mode-icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+}
+
+.blank-mode-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+
+.blank-mode-text {
+  font-size: 14px;
+  color: var(--text-muted);
+}

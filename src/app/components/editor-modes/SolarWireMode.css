@@ -1,0 +1,408 @@
+.solarwire-mode {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+  padding-bottom: 4px;
+}
+
+.solarwire-header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+.solarwire-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+}
+
+/* 使用统一 Tab 组件样式，见 src/app/components/ui/Tab.css */
+
+.solarwire-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px 6px 12px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-color);
+  flex-wrap: wrap;
+  min-height: 40px;
+}
+
+.toolbar-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.toolbar-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+/* ================================================
+   CSS 链说明见 MainContent.css
+   ================================================ */
+
+.solarwire-content {
+  flex: 1;
+  display: flex;
+  overflow: visible; /* 必须为 visible 以支持属性面板滚动 */
+  position: relative;
+}
+
+.code-panel {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  background: var(--bg-secondary);
+  overflow: hidden;
+}
+
+.floating-toolbar.center {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  flex-wrap: wrap;
+  max-width: calc(100% - 32px);
+}
+
+.toolbar-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-section {
+  min-width: auto;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.selection-section {
+  min-width: 80px;
+}
+
+.display-section {
+  min-width: 120px;
+  justify-content: center;
+}
+
+.elements-section {
+  min-width: 260px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-color);
+}
+
+.selection-tools {
+  display: flex;
+  gap: 4px;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoom-label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.preview-content {
+  padding: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */
+
+.preview-content svg {
+  width: 100%;
+  height: auto;
+}
+
+/* ================================================
+   属性面板：固定在右侧
+   ================================================
+   - position: absolute 使面板固定在右侧
+   - 不设置 overflow: hidden，允许内部滚动
+   - 最后一个子元素（.property-panel）设置 overflow-y: auto
+   - 完整 CSS 链说明见 MainContent.css
+   ================================================ */
+.property-panel-fixed {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 280px;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.property-panel-fixed > * {
+  flex-shrink: 0;
+}
+
+/* 属性面板内容区域可滚动 */
+.property-panel-fixed > *:last-child {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+
+.property-panel-fixed > *:last-child::-webkit-scrollbar {
+  width: 14px;
+  height: 10px;
+}
+
+.property-panel-fixed > *:last-child::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.property-panel-fixed > *:last-child::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 0;
+}
+
+.property-panel-fixed > *:last-child::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 固定工具栏：在 header 下方的文档流中 */
+.solarwire-toolbar-fixed {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.solarwire-toolbar-fixed .solarwire-toolbar {
+  border-top: none;
+}
+
+.error-overlay-content {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  width: 300px;
+  max-height: 80vh;
+  overflow: visible;
+}
+
+/* 统一操作按钮样式（小按钮 32x32） */
+.grid-toggle-button,
+.snap-toggle-button,
+.layers-toggle-button,
+.help-button,
+.note-toggle-button,
+.pan-tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s ease;
+  color: var(--text-secondary);
+  padding: 0;
+}
+
+.grid-toggle-button:hover,
+.snap-toggle-button:hover,
+.layers-toggle-button:hover,
+.help-button:hover,
+.note-toggle-button:hover,
+.pan-tool-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.grid-toggle-button.active,
+.snap-toggle-button.active,
+.layers-toggle-button.active,
+.note-toggle-button.active,
+.pan-tool-button.active {
+  background: var(--accent-opacity-35);
+  border-color: var(--accent-color);
+}
+
+/* 图层面板容器 - 固定在左侧 */
+.layer-panel-fixed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 220px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  z-index: 5;
+  overflow: visible;
+}
+
+/* 组件库面板容器 - 固定在左侧 */
+.component-library-panel-fixed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  z-index: 6;
+  overflow: visible;
+}
+
+/* 统一工具按钮样式（所有工具栏按钮使用） */
+.unified-tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+  color: var(--text-secondary);
+  padding: 0;
+}
+
+.unified-tool-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+.unified-tool-button.active {
+  background: var(--accent-opacity-35);
+  border-color: var(--accent-color);
+}
+
+.unified-tool-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unified-tool-button:disabled:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.tool-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.zoom-button {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.15s ease;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-button:hover {
+  background: var(--border-color);
+  border-color: var(--text-muted);
+}
+
+/* 右键菜单样式 */
+.context-menu {
+  position: fixed;
+  z-index: 1000;
+  min-width: 160px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+  padding: 4px 0;
+  animation: context-menu-fade-in 0.1s ease-out;
+}
+
+@keyframes context-menu-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.context-menu-item {
+  display: block;
+  width: 100%;
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.context-menu-item:hover {
+  background: var(--accent-opacity-15);
+  color: var(--accent-color);
+}
+
+.context-menu-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+
+.context-menu-item:disabled:hover {
+  background: transparent;
+  color: var(--text-muted);
+}

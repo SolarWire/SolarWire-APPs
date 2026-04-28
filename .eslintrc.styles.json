@@ -1,0 +1,242 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
+  },
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:css-modules/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaFeatures": {
+      "jsx": true
+    },
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": [
+    "react",
+    "react-hooks",
+    "@typescript-eslint",
+    "css-modules",
+    "prettier"
+  ],
+  "rules": {
+    "react/react-in-jsx-scope": "off",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", { 
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }],
+    
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    
+    "curly": ["error", "all"],
+    
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
+    
+    "no-var": "error",
+    "prefer-const": "error",
+    
+    "no-multiple-empty-lines": ["error", { "max": 1, "maxEOF": 0 }],
+    
+    "no-trailing-spaces": "error",
+    
+    "indent": "off",
+    "no-tabs": "off",
+    
+    "@typescript-eslint/indent": "off",
+    
+    "react/jsx-indent": "off",
+    "react/jsx-indent-props": "off",
+    
+    "quotes": "off",
+    "@typescript-eslint/quotes": "off",
+    
+    "semi": "off",
+    "@typescript-eslint/semi": "off",
+    
+    "comma-dangle": "off",
+    "@typescript-eslint/comma-dangle": ["error", "only-multiline"],
+    
+    "no-unused-expressions": "off",
+    "@typescript-eslint/no-unused-expressions": "error",
+    
+    "no-use-before-define": "off",
+    "@typescript-eslint/no-use-before-define": ["error", { 
+      "functions": false,
+      "classes": true,
+      "variables": true
+    }],
+    
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": "error",
+    
+    "no-return-await": "error",
+    
+    "prefer-arrow-callback": "error",
+    
+    "object-shorthand": ["error", "always"],
+    
+    "prefer-template": "error",
+    
+    "no-nested-ternary": "warn",
+    
+    "max-len": ["warn", {
+      "code": 120,
+      "ignoreStrings": true,
+      "ignoreTemplateLiterals": true,
+      "ignoreComments": true,
+      "ignoreRegExpLiterals": true
+    }],
+    
+    "complexity": ["warn", { "max": 20 }],
+    
+    "max-depth": ["warn", { "max": 4 }],
+    
+    "max-params": ["warn", { "max": 4 }],
+    
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "ForInStatement",
+        "message": "for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array."
+      },
+      {
+        "selector": "LabeledStatement",
+        "message": "Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand."
+      },
+      {
+        "selector": "WithStatement",
+        "message": "`with` is disallowed in strict mode because it makes code impossible to predict and optimize."
+      }
+    ],
+    
+    "no-restricted-properties": [
+      "error",
+      {
+        "object": "style",
+        "property": "background",
+        "message": "使用 CSS 变量而非硬编码颜色值"
+      },
+      {
+        "object": "style",
+        "property": "backgroundColor",
+        "message": "使用 CSS 变量而非硬编码颜色值"
+      },
+      {
+        "object": "style",
+        "property": "color",
+        "message": "使用 CSS 变量而非硬编码颜色值"
+      },
+      {
+        "object": "style",
+        "property": "borderColor",
+        "message": "使用 CSS 变量而非硬编码颜色值"
+      }
+    ],
+    
+    "no-restricted-imports": [
+      "warn",
+      {
+        "paths": [
+          {
+            "name": "lodash",
+            "message": "请使用 lodash-es 或按需导入 lodash/functionName"
+          }
+        ],
+        "patterns": [
+          {
+            "group": ["**/dist/**"],
+            "message": "不要从 dist 目录导入，使用 src 目录"
+          }
+        ]
+      }
+    ],
+    
+    "react/prefer-stateless-function": ["warn", { "ignorePureComponents": true }],
+    
+    "react/no-unescaped-entities": "off",
+    
+    "react/forbid-prop-types": ["warn", { "forbid": ["any", "array"] }],
+    
+    "react/jsx-no-comment-textnodes": "error",
+    
+    "react/jsx-no-duplicate-props": "error",
+    
+    "react/jsx-no-target-blank": "error",
+    
+    "react/jsx-uses-vars": "error",
+    
+    "react/no-children-prop": "warn",
+    
+    "react/no-danger": "warn",
+    
+    "react/no-deprecated": "error",
+    
+    "react/no-did-mount-set-state": "warn",
+    
+    "react/no-did-update-set-state": "warn",
+    
+    "react/no-direct-mutation-state": "error",
+    
+    "react/no-find-dom-node": "warn",
+    
+    "react/no-is-mounted": "error",
+    
+    "react/no-string-refs": "error",
+    
+    "react/no-unstable-nested-components": "warn",
+    
+    "react/no-unused-prop-types": "warn",
+    
+    "react/require-default-props": "off",
+    
+    "react/sort-comp": "off",
+    
+    "react/state-in-constructor": ["error", "never"],
+    
+    "react/static-property-placement": "error",
+    
+    "css-modules/no-unused-class": "warn",
+    
+    "css-modules/no-undefined-class": "warn"
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    },
+    "import/resolver": {
+      "typescript": {}
+    }
+  },
+  "overrides": [
+    {
+      "files": ["*.test.ts", "*.test.tsx", "*.spec.ts", "*.spec.tsx"],
+      "env": {
+        "jest": true
+      },
+      "rules": {
+        "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+        "react/prefer-stateless-function": "off",
+        "css-modules/no-unused-class": "off"
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "dist",
+    "build",
+    "node_modules",
+    "*.js",
+    "*.d.ts",
+    "public"
+  ]
+}

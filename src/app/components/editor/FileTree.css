@@ -1,0 +1,52 @@
+.file-tree {
+  padding: 8px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+.tree-item:hover {
+  background: var(--accent-opacity-10);
+}
+
+.tree-item.selected {
+  background: var(--accent-opacity-35);
+  color: var(--accent-color);
+}
+
+.tree-item.selected .tree-item-name {
+  color: var(--accent-color);
+}
+
+.tree-item-icon {
+  width: 16px;
+  text-align: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.tree-item-arrow {
+  width: 16px;
+  text-align: center;
+  margin-right: 4px;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.tree-item-name {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-children {
+  padding-left: 16px;
+}

@@ -1,0 +1,48 @@
+.main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.main-content .resizable-divider {
+  z-index: 5;
+}
+
+.left-panel-container {
+  height: 100%;
+  overflow: hidden;
+  min-width: 150px;
+  max-width: 600px;
+  flex-shrink: 0;
+}
+
+/* ================================================
+   属性面板滚动条支持 - CSS 链说明
+   ================================================
+   属性面板需要支持滚动，以便在 note 编辑框高度增加时
+   可以滚动查看所有属性。
+
+   CSS 链（必须保持 overflow: visible）：
+   1. MainContent.css > .right-panel: overflow: visible
+      - 允许内部元素滚动
+   2. RightPanel.css > .editor-content: overflow: visible
+      - 允许 solarwire-content 滚动
+   3. SolarWireMode.css > .solarwire-content: overflow: visible
+      - 允许属性面板容器滚动
+   4. SolarWireMode.css > .property-panel-fixed: 无 overflow
+      - 属性面板容器本身不限制
+   5. SolarWireMode.css > .property-panel-fixed > *:last-child: overflow-y: auto
+      - 属性面板内容区域（.property-panel）可滚动
+   6. PropertyPanel.css > .property-panel: overflow-y: auto
+      - 实际的滚动容器
+
+   如果任意一层有 overflow: hidden，滚动条将无法显示。
+   ================================================ */
+
+.right-panel {
+  flex: 1;
+  height: 100%;
+  overflow: visible;
+  background: var(--bg-primary);
+}
