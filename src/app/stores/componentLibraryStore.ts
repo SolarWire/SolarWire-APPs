@@ -24,9 +24,6 @@ interface ComponentLibraryStore {
   showComponentLibrary: boolean;
   setShowComponentLibrary: (show: boolean) => void;
 
-  showComponentManager: boolean;
-  setShowComponentManager: (show: boolean) => void;
-
   isInitialized: boolean;
 
   libraries: ComponentLibrary[];
@@ -85,7 +82,6 @@ interface ComponentLibraryStore {
 
 export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get) => ({
   showComponentLibrary: false,
-  showComponentManager: false,
   isInitialized: false,
   libraries: [],
   activeLibraryId: null,
@@ -99,20 +95,8 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   activeCategoryId: null,
   isLibraryLoading: false,
 
-  setShowComponentLibrary: (show) => set({ showComponentLibrary: show }),
-
-  setShowComponentManager: async (show) => {
-    if (show && !get().isInitialized) {
-      await componentLibraryManager.initialize();
-      set({
-        libraries: componentLibraryManager.getLibraries(),
-        activeLibraryId: componentLibraryManager.getLibraries()[0]?.metadata.id || null,
-        isInitialized: true,
-        showComponentManager: show,
-      });
-    } else {
-      set({ showComponentManager: show });
-    }
+  setShowComponentLibrary: async (show) => {
+    set({ showComponentLibrary: show });
   },
 
   initialize: async () => {
@@ -387,7 +371,6 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
       selectedNodeId: makeNodeId('component', componentInternalId, libraryId),
       selectedNodeType: 'component',
       selectedCategoryId: component?.categoryId || null,
-      showComponentManager: true,
       expandedNodes: Array.from(new Set([...state.expandedNodes, ...nodesToExpand])),
     });
   },

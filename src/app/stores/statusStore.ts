@@ -11,7 +11,8 @@ export type OperationType =
   | 'compile'
   | 'export'
   | 'import'
-  | 'sync';
+  | 'sync'
+  | 'refresh';
 
 export type OperationStatus = 'idle' | 'running' | 'success' | 'error';
 
@@ -98,6 +99,7 @@ const operationIcons: Record<OperationType, string> = {
   'export': '📤',
   'import': '📥',
   'sync': '🔄',
+  'refresh': '🔄',
 };
 
 const notificationIcons: Record<NotificationMessage['type'], string> = {

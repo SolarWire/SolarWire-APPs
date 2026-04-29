@@ -24,6 +24,17 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
   useEffect(() => {
     setSelectedLibraryId(currentLibraryId);
   }, [currentLibraryId]);
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
   
   const handleMove = async () => {
     try {

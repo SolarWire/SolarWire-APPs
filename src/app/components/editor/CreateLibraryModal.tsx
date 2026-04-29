@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { showToast } from '../../services/toast-service';
 import './CreateLibraryModal.css';
@@ -13,23 +13,18 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
   
   const [libraryData, setLibraryData] = useState({
     name: '',
-    id: '',
     description: '',
     version: '1.0.0',
     author: ''
   });
   
-  const [formErrors, setFormErrors] = useState<{ name?: string; id?: string }>({});
+  const [formErrors, setFormErrors] = useState<{ name?: string }>({});
 
   const validateForm = () => {
-    const errors: { name?: string; id?: string } = {};
+    const errors: { name?: string } = {};
     
     if (!libraryData.name.trim()) {
       errors.name = '组件库名称不能为空';
-    }
-    
-    if (libraryData.id && !/^[a-zA-Z0-9_-]+$/.test(libraryData.id)) {
-      errors.id = 'ID只能包含字母、数字、下划线和连字符';
     }
     
     setFormErrors(errors);
@@ -44,7 +39,6 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
     try {
       await createLibrary({
         name: libraryData.name.trim(),
-        id: libraryData.id.trim() || undefined,
         description: libraryData.description.trim(),
         version: libraryData.version.trim(),
         author: libraryData.author.trim(),
@@ -60,7 +54,7 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
   };
 
   const handleClose = () => {
-    setLibraryData({ name: '', id: '', description: '', version: '1.0.0', author: '' });
+    setLibraryData({ name: '', description: '', version: '1.0.0', author: '' });
     setFormErrors({});
     onClose();
   };
@@ -72,6 +66,17 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
       setFormErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -98,20 +103,6 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
               autoFocus
             />
             {formErrors.name && <div className="error-message">{formErrors.name}</div>}
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="library-id">ID（可选）</label>
-            <input
-              id="library-id"
-              type="text"
-              placeholder="留空自动生成，或输入自定义ID"
-              value={libraryData.id}
-              onChange={(e) => handleInputChange('id', e.target.value)}
-              className={formErrors.id ? 'input-error' : ''}
-            />
-            {formErrors.id && <div className="error-message">{formErrors.id}</div>}
-            <div className="form-hint">ID只能包含字母、数字、下划线和连字符</div>
           </div>
 
           <div className="form-group">

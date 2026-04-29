@@ -12,6 +12,20 @@ import './CanvasPreview.css';
 
 interface CanvasPreviewProps {
   onElementClick?: (elementId: string) => void;
+  zoomLevel?: number;
+  selectionTool?: any;
+  showNotes?: boolean;
+  onZoomChange?: (zoom: number) => void;
+  isPanMode?: boolean;
+  isSpacePressed?: boolean;
+  snapToGridProp?: boolean;
+  gridSizeProp?: number;
+  externalContent?: string;
+  onExternalContentChange?: (content: string) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
+  allowImageElements?: boolean;
+  onRequestExportSvg?: (getSvgContent: () => string | null) => void;
+  hasSyntaxErrors?: boolean;
 }
 
 interface PanState {
@@ -63,13 +77,40 @@ interface DragState {
   isRelative: boolean;
 }
 
-function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactElement | null {
+function CanvasPreview({ 
+  onElementClick, 
+  zoomLevel: propZoomLevel,
+  selectionTool: propSelectionTool,
+  showNotes: propShowNotes,
+  onZoomChange,
+  isPanMode: propIsPanMode,
+  isSpacePressed: propIsSpacePressed,
+  snapToGridProp: propSnapToGrid,
+  gridSizeProp: propGridSize,
+  externalContent,
+  onExternalContentChange,
+  onContextMenu,
+  allowImageElements = true,
+  onRequestExportSvg,
+  hasSyntaxErrors = false
+}: CanvasPreviewProps): React.ReactElement | null {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { content, setContent } = useEditorStore();
-  const { selectedElements, setSelectedElements, zoomLevel, isPanMode } = useSolarWireStore();
-  const { primaryColor, showGrid, snapToGrid, gridSize } = useSettingsStore();
+  const { selectedElements, setSelectedElements, zoomLevel: storeZoomLevel, isPanMode: storeIsPanMode, selectionTool: storeSelectionTool, showNotes: storeShowNotes } = useSolarWireStore();
+  const { primaryColor, snapToGrid: storeSnapToGrid, gridSize: storeGridSize } = useSettingsStore();
   const { selectedFile } = useFileStore();
+  
+  // Use props if provided, otherwise fall back to store values
+  const effectiveZoomLevel = propZoomLevel !== undefined ? propZoomLevel : storeZoomLevel;
+  const effectiveIsPanMode = propIsPanMode !== undefined ? propIsPanMode : storeIsPanMode;
+  const effectiveSelectionTool = propSelectionTool !== undefined ? propSelectionTool : storeSelectionTool;
+  const effectiveShowNotes = propShowNotes !== undefined ? propShowNotes : storeShowNotes;
+  const effectiveSnapToGrid = propSnapToGrid !== undefined ? propSnapToGrid : storeSnapToGrid;
+  const effectiveGridSize = propGridSize !== undefined ? propGridSize : storeGridSize;
+  const effectiveContent = externalContent !== undefined ? externalContent : content;
+  const effectiveSetContent = onExternalContentChange || setContent;
+  const effectiveIsSpacePressed = propIsSpacePressed !== undefined ? propIsSpacePressed : false;
   
   const [pan, setPan] = useState<PanState>({
     isPanning: false,
@@ -118,6 +159,8 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; elementId: string | null } | null>(null);
 
   const [elementsInfo, setElementsInfo] = useState<any[]>([]);
+  const [viewBox, setViewBox] = useState({ x: 0, y: 0, width: 400, height: 300 });
+  const [hoveredElement, setHoveredElement] = useState<{ id: string; line?: number } | null>(null);
 
   const imageUrlResolver = useMemo(() => {
     return (relativePath: string): string => {
@@ -130,15 +173,33 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
     };
   }, [selectedFile]);
 
-  const scale = zoomLevel / 100;
+  const scale = effectiveZoomLevel / 100;
 
   const screenToCanvas = useCallback((screenX: number, screenY: number): { x: number; y: number } => {
-    if (!canvasRef.current) return { x: 0, y: 0 };
+    if (!canvasRef.current || !containerRef.current) return { x: 0, y: 0 };
     const rect = canvasRef.current.getBoundingClientRect();
-    const canvasX = (screenX - rect.left - pan.offsetX) / scale;
-    const canvasY = (screenY - rect.top - pan.offsetY) / scale;
-    return { x: canvasX, y: canvasY };
-  }, [pan.offsetX, pan.offsetY, scale]);
+    const containerWidth = containerRef.current.clientWidth;
+    const containerHeight = containerRef.current.clientHeight;
+    
+    // Calculate the same transformations as in the render effect
+    const scale = effectiveZoomLevel / 100;
+    const viewBoxOffsetX = viewBox.x;
+    const viewBoxOffsetY = viewBox.y;
+    
+    // Convert screen coordinates to canvas coordinates
+    // First, get coordinates relative to canvas
+    const canvasX = screenX - rect.left;
+    const canvasY = screenY - rect.top;
+    
+    // Reverse the transformations in the same order as render
+    // Render: translate(containerWidth/2, containerHeight/2) -> scale(scale) -> translate(-viewBoxOffsetX - viewBox.width/2, -viewBoxOffsetY - viewBox.height/2) -> translate(pan.offsetX/scale, pan.offsetY/scale)
+    // Reverse: subtract pan.offsetX/scale -> add viewBoxOffsetX + viewBox.width/2 -> divide by scale -> subtract containerWidth/2
+    
+    const x = (canvasX - containerWidth / 2) / scale + viewBoxOffsetX + viewBox.width / 2 - pan.offsetX / scale;
+    const y = (canvasY - containerHeight / 2) / scale + viewBoxOffsetY + viewBox.height / 2 - pan.offsetY / scale;
+    
+    return { x, y };
+  }, [pan.offsetX, pan.offsetY, effectiveZoomLevel, viewBox]);
 
   const findElementAtPosition = useCallback((x: number, y: number): { id: string; line?: number } | null => {
     // Search in reverse order (top elements first)
@@ -220,14 +281,14 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
     const rect = canvasRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
-    const canvasPos = screenToCanvas(x, y);
+    const canvasPos = screenToCanvas(e.clientX, e.clientY);
 
-    // Pan mode or middle mouse button
-    if (isPanMode || e.button === 1) {
+    // Pan mode or space key pressed - prioritize this over other interactions
+    if (effectiveIsPanMode || effectiveIsSpacePressed) {
       setPan({
         isPanning: true,
-        startX: x,
-        startY: y,
+        startX: e.clientX - pan.offsetX,
+        startY: e.clientY - pan.offsetY,
         offsetX: pan.offsetX,
         offsetY: pan.offsetY
       });
@@ -236,40 +297,16 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
 
     // Left click - handle element selection and drag
     if (e.button === 0) {
-      // First check if clicking on a resize handle of selected element
-      if (selectedElements.length === 1) {
-        const selectedElement = elementsInfo.find(e => e.id === selectedElements[0]);
-        if (selectedElement) {
-          const handle = findResizeHandleAtPosition(canvasPos.x, canvasPos.y, selectedElement.bounds);
-          if (handle) {
-            const elemData = getElementDataFromContent(content, selectedElement.line!);
-            if (elemData) {
-              setResize({
-                isResizing: true,
-                elementId: selectedElement.id,
-                elementLine: selectedElement.line!,
-                handle: handle as any,
-                startX: x,
-                startY: y,
-                elementX: elemData.x || 0,
-                elementY: elemData.y || 0,
-                elementW: selectedElement.bounds.width,
-                elementH: selectedElement.bounds.height
-              });
-              return;
-            }
-          }
-        }
-      }
-      
+      // Check if clicking on an element
       const clickedElement = findElementAtPosition(canvasPos.x, canvasPos.y);
       
       if (clickedElement) {
-        if (!e.shiftKey && !e.ctrlKey && !selectedElements.includes(clickedElement.id)) {
-          setSelectedElements([clickedElement.id]);
-        } else if (e.shiftKey || e.ctrlKey) {
-          if (selectedElements.includes(clickedElement.id)) {
-            setSelectedElements(selectedElements.filter(id => id !== clickedElement.id));
+        // Handle element selection
+        const isAlreadySelected = selectedElements.includes(clickedElement.id);
+        
+        if (!isAlreadySelected) {
+          if (!e.shiftKey && !e.ctrlKey) {
+            setSelectedElements([clickedElement.id]);
           } else {
             setSelectedElements([...selectedElements, clickedElement.id]);
           }
@@ -312,7 +349,7 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         });
       }
     }
-  }, [isPanMode, pan.offsetX, pan.offsetY, screenToCanvas, findElementAtPosition, selectedElements, setSelectedElements, content]);
+  }, [effectiveIsPanMode, pan.offsetX, pan.offsetY, screenToCanvas, findElementAtPosition, selectedElements, setSelectedElements, effectiveContent]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return;
@@ -323,21 +360,20 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
 
     // Handle panning
     if (pan.isPanning) {
-      const dx = x - pan.startX;
-      const dy = y - pan.startY;
+      const dx = e.clientX - pan.startX;
+      const dy = e.clientY - pan.startY;
+      
       setPan(prev => ({
         ...prev,
         offsetX: prev.offsetX + dx,
-        offsetY: prev.offsetY + dy,
-        startX: x,
-        startY: y
+        offsetY: prev.offsetY + dy
       }));
       return;
     }
 
     // Handle box selection
     if (boxSelection.isSelecting) {
-      const canvasPos = screenToCanvas(x, y);
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
       setBoxSelection(prev => ({
         ...prev,
         endX: canvasPos.x,
@@ -348,16 +384,23 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
 
     // Handle dragging
     if (drag.isDragging && drag.elementLine !== null) {
-      const dx = (x - drag.startX) / scale;
-      const dy = (y - drag.startY) / scale;
+      // 获取当前鼠标在Canvas坐标系中的位置
+      const currentCanvasPos = screenToCanvas(e.clientX, e.clientY);
+      
+      // 获取起始鼠标在Canvas坐标系中的位置
+      const startCanvasPos = screenToCanvas(drag.startX, drag.startY);
+      
+      // 计算在Canvas坐标系中的拖动距离
+      const dx = currentCanvasPos.x - startCanvasPos.x;
+      const dy = currentCanvasPos.y - startCanvasPos.y;
       
       let newX = drag.elementX + dx;
       let newY = drag.elementY + dy;
       
       // Apply grid snap if enabled
-      if (snapToGrid) {
-        newX = snapToGridValue(newX, gridSize);
-        newY = snapToGridValue(newY, gridSize);
+      if (effectiveSnapToGrid) {
+        newX = snapToGridValue(newX, effectiveGridSize);
+        newY = snapToGridValue(newY, effectiveGridSize);
       }
       
       // Ensure non-negative
@@ -387,9 +430,9 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
           let newX2 = drag.elementX2 !== undefined ? drag.elementX2 + dx : undefined;
           let newY2 = drag.elementY2 !== undefined ? drag.elementY2 + dy : undefined;
           
-          if (snapToGrid) {
-            if (newX2 !== undefined) newX2 = snapToGridValue(newX2, gridSize);
-            if (newY2 !== undefined) newY2 = snapToGridValue(newY2, gridSize);
+          if (effectiveSnapToGrid) {
+            if (newX2 !== undefined) newX2 = snapToGridValue(newX2, effectiveGridSize);
+            if (newY2 !== undefined) newY2 = snapToGridValue(newY2, effectiveGridSize);
           }
           
           if (newX2 !== undefined) newX2 = Math.max(0, newX2);
@@ -477,11 +520,11 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
       }
       
       // Apply grid snap if enabled
-      if (snapToGrid) {
-        newX = snapToGridValue(newX, gridSize);
-        newY = snapToGridValue(newY, gridSize);
-        newW = snapToGridValue(newW, gridSize);
-        newH = snapToGridValue(newH, gridSize);
+      if (effectiveSnapToGrid) {
+        newX = snapToGridValue(newX, effectiveGridSize);
+        newY = snapToGridValue(newY, effectiveGridSize);
+        newW = snapToGridValue(newW, effectiveGridSize);
+        newH = snapToGridValue(newH, effectiveGridSize);
       }
       
       // Ensure non-negative
@@ -499,7 +542,14 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
       
       setContent(newContent);
     }
-  }, [pan, drag, resize, boxSelection, content, scale, snapToGrid, gridSize, setContent, screenToCanvas]);
+    
+    // Handle hover detection (only when not dragging/panning/box-selecting)
+    if (!pan.isPanning && !drag.isDragging && !resize.isResizing && !boxSelection.isSelecting) {
+      const canvasPos = screenToCanvas(e.clientX, e.clientY);
+      const hoveredElem = findElementAtPosition(canvasPos.x, canvasPos.y);
+      setHoveredElement(hoveredElem);
+    }
+  }, [pan, drag, resize, boxSelection, effectiveContent, scale, effectiveSnapToGrid, effectiveGridSize, effectiveSetContent, screenToCanvas, findElementAtPosition]);
 
   const handleMouseUp = useCallback(() => {
     if (pan.isPanning) {
@@ -542,11 +592,20 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
       const minY = Math.min(boxSelection.startY, boxSelection.endY);
       const maxY = Math.max(boxSelection.startY, boxSelection.endY);
       
+      const isIntersectMode = effectiveSelectionTool === 'box-intersect';
+      
       const selectedIds = elementsInfo
         .filter(elem => {
           const bounds = elem.bounds;
-          return bounds.x < maxX && bounds.x + bounds.width > minX &&
-                 bounds.y < maxY && bounds.y + bounds.height > minY;
+          if (isIntersectMode) {
+            // Intersect mode: select elements that intersect with the box
+            return bounds.x < maxX && bounds.x + bounds.width > minX &&
+                   bounds.y < maxY && bounds.y + bounds.height > minY;
+          } else {
+            // Include mode: select elements completely inside the box
+            return bounds.x >= minX && bounds.x + bounds.width <= maxX &&
+                   bounds.y >= minY && bounds.y + bounds.height <= maxY;
+          }
         })
         .map(elem => elem.id);
       
@@ -560,12 +619,32 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         endY: 0
       });
     }
-  }, [pan, drag, resize, boxSelection, elementsInfo, setSelectedElements]);
+  }, [pan, drag, resize, boxSelection, elementsInfo, setSelectedElements, effectiveSelectionTool]);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredElement(null);
+  }, []);
 
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    // TODO: Implement zoom with wheel
-  }, []);
+    
+    if (!canvasRef.current || !containerRef.current || !onZoomChange) return;
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newZoomLevel = Math.max(10, Math.min(1000, effectiveZoomLevel * delta));
+    
+    // Calculate new pan offset to zoom at mouse position
+    const scaleRatio = newZoomLevel / effectiveZoomLevel;
+    const newOffsetX = mouseX - (mouseX - pan.offsetX) * scaleRatio;
+    const newOffsetY = mouseY - (mouseY - pan.offsetY) * scaleRatio;
+    
+    setPan(prev => ({ ...prev, offsetX: newOffsetX, offsetY: newOffsetY }));
+    onZoomChange(Math.round(newZoomLevel));
+  }, [effectiveZoomLevel, pan.offsetX, pan.offsetY, onZoomChange]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -608,33 +687,69 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         if (contextMenu.elementId) {
           const element = elementsInfo.find(e => e.id === contextMenu.elementId);
           if (element && element.line) {
-            const lines = content.split('\n');
+            const lines = effectiveContent.split('\n');
             lines.splice(element.line - 1, 1);
-            setContent(lines.join('\n'));
+            effectiveSetContent(lines.join('\n'));
             setSelectedElements(selectedElements.filter(id => id !== contextMenu.elementId));
           }
         }
         break;
       case 'duplicate':
-        // TODO: Implement duplicate
+        if (contextMenu.elementId) {
+          const element = elementsInfo.find(e => e.id === contextMenu.elementId);
+          if (element && element.line) {
+            const lines = effectiveContent.split('\n');
+            const originalLine = lines[element.line - 1];
+            const offset = 20;
+            
+            // Create duplicate with offset
+            const duplicatedLine = originalLine.replace(
+              /@?\(([^,]+),([^)]+)\)/,
+              (match, x, y) => {
+                const numX = parseFloat(x) || 0;
+                const numY = parseFloat(y) || 0;
+                return `@(${numX + offset},${numY + offset})`;
+              }
+            );
+            
+            lines.splice(element.line, 0, duplicatedLine);
+            effectiveSetContent(lines.join('\n'));
+          }
+        }
         break;
       case 'bringToFront':
-        // TODO: Implement bring to front
+        if (contextMenu.elementId) {
+          const element = elementsInfo.find(e => e.id === contextMenu.elementId);
+          if (element && element.line) {
+            const lines = effectiveContent.split('\n');
+            const lineToMove = lines.splice(element.line - 1, 1)[0];
+            lines.push(lineToMove);
+            effectiveSetContent(lines.join('\n'));
+          }
+        }
         break;
       case 'sendToBack':
-        // TODO: Implement send to back
+        if (contextMenu.elementId) {
+          const element = elementsInfo.find(e => e.id === contextMenu.elementId);
+          if (element && element.line) {
+            const lines = effectiveContent.split('\n');
+            const lineToMove = lines.splice(element.line - 1, 1)[0];
+            lines.unshift(lineToMove);
+            effectiveSetContent(lines.join('\n'));
+          }
+        }
         break;
     }
     
     closeContextMenu();
-  }, [contextMenu, elementsInfo, content, setContent, selectedElements, setSelectedElements, closeContextMenu]);
+  }, [contextMenu, elementsInfo, effectiveContent, effectiveSetContent, selectedElements, setSelectedElements, closeContextMenu]);
 
-  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'copy';
   }, []);
 
-  const handleDrop = useCallback(async (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     
     const files = e.dataTransfer.files;
@@ -688,21 +803,21 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         if (h > maxDim) { h = maxDim; w = h * aspect; }
         
         // 添加图片元素到代码
-        const { content } = useEditorStore.getState();
+        const { content: editorContent } = useEditorStore.getState();
         const line = `<${relativePath}> @(${canvasPos.x},${canvasPos.y}) w=${Math.round(w)} h=${Math.round(h)}`;
-        const newContent = content.trimEnd() + '\n' + line;
+        const newContent = editorContent.trimEnd() + '\n' + line;
         
-        const { setContent } = useEditorStore.getState();
-        setContent(newContent);
+        const { setContent: editorSetContent } = useEditorStore.getState();
+        editorSetContent(newContent);
       };
       img.onerror = () => {
         // 如果无法获取尺寸，使用默认尺寸
         const line = `<${relativePath}> @(${canvasPos.x},${canvasPos.y})`;
-        const { content } = useEditorStore.getState();
-        const newContent = content.trimEnd() + '\n' + line;
+        const { content: editorContent } = useEditorStore.getState();
+        const newContent = editorContent.trimEnd() + '\n' + line;
         
-        const { setContent } = useEditorStore.getState();
-        setContent(newContent);
+        const { setContent: editorSetContent } = useEditorStore.getState();
+        editorSetContent(newContent);
       };
       img.src = URL.createObjectURL(file);
     } catch (error) {
@@ -746,52 +861,74 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         selectedElementIds: selectedElements,
         primaryColor,
         imageUrlResolver,
-        sourceInput: content
+        sourceInput: content,
+        skipCanvasSize: true // Let CanvasPreview control canvas size for zoom
       });
 
       // Save elements info for hit testing
       setElementsInfo(canvasResult.elements);
+      
+      // Update viewBox state for coordinate calculations
+      setViewBox(canvasResult.viewBox);
 
       const canvas = canvasRef.current;
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
+      // Get container dimensions
+      const container = containerRef.current;
+      if (!container) return;
+      const containerWidth = container.clientWidth;
+      const containerHeight = container.clientHeight;
+
+      // Set canvas size to match container
+      canvas.width = containerWidth;
+      canvas.height = containerHeight;
+
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
 
-      // Apply scale and pan
+      // Get viewBox from canvas result
+      const viewBox = canvasResult.viewBox;
+
+      // Use the same coordinate system as SVG
+      // Scale is zoomLevel / 100
+      const scale = effectiveZoomLevel / 100;
+      
+      // Calculate viewBox offset
+      const viewBoxOffsetX = viewBox.x;
+      const viewBoxOffsetY = viewBox.y;
+
+      // Apply transformations: translate to center, then scale
+      // This matches the SVG coordinate system
+      ctx.translate(containerWidth / 2, containerHeight / 2);
       ctx.scale(scale, scale);
+      ctx.translate(-viewBoxOffsetX - viewBox.width / 2, -viewBoxOffsetY - viewBox.height / 2);
+      
+      // Apply pan offset (scaled)
       ctx.translate(pan.offsetX / scale, pan.offsetY / scale);
 
       // Render the diagram
       canvasResult.render(canvas);
 
-      // Draw grid if enabled
-      if (showGrid) {
+      // Draw hover highlight
+      if (hoveredElement && !selectedElements.includes(hoveredElement.id)) {
         ctx.restore();
         ctx.save();
+        
+        // Apply same transformations as main render
+        ctx.translate(containerWidth / 2, containerHeight / 2);
         ctx.scale(scale, scale);
+        ctx.translate(-viewBoxOffsetX - viewBox.width / 2, -viewBoxOffsetY - viewBox.height / 2);
         ctx.translate(pan.offsetX / scale, pan.offsetY / scale);
-        ctx.strokeStyle = '#e0e0e0';
-        ctx.lineWidth = 0.5;
         
-        const bounds = canvasResult.viewBox;
-        const startX = Math.floor(bounds.x / gridSize) * gridSize;
-        const startY = Math.floor(bounds.y / gridSize) * gridSize;
-        
-        for (let x = startX; x < bounds.x + bounds.width; x += gridSize) {
-          ctx.beginPath();
-          ctx.moveTo(x, bounds.y);
-          ctx.lineTo(x, bounds.y + bounds.height);
-          ctx.stroke();
-        }
-        
-        for (let y = startY; y < bounds.y + bounds.height; y += gridSize) {
-          ctx.beginPath();
-          ctx.moveTo(bounds.x, y);
-          ctx.lineTo(bounds.x + bounds.width, y);
-          ctx.stroke();
+        const hoveredElemInfo = elementsInfo.find(e => e.id === hoveredElement.id);
+        if (hoveredElemInfo) {
+          const bounds = hoveredElemInfo.bounds;
+          ctx.strokeStyle = primaryColor + '40';
+          ctx.lineWidth = 2 / scale;
+          ctx.strokeRect(bounds.x, bounds.y, bounds.width, bounds.height);
         }
       }
 
@@ -801,7 +938,11 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         if (selectedElement && selectedElement.type !== 'line' && selectedElement.type !== 'circle') {
           ctx.restore();
           ctx.save();
+          
+          // Apply same transformations as main render
+          ctx.translate(containerWidth / 2, containerHeight / 2);
           ctx.scale(scale, scale);
+          ctx.translate(-viewBoxOffsetX - viewBox.width / 2, -viewBoxOffsetY - viewBox.height / 2);
           ctx.translate(pan.offsetX / scale, pan.offsetY / scale);
           
           const bounds = selectedElement.bounds;
@@ -835,7 +976,11 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
       if (boxSelection.isSelecting) {
         ctx.restore();
         ctx.save();
+        
+        // Apply same transformations as main render
+        ctx.translate(containerWidth / 2, containerHeight / 2);
         ctx.scale(scale, scale);
+        ctx.translate(-viewBoxOffsetX - viewBox.width / 2, -viewBoxOffsetY - viewBox.height / 2);
         ctx.translate(pan.offsetX / scale, pan.offsetY / scale);
         
         const minX = Math.min(boxSelection.startX, boxSelection.endX);
@@ -857,7 +1002,11 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
       if (alignmentGuides.length > 0) {
         ctx.restore();
         ctx.save();
+        
+        // Apply same transformations as main render
+        ctx.translate(containerWidth / 2, containerHeight / 2);
         ctx.scale(scale, scale);
+        ctx.translate(-viewBoxOffsetX - viewBox.width / 2, -viewBoxOffsetY - viewBox.height / 2);
         ctx.translate(pan.offsetX / scale, pan.offsetY / scale);
         
         const bounds = canvasResult.viewBox;
@@ -887,7 +1036,7 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
     } catch (error) {
       console.error('Canvas render error:', error);
     }
-  }, [content, selectedElements, primaryColor, imageUrlResolver, scale, pan, showGrid, gridSize, boxSelection, alignmentGuides]);
+  }, [effectiveContent, selectedElements, primaryColor, imageUrlResolver, scale, pan, boxSelection, alignmentGuides]);
 
   return (
     <div 
@@ -902,48 +1051,15 @@ function CanvasPreview({ onElementClick }: CanvasPreviewProps): React.ReactEleme
         ref={canvasRef}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
-        onContextMenu={handleContextMenu}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
         className="canvas-preview-canvas"
-        style={{ cursor: isPanMode ? 'grab' : 'default' }}
+        style={{ cursor: effectiveIsPanMode ? 'grab' : 'default' }}
       />
       
-      {contextMenu && (
-        <div
-          className="canvas-context-menu"
-          style={{
-            position: 'fixed',
-            left: contextMenu.x,
-            top: contextMenu.y,
-            zIndex: 1000
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="context-menu-item" onClick={() => handleMenuAction('delete')}>
-            删除
-          </div>
-          {contextMenu.elementId && (
-            <>
-              <div className="context-menu-item" onClick={() => handleMenuAction('duplicate')}>
-                复制
-              </div>
-              <div className="context-menu-item" onClick={() => handleMenuAction('bringToFront')}>
-                置于顶层
-              </div>
-              <div className="context-menu-item" onClick={() => handleMenuAction('sendToBack')}>
-                置于底层
-              </div>
-            </>
-          )}
-          <div className="context-menu-separator" />
-          <div className="context-menu-item" onClick={() => handleExport('png')}>
-            导出为 PNG
-          </div>
-          <div className="context-menu-item" onClick={() => handleExport('svg')}>
-            导出为 SVG
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
   );
 }
 

@@ -1,5 +1,5 @@
 import { Document, Element } from '../parser';
-import { createRenderContext, RenderContext, ElementBounds, formatRenderError, getElementLocationInfo } from './context';
+import { createRenderContext, RenderContext, ElementBounds, formatRenderError, getElementLocationInfo, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, getOpacityAttribute, getShadowAttribute, createChildContext, calculateLineEnd, getStyleAttribute } from './context';
 
 interface CanvasRenderResult {
   bounds: ElementBounds;
@@ -120,39 +120,109 @@ function wrapText(text: string, maxWidth: number, fontSize: number = 12): string
 }
 
 function renderRectangle(element: Element, context: RenderContext): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x = Number(attrs.x) || 0;
-  const y = Number(attrs.y) || 0;
-  const w = Number(attrs.w) || 100;
-  const h = Number(attrs.h) || 100;
-  const fill = attrs.fill || 'none';
-  const stroke = attrs.stroke || 'none';
-  const strokeWidth = Number(attrs['stroke-width']) || 0;
-  const radius = Number(attrs.radius) || 0;
+  // Use the same attribute processing as SVG renderer
+  const r = getNumberAttribute(element.attributes, context.globalDefaults, 'r', 0);
+  const isRounded = r > 0;
+  
+  let pos: { x: number; y: number };
+  if (element.coordinates) {
+    pos = calculatePosition(context, element.coordinates);
+  } else {
+    pos = { x: context.offsetX, y: context.offsetY };
+  }
+  
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100);
+  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#ffffff');
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const align = getAlignAttribute(element.attributes, 'start');
+  const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
+  const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
+  const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  
+  const text = (element as any).text || '';
 
-  const bounds: ElementBounds = { x, y, width: w, height: h };
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: w, height: h };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
       ctx.save();
+      ctx.globalAlpha = opacity;
+      
+      // Apply shadow if present
+      if (shadow) {
+        ctx.shadowColor = shadow.color || 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = shadow.blur || 10;
+        ctx.shadowOffsetX = shadow.x || 0;
+        ctx.shadowOffsetY = shadow.y || 0;
+      }
+      
       ctx.beginPath();
       
-      if (radius > 0) {
-        ctx.roundRect(x, y, w, h, radius);
+      if (isRounded) {
+        ctx.roundRect(pos.x, pos.y, w, h, r);
       } else {
-        ctx.rect(x, y, w, h);
+        ctx.rect(pos.x, pos.y, w, h);
       }
       
-      if (fill !== 'none') {
-        ctx.fillStyle = fill;
-        ctx.fill();
-      }
+      ctx.fillStyle = bg;
+      ctx.fill();
       
-      if (stroke !== 'none' && strokeWidth > 0) {
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = strokeWidth;
+      if (s > 0) {
+        ctx.strokeStyle = b;
+        ctx.lineWidth = s;
         ctx.stroke();
+      }
+      
+      // Reset shadow for text
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Render text if present
+      if (text) {
+        const lines = text.split('\n');
+        const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
+        const padding = 8;
+        
+        let textX: number;
+        let textAlign: CanvasTextAlign;
+        
+        switch (align) {
+          case 'start':
+            textX = pos.x + padding;
+            textAlign = 'left';
+            break;
+          case 'end':
+            textX = pos.x + w - padding;
+            textAlign = 'right';
+            break;
+          case 'middle':
+          default:
+            textX = pos.x + w / 2;
+            textAlign = 'center';
+            break;
+        }
+        
+        const textY = pos.y + padding + fontSize;
+        
+        let fontStyle = '';
+        if (bold) fontStyle += 'bold ';
+        if (italic) fontStyle += 'italic ';
+        ctx.font = `${fontStyle}${fontSize}px Arial, sans-serif`;
+        ctx.fillStyle = c;
+        ctx.textAlign = textAlign;
+        ctx.textBaseline = 'top';
+        
+        lines.forEach((line: string, index: number) => {
+          ctx.fillText(line, textX, textY + index * lineHeight);
+        });
       }
       
       ctx.restore();
@@ -161,32 +231,74 @@ function renderRectangle(element: Element, context: RenderContext): CanvasRender
 }
 
 function renderCircle(element: Element, context: RenderContext): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x = Number(attrs.x) || 50;
-  const y = Number(attrs.y) || 50;
-  const r = Number(attrs.r) || 25;
-  const fill = attrs.fill || 'none';
-  const stroke = attrs.stroke || 'none';
-  const strokeWidth = Number(attrs['stroke-width']) || 0;
+  // Use the same attribute processing as SVG renderer
+  let pos: { x: number; y: number };
+  if (element.coordinates) {
+    pos = calculatePosition(context, element.coordinates);
+  } else {
+    pos = { x: context.offsetX, y: context.offsetY };
+  }
+  
+  const w = Math.max(1, getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100));
+  const h = Math.max(1, getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40));
+  const radius = Math.max(0.5, Math.min(w, h) / 2);
+  const cx = pos.x + w / 2;
+  const cy = pos.y + h / 2;
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent');
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
+  const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
+  const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  const text = (element as any).text || '';
 
-  const bounds: ElementBounds = { x: x - r, y: y - r, width: r * 2, height: r * 2 };
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: w, height: h };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.globalAlpha = opacity;
       
-      if (fill !== 'none') {
-        ctx.fillStyle = fill;
-        ctx.fill();
+      // Apply shadow if present
+      if (shadow) {
+        ctx.shadowColor = shadow.color || 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = shadow.blur || 10;
+        ctx.shadowOffsetX = shadow.x || 0;
+        ctx.shadowOffsetY = shadow.y || 0;
       }
       
-      if (stroke !== 'none' && strokeWidth > 0) {
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = strokeWidth;
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      
+      ctx.fillStyle = bg;
+      ctx.fill();
+      
+      if (s > 0) {
+        ctx.strokeStyle = b;
+        ctx.lineWidth = s;
         ctx.stroke();
+      }
+      
+      // Reset shadow for text
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Render text if present
+      if (text) {
+        let fontStyle = '';
+        if (bold) fontStyle += 'bold ';
+        if (italic) fontStyle += 'italic ';
+        ctx.font = `${fontStyle}${fontSize}px Arial, sans-serif`;
+        ctx.fillStyle = c;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, cx, cy);
       }
       
       ctx.restore();
@@ -195,30 +307,97 @@ function renderCircle(element: Element, context: RenderContext): CanvasRenderRes
 }
 
 function renderText(element: Element, context: RenderContext): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x = Number(attrs.x) || 0;
-  const y = Number(attrs.y) || 0;
-  const text = attrs.text || '';
-  const fontSize = Number(attrs['font-size']) || 12;
-  const fill = attrs.fill || '#000';
-  const maxWidth = Number(attrs['max-width']) || Infinity;
-
-  const lines = wrapText(text, maxWidth, fontSize);
-  const lineHeight = fontSize * 1.2;
-  const totalHeight = lines.length * lineHeight;
+  // Use the same attribute processing as SVG renderer
+  let pos: { x: number; y: number };
+  if (element.coordinates) {
+    pos = calculatePosition(context, element.coordinates);
+  } else {
+    pos = { x: context.offsetX, y: context.offsetY };
+  }
   
-  const bounds: ElementBounds = { x, y, width: maxWidth === Infinity ? text.length * fontSize * 0.65 : maxWidth, height: totalHeight };
+  // TextElement has text as a direct property, not in attributes
+  const text = (element as any).text || '';
+  const lines = text.split('\n');
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 0);
+  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const align = getAlignAttribute(element.attributes, 'start');
+  const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
+  const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
+  const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+
+  // Calculate text width
+  const calculateTextWidth = (text: string, fontSize: number): number => {
+    if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+      try {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (context) {
+          context.font = `${fontSize}px Arial, sans-serif`;
+          return context.measureText(text).width;
+        }
+      } catch (e) {
+        // Canvas creation failed, fallback to estimation
+      }
+    }
+
+    // Fallback estimation
+    let width = 0;
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (char.match(/[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/)) {
+        width += fontSize * 1.0;
+      } else {
+        width += fontSize * 0.6;
+      }
+    }
+    return width;
+  };
+
+  const estimatedWidth = w || (lines.length > 0 ? Math.max(...lines.map((l: string) => calculateTextWidth(l, fontSize))) : 100);
+  const estimatedHeight = lines.length > 0 ? lines.length * lineHeight : fontSize;
+  
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: estimatedWidth, height: estimatedHeight };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
       ctx.save();
-      ctx.font = `${fontSize}px Arial, sans-serif`;
-      ctx.fillStyle = fill;
+      ctx.globalAlpha = opacity;
+      
+      // Apply shadow if present
+      if (shadow) {
+        ctx.shadowColor = shadow.color || 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = shadow.blur || 10;
+        ctx.shadowOffsetX = shadow.x || 0;
+        ctx.shadowOffsetY = shadow.y || 0;
+      }
+      
+      let fontStyle = '';
+      if (bold) fontStyle += 'bold ';
+      if (italic) fontStyle += 'italic ';
+      ctx.font = `${fontStyle}${fontSize}px Arial, sans-serif`;
+      ctx.fillStyle = c;
       ctx.textBaseline = 'top';
       
-      lines.forEach((line, index) => {
-        ctx.fillText(line, x, y + index * lineHeight);
+      // Handle text alignment
+      let textX = pos.x;
+      if (align === 'middle') {
+        textX = pos.x + (w || estimatedWidth) / 2;
+        ctx.textAlign = 'center';
+      } else if (align === 'end') {
+        textX = pos.x + (w || estimatedWidth);
+        ctx.textAlign = 'right';
+      } else {
+        ctx.textAlign = 'left';
+      }
+      
+      const textY = pos.y + fontSize;
+      
+      lines.forEach((line: string, index: number) => {
+        ctx.fillText(line, textX, textY + index * lineHeight);
       });
       
       ctx.restore();
@@ -227,131 +406,518 @@ function renderText(element: Element, context: RenderContext): CanvasRenderResul
 }
 
 function renderLine(element: Element, context: RenderContext): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x1 = Number(attrs.x1) || 0;
-  const y1 = Number(attrs.y1) || 0;
-  const x2 = Number(attrs.x2) || 100;
-  const y2 = Number(attrs.y2) || 100;
-  const stroke = attrs.stroke || '#000';
-  const strokeWidth = Number(attrs['stroke-width']) || 1;
-  const dashArray = attrs['stroke-dasharray'];
+  // Use the same attribute processing as SVG renderer
+  const start = calculatePosition(context, (element as any).start);
+  const end = calculateLineEnd(context, start, (element as any).end);
+  
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#333333');
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
+  const style = getStyleAttribute(element.attributes);
+  const textSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const textColor = getColorAttribute(element.attributes, context.globalDefaults, 'text-color', '#333333');
+  const label = (element as any).label || '';
 
-  const minX = Math.min(x1, x2);
-  const minY = Math.min(y1, y2);
-  const maxX = Math.max(x1, x2);
-  const maxY = Math.max(y1, y2);
-  const bounds: ElementBounds = { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
+  const bounds: ElementBounds = {
+    x: Math.min(start.x, end.x),
+    y: Math.min(start.y, end.y),
+    width: Math.abs(end.x - start.x),
+    height: Math.abs(end.y - start.y),
+  };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
       ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(x1, y1);
-      ctx.lineTo(x2, y2);
-      ctx.strokeStyle = stroke;
-      ctx.lineWidth = strokeWidth;
       
-      if (dashArray) {
-        ctx.setLineDash(dashArray.split(',').map(Number));
+      // Draw line
+      ctx.beginPath();
+      ctx.moveTo(start.x, start.y);
+      ctx.lineTo(end.x, end.y);
+      
+      ctx.strokeStyle = c;
+      ctx.lineWidth = s;
+      
+      if (style.strokeDasharray) {
+        ctx.setLineDash(style.strokeDasharray.split(',').map(Number));
       }
       
       ctx.stroke();
+      
+      // Draw label if present
+      if (label) {
+        const midX = (start.x + end.x) / 2;
+        const midY = (start.y + end.y) / 2;
+        const labelPadding = 4;
+        const labelWidth = label.length * textSize * 0.6 + labelPadding * 2;
+        const labelHeight = textSize + labelPadding * 2;
+        
+        // Draw label background
+        ctx.fillStyle = 'white';
+        ctx.fillRect(midX - labelWidth / 2, midY - labelHeight / 2, labelWidth, labelHeight);
+        
+        // Draw label text
+        ctx.fillStyle = textColor;
+        ctx.font = `${textSize}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, midX, midY);
+      }
+      
       ctx.restore();
     }
   };
 }
 
 function renderPlaceholder(element: Element, context: RenderContext): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x = Number(attrs.x) || 0;
-  const y = Number(attrs.y) || 0;
-  const w = Number(attrs.w) || 100;
-  const h = Number(attrs.h) || 100;
+  // Use the same attribute processing as SVG renderer
+  let pos: { x: number; y: number };
+  if (element.coordinates) {
+    pos = calculatePosition(context, element.coordinates);
+  } else {
+    pos = { x: context.offsetX, y: context.offsetY };
+  }
+  
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100);
+  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0');
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#999999');
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const text = (element as any).text || 'Placeholder';
 
-  const bounds: ElementBounds = { x, y, width: w, height: h };
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: w, height: h };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
       ctx.save();
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(x, y, w, h);
-      ctx.fillStyle = '#f0f0f0';
-      ctx.fillRect(x, y, w, h);
+      
+      // Draw background
+      ctx.fillStyle = bg;
+      ctx.fillRect(pos.x, pos.y, w, h);
+      
+      // Draw border
+      ctx.strokeStyle = b;
+      ctx.lineWidth = s;
+      ctx.strokeRect(pos.x, pos.y, w, h);
+      
+      // Draw diagonal lines
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+      ctx.lineTo(pos.x + w, pos.y + h);
+      ctx.stroke();
+      
+      ctx.beginPath();
+      ctx.moveTo(pos.x + w, pos.y);
+      ctx.lineTo(pos.x, pos.y + h);
+      ctx.stroke();
+      
+      // Draw text
+      ctx.fillStyle = c;
+      ctx.font = `${fontSize}px Arial, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, pos.x + w / 2, pos.y + h / 2);
+      
       ctx.restore();
     }
   };
 }
 
 function renderImage(element: Element, context: RenderContext, imageUrlResolver?: (relativePath: string) => string): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x = Number(attrs.x) || 0;
-  const y = Number(attrs.y) || 0;
-  const w = Number(attrs.w) || 100;
-  const h = Number(attrs.h) || 100;
-  const src = attrs.src || '';
-  const resolvedSrc = imageUrlResolver ? imageUrlResolver(src) : src;
+  // Use the same attribute processing as SVG renderer
+  let pos: { x: number; y: number };
+  if (element.coordinates) {
+    pos = calculatePosition(context, element.coordinates);
+  } else {
+    pos = { x: context.offsetX, y: context.offsetY };
+  }
+  
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100);
+  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 80);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0');
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  
+  const url = (element as any).url || '';
+  const resolvedUrl = imageUrlResolver ? imageUrlResolver(url) : url;
+  const hasValidUrl = !!resolvedUrl && resolvedUrl.length > 0;
 
-  const bounds: ElementBounds = { x, y, width: w, height: h };
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: w, height: h };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
-      const img = new Image();
-      img.src = resolvedSrc;
-      // Note: In a real implementation, you'd need to handle async loading
-      // For now, we'll draw a placeholder
       ctx.save();
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(x, y, w, h);
-      ctx.fillStyle = '#f8f8f8';
-      ctx.fillRect(x, y, w, h);
-      ctx.fillStyle = '#666';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('Image', x + w / 2, y + h / 2);
+      ctx.globalAlpha = opacity;
+      
+      // Apply shadow if present
+      if (shadow) {
+        ctx.shadowColor = shadow.color || 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = shadow.blur || 10;
+        ctx.shadowOffsetX = shadow.x || 0;
+        ctx.shadowOffsetY = shadow.y || 0;
+      }
+      
+      if (!hasValidUrl) {
+        // Draw background rect
+        ctx.fillStyle = bg;
+        ctx.fillRect(pos.x, pos.y, w, h);
+        
+        // Reset shadow for icon
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        
+        // Draw icon
+        const iconSize = Math.min(w, h) * 0.3;
+        const iconX = pos.x + w / 2;
+        const iconY = pos.y + h / 2 - fontSize;
+        
+        ctx.save();
+        ctx.translate(iconX - iconSize / 2, iconY - iconSize / 2);
+        
+        // Draw icon rect
+        ctx.strokeStyle = c;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(0, 0, iconSize, iconSize, 4);
+        ctx.stroke();
+        
+        // Draw icon path (mountain)
+        ctx.beginPath();
+        ctx.moveTo(iconSize * 0.2, iconSize * 0.3);
+        ctx.lineTo(iconSize * 0.5, iconSize * 0.6);
+        ctx.lineTo(iconSize * 0.8, iconSize * 0.3);
+        ctx.stroke();
+        
+        // Draw icon circle (sun)
+        ctx.fillStyle = c;
+        ctx.beginPath();
+        ctx.arc(iconSize * 0.35, iconSize * 0.4, iconSize * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.restore();
+        
+        // Draw text
+        ctx.fillStyle = c;
+        ctx.font = `${fontSize}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Image', pos.x + w / 2, pos.y + h / 2 + fontSize);
+      } else {
+        // Draw image
+        const img = new Image();
+        img.src = resolvedUrl;
+        
+        // For now, draw a placeholder since image loading is async
+        ctx.fillStyle = bg;
+        ctx.fillRect(pos.x, pos.y, w, h);
+        ctx.strokeStyle = c;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(pos.x, pos.y, w, h);
+        
+        ctx.fillStyle = c;
+        ctx.font = `${fontSize}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Image', pos.x + w / 2, pos.y + h / 2);
+      }
+      
       ctx.restore();
     }
   };
 }
 
 function renderTable(element: Element, context: RenderContext, renderChild: (child: Element, ctx: RenderContext) => CanvasRenderResult): CanvasRenderResult {
-  const attrs = element.attributes || {};
-  const x = Number(attrs.x) || 0;
-  const y = Number(attrs.y) || 0;
-  const rows = Number(attrs.rows) || 1;
-  const cols = Number(attrs.cols) || 1;
-  const cellWidth = Number(attrs['cell-width']) || 80;
-  const cellHeight = Number(attrs['cell-height']) || 40;
+  // Use the same attribute processing as SVG renderer
+  let pos: { x: number; y: number };
+  if (element.coordinates) {
+    pos = calculatePosition(context, element.coordinates);
+  } else {
+    pos = { x: context.offsetX, y: context.offsetY };
+  }
+  
+  if (element.type === 'table') {
+    return renderTableElement(element as any, context, pos, renderChild);
+  } else {
+    return renderTableRow(element as any, context, pos, renderChild);
+  }
+}
 
-  const totalWidth = cols * cellWidth;
-  const totalHeight = rows * cellHeight;
-  const bounds: ElementBounds = { x, y, width: totalWidth, height: totalHeight };
+interface CellData {
+  row: number;
+  col: number;
+  colspan: number;
+  rowspan: number;
+  cell: any;
+}
+
+function renderTableElement(
+  element: any,
+  context: RenderContext,
+  pos: { x: number; y: number },
+  renderChild: (child: Element, ctx: RenderContext) => CanvasRenderResult
+): CanvasRenderResult {
+  const border = getNumberAttribute(element.attributes, context.globalDefaults, 'border', 1);
+  const cellspacing = getNumberAttribute(element.attributes, context.globalDefaults, 'cellspacing', 0);
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
+  const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+
+  const rows = element.children || [];
+  
+  const tableWidth = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 600);
+  const declaredTableHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 0);
+  const defaultRowHeight = 40;
+
+  const { maxColCount: estimatedMaxColCount, maxRowSpan: estimatedMaxRowSpan } = estimateTableDimensions(rows);
+
+  const tempGrid: boolean[][] = [];
+  for (let r = 0; r < estimatedMaxRowSpan + 10; r++) {
+    tempGrid[r] = [];
+    for (let c = 0; c < estimatedMaxColCount + 10; c++) {
+      tempGrid[r][c] = false;
+    }
+  }
+
+  let actualMaxColCount = 0;
+  let actualMaxRowCount = 0;
+
+  rows.forEach((row: any, rowIndex: number) => {
+    const cells = (row as any).children || [];
+    let colIndex = 0;
+
+    while (colIndex < tempGrid[rowIndex].length && tempGrid[rowIndex][colIndex]) {
+      colIndex++;
+    }
+
+    (cells as any[]).forEach((cell: any) => {
+      const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
+      const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
+
+      const actualColspan = Math.min(colspan, tempGrid[rowIndex].length - colIndex);
+      const actualRowspan = Math.min(rowspan, tempGrid.length - rowIndex);
+
+      for (let r = rowIndex; r < rowIndex + actualRowspan; r++) {
+        for (let c = colIndex; c < colIndex + actualColspan; c++) {
+          if (r < tempGrid.length && c < tempGrid[r].length) {
+            tempGrid[r][c] = true;
+          }
+        }
+      }
+
+      actualMaxColCount = Math.max(actualMaxColCount, colIndex + actualColspan);
+      actualMaxRowCount = Math.max(actualMaxRowCount, rowIndex + actualRowspan);
+
+      colIndex += actualColspan;
+      while (colIndex < tempGrid[rowIndex].length && tempGrid[rowIndex][colIndex]) {
+        colIndex++;
+      }
+    });
+  });
+
+  const finalNumCols = Math.max(actualMaxColCount, estimatedMaxColCount);
+  const finalNumRows = Math.max(actualMaxRowCount, rows.length + estimatedMaxRowSpan - 1);
+
+  const colWidth = (tableWidth - (finalNumCols - 1) * cellspacing) / finalNumCols;
+  const tableHeight = declaredTableHeight > 0 ? declaredTableHeight : finalNumRows * defaultRowHeight + (finalNumRows - 1) * cellspacing;
+  const rowHeight = (tableHeight - (finalNumRows - 1) * cellspacing) / finalNumRows;
+
+  const { cellData } = buildCellGrid(rows, finalNumRows, finalNumCols);
+
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: tableWidth, height: tableHeight };
 
   return {
     bounds,
     render: (ctx: CanvasRenderingContext2D) => {
       ctx.save();
-      ctx.strokeStyle = '#000';
-      ctx.lineWidth = 1;
+      ctx.globalAlpha = opacity;
       
-      // Draw table cells
-      for (let row = 0; row < rows; row++) {
-        for (let col = 0; col < cols; col++) {
-          const cellX = x + col * cellWidth;
-          const cellY = y + row * cellHeight;
+      // Apply shadow if present
+      if (shadow) {
+        ctx.shadowColor = shadow.color || 'rgba(0, 0, 0, 0.3)';
+        ctx.shadowBlur = shadow.blur || 10;
+        ctx.shadowOffsetX = shadow.x || 0;
+        ctx.shadowOffsetY = shadow.y || 0;
+      }
+      
+      // Draw table background
+      ctx.fillStyle = 'transparent';
+      ctx.fillRect(pos.x, pos.y, tableWidth, tableHeight);
+      
+      // Reset shadow for cells
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Draw table border
+      if (border > 0) {
+        ctx.strokeStyle = b;
+        ctx.lineWidth = border;
+        ctx.strokeRect(pos.x, pos.y, tableWidth, tableHeight);
+      }
+      
+      // Render cells
+      cellData.forEach(data => {
+        const cellX = pos.x + data.col * (colWidth + cellspacing);
+        const cellY = pos.y + data.row * (rowHeight + cellspacing);
+        const cellWidth = data.colspan * colWidth + (data.colspan - 1) * cellspacing;
+        const cellHeight = data.rowspan * rowHeight + (data.rowspan - 1) * cellspacing;
+
+        const rowAttributes = (rows[data.row] as any).attributes || {};
+
+        const cellBg = getColorAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'bg', '#ffffff');
+        const cellBorder = getColorAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'b', '#333333');
+        const cellStrokeWidth = getNumberAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 's', 1);
+
+        // Draw cell background
+        ctx.fillStyle = cellBg;
+        ctx.fillRect(cellX, cellY, cellWidth, cellHeight);
+        
+        // Draw cell border
+        if (cellStrokeWidth > 0) {
+          ctx.strokeStyle = cellBorder;
+          ctx.lineWidth = cellStrokeWidth;
           ctx.strokeRect(cellX, cellY, cellWidth, cellHeight);
         }
-      }
+
+        // Render cell content
+        const cellContext = createChildContext(context, cellX, cellY);
+        const modifiedCell = { ...data.cell };
+        modifiedCell.attributes = { ...modifiedCell.attributes };
+        modifiedCell.attributes['w'] = cellWidth.toString();
+        modifiedCell.attributes['h'] = cellHeight.toString();
+        modifiedCell.attributes['bg'] = cellBg;
+        modifiedCell.attributes['b'] = 'transparent';
+        modifiedCell.attributes['s'] = '0';
+        
+        // Set alignment for text elements
+        const cellColor = getColorAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'c', '#000000');
+        const cellFontSize = getNumberAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'size', 12);
+        const cellBold = getBooleanAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'bold');
+        const cellItalic = getBooleanAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'italic');
+        const cellAlign = getAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'start');
+        
+        modifiedCell.attributes['c'] = cellColor;
+        modifiedCell.attributes['size'] = cellFontSize.toString();
+        if (cellBold) modifiedCell.attributes['bold'] = 'true';
+        if (cellItalic) modifiedCell.attributes['italic'] = 'true';
+        modifiedCell.attributes['align'] = cellAlign === 'start' ? 'l' : cellAlign === 'middle' ? 'c' : 'r';
+
+        const result = renderChild(modifiedCell as any, cellContext);
+        result.render(ctx);
+      });
       
       ctx.restore();
     }
   };
+}
+
+function renderTableRow(
+  element: any,
+  context: RenderContext,
+  pos: { x: number; y: number },
+  renderChild: (child: Element, ctx: RenderContext) => CanvasRenderResult
+): CanvasRenderResult {
+  // Table row is just a container, render its children
+  const children = element.children || [];
+  let totalWidth = 0;
+  let maxHeight = 0;
+
+  const childResults = children.map((child: any) => {
+    const result = renderChild(child, context);
+    totalWidth += result.bounds.width;
+    maxHeight = Math.max(maxHeight, result.bounds.height);
+    return result;
+  });
+
+  const bounds: ElementBounds = { x: pos.x, y: pos.y, width: totalWidth, height: maxHeight };
+
+  return {
+    bounds,
+    render: (ctx: CanvasRenderingContext2D) => {
+      childResults.forEach((result: CanvasRenderResult) => {
+        result.render(ctx);
+      });
+    }
+  };
+}
+
+function estimateTableDimensions(rows: any[]): { maxColCount: number; maxRowSpan: number } {
+  let maxColCount = 0;
+  let maxRowSpan = 0;
+
+  rows.forEach((row, rowIndex) => {
+    const cells = row.children || [];
+    cells.forEach((cell: any) => {
+      const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
+      const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
+      maxColCount = Math.max(maxColCount, colspan);
+      maxRowSpan = Math.max(maxRowSpan, rowspan);
+    });
+  });
+
+  return { maxColCount, maxRowSpan };
+}
+
+function buildCellGrid(
+  rows: any[],
+  finalNumRows: number,
+  finalNumCols: number
+): { cellData: CellData[]; grid: boolean[][] } {
+  const grid: boolean[][] = [];
+  for (let r = 0; r < finalNumRows; r++) {
+    grid[r] = [];
+    for (let c = 0; c < finalNumCols; c++) {
+      grid[r][c] = false;
+    }
+  }
+
+  const cellData: CellData[] = [];
+
+  rows.forEach((row, rowIndex) => {
+    const cells = row.children || [];
+    let colIndex = 0;
+
+    while (colIndex < finalNumCols && grid[rowIndex][colIndex]) {
+      colIndex++;
+    }
+
+    cells.forEach((cell: any) => {
+      const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
+      const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
+
+      const actualColspan = Math.min(colspan, finalNumCols - colIndex);
+      const actualRowspan = Math.min(rowspan, finalNumRows - rowIndex);
+
+      cellData.push({
+        row: rowIndex,
+        col: colIndex,
+        colspan: actualColspan,
+        rowspan: actualRowspan,
+        cell
+      });
+
+      for (let r = rowIndex; r < rowIndex + actualRowspan; r++) {
+        for (let c = colIndex; c < colIndex + actualColspan; c++) {
+          grid[r][c] = true;
+        }
+      }
+
+      colIndex += actualColspan;
+      while (colIndex < finalNumCols && grid[rowIndex][colIndex]) {
+        colIndex++;
+      }
+    });
+  });
+
+  return { cellData, grid };
 }
 
 function renderCanvasElement(element: Element, context: RenderContext, options?: InternalCanvasRenderOptions): CanvasRenderResult {
@@ -389,6 +955,7 @@ export interface CanvasRenderOptions {
   selectedElementIds?: string[];
   primaryColor?: string;
   imageUrlResolver?: (relativePath: string) => string;
+  skipCanvasSize?: boolean; // Skip setting canvas width/height, let caller handle it
 }
 
 export interface ElementInfo {
@@ -507,8 +1074,11 @@ export function renderToCanvas(ast: Document, options?: CanvasRenderOptions): Ca
       const ctx = canvas.getContext('2d');
       if (!ctx) return;
 
-      canvas.width = viewBoxWidth;
-      canvas.height = viewBoxHeight;
+      // Only set canvas size if not skipping (let caller handle it for zoom)
+      if (!options?.skipCanvasSize) {
+        canvas.width = viewBoxWidth;
+        canvas.height = viewBoxHeight;
+      }
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
@@ -589,18 +1159,34 @@ export function renderToCanvas(ast: Document, options?: CanvasRenderOptions): Ca
           ctx.fill();
           ctx.stroke();
           
-          // Draw note number badge
+          // Draw note number badge on card
           ctx.shadowBlur = 0;
+          const cardBadgeX = cardX + 12;
+          const cardBadgeY = cardY + 12;
+          const cardBadgeRadius = 8;
+          
+          // Add shadow to badge like SVG
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+          
           ctx.fillStyle = '#70B603';
           ctx.beginPath();
-          ctx.arc(cardX + 12, cardY + 12, 8, 0, Math.PI * 2);
+          ctx.arc(cardBadgeX, cardBadgeY, cardBadgeRadius, 0, Math.PI * 2);
           ctx.fill();
+          
+          // Reset shadow for text
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           
           ctx.fillStyle = 'white';
           ctx.font = 'bold 10px Arial';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(note.number.toString(), cardX + 12, cardY + 12);
+          ctx.fillText(note.number.toString(), cardBadgeX, cardBadgeY + 3);
           
           // Draw note text
           ctx.fillStyle = '#333';
@@ -616,16 +1202,41 @@ export function renderToCanvas(ast: Document, options?: CanvasRenderOptions): Ca
             ctx.fillText(line, textX, textY + lineIndex * lineHeight);
           });
           
-          // Draw note badge on element
+          // Draw note badge on element (water drop shape like SVG)
           const badgeX = note.bounds.x + note.bounds.width - 8;
           const badgeY = note.bounds.y - 8;
+          const badgeRadius = 10;
+          
+          // Add shadow to badge like SVG
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.2)';
+          ctx.shadowBlur = 4;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 2;
+          
           ctx.fillStyle = '#70B603';
           ctx.strokeStyle = 'white';
           ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.arc(badgeX, badgeY, 10, 0, Math.PI * 2);
+          // Water drop shape
+          ctx.moveTo(badgeX, badgeY - badgeRadius);
+          ctx.bezierCurveTo(
+            badgeX + badgeRadius, badgeY - badgeRadius,
+            badgeX + badgeRadius, badgeY + badgeRadius * 0.5,
+            badgeX, badgeY + badgeRadius * 1.5
+          );
+          ctx.bezierCurveTo(
+            badgeX - badgeRadius, badgeY + badgeRadius * 0.5,
+            badgeX - badgeRadius, badgeY - badgeRadius,
+            badgeX, badgeY - badgeRadius
+          );
           ctx.fill();
           ctx.stroke();
+          
+          // Reset shadow for text
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
           
           ctx.fillStyle = 'white';
           ctx.font = 'bold 12px Arial';

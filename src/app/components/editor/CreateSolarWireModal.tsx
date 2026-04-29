@@ -53,6 +53,17 @@ const CreateSolarWireModal: React.FC<CreateSolarWireModalProps> = ({ isOpen, onC
     }
   }, [isOpen, defaultDirectory]);
 
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');

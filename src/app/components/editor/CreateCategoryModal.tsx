@@ -15,11 +15,10 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
   
   const [categoryData, setCategoryData] = useState({
     name: '',
-    id: '',
     libraryId: defaultLibraryId || ''
   });
   
-  const [formErrors, setFormErrors] = useState<{ name?: string; id?: string; libraryId?: string }>({});
+  const [formErrors, setFormErrors] = useState<{ name?: string; libraryId?: string }>({});
 
   // 当defaultLibraryId改变时更新内部状态
   useEffect(() => {
@@ -29,7 +28,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
   }, [defaultLibraryId]);
 
   const validateForm = () => {
-    const errors: { name?: string; id?: string; libraryId?: string } = {};
+    const errors: { name?: string; libraryId?: string } = {};
     
     if (!categoryData.name.trim()) {
       errors.name = '分类名称不能为空';
@@ -37,10 +36,6 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
     
     if (!categoryData.libraryId.trim()) {
       errors.libraryId = '请选择组件库';
-    }
-    
-    if (categoryData.id && !/^[a-zA-Z0-9_-]+$/.test(categoryData.id)) {
-      errors.id = 'ID只能包含字母、数字、下划线和连字符';
     }
     
     setFormErrors(errors);
@@ -55,7 +50,6 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
     try {
       await createCategory(categoryData.libraryId, {
         name: categoryData.name.trim(),
-        id: categoryData.id.trim() || undefined,
       });
       
       showToast('分类创建成功', 'success');
@@ -68,7 +62,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
   };
 
   const handleClose = () => {
-    setCategoryData({ name: '', id: '', libraryId: defaultLibraryId || '' });
+    setCategoryData({ name: '', libraryId: defaultLibraryId || '' });
     setFormErrors({});
     onClose();
   };
@@ -80,6 +74,17 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
       setFormErrors(prev => ({ ...prev, [field]: undefined }));
     }
   };
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
 
   if (!isOpen) {
     return null;
@@ -94,6 +99,20 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
         </div>
         
         <div className="create-category-content">
+          <div className="form-group">
+            <label htmlFor="category-name">分类名称 *</label>
+            <input
+              id="category-name"
+              type="text"
+              placeholder="请输入分类名称"
+              value={categoryData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              className={formErrors.name ? 'input-error' : ''}
+              autoFocus
+            />
+            {formErrors.name && <div className="error-message">{formErrors.name}</div>}
+          </div>
+          
           <div className="form-group">
             <label htmlFor="category-library">组件库 *</label>
             <select
@@ -110,33 +129,6 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
               ))}
             </select>
             {formErrors.libraryId && <div className="error-message">{formErrors.libraryId}</div>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="category-name">分类名称 *</label>
-            <input
-              id="category-name"
-              type="text"
-              placeholder="请输入分类名称"
-              value={categoryData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className={formErrors.name ? 'input-error' : ''}
-              autoFocus
-            />
-            {formErrors.name && <div className="error-message">{formErrors.name}</div>}
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="category-id">分类ID（可选）</label>
-            <input
-              id="category-id"
-              type="text"
-              placeholder="留空自动生成"
-              value={categoryData.id}
-              onChange={(e) => handleInputChange('id', e.target.value)}
-              className={formErrors.id ? 'input-error' : ''}
-            />
-            {formErrors.id && <div className="error-message">{formErrors.id}</div>}
           </div>
         </div>
         

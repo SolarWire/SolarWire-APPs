@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { showToast } from '../../services/toast-service';
 import './CreateFileModal.css';
@@ -15,6 +15,17 @@ interface DeleteConfirmModalProps {
 
 const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose, target }) => {
   const { currentPath, setFileTree } = useFileStore();
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleDelete = async () => {
     try {

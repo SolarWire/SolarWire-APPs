@@ -7,6 +7,9 @@ import { useStatusStore, showInfo, showSuccess, showError } from './statusStore'
 import { useEditorStore } from './editorStore';
 import { syntaxErrorService } from '../services/syntax-error-service';
 
+// 定期刷新间隔（毫秒）
+const AUTO_REFRESH_INTERVAL = 30000; // 30秒
+
 // 图片文件扩展名集合
 const IMAGE_EXTENSIONS = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'ico']);
 
@@ -118,6 +121,8 @@ export const useFileStore = create<FileState>()((set, get) => ({
   fileContent: '',
   expandedDirectories: new Set(),
   currentSnippet: null,
+  autoRefreshEnabled: true,
+  autoRefreshTimer: null,
   
   /**
    * 设置当前路径
@@ -377,6 +382,70 @@ export const useFileStore = create<FileState>()((set, get) => ({
       
       statusStore.failOperation('保存失败', errorMessage);
       showError(`保存失败: ${errorMessage}`);
+    }
+  },
+  /**
+   * 刷新当前目录的文件树
+   */
+  refreshCurrentDirectory: async () => {
+    const { currentPath } = get();
+    const statusStore = useStatusStore.getState();
+    
+    try {
+      statusStore.startOperation('refresh', '刷新中...');
+      
+      if (currentPath) {
+        // 如果有当前路径，刷新该目录
+        const tree = await getFileTree(currentPath);
+        set({ fileTree: tree });
+        showSuccess('文件视图已刷新');
+      } else {
+        // 如果没有当前路径，尝试刷新根目录
+        const api = (window as any).api;
+        if (api && typeof api.getDefaultDirectory === 'function') {
+          const defaultDir = await api.getDefaultDirectory();
+          const tree = await getFileTree(defaultDir);
+          set({ currentPath: defaultDir, fileTree: tree });
+          showSuccess('文件视图已刷新');
+        }
+      }
+      
+      statusStore.completeOperation('刷新完成');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '未知错误';
+      console.error('Failed to refresh directory', err);
+      
+      statusStore.failOperation('刷新失败', errorMessage);
+      showError(`刷新失败: ${errorMessage}`);
+    }
+  },
+  /**
+   * 切换自动刷新状态
+   */
+  toggleAutoRefresh: () => {
+    const { autoRefreshEnabled, autoRefreshTimer, currentPath } = get();
+    
+    if (autoRefreshTimer) {
+      clearInterval(autoRefreshTimer);
+    }
+    
+    const newEnabled = !autoRefreshEnabled;
+    set({ autoRefreshEnabled: newEnabled, autoRefreshTimer: null });
+    
+    if (newEnabled && currentPath) {
+      const timer = setInterval(async () => {
+        try {
+          const tree = await getFileTree(currentPath);
+          set({ fileTree: tree });
+        } catch (error) {
+          console.error('Auto refresh failed:', error);
+        }
+      }, AUTO_REFRESH_INTERVAL);
+      
+      set({ autoRefreshTimer: timer });
+      showInfo('自动刷新已启用');
+    } else {
+      showInfo('自动刷新已禁用');
     }
   },
 }));

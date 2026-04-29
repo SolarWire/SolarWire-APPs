@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import './ConfirmModal.css';
 
@@ -24,6 +24,17 @@ function ConfirmModal({
   type = 'info'
 }: ConfirmModalProps): React.ReactElement | null {
   const t = useTranslation();
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onCancel]);
 
   if (!isOpen) return null;
 

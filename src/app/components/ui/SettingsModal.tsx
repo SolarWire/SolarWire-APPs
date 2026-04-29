@@ -28,6 +28,17 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
     setColorError('');
   }, [primaryColor, language, renderMode, isOpen]);
 
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   const isValidColor = (color: string): boolean => {
     const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
     return hexColorRegex.test(color);

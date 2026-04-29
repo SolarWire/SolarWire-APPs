@@ -145,11 +145,13 @@ async function getFileTree(dirPath, depth = 3) {
         const tree = [];
         for (const entry of entries) {
             const fullPath = path.join(dirPath, entry.name);
+            const stats = await fs.stat(fullPath);
             const node = {
                 name: entry.name,
                 path: fullPath,
                 type: entry.isDirectory() ? 'directory' : 'file',
                 children: [],
+                modifiedTime: stats.mtimeMs,
             };
             if (entry.isDirectory() && depth > 0) {
                 try {

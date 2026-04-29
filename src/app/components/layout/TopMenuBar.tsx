@@ -3,20 +3,17 @@ import { useAppStore } from '../../stores/appStore';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
-import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { showToast } from '../../services/toast-service';
 import SettingsModal from '../ui/SettingsModal';
-import ComponentLibraryManagerModal from '../editor/ComponentLibraryManagerModal';
 import './TopMenuBar.css';
 
 const TopMenuBar: React.FC = () => {
-  const { theme, setTheme } = useAppStore();
+  const { theme, setTheme, setCurrentView } = useAppStore();
   const { saveFile, openDirectoryAtPath } = useFileStore();
   const { isModified, mode } = useEditorStore();
   const isSpacePressed = useSolarWireStore(s => s.isSpacePressed);
   const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
-  const { showComponentManager, setShowComponentManager } = useComponentLibraryStore();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const t = useTranslation();
 
@@ -84,7 +81,7 @@ const TopMenuBar: React.FC = () => {
         </button>
         <button 
           className="component-library-manager-button" 
-          onClick={() => setShowComponentManager(true)} 
+          onClick={() => setCurrentView('componentLibraryManager')} 
           aria-label="Open component library manager"
         >
           📦
@@ -97,13 +94,10 @@ const TopMenuBar: React.FC = () => {
           ⚙️
         </button>
       </div>
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
       />
-      {showComponentManager && (
-        <ComponentLibraryManagerModal onClose={() => setShowComponentManager(false)} />
-      )}
     </>
   );
 };

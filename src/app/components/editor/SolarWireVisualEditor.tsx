@@ -532,7 +532,23 @@ function SolarWireVisualEditor({
 
       <div className="solarwire-content">
         {renderMode === 'canvas' ? (
-          <CanvasPreview onElementClick={(id) => setSelectedElements([id])} />
+          <CanvasPreview
+            onElementClick={(id) => setSelectedElements([id])}
+            zoomLevel={zoomLevel}
+            selectionTool={selectionTool}
+            showNotes={showNotes}
+            onZoomChange={setZoomLevel}
+            isPanMode={isPanMode}
+            isSpacePressed={isSpacePressed}
+            snapToGridProp={snapToGrid}
+            gridSizeProp={gridSize}
+            externalContent={externalContent}
+            onExternalContentChange={onExternalContentChange}
+            onContextMenu={handleContextMenu}
+            allowImageElements={allowImageElements}
+            onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
+            hasSyntaxErrors={currentSyntaxErrors.length > 0}
+          />
         ) : (
           <SolarWirePreview
             zoomLevel={zoomLevel}

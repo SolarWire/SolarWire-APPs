@@ -123,7 +123,7 @@
   --z-toast: 80;                  /* 提示消息 */
   --z-layer-panel: 50;            /* 图层面板 - 与模态框同级 */
   --z-context-menu: 100;          /* 右键菜单 */
-  --z-resizable-divider: 9999;    /* 可调整大小分隔条 - 最高优先级 */
+  --z-resizable-divider: 10;        /* 可调整大小分隔条 */
   --z-export-notification: 10000; /* 导出通知 */
   --z-color-picker-popup: 10001;  /* 颜色选择器弹出窗口 */
   
@@ -227,7 +227,7 @@ body.theme-light {
   --z-toast: 80;
   --z-layer-panel: 50;
   --z-context-menu: 100;
-  --z-resizable-divider: 9999;
+  --z-resizable-divider: 10;
   --z-export-notification: 10000;
   --z-color-picker-popup: 10001;
   

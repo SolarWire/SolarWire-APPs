@@ -112,6 +112,17 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
     }
   };
 
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   if (!isOpen) {
     return null;
   }
@@ -125,6 +136,20 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
         </div>
         
         <div className="create-component-content">
+          <div className="form-group">
+            <label htmlFor="component-name">组件名称 *</label>
+            <input
+              id="component-name"
+              type="text"
+              placeholder="请输入组件名称"
+              value={componentData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              className={formErrors.name ? 'input-error' : ''}
+              autoFocus
+            />
+            {formErrors.name && <div className="error-message">{formErrors.name}</div>}
+          </div>
+          
           <div className="form-group">
             <label htmlFor="component-library">组件库 *</label>
             <select
@@ -158,20 +183,6 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
                 </option>
               ))}
             </select>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="component-name">组件名称 *</label>
-            <input
-              id="component-name"
-              type="text"
-              placeholder="请输入组件名称"
-              value={componentData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              className={formErrors.name ? 'input-error' : ''}
-              autoFocus
-            />
-            {formErrors.name && <div className="error-message">{formErrors.name}</div>}
           </div>
           
           <div className="form-group">

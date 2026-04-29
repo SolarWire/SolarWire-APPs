@@ -10,6 +10,7 @@
   flex-direction: column;
   margin: 0;
   box-sizing: border-box;
+  position: relative;
 }
 
 /* editor-content 必须是 overflow: visible 以支持属性面板滚动 */
@@ -44,4 +45,20 @@
 .mode-tab.active {
   background: var(--bg-selected);
   color: var(--white);
+}
+
+/* 模式切换动画 */
+.right-panel > * {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

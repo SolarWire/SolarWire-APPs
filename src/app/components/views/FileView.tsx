@@ -22,8 +22,13 @@ const FileView: React.FC = () => {
     expandedDirectories,
     toggleDirectory,
     openFileAtPath,
-    openDirectoryAtPath
+    openDirectoryAtPath,
+    refreshCurrentDirectory
   } = useFileStore();
+  
+  const handleRefresh = async () => {
+    await refreshCurrentDirectory();
+  };
   
   const { currentView } = useAppStore();
   const [showCreateMarkdownModal, setShowCreateMarkdownModal] = useState(false);
@@ -266,16 +271,21 @@ const FileView: React.FC = () => {
         <div className="file-view-actions">
           <div className="tree-action-buttons-compact">
             <button className="btn-compact" onClick={() => setShowCreateMarkdownModal(true)}>
-              <span className="btn-icon">+</span>
+              <span className="btn-icon">➕</span>
               <span className="btn-text">.md</span>
             </button>
             <button className="btn-compact" onClick={() => setShowCreateSolarWireModal(true)}>
-              <span className="btn-icon">+</span>
+              <span className="btn-icon">➕</span>
               <span className="btn-text">.solarwire</span>
             </button>
             <button className="btn-compact" onClick={() => setShowCreateFolderModal(true)}>
-              <span className="btn-icon">+</span>
+              <span className="btn-icon">➕</span>
               <span className="btn-text">文件夹</span>
+            </button>
+          </div>
+          <div className="tree-action-buttons-compact" style={{ marginLeft: 'auto' }}>
+            <button className="btn-compact" onClick={handleRefresh}>
+              <span className="btn-icon">🔄</span>
             </button>
           </div>
         </div>

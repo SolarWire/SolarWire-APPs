@@ -23,6 +23,8 @@ export interface FileState {
   fileContent: string;
   expandedDirectories: Set<string>;
   currentSnippet: SolarWireSnippet | null;
+  autoRefreshEnabled: boolean;
+  autoRefreshTimer: NodeJS.Timeout | null;
   setCurrentPath: (path: string) => void;
   setFileTree: (tree: FileNode[]) => void;
   setSelectedFile: (file: FileNode | null) => void;
@@ -35,4 +37,6 @@ export interface FileState {
   openDirectoryAtPath?: (dirPath: string) => Promise<void>;
   toggleDirectory?: (dirPath: string) => void;
   saveFile: () => Promise<void>;
+  refreshCurrentDirectory: () => Promise<void>;
+  toggleAutoRefresh: () => void;
 }

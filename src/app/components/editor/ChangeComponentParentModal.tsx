@@ -30,6 +30,17 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
     setSelectedLibraryId(currentLibraryId);
     setSelectedCategoryId(currentCategoryId || '');
   }, [currentLibraryId, currentCategoryId]);
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
   
   useEffect(() => {
     if (selectedLibraryId) {
