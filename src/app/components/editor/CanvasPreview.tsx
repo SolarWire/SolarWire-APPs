@@ -384,18 +384,16 @@ function CanvasPreview({
 
     // Handle dragging
     if (drag.isDragging && drag.elementLine !== null) {
-      // 获取当前鼠标在Canvas坐标系中的位置
-      const currentCanvasPos = screenToCanvas(e.clientX, e.clientY);
-      
-      // 获取起始鼠标在Canvas坐标系中的位置
-      const startCanvasPos = screenToCanvas(drag.startX, drag.startY);
-      
-      // 计算在Canvas坐标系中的拖动距离
-      const dx = currentCanvasPos.x - startCanvasPos.x;
-      const dy = currentCanvasPos.y - startCanvasPos.y;
+      // 简化的坐标转换，直接计算鼠标移动距离
+      const dx = (e.clientX - drag.startX) / scale;
+      const dy = (e.clientY - drag.startY) / scale;
       
       let newX = drag.elementX + dx;
       let newY = drag.elementY + dy;
+      
+      // 确保坐标为整数
+      newX = Math.round(newX);
+      newY = Math.round(newY);
       
       // Apply grid snap if enabled
       if (effectiveSnapToGrid) {
@@ -429,6 +427,10 @@ function CanvasPreview({
           // Absolute mode: update all coordinates
           let newX2 = drag.elementX2 !== undefined ? drag.elementX2 + dx : undefined;
           let newY2 = drag.elementY2 !== undefined ? drag.elementY2 + dy : undefined;
+          
+          // 确保坐标为整数
+          if (newX2 !== undefined) newX2 = Math.round(newX2);
+          if (newY2 !== undefined) newY2 = Math.round(newY2);
           
           if (effectiveSnapToGrid) {
             if (newX2 !== undefined) newX2 = snapToGridValue(newX2, effectiveGridSize);

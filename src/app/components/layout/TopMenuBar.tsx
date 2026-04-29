@@ -80,13 +80,6 @@ const TopMenuBar: React.FC = () => {
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
         <button 
-          className="component-library-manager-button" 
-          onClick={() => setCurrentView('componentLibraryManager')} 
-          aria-label="Open component library manager"
-        >
-          📦
-        </button>
-        <button 
           className="settings-button" 
           onClick={() => setIsSettingsOpen(true)} 
           aria-label="Open settings"

@@ -47,6 +47,7 @@ const ComponentLibraryManagerView: React.FC = () => {
     libraryId?: string;
     categoryId?: string | null;
   }>({});
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [ctxMenu, setCtxMenu] = React.useState<{
     visible: boolean;
@@ -110,32 +111,28 @@ const ComponentLibraryManagerView: React.FC = () => {
     setCtxMenu({ visible: true, x, y, targetNode });
   }, []);
 
-  const handleImportLib = React.useCallback(async () => {
+  const handleImportLib = React.useCallback(() => {
+    // Use standard file input to allow selecting files from anywhere
+    fileInputRef.current?.click();
+  }, []);
+
+  const handleFileSelect = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     try {
-      const api = (window as any).api;
-      if (!api || !api.openFileDialog) {
-        showToast('文件对话框不可用', 'error');
-        return;
-      }
-      const paths: string[] = await api.openFileDialog({
-        properties: ['openFile', 'dontResolveAliases'],
-        filters: [{ name: 'SolarWire Component Files', extensions: ['swc'] }]
-      });
-      if (paths && paths.length > 0) {
-        let content: string;
-        if (api.readFile) {
-          content = await api.readFile(paths[0]);
-        } else {
-          const response = await fetch(paths[0]);
-          content = await response.text();
-        }
-        const file = new File([content], paths[0].split(/[/\\]/).pop() || 'library.swc', { type: 'application/json' });
-        await importLibrary(file);
-        showToast('导入成功', 'success');
-      }
+      const content = await file.text();
+      const fileObj = new File([content], file.name, { type: 'application/json' });
+      await importLibrary(fileObj);
+      showToast('导入成功', 'success');
     } catch (err) {
       console.error('导入失败:', err);
       showToast('导入失败: ' + (err as Error).message, 'error');
+    }
+
+    // Reset the file input so the same file can be selected again if needed
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   }, [importLibrary]);
 
@@ -475,6 +472,14 @@ const ComponentLibraryManagerView: React.FC = () => {
           onClose={closeCtxMenu}
         />
       )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".swc"
+        style={{ display: 'none' }}
+        onChange={handleFileSelect}
+      />
     </div>
   );
 };
