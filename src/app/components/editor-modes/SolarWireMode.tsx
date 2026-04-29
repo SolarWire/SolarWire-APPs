@@ -104,8 +104,11 @@ function SolarWireMode(): React.ReactElement {
   const handleTabChange = useCallback((tab: 'visual' | 'code') => {
     setActiveTab(tab);
     if (tab === 'code' && selectedElements.length > 0) {
-      setScrollTrigger(prev => prev + 1);
-      setHighlightTrigger(prev => prev + 1);
+      // 延迟触发，确保 TabPanel 已经挂载
+      setTimeout(() => {
+        setScrollTrigger(prev => prev + 1);
+        setHighlightTrigger(prev => prev + 1);
+      }, 50);
     }
   }, [selectedElements.length]);
 

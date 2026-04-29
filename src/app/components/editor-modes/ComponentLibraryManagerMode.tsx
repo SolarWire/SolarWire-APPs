@@ -488,13 +488,13 @@ const ComponentLibraryManagerMode: React.FC = () => {
             isOpen: true,
             title: '删除组件库',
             message: `确定要删除组件库 "${selectedLibrary.metadata.name}" 吗？此操作不可撤销。`,
+            type: 'danger',
             onConfirm: async () => {
               await deleteLibrary(selectedLibrary.metadata.id);
               setSelectedNode(null, null, null);
               setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
             },
-            onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' }),
-            type: 'danger'
+            onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' })
           });
         }}
       />

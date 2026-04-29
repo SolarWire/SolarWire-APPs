@@ -107,6 +107,8 @@ function MarkdownPreview(): React.ReactElement {
   const isRenderingRef = useRef(false);
   const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const imageCacheRef = useRef<Map<string, string>>(new Map());
+  const renderVersionRef = useRef(0);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // 滚动位置管理
   const handleScroll = useCallback(() => {
@@ -420,14 +422,28 @@ function MarkdownPreview(): React.ReactElement {
    * 主渲染函数（防抖）
    */
   const renderMarkdown = useCallback(async () => {
+    // 增加渲染版本
+    renderVersionRef.current += 1;
+    const currentVersion = renderVersionRef.current;
+
+    // 中断之前的渲染
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     if (isRenderingRef.current) return;
-    
+
     // 清除之前的定时器
     if (renderTimeoutRef.current) {
       clearTimeout(renderTimeoutRef.current);
     }
 
     renderTimeoutRef.current = setTimeout(async () => {
+      // 检查版本是否已过期
+      if (currentVersion !== renderVersionRef.current) return;
+
       let contentToRender = content;
       if (!contentToRender || contentToRender === '') {
         contentToRender = fileContent;
@@ -443,6 +459,9 @@ function MarkdownPreview(): React.ReactElement {
         const mdDir = selectedFile?.path?.replace(/[\\/][^\\/]*$/, '') || '';
         const api = (window as any).api;
 
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         // 提取 SolarWire 块
         const solarwireBlocks: { match: string; code: string }[] = [];
         const solarwirePlaceholder = contentToRender.replace(
@@ -455,10 +474,13 @@ function MarkdownPreview(): React.ReactElement {
 
         setRenderProgress(20);
 
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         // 预加载 SolarWire 块中的图片
         if (solarwireBlocks.length > 0 && api?.readImageAsBase64 && mdDir) {
           const imagePromises: Promise<void>[] = [];
-          
+
           for (const block of solarwireBlocks) {
             const imageMatches = [...block.code.matchAll(/<([^>]+\.(?:png|jpg|jpeg|gif|webp|svg))>/gi)];
             for (const match of imageMatches) {
@@ -478,9 +500,12 @@ function MarkdownPreview(): React.ReactElement {
               }
             }
           }
-          
+
           await Promise.all(imagePromises);
         }
+
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
 
         setRenderProgress(30);
 
@@ -502,6 +527,10 @@ function MarkdownPreview(): React.ReactElement {
           // 如果SolarWire渲染失败，回退到原始占位符，让markdown继续渲染
           finalProcessed = graphvizProcessed;
         }
+
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         setRenderProgress(50);
 
         // 渲染 Markdown - 单独处理错误
@@ -517,6 +546,9 @@ function MarkdownPreview(): React.ReactElement {
           renderedHtml = `<pre><code>${contentToRender}</code></pre>`;
         }
 
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         setRenderProgress(60);
 
         // 渲染 Mermaid 块 - 单独处理错误
@@ -527,6 +559,10 @@ function MarkdownPreview(): React.ReactElement {
           console.error('Failed to render Mermaid blocks:', mermaidError);
           mermaidHtml = renderedHtml; // 使用未处理的HTML
         }
+
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         setRenderProgress(70);
 
         // 渲染 Graphviz 块 - 单独处理错误
@@ -537,6 +573,10 @@ function MarkdownPreview(): React.ReactElement {
           console.error('Failed to render Graphviz blocks:', graphvizError);
           graphvizHtml = mermaidHtml; // 使用未处理的HTML
         }
+
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         setRenderProgress(85);
 
         // 加载 markdown 中的图片 - 单独处理错误
@@ -547,17 +587,27 @@ function MarkdownPreview(): React.ReactElement {
           console.error('Failed to load images:', imageError);
           finalHtml = graphvizHtml; // 使用未处理的HTML
         }
+
+        // 检查版本是否已过期
+        if (currentVersion !== renderVersionRef.current) return;
+
         setRenderProgress(100);
 
         setHtml(finalHtml);
       } catch (error) {
+        // 如果是被中断的错误，不显示错误信息
+        if (signal.aborted) return;
+
         console.error('Critical error in markdown rendering:', error);
         // 只有在出现严重错误时才显示错误信息，否则尽量渲染内容
         setHtml(`<div class="markdown-error">Markdown 渲染出现严重错误</div><pre><code>${contentToRender}</code></pre>`);
         setRenderProgress(100);
       } finally {
-        isRenderingRef.current = false;
-        setTimeout(() => setIsRendering(false), 300);
+        // 只有当前版本才清理状态
+        if (currentVersion === renderVersionRef.current) {
+          isRenderingRef.current = false;
+          setTimeout(() => setIsRendering(false), 300);
+        }
       }
     }, 300); // 300ms 防抖
   }, [content, fileContent, selectedFile, renderSolarWireBlocks, renderMermaidBlocks, renderGraphvizBlocks, loadImages]);

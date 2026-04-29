@@ -206,7 +206,7 @@ function MonacoEditor({
       newDecorations = [...newDecorations, ...errorDecorations];
     }
     
-    decorationsRef.current = editor.deltaDecorations([], newDecorations);
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
     pendingHighlightRef.current = null;
 
     // Check if there is pending scroll data to apply
@@ -275,7 +275,7 @@ function MonacoEditor({
       }
     }));
     
-    decorationsRef.current = editor.deltaDecorations([], newDecorations);
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
     pendingHighlightRef.current = null;
   }, [highlightTrigger]);
 

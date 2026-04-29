@@ -82,15 +82,19 @@ const ComponentLibraryManagerView: React.FC = () => {
 
   const selectedCategory = React.useMemo(() => {
     if (!parsedNode || selectedNodeType !== 'category') return null;
-    if (!selectedLibrary) return null;
-    return selectedLibrary.categories.find(cat => cat.id === parsedNode.id) || null;
-  }, [selectedLibrary, parsedNode, selectedNodeType]);
+    // Find the library first
+    const library = libraries.find(lib => lib.metadata.id === parsedNode.libraryId);
+    if (!library) return null;
+    return library.categories.find(cat => cat.id === parsedNode.id) || null;
+  }, [libraries, parsedNode, selectedNodeType]);
 
   const selectedComponent = React.useMemo(() => {
     if (!parsedNode || selectedNodeType !== 'component') return null;
-    if (!selectedLibrary) return null;
-    return selectedLibrary.components.find(comp => comp.internalId === parsedNode.id) || null;
-  }, [selectedLibrary, parsedNode, selectedNodeType]);
+    // Find the library first
+    const library = libraries.find(lib => lib.metadata.id === parsedNode.libraryId);
+    if (!library) return null;
+    return library.components.find(comp => comp.internalId === parsedNode.id) || null;
+  }, [libraries, parsedNode, selectedNodeType]);
 
   const filteredLibraries = React.useMemo(() => {
     if (!searchQuery.trim()) return libraries;
@@ -295,7 +299,7 @@ const ComponentLibraryManagerView: React.FC = () => {
   };
 
   const renderLibraryNode = (library: ComponentLibrary) => {
-    const isSelected = selectedLibrary?.metadata.id === library.metadata.id && selectedNodeType === 'library';
+    const isSelected = parsedNode?.id === library.metadata.id && selectedNodeType === 'library';
     const isExpanded = expandedNodes.includes(library.metadata.id);
     const uncategorizedComponents = library.components.filter(c => !c.categoryId);
     const hasUncategorized = uncategorizedComponents.length > 0;
@@ -330,7 +334,7 @@ const ComponentLibraryManagerView: React.FC = () => {
 
   const renderCategoryNode = (library: ComponentLibrary, category: ComponentCategory) => {
     const components = library.components.filter(c => c.categoryId === category.id);
-    const isSelected = selectedCategory?.id === category.id && selectedNodeType === 'category';
+    const isSelected = parsedNode?.id === category.id && selectedNodeType === 'category';
     const isExpanded = expandedNodes.includes(category.id);
 
     return (
@@ -361,7 +365,7 @@ const ComponentLibraryManagerView: React.FC = () => {
   };
 
   const renderComponentNode = (library: ComponentLibrary, component: Component) => {
-    const isSelected = selectedNodeId === component.internalId && selectedNodeType === 'component';
+    const isSelected = parsedNode?.id === component.internalId && selectedNodeType === 'component';
 
     return (
       <div key={component.internalId} className={`tree-node tree-node-component ${isSelected ? 'selected' : ''}`}>
