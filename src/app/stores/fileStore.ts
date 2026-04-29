@@ -184,10 +184,10 @@ export const useFileStore = create<FileState>()((set, get) => ({
 
       if (isImageFile(filePath)) {
         const node: FileNode = { name, path: filePath, type: 'file' };
-        set({ selectedImage: { path: filePath } });
+        set({ selectedFile: node, selectedImage: { path: filePath } });
         eventBus.emit(EditorEvents.MODE_CHANGED, 'image');
         eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: name });
-        
+
         statusStore.completeOperation('已打开图片');
         showInfo(`已打开图片: ${name}`);
         return;

@@ -14,6 +14,7 @@ import ChangeCategoryParentModal from './ChangeCategoryParentModal';
 import ErrorCard from './ErrorCard';
 import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
 import { serializeSWC } from '../../../lib/components/swc-parser';
+import ContextMenu, { ContextMenuItem, MenuItem, MenuSeparator } from '../ui/ContextMenu';
 import './ComponentLibraryManagerModal.css';
 
 interface TreeNodeContextValue {
@@ -24,6 +25,7 @@ interface TreeNodeContextValue {
   expandedNodes: string[];
   toggleNode: (nodeId: string) => void;
   setSelectedNode: (nodeId: string | null, nodeType: TreeNodeType | null, libraryId: string | null) => void;
+  showContextMenu: (x: number, y: number, targetNode: any) => void;
 }
 
 const TreeNodeContext = createContext<TreeNodeContextValue | null>(null);
@@ -47,6 +49,7 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
     createLibrary, createCategory, updateCategory, deleteCategory,
     createComponent, updateComponent, deleteComponent, importLibrary,
     setSearchQuery, searchQuery,
+    reorderLibrary, reorderCategory, reorderComponent,
   } = useComponentLibraryStore();
 
   // 当模态窗打开时，隐藏主界面的resizable-divider
@@ -70,12 +73,132 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
   const [showChangeCategoryParentModal, setShowChangeCategoryParentModal] = useState(false);
   const [newLibraryData, setNewLibraryData] = useState({ name: '', id: '', description: '', version: '1.0.0', author: '' });
   const [formErrors, setFormErrors] = useState<{ name?: string; id?: string }>({});
-  
+
   // 保存创建时的上下文
   const [createContext, setCreateContext] = useState<{
     libraryId?: string;
     categoryId?: string | null;
   }>({});
+
+  // 右键菜单状态
+  const [contextMenu, setContextMenu] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    targetNode: {
+      type: 'library' | 'category' | 'component' | 'blank';
+      libraryId?: string;
+      categoryId?: string | null;
+      componentId?: string;
+    } | null;
+  }>({ visible: false, x: 0, y: 0, targetNode: null });
+
+  // 关闭右键菜单
+  const closeContextMenu = useCallback(() => {
+    setContextMenu(prev => ({ ...prev, visible: false }));
+  }, []);
+
+  // 生成右键菜单项
+  const getMenuItems = useCallback((): ContextMenuItem[] => {
+    const items: ContextMenuItem[] = [];
+    const { targetNode } = contextMenu;
+
+    if (!targetNode) return items;
+
+    if (targetNode.type === 'blank') {
+      // 空白处右键
+      items.push({ type: 'item', label: '新建组件库', icon: '📦', onClick: () => setShowCreateLibraryModal(true) });
+      items.push({ type: 'item', label: '新建分类', icon: '📁', onClick: () => {
+        setCreateContext({ libraryId: undefined, categoryId: null });
+        setShowCreateCategoryModal(true);
+      }});
+      items.push({ type: 'item', label: '新建组件', icon: '🧩', onClick: () => {
+        setCreateContext({ libraryId: undefined, categoryId: null });
+        setShowCreateComponentModal(true);
+      }});
+    } else if (targetNode.type === 'library') {
+      // 组件库节点右键
+      items.push({ type: 'item', label: '编辑', icon: '✏️', onClick: () => setSelectedNode(targetNode.libraryId!, 'library', targetNode.libraryId!) });
+      items.push({ type: 'item', label: '新建分类', icon: '📁', onClick: () => {
+        setCreateContext({ libraryId: targetNode.libraryId, categoryId: null });
+        setShowCreateCategoryModal(true);
+      }});
+      items.push({ type: 'item', label: '新建组件', icon: '🧩', onClick: () => {
+        setCreateContext({ libraryId: targetNode.libraryId, categoryId: null });
+        setShowCreateComponentModal(true);
+      }});
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '置顶', icon: '⬆️', onClick: () => reorderLibrary(targetNode.libraryId!, 'top') });
+      items.push({ type: 'item', label: '上移', icon: '🔼', onClick: () => reorderLibrary(targetNode.libraryId!, 'up') });
+      items.push({ type: 'item', label: '下移', icon: '🔽', onClick: () => reorderLibrary(targetNode.libraryId!, 'down') });
+      items.push({ type: 'item', label: '置底', icon: '⬇️', onClick: () => reorderLibrary(targetNode.libraryId!, 'bottom') });
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => {
+        setConfirmModal({
+          isOpen: true,
+          title: '删除组件库',
+          message: `确定要删除组件库 "${libraries.find(l => l.metadata.id === targetNode.libraryId)?.metadata.name}" 吗？此操作不可撤销。`,
+          onConfirm: () => {
+            removeLibrary(targetNode.libraryId!);
+            setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: () => {}, type: 'info' });
+          },
+          type: 'danger'
+        });
+      }});
+    } else if (targetNode.type === 'category') {
+      // 分类节点右键
+      items.push({ type: 'item', label: '编辑', icon: '✏️', onClick: () => setSelectedNode(targetNode.categoryId!, 'category', targetNode.libraryId!) });
+      items.push({ type: 'item', label: '新建组件', icon: '🧩', onClick: () => {
+        setCreateContext({ libraryId: targetNode.libraryId, categoryId: targetNode.categoryId });
+        setShowCreateComponentModal(true);
+      }});
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '置顶', icon: '⬆️', onClick: () => reorderCategory(targetNode.libraryId!, targetNode.categoryId!, 'top') });
+      items.push({ type: 'item', label: '上移', icon: '🔼', onClick: () => reorderCategory(targetNode.libraryId!, targetNode.categoryId!, 'up') });
+      items.push({ type: 'item', label: '下移', icon: '🔽', onClick: () => reorderCategory(targetNode.libraryId!, targetNode.categoryId!, 'down') });
+      items.push({ type: 'item', label: '置底', icon: '⬇️', onClick: () => reorderCategory(targetNode.libraryId!, targetNode.categoryId!, 'bottom') });
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => {
+        const library = libraries.find(l => l.metadata.id === targetNode.libraryId);
+        const category = library?.categories.find(c => c.id === targetNode.categoryId);
+        setConfirmModal({
+          isOpen: true,
+          title: '删除分类',
+          message: `确定要删除分类 "${category?.name}" 吗？此操作不可撤销。`,
+          onConfirm: () => {
+            deleteCategory(targetNode.libraryId!, targetNode.categoryId!);
+            setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: () => {}, type: 'info' });
+          },
+          type: 'danger'
+        });
+      }});
+    } else if (targetNode.type === 'component') {
+      // 组件节点右键
+      items.push({ type: 'item', label: '编辑', icon: '✏️', onClick: () => setSelectedNode(targetNode.componentId!, 'component', targetNode.libraryId!) });
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '置顶', icon: '⬆️', onClick: () => reorderComponent(targetNode.libraryId!, targetNode.componentId!, 'top') });
+      items.push({ type: 'item', label: '上移', icon: '🔼', onClick: () => reorderComponent(targetNode.libraryId!, targetNode.componentId!, 'up') });
+      items.push({ type: 'item', label: '下移', icon: '🔽', onClick: () => reorderComponent(targetNode.libraryId!, targetNode.componentId!, 'down') });
+      items.push({ type: 'item', label: '置底', icon: '⬇️', onClick: () => reorderComponent(targetNode.libraryId!, targetNode.componentId!, 'bottom') });
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => {
+        const library = libraries.find(l => l.metadata.id === targetNode.libraryId);
+        const component = library?.components.find(c => c.internalId === targetNode.componentId);
+        setConfirmModal({
+          isOpen: true,
+          title: '删除组件',
+          message: `确定要删除组件 "${component?.name}" 吗？此操作不可撤销。`,
+          onConfirm: () => {
+            deleteComponent(targetNode.libraryId!, targetNode.componentId!);
+            setConfirmModal({ isOpen: false, title: '', message: '', onConfirm: () => {}, type: 'info' });
+          },
+          type: 'danger'
+        });
+      }});
+    }
+
+    return items;
+  }, [contextMenu, setSelectedNode, reorderLibrary, reorderCategory, reorderComponent, libraries, removeLibrary, deleteCategory, deleteComponent]);
   
   // Monaco编辑器状态
   const [monacoScrollTrigger, setMonacoScrollTrigger] = useState(0);
@@ -207,18 +330,25 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
   useEffect(() => {
     if (componentEditTab === 'visual' && selectedComponent) {
       syntaxErrorService.runRendererCheck(localComponentData.code);
-      
+
       // 监听错误变化
       const listener = {
         onErrorsChanged: (errors: SyntaxError[]) => {
           setVisualSyntaxErrors(errors);
         }
       };
-      
+
       syntaxErrorService.addListener(listener);
+
+      // 立即获取当前错误
+      setVisualSyntaxErrors(syntaxErrorService.getErrors());
+
       return () => {
         syntaxErrorService.removeListener(listener);
       };
+    } else {
+      // 切换到代码编辑器时清除错误
+      setVisualSyntaxErrors([]);
     }
   }, [componentEditTab, selectedComponent, localComponentData.code]);
 
@@ -621,7 +751,16 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
                 />
               </div>
             </div>
-            <div className="manager-tree-list">
+            <div className="manager-tree-list" onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setContextMenu({
+                visible: true,
+                x: e.clientX,
+                y: e.clientY,
+                targetNode: { type: 'blank' }
+              });
+            }}>
               <TreeNodeContext.Provider value={{
                 selectedLibraryId,
                 selectedCategoryId,
@@ -630,6 +769,9 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
                 expandedNodes,
                 toggleNode,
                 setSelectedNode,
+                showContextMenu: (x: number, y: number, targetNode: any) => {
+                  setContextMenu({ visible: true, x, y, targetNode });
+                }
               }}>
                 {filteredLibraries.map((library) => {
                   const uncategorizedComponents = getUncategorizedComponents(library);
@@ -1007,7 +1149,7 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
         categoryId={selectedCategory?.id || ''}
         currentLibraryId={selectedLibraryId || ''}
       />
-      
+
       {confirmModal.isOpen && (
         <ConfirmModal
           isOpen={confirmModal.isOpen}
@@ -1018,6 +1160,14 @@ const ComponentLibraryManagerModal: React.FC<ComponentLibraryManagerModalProps> 
           type={confirmModal.type}
         />
       )}
+
+      <ContextMenu
+        visible={contextMenu.visible}
+        x={contextMenu.x}
+        y={contextMenu.y}
+        items={getMenuItems()}
+        onClose={closeContextMenu}
+      />
     </div>
   );
 };
@@ -1038,7 +1188,7 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
   onCreateCategory, onDeleteCategory, onCreateComponent,
   isPreset, hasUncategorized, uncategorizedCount,
 }) => {
-  const { selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, toggleNode, setSelectedNode } = useTreeNodeContext();
+  const { selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, toggleNode, setSelectedNode, showContextMenu } = useTreeNodeContext();
   
   const isSelected = selectedLibraryId === library.metadata.id && selectedNodeType === 'library';
   const isExpanded = expandedNodes.includes(library.metadata.id);
@@ -1057,16 +1207,24 @@ const LibraryTreeNode: React.FC<LibraryTreeNodeProps> = ({
     e.stopPropagation();
     onCreateCategory();
   }, [onCreateCategory]);
-  
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showContextMenu(e.clientX, e.clientY, {
+      type: 'library',
+      libraryId: library.metadata.id,
+    });
+  }, [library.metadata.id, showContextMenu]);
+
   return (
     <div className={`tree-node tree-node-library ${isSelected ? 'selected' : ''}`}>
-      <div className="tree-node-content" onClick={handleToggle}>
+      <div className="tree-node-content" onClick={handleToggle} onContextMenu={handleContextMenu}>
         <span className="tree-node-toggle" onClick={handleToggle}>{isExpanded ? '▼' : '▶'}</span>
         <span className="tree-node-icon">📦</span>
         <span className="tree-node-name">{library.metadata.name}<span className="tree-node-count">({library.components.length})</span></span>
         <span className="tree-node-spacer"></span>
         <button className="tree-node-edit-btn" title="编辑" onClick={handleEdit}>✏️</button>
-        {!isPreset && <button className="tree-node-add-btn" title="新建分类" onClick={handleAddCategory}>+</button>}
       </div>
       {isExpanded && (
         <div className="tree-node-children">
@@ -1108,7 +1266,7 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
   onCreateComponent, onDelete,
   isPreset,
 }) => {
-  const { selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, toggleNode, setSelectedNode } = useTreeNodeContext();
+  const { selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, toggleNode, setSelectedNode, showContextMenu } = useTreeNodeContext();
   
   const components = library.components.filter(c => c.categoryId === category.id);
   const isSelected = selectedCategoryId === category.id && selectedLibraryId === library.metadata.id && selectedNodeType === 'category';
@@ -1128,16 +1286,25 @@ const CategoryTreeNode: React.FC<CategoryTreeNodeProps> = ({
     e.stopPropagation();
     onCreateComponent(library.metadata.id, category.id);
   }, [onCreateComponent, library.metadata.id, category.id]);
-  
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showContextMenu(e.clientX, e.clientY, {
+      type: 'category',
+      libraryId: library.metadata.id,
+      categoryId: category.id,
+    });
+  }, [library.metadata.id, category.id, showContextMenu]);
+
   return (
     <div className={`tree-node tree-node-category ${isSelected ? 'selected' : ''}`}>
-      <div className="tree-node-content" onClick={handleToggle}>
+      <div className="tree-node-content" onClick={handleToggle} onContextMenu={handleContextMenu}>
         <span className="tree-node-toggle" onClick={handleToggle}>{isExpanded ? '▼' : '▶'}</span>
         <span className="tree-node-icon">📁</span>
         <span className="tree-node-name">{category.name}<span className="tree-node-count">({components.length})</span></span>
         <span className="tree-node-spacer"></span>
         <button className="tree-node-edit-btn" title="编辑" onClick={handleEdit}>✏️</button>
-        {!isPreset && <button className="tree-node-add-btn" title="新建组件" onClick={handleAddComponent}>+</button>}
       </div>
       {isExpanded && (
         <div className="tree-node-children">
@@ -1163,7 +1330,7 @@ const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
   onCreateComponent,
   isPreset,
 }) => {
-  const { selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, toggleNode, setSelectedNode } = useTreeNodeContext();
+  const { selectedLibraryId, selectedCategoryId, selectedComponentId, selectedNodeType, expandedNodes, toggleNode, setSelectedNode, showContextMenu } = useTreeNodeContext();
   
   const categoryIds = new Set(library.categories.map(c => c.id));
   const uncategorizedComponents = library.components.filter(c => !c.categoryId || !categoryIds.has(c.categoryId));
@@ -1185,16 +1352,25 @@ const UncategorizedNode: React.FC<UncategorizedNodeProps> = ({
     e.stopPropagation();
     onCreateComponent();
   }, [onCreateComponent]);
-  
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showContextMenu(e.clientX, e.clientY, {
+      type: 'category',
+      libraryId: library.metadata.id,
+      categoryId: makeUncategorizedKey(library.metadata.id),
+    });
+  }, [library.metadata.id, showContextMenu]);
+
   return (
     <div className={`tree-node tree-node-category ${isSelected ? 'selected' : ''}`}>
-      <div className="tree-node-content" onClick={handleToggle}>
+      <div className="tree-node-content" onClick={handleToggle} onContextMenu={handleContextMenu}>
         <span className="tree-node-toggle" onClick={handleToggle}>{isExpanded ? '▼' : '▶'}</span>
         <span className="tree-node-icon">📁</span>
         <span className="tree-node-name">未分类<span className="tree-node-count">({count})</span></span>
         <span className="tree-node-spacer"></span>
         {!isPreset && <button className="tree-node-edit-btn" title="编辑" onClick={handleEdit}>✏️</button>}
-        {!isPreset && <button className="tree-node-add-btn" title="新建组件" onClick={handleAddComponent}>+</button>}
       </div>
       {isExpanded && (
         <div className="tree-node-children">
@@ -1216,7 +1392,7 @@ interface ComponentTreeNodeProps {
 const ComponentTreeNode: React.FC<ComponentTreeNodeProps> = ({
   component, libraryId,
 }) => {
-  const { selectedLibraryId, selectedComponentId, selectedNodeType, setSelectedNode } = useTreeNodeContext();
+  const { selectedLibraryId, selectedComponentId, selectedNodeType, setSelectedNode, showContextMenu } = useTreeNodeContext();
   
   const isSelected = selectedComponentId === component.internalId && selectedLibraryId === libraryId && selectedNodeType === 'component';
   
@@ -1224,10 +1400,20 @@ const ComponentTreeNode: React.FC<ComponentTreeNodeProps> = ({
     e.stopPropagation();
     setSelectedNode(component.internalId, 'component', libraryId);
   }, [setSelectedNode, component.internalId, libraryId]);
-  
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    showContextMenu(e.clientX, e.clientY, {
+      type: 'component',
+      libraryId: libraryId,
+      componentId: component.internalId,
+    });
+  }, [libraryId, component.internalId, showContextMenu]);
+
   return (
     <div className={`tree-node tree-node-component ${isSelected ? 'selected' : ''}`}>
-      <div className="tree-node-content" onClick={handleEdit}>
+      <div className="tree-node-content" onClick={handleEdit} onContextMenu={handleContextMenu}>
         <span className="tree-node-indent"></span>
         <span className="tree-node-icon">🧩</span>
         <span className="tree-node-name">{component.name}</span>

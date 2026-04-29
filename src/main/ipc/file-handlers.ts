@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot } from '../file-manager';
+import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot, rename, deleteFile, deleteDirectory, mkdir, exists } from '../file-manager';
 
 export function registerFileHandlers(): void {
   ipcMain.handle('file:read', async (_event, filePath: string) => {
@@ -40,5 +40,29 @@ export function registerFileHandlers(): void {
   ipcMain.handle('file:setAllowedRoot', async (_event, dirPath: string) => {
     setAllowedRoot(dirPath);
     return { success: true };
+  });
+
+  ipcMain.handle('file:rename', async (_event, oldPath: string, newPath: string) => {
+    await rename(oldPath, newPath);
+    return { success: true };
+  });
+
+  ipcMain.handle('file:deleteFile', async (_event, filePath: string) => {
+    await deleteFile(filePath);
+    return { success: true };
+  });
+
+  ipcMain.handle('file:deleteDirectory', async (_event, dirPath: string) => {
+    await deleteDirectory(dirPath);
+    return { success: true };
+  });
+
+  ipcMain.handle('file:mkdir', async (_event, dirPath: string) => {
+    await mkdir(dirPath);
+    return { success: true };
+  });
+
+  ipcMain.handle('file:exists', async (_event, filePath: string) => {
+    return await exists(filePath);
   });
 }

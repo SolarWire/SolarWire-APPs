@@ -12,6 +12,11 @@ contextBridge.exposeInMainWorld('api', {
   ensureDir: (dirPath: string) => ipcRenderer.invoke('file:ensureDir', dirPath),
   readImageAsBase64: (imagePath: string) => ipcRenderer.invoke('file:readImageAsBase64', imagePath),
   setAllowedRoot: (dirPath: string) => ipcRenderer.invoke('file:setAllowedRoot', dirPath),
+  rename: (oldPath: string, newPath: string) => ipcRenderer.invoke('file:rename', oldPath, newPath),
+  deleteFile: (filePath: string) => ipcRenderer.invoke('file:deleteFile', filePath),
+  deleteDirectory: (dirPath: string) => ipcRenderer.invoke('file:deleteDirectory', dirPath),
+  mkdir: (dirPath: string) => ipcRenderer.invoke('file:mkdir', dirPath),
+  exists: (filePath: string) => ipcRenderer.invoke('file:exists', filePath),
 });
 
 // 在测试环境中暴露额外 API

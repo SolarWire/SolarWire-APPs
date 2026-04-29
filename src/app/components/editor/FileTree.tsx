@@ -8,6 +8,7 @@ interface FileTreeProps {
   selectedFile: FileNode | null;
   onToggleDirectory: (path: string) => void;
   onSelectFile: (file: FileNode) => void;
+  onContextMenu?: (node: FileNode, x: number, y: number) => void;
 }
 
 interface TreeItemProps {
@@ -16,6 +17,7 @@ interface TreeItemProps {
   selectedFile: FileNode | null;
   onToggleDirectory: (path: string) => void;
   onSelectFile: (file: FileNode) => void;
+  onContextMenu?: (node: FileNode, x: number, y: number) => void;
 }
 
 const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'];
@@ -31,6 +33,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
   selectedFile,
   onToggleDirectory,
   onSelectFile,
+  onContextMenu,
 }) => {
   const isExpanded = expandedDirectories.has(node.path);
   const isSelected = selectedFile && selectedFile.path === node.path;
@@ -40,6 +43,14 @@ const TreeItem: React.FC<TreeItemProps> = ({
       onToggleDirectory(node.path);
     } else {
       onSelectFile(node);
+    }
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onContextMenu) {
+      onContextMenu(node, e.clientX, e.clientY);
     }
   };
 
@@ -75,6 +86,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
       <div
         className={`tree-item ${isSelected ? 'selected' : ''}`}
         onClick={handleClick}
+        onContextMenu={handleContextMenu}
       >
         {node.type === 'directory' && (
           <span className="tree-item-arrow">{isExpanded ? '▼' : '▶'}</span>
@@ -99,6 +111,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
                 selectedFile={selectedFile}
                 onToggleDirectory={onToggleDirectory}
                 onSelectFile={onSelectFile}
+                onContextMenu={onContextMenu}
               />
             ))}
         </div>
@@ -113,6 +126,7 @@ export const FileTree: React.FC<FileTreeProps> = ({
   selectedFile,
   onToggleDirectory,
   onSelectFile,
+  onContextMenu,
 }) => {
   return (
     <div className="file-tree">
@@ -124,6 +138,7 @@ export const FileTree: React.FC<FileTreeProps> = ({
           selectedFile={selectedFile}
           onToggleDirectory={onToggleDirectory}
           onSelectFile={onSelectFile}
+          onContextMenu={onContextMenu}
         />
       ))}
     </div>

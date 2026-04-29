@@ -13,6 +13,11 @@ electron_1.contextBridge.exposeInMainWorld('api', {
     ensureDir: (dirPath) => electron_1.ipcRenderer.invoke('file:ensureDir', dirPath),
     readImageAsBase64: (imagePath) => electron_1.ipcRenderer.invoke('file:readImageAsBase64', imagePath),
     setAllowedRoot: (dirPath) => electron_1.ipcRenderer.invoke('file:setAllowedRoot', dirPath),
+    rename: (oldPath, newPath) => electron_1.ipcRenderer.invoke('file:rename', oldPath, newPath),
+    deleteFile: (filePath) => electron_1.ipcRenderer.invoke('file:deleteFile', filePath),
+    deleteDirectory: (dirPath) => electron_1.ipcRenderer.invoke('file:deleteDirectory', dirPath),
+    mkdir: (dirPath) => electron_1.ipcRenderer.invoke('file:mkdir', dirPath),
+    exists: (filePath) => electron_1.ipcRenderer.invoke('file:exists', filePath),
 });
 // 在测试环境中暴露额外 API
 if (process.env.NODE_ENV === 'test') {

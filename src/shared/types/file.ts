@@ -3,6 +3,7 @@ export interface FileNode {
   path: string;
   type: 'file' | 'directory';
   children?: FileNode[];
+  modifiedTime?: number; // 文件/文件夹修改时间（时间戳）
 }
 
 export interface SolarWireSnippet {

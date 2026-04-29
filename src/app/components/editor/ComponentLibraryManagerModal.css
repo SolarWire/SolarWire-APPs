@@ -135,28 +135,35 @@ body.component-library-manager-open .resizable-divider {
   padding: 8px 4px;
   scrollbar-width: thin;
   scrollbar-color: var(--border-color) transparent;
+  position: relative;
+  z-index: 1;
 }
 
 .manager-tree-list::-webkit-scrollbar {
   width: 14px;
   height: 10px;
+  z-index: 1;
 }
 
 .manager-tree-list::-webkit-scrollbar-track {
   background: transparent;
+  z-index: 1;
 }
 
 .manager-tree-list::-webkit-scrollbar-thumb {
   background: var(--border-color);
   border-radius: 0px;
+  z-index: 1;
 }
 
 .manager-tree-list::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+  z-index: 1;
 }
 
 .manager-tree-list::-webkit-scrollbar-corner {
   background: transparent;
+  z-index: 1;
 }
 
 .manager-tree-actions {

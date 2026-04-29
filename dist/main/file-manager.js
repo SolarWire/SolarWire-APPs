@@ -44,6 +44,11 @@ exports.collectSolarWireSnippets = collectSolarWireSnippets;
 exports.ensureDir = ensureDir;
 exports.copyFile = copyFile;
 exports.readImageAsBase64 = readImageAsBase64;
+exports.rename = rename;
+exports.deleteFile = deleteFile;
+exports.deleteDirectory = deleteDirectory;
+exports.mkdir = mkdir;
+exports.exists = exists;
 const fs = __importStar(require("fs/promises"));
 const fsSync = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -288,5 +293,64 @@ async function readImageAsBase64(imagePath) {
             throw error;
         }
         throw new Error(`Failed to read image: ${imagePath}`);
+    }
+}
+async function rename(oldPath, newPath) {
+    try {
+        validatePath(oldPath);
+        validatePath(newPath);
+        await fs.rename(oldPath, newPath);
+    }
+    catch (error) {
+        if (error instanceof Error && error.message.includes('Access denied')) {
+            throw error;
+        }
+        throw new Error(`Failed to rename: ${oldPath} -> ${newPath}`);
+    }
+}
+async function deleteFile(filePath) {
+    try {
+        validatePath(filePath);
+        await fs.unlink(filePath);
+    }
+    catch (error) {
+        if (error instanceof Error && error.message.includes('Access denied')) {
+            throw error;
+        }
+        throw new Error(`Failed to delete file: ${filePath}`);
+    }
+}
+async function deleteDirectory(dirPath) {
+    try {
+        validatePath(dirPath);
+        await fs.rm(dirPath, { recursive: true, force: true });
+    }
+    catch (error) {
+        if (error instanceof Error && error.message.includes('Access denied')) {
+            throw error;
+        }
+        throw new Error(`Failed to delete directory: ${dirPath}`);
+    }
+}
+async function mkdir(dirPath) {
+    try {
+        validatePath(dirPath);
+        await fs.mkdir(dirPath, { recursive: true });
+    }
+    catch (error) {
+        if (error instanceof Error && error.message.includes('Access denied')) {
+            throw error;
+        }
+        throw new Error(`Failed to create directory: ${dirPath}`);
+    }
+}
+async function exists(filePath) {
+    try {
+        validatePath(filePath);
+        await fs.access(filePath);
+        return true;
+    }
+    catch {
+        return false;
     }
 }

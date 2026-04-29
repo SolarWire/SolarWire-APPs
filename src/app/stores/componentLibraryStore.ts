@@ -73,6 +73,10 @@ interface ComponentLibraryStore {
   moveComponent: (sourceLibraryId: string, componentInternalId: string, targetLibraryId: string, targetCategoryId: string | null, targetComponentInternalId: string, position: 'before' | 'after') => void;
   moveLibrary: (sourceLibraryId: string, targetLibraryId: string, position: 'before' | 'after') => void;
 
+  reorderLibrary: (libraryId: string, direction: 'top' | 'up' | 'down' | 'bottom') => void;
+  reorderCategory: (libraryId: string, categoryId: string, direction: 'top' | 'up' | 'down' | 'bottom') => void;
+  reorderComponent: (libraryId: string, componentId: string, direction: 'top' | 'up' | 'down' | 'bottom') => void;
+
   getComponentThumbnail: (libraryId: string, componentInternalId: string) => string | null;
   setComponentThumbnail: (libraryId: string, componentInternalId: string, thumbnail: string) => void;
 
@@ -270,6 +274,86 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   moveLibrary: async (sourceLibraryId, targetLibraryId, position) => {
     await componentLibraryManager.moveLibraryInList(sourceLibraryId, targetLibraryId, position);
     set({ libraries: componentLibraryManager.getLibraries() });
+  },
+
+  reorderLibrary: (libraryId, direction) => {
+    const state = get();
+    const libraries = [...state.libraries];
+    const index = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    if (index === -1) return;
+
+    const newIndex = (() => {
+      switch (direction) {
+        case 'top': return 0;
+        case 'up': return Math.max(0, index - 1);
+        case 'down': return Math.min(libraries.length - 1, index + 1);
+        case 'bottom': return libraries.length - 1;
+      }
+    })();
+
+    if (newIndex === index) return;
+
+    const [removed] = libraries.splice(index, 1);
+    libraries.splice(newIndex, 0, removed);
+    set({ libraries });
+  },
+
+  reorderCategory: (libraryId, categoryId, direction) => {
+    const state = get();
+    const libraries = [...state.libraries];
+    const libraryIndex = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    if (libraryIndex === -1) return;
+
+    const library = { ...libraries[libraryIndex] };
+    const categories = [...library.categories];
+    const index = categories.findIndex(cat => cat.id === categoryId);
+    if (index === -1) return;
+
+    const newIndex = (() => {
+      switch (direction) {
+        case 'top': return 0;
+        case 'up': return Math.max(0, index - 1);
+        case 'down': return Math.min(categories.length - 1, index + 1);
+        case 'bottom': return categories.length - 1;
+      }
+    })();
+
+    if (newIndex === index) return;
+
+    const [removed] = categories.splice(index, 1);
+    categories.splice(newIndex, 0, removed);
+    library.categories = categories;
+    libraries[libraryIndex] = library;
+    set({ libraries });
+  },
+
+  reorderComponent: (libraryId, componentId, direction) => {
+    const state = get();
+    const libraries = [...state.libraries];
+    const libraryIndex = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    if (libraryIndex === -1) return;
+
+    const library = { ...libraries[libraryIndex] };
+    const components = [...library.components];
+    const index = components.findIndex(comp => comp.internalId === componentId);
+    if (index === -1) return;
+
+    const newIndex = (() => {
+      switch (direction) {
+        case 'top': return 0;
+        case 'up': return Math.max(0, index - 1);
+        case 'down': return Math.min(components.length - 1, index + 1);
+        case 'bottom': return components.length - 1;
+      }
+    })();
+
+    if (newIndex === index) return;
+
+    const [removed] = components.splice(index, 1);
+    components.splice(newIndex, 0, removed);
+    library.components = components;
+    libraries[libraryIndex] = library;
+    set({ libraries });
   },
 
   getComponentThumbnail: (libraryId, componentId) => {

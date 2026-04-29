@@ -35,4 +35,23 @@ function registerFileHandlers() {
         (0, file_manager_1.setAllowedRoot)(dirPath);
         return { success: true };
     });
+    electron_1.ipcMain.handle('file:rename', async (_event, oldPath, newPath) => {
+        await (0, file_manager_1.rename)(oldPath, newPath);
+        return { success: true };
+    });
+    electron_1.ipcMain.handle('file:deleteFile', async (_event, filePath) => {
+        await (0, file_manager_1.deleteFile)(filePath);
+        return { success: true };
+    });
+    electron_1.ipcMain.handle('file:deleteDirectory', async (_event, dirPath) => {
+        await (0, file_manager_1.deleteDirectory)(dirPath);
+        return { success: true };
+    });
+    electron_1.ipcMain.handle('file:mkdir', async (_event, dirPath) => {
+        await (0, file_manager_1.mkdir)(dirPath);
+        return { success: true };
+    });
+    electron_1.ipcMain.handle('file:exists', async (_event, filePath) => {
+        return await (0, file_manager_1.exists)(filePath);
+    });
 }
