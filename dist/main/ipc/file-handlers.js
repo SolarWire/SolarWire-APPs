@@ -54,4 +54,8 @@ function registerFileHandlers() {
     electron_1.ipcMain.handle('file:exists', async (_event, filePath) => {
         return await (0, file_manager_1.exists)(filePath);
     });
+    electron_1.ipcMain.handle('file:showItemInFolder', async (_event, filePath) => {
+        await (0, file_manager_1.showItemInFolder)(filePath);
+        return { success: true };
+    });
 }

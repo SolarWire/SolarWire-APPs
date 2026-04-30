@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('api', {
   deleteDirectory: (dirPath: string) => ipcRenderer.invoke('file:deleteDirectory', dirPath),
   mkdir: (dirPath: string) => ipcRenderer.invoke('file:mkdir', dirPath),
   exists: (filePath: string) => ipcRenderer.invoke('file:exists', filePath),
+  showItemInFolder: (filePath: string) => ipcRenderer.invoke('file:showItemInFolder', filePath),
 });
 
 // 在测试环境中暴露额外 API

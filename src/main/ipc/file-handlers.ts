@@ -1,5 +1,5 @@
 import { ipcMain } from 'electron';
-import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot, rename, deleteFile, deleteDirectory, mkdir, exists } from '../file-manager';
+import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot, rename, deleteFile, deleteDirectory, mkdir, exists, showItemInFolder } from '../file-manager';
 
 export function registerFileHandlers(): void {
   ipcMain.handle('file:read', async (_event, filePath: string) => {
@@ -64,5 +64,10 @@ export function registerFileHandlers(): void {
 
   ipcMain.handle('file:exists', async (_event, filePath: string) => {
     return await exists(filePath);
+  });
+
+  ipcMain.handle('file:showItemInFolder', async (_event, filePath: string) => {
+    await showItemInFolder(filePath);
+    return { success: true };
   });
 }

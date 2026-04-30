@@ -131,6 +131,26 @@ const FileView: React.FC = () => {
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
+  // 在资源管理器中查看
+  const handleShowInFolder = async () => {
+    const { targetNode } = contextMenu;
+    if (!targetNode) return;
+
+    try {
+      const api = (window as any).api;
+      if (api && typeof api.showItemInFolder === 'function') {
+        await api.showItemInFolder(targetNode.path);
+      } else {
+        console.warn('showItemInFolder not available in current environment');
+        showToast('此功能仅在Electron应用中可用', 'error');
+      }
+    } catch (err) {
+      console.error('Failed to show item in folder:', err);
+      showToast('打开资源管理器失败', 'error');
+    }
+    closeContextMenu();
+  };
+
   // 生成菜单项
   const getMenuItems = (): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
@@ -151,10 +171,14 @@ const FileView: React.FC = () => {
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '重命名', icon: '✏️', onClick: () => setShowRenameModal(true) });
       items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '在资源管理器中查看', icon: '📂', onClick: handleShowInFolder });
+      items.push({ type: 'separator' });
       items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => setShowDeleteModal(true) });
     } else {
       // 文件
       items.push({ type: 'item', label: '重命名', icon: '✏️', onClick: () => setShowRenameModal(true) });
+      items.push({ type: 'separator' });
+      items.push({ type: 'item', label: '在资源管理器中查看', icon: '📂', onClick: handleShowInFolder });
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => setShowDeleteModal(true) });
     }

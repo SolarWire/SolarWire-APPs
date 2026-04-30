@@ -338,3 +338,16 @@ export async function exists(filePath: string): Promise<boolean> {
     return false;
   }
 }
+
+export async function showItemInFolder(filePath: string): Promise<void> {
+  try {
+    validatePath(filePath);
+    const { shell } = require('electron');
+    shell.showItemInFolder(filePath);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to show item in folder: ${filePath}`);
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import MonacoEditor from '../editor/MonacoEditor';
 import MarkdownPreview from '../editor/MarkdownPreview';
 import { useEditorStore } from '../../stores/editorStore';
@@ -15,15 +15,34 @@ function MarkdownMode(): React.ReactElement {
   const { content, setContent } = useEditorStore();
   // 文件相关状态
   const { selectedFile, fileContent, currentSnippet, updateFileContent } = useFileStore();
+  
+  // 跟踪当前文件路径，只在文件切换时加载内容
+  const currentFilePathRef = useRef<string | null>(null);
+  // 跟踪是否为snippet模式
+  const wasSnippetModeRef = useRef<boolean>(false);
 
   // 加载选中文件的内容
   useEffect(() => {
+    const isNowSnippetMode = !!currentSnippet;
+    
     if (selectedFile && fileContent && !currentSnippet) {
-      if (content !== fileContent) {
+      // 从snippet模式切换到md模式时，需要重新加载完整内容
+      if (wasSnippetModeRef.current && currentFilePathRef.current === selectedFile.path) {
         setContent(fileContent);
+        wasSnippetModeRef.current = false;
+      }
+      // 只在文件路径变化时才加载内容
+      else if (currentFilePathRef.current !== selectedFile.path) {
+        setContent(fileContent);
+        currentFilePathRef.current = selectedFile.path;
       }
     }
-  }, [selectedFile?.path, fileContent, currentSnippet, content]);
+    
+    // 更新snippet模式状态
+    if (isNowSnippetMode) {
+      wasSnippetModeRef.current = true;
+    }
+  }, [selectedFile?.path, fileContent, currentSnippet]);
 
   /**
    * 处理内容变化
@@ -31,9 +50,6 @@ function MarkdownMode(): React.ReactElement {
    */
   const handleChange = (value: string): void => {
     setContent(value);
-    if (selectedFile) {
-      updateFileContent(selectedFile, value);
-    }
   };
 
   // 当前激活的标签页

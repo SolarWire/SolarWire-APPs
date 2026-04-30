@@ -123,6 +123,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
   currentSnippet: null,
   autoRefreshEnabled: true,
   autoRefreshTimer: null,
+  refreshKey: 0,
   
   /**
    * 设置当前路径
@@ -324,6 +325,9 @@ export const useFileStore = create<FileState>()((set, get) => ({
   },
   saveFile: async () => {
     const { selectedFile, currentSnippet, fileContent } = get();
+    const editorStore = useEditorStore.getState();
+    const editorContent = editorStore.content;
+    const currentMode = editorStore.mode;
     const statusStore = useStatusStore.getState();
     
     if (!selectedFile) {
@@ -339,35 +343,36 @@ export const useFileStore = create<FileState>()((set, get) => ({
       statusStore.startOperation('save', '保存中...');
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'start' });
       
-      let contentToSave = fileContent;
-      
       // 检查是否正在编辑一个 snippet
       const isSnippet = currentSnippet && currentSnippet.type === 'snippet';
       const hasSnippetIndex = currentSnippet && currentSnippet.snippetIndex !== undefined;
       
-      // 场景2：md内SolarWire代码块编辑
-      // 只有当前正在编辑snippet且有snippetIndex时，才进行代码块替换
+      let contentToSave: string;
+      
+      // 场景1：md内SolarWire代码块编辑（snippet）
+      // 读取原始md文件，用editorContent替换对应位置的代码块
       if (isSnippet && hasSnippetIndex) {
         const originalContent = await readFile(selectedFile.path);
         contentToSave = replaceSolarWireSnippetInMarkdown(
           originalContent,
           currentSnippet.snippetIndex ?? 0,
-          fileContent
+          editorContent  // 使用editorContent作为替换的代码块内容
         );
+        // snippet场景：更新fileContent为完整的md内容，保持状态一致
+        set({ fileContent: contentToSave, currentSnippet: null });
+      } 
+      // 场景2：独立文件编辑（solarwire或markdown）
+      // 使用editorContent（用户实际编辑的内容）
+      else {
+        contentToSave = editorContent || fileContent;
+        // 独立文件场景：正常更新fileContent
+        set({ fileContent: contentToSave });
       }
-      // 其他场景（独立SolarWire文件、markdown模式直接编辑md文件）直接保存fileContent
       
       await fileSystemService.writeFile(selectedFile.path, contentToSave);
       
-      // 更新fileContent的逻辑：
-      // - snippet场景：保持fileContent为纯solarwire代码，不更新
-      // - 其他场景：正常更新fileContent为保存的内容
-      if (isSnippet && hasSnippetIndex) {
-        // snippet场景：fileContent保持为纯solarwire代码，不更新
-      } else {
-        // 独立文件场景和markdown直接编辑场景：正常更新fileContent
-        set({ fileContent: contentToSave });
-      }
+      // 重置修改状态
+      editorStore.setModified(false);
       
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'complete' });
       
@@ -397,7 +402,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
       if (currentPath) {
         // 如果有当前路径，刷新该目录
         const tree = await getFileTree(currentPath);
-        set({ fileTree: tree });
+        set({ fileTree: tree, refreshKey: Date.now() });
         showSuccess('文件视图已刷新');
       } else {
         // 如果没有当前路径，尝试刷新根目录
@@ -405,7 +410,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
         if (api && typeof api.getDefaultDirectory === 'function') {
           const defaultDir = await api.getDefaultDirectory();
           const tree = await getFileTree(defaultDir);
-          set({ currentPath: defaultDir, fileTree: tree });
+          set({ currentPath: defaultDir, fileTree: tree, refreshKey: Date.now() });
           showSuccess('文件视图已刷新');
         }
       }

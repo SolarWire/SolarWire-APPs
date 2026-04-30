@@ -25,6 +25,7 @@ export interface FileState {
   currentSnippet: SolarWireSnippet | null;
   autoRefreshEnabled: boolean;
   autoRefreshTimer: NodeJS.Timeout | null;
+  refreshKey: number;
   setCurrentPath: (path: string) => void;
   setFileTree: (tree: FileNode[]) => void;
   setSelectedFile: (file: FileNode | null) => void;

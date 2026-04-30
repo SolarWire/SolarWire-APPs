@@ -12,7 +12,7 @@ interface Requirement {
 }
 
 function RequirementView(): React.ReactElement {
-  const { currentPath, fileTree, openFileAtPath } = useFileStore();
+  const { currentPath, fileTree, openFileAtPath, refreshKey } = useFileStore();
 
   const requirements = useMemo(() => {
     if (!currentPath || fileTree.length === 0) {
@@ -50,7 +50,7 @@ function RequirementView(): React.ReactElement {
     };
 
     return collectMdFiles(fileTree, currentPath);
-  }, [currentPath, fileTree]);
+  }, [currentPath, fileTree, refreshKey]);
 
   const { currentView } = useAppStore();
   const { setSelection, getSelectionForView } = useSelectionStore();

@@ -49,6 +49,7 @@ exports.deleteFile = deleteFile;
 exports.deleteDirectory = deleteDirectory;
 exports.mkdir = mkdir;
 exports.exists = exists;
+exports.showItemInFolder = showItemInFolder;
 const fs = __importStar(require("fs/promises"));
 const fsSync = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -354,5 +355,18 @@ async function exists(filePath) {
     }
     catch {
         return false;
+    }
+}
+async function showItemInFolder(filePath) {
+    try {
+        validatePath(filePath);
+        const { shell } = require('electron');
+        shell.showItemInFolder(filePath);
+    }
+    catch (error) {
+        if (error instanceof Error && error.message.includes('Access denied')) {
+            throw error;
+        }
+        throw new Error(`Failed to show item in folder: ${filePath}`);
     }
 }

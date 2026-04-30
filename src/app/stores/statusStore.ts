@@ -175,6 +175,14 @@ export const useStatusStore = create<StatusState>((set, get) => ({
           }
         : null,
     }));
+    
+    // 操作成功后延迟2秒自动清除状态
+    setTimeout(() => {
+      const state = get();
+      if (state.currentOperation?.status === 'success') {
+        set({ currentOperation: null });
+      }
+    }, 2000);
   },
 
   failOperation: (message: string, errorDetail?: string) => {
