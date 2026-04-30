@@ -12,21 +12,19 @@ interface SettingsModalProps {
 }
 
 function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElement | null {
-  const { primaryColor, setPrimaryColor, renderMode, setRenderMode } = useSettingsStore();
+  const { primaryColor, setPrimaryColor } = useSettingsStore();
   const { language, setLanguage } = useI18nStore();
   const t = useTranslation();
   const [tempPrimaryColor, setTempPrimaryColor] = useState(primaryColor);
   const [tempLanguage, setTempLanguage] = useState(language);
-  const [tempRenderMode, setTempRenderMode] = useState(renderMode);
   const [colorError, setColorError] = useState('');
   const DEFAULT_PRIMARY_COLOR = '#FCA506';
 
   useEffect(() => {
     setTempPrimaryColor(primaryColor);
     setTempLanguage(language);
-    setTempRenderMode(renderMode);
     setColorError('');
-  }, [primaryColor, language, renderMode, isOpen]);
+  }, [primaryColor, language, isOpen]);
 
   // ESC键关闭模态窗
   useEffect(() => {
@@ -52,7 +50,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
     }
     setPrimaryColor(tempPrimaryColor);
     setLanguage(tempLanguage);
-    setRenderMode(tempRenderMode);
     onClose();
   };
 
@@ -91,19 +88,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
                 >
                   <option value="zh">{t.languages.zh}</option>
                   <option value="en">{t.languages.en}</option>
-                </select>
-              </div>
-            </div>
-            <div className="settings-field">
-              <label>渲染模式 / Render Mode</label>
-              <div className="language-selector">
-                <select
-                  value={tempRenderMode}
-                  onChange={(e) => setTempRenderMode(e.target.value as 'svg' | 'canvas')}
-                  className="language-select"
-                >
-                  <option value="svg">SVG</option>
-                  <option value="canvas">Canvas</option>
                 </select>
               </div>
             </div>

@@ -256,7 +256,8 @@
 
 .component-thumbnail img,
 .component-thumbnail object,
-.component-thumbnail .thumbnail-svg-container {
+.component-thumbnail .thumbnail-svg-container,
+.component-thumbnail .thumbnail-svg-image {
   width: 100%;
   height: 100%;
   object-fit: contain;

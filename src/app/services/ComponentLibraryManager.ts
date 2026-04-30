@@ -1,4 +1,4 @@
-import { ComponentLibrary, Component, ComponentCategory, ComponentLibraryMetadata, generateInternalId, generatePrefixedId, isPresetLibrary } from '../../shared/types/component';
+import { ComponentLibrary, Component, ComponentCategory, ComponentLibraryMetadata, generateInternalId, generatePrefixedId, isPresetLibrary, normalizeCategoryId } from '../../shared/types/component';
 import { IComponentLibraryStorage } from './IComponentLibraryStorage';
 import { indexedDBService } from './IndexedDBService';
 import { parseSWC, serializeSWC } from '../../lib/components/swc-parser';
@@ -75,10 +75,31 @@ function ensureLibraryInternalIds(library: ComponentLibrary): ComponentLibrary {
   } as ComponentLibrary;
 }
 
+/**
+ * 规范化组件库中所有组件的categoryId
+ * - 将空字符串、undefined转换为null
+ * - 确保未分类组件的categoryId始终为null
+ */
+function normalizeLibraryComponents(library: ComponentLibrary): ComponentLibrary {
+  return {
+    ...library,
+    components: library.components.map(c => ({
+      ...c,
+      categoryId: normalizeCategoryId(c.categoryId)
+    }))
+  };
+}
+
+interface ThumbnailCacheEntry {
+  thumbnail: string;
+  success: boolean;
+  timestamp: number;
+}
+
 class ComponentLibraryManager {
   private libraries: Map<string, ComponentLibrary> = new Map();
   private libraryOrder: string[] = [];
-  private thumbnailCache: Map<string, Map<string, string>> = new Map();
+  private thumbnailCache: Map<string, Map<string, ThumbnailCacheEntry>> = new Map();
   private failedComponents: Map<string, Map<string, string>> = new Map();
   private operationLock: Promise<void> = Promise.resolve();
   private storage: IComponentLibraryStorage;
@@ -100,9 +121,10 @@ class ComponentLibraryManager {
     const userLibraries = await this.storage.getAllLibraries();
     userLibraries.forEach((lib: ComponentLibrary) => {
       const libWithIds = ensureLibraryInternalIds(lib);
-      this.libraries.set(libWithIds.metadata.id, libWithIds);
-      if (!this.libraryOrder.includes(libWithIds.metadata.id)) {
-        this.libraryOrder.push(libWithIds.metadata.id);
+      const libNormalized = normalizeLibraryComponents(libWithIds);
+      this.libraries.set(libNormalized.metadata.id, libNormalized);
+      if (!this.libraryOrder.includes(libNormalized.metadata.id)) {
+        this.libraryOrder.push(libNormalized.metadata.id);
       }
     });
   }
@@ -250,7 +272,7 @@ class ComponentLibraryManager {
         internalId: generateInternalId(existingIds),
         name: component.name || '新组件',
         description: component.description,
-        categoryId: categoryId || undefined,
+        categoryId: normalizeCategoryId(categoryId),
         code: component.code || '',
         createdAt: now,
         updatedAt: now,
@@ -269,8 +291,9 @@ class ComponentLibraryManager {
       if (newComponent.code) {
         const { generateThumbnail } = await import('../../lib/components/thumbnail-generator');
         const thumbnail = await generateThumbnail(newComponent.code);
-        this.setComponentThumbnail(libraryId, newComponent.internalId, thumbnail);
-        if (isThumbnailFailed(thumbnail)) {
+        const success = !isThumbnailFailed(thumbnail);
+        this.setComponentThumbnail(libraryId, newComponent.internalId, thumbnail, success);
+        if (!success) {
           this.setFailedComponent(libraryId, newComponent.internalId, 'SolarWire 代码解析失败');
         } else {
           this.clearFailedComponent(libraryId, newComponent.internalId);
@@ -294,6 +317,12 @@ class ComponentLibraryManager {
 
       const updatedComponents = [...library.components];
       const { internalId: _, ...safeUpdates } = updates as any;
+
+      // 规范化categoryId
+      if ('categoryId' in safeUpdates) {
+        safeUpdates.categoryId = normalizeCategoryId(safeUpdates.categoryId);
+      }
+
       updatedComponents[index] = { ...updatedComponents[index], ...safeUpdates, updatedAt: new Date().toISOString() };
 
       const updated: ComponentLibrary = {
@@ -309,9 +338,10 @@ class ComponentLibraryManager {
       if (updates.code !== undefined) {
         const { generateThumbnail } = await import('../../lib/components/thumbnail-generator');
         const thumbnail = await generateThumbnail(updates.code);
-        this.setComponentThumbnail(libraryId, componentInternalId, thumbnail);
-        if (isThumbnailFailed(thumbnail)) {
-          this.setFailedComponent(libraryId, componentInternalId, 'SolarWire 代码解析失败');
+        const success = !isThumbnailFailed(thumbnail);
+        this.setComponentThumbnail(libraryId, componentInternalId, thumbnail, success);
+        if (!success) {
+          this.setFailedComponent(libraryId, componentInternalId, 'SolarWire código');
         } else {
           this.clearFailedComponent(libraryId, componentInternalId);
         }
@@ -405,7 +435,7 @@ class ComponentLibraryManager {
       if (!library) throw new Error(`Library ${libraryId} not found`);
 
       const updatedComponents = library.components.map(c =>
-        c.categoryId === categoryId ? { ...c, categoryId: undefined } : c
+        c.categoryId === categoryId ? { ...c, categoryId: null } : c
       );
 
       const updated: ComponentLibrary = {
@@ -517,7 +547,7 @@ class ComponentLibraryManager {
       const targetComponents = [...targetLibrary.components];
 
       componentsToMove.forEach(c => {
-        targetComponents.push({ ...c, categoryId: movedCategory.id });
+        targetComponents.push({ ...c, categoryId: movedCategory.id || null });
       });
 
       if (position === 'inside') {
@@ -575,7 +605,7 @@ class ComponentLibraryManager {
       if (componentIndex === -1) return;
 
       const [movedComponent] = components.splice(componentIndex, 1);
-      const updatedMovedComponent = { ...movedComponent, categoryId: targetCategoryId || undefined };
+      const updatedMovedComponent = { ...movedComponent, categoryId: normalizeCategoryId(targetCategoryId) };
 
       if (targetComponentInternalId) {
         const targetIndex = components.findIndex(c => c.internalId === targetComponentInternalId);
@@ -623,7 +653,7 @@ class ComponentLibraryManager {
 
       const sourceComponents = [...sourceLibrary.components];
       const [movedComponent] = sourceComponents.splice(compIndex, 1);
-      const updatedMovedComponent = { ...movedComponent, categoryId: targetCategoryId || undefined };
+      const updatedMovedComponent = { ...movedComponent, categoryId: normalizeCategoryId(targetCategoryId) };
 
       let targetComponents: Component[];
       if (targetComponentInternalId) {
@@ -682,14 +712,19 @@ class ComponentLibraryManager {
   }
 
   getComponentThumbnail(libraryId: string, componentInternalId: string): string | null {
-    return this.thumbnailCache.get(libraryId)?.get(componentInternalId) || null;
+    const entry = this.thumbnailCache.get(libraryId)?.get(componentInternalId);
+    return entry ? entry.thumbnail : null;
   }
 
-  setComponentThumbnail(libraryId: string, componentInternalId: string, thumbnail: string): void {
+  setComponentThumbnail(libraryId: string, componentInternalId: string, thumbnail: string, success: boolean = true): void {
     if (!this.thumbnailCache.has(libraryId)) {
       this.thumbnailCache.set(libraryId, new Map());
     }
-    this.thumbnailCache.get(libraryId)!.set(componentInternalId, thumbnail);
+    this.thumbnailCache.get(libraryId)!.set(componentInternalId, {
+      thumbnail,
+      success,
+      timestamp: Date.now()
+    });
   }
 
   getFailedComponent(libraryId: string, componentInternalId: string): string | null {
@@ -898,11 +933,43 @@ class ComponentLibraryManager {
   }
 
   getThumbnailCache(libraryId: string): Map<string, string> {
-    return this.thumbnailCache.get(libraryId) || new Map();
+    const cache = this.thumbnailCache.get(libraryId) || new Map();
+    const result = new Map<string, string>();
+    cache.forEach((entry, key) => {
+      result.set(key, entry.thumbnail);
+    });
+    return result;
   }
 
   setThumbnailCache(libraryId: string, cache: Map<string, string>): void {
-    this.thumbnailCache.set(libraryId, cache);
+    const newCache = new Map<string, ThumbnailCacheEntry>();
+    cache.forEach((thumbnail, key) => {
+      newCache.set(key, {
+        thumbnail,
+        success: true,
+        timestamp: Date.now()
+      });
+    });
+    this.thumbnailCache.set(libraryId, newCache);
+  }
+
+  getThumbnailCacheEntries(libraryId: string): Map<string, ThumbnailCacheEntry> {
+    return this.thumbnailCache.get(libraryId) || new Map();
+  }
+
+  getFailedThumbnailEntries(libraryId: string): Map<string, ThumbnailCacheEntry> {
+    const cache = this.thumbnailCache.get(libraryId) || new Map();
+    const result = new Map<string, ThumbnailCacheEntry>();
+    cache.forEach((entry, key) => {
+      if (!entry.success) {
+        result.set(key, entry);
+      }
+    });
+    return result;
+  }
+
+  getFailedComponents(libraryId: string): Map<string, string> {
+    return this.failedComponents.get(libraryId) || new Map();
   }
 }
 

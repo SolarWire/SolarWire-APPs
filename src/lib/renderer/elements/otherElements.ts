@@ -211,10 +211,22 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   
   const svgParts: string[] = [];
   svgParts.push(`<g>`);
-  svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}" stroke="${b}" stroke-width="${s}"/>`);
-  
-  svgParts.push(`<line x1="${pos.x}" y1="${pos.y}" x2="${pos.x + w}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
-  svgParts.push(`<line x1="${pos.x + w}" y1="${pos.y}" x2="${pos.x}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
+
+  // 边框往内渲染：调整rect的位置和尺寸
+  const strokeOffset = s / 2;
+  const rectX = pos.x + strokeOffset;
+  const rectY = pos.y + strokeOffset;
+  const rectW = Math.max(0, w - s);
+  const rectH = Math.max(0, h - s);
+  svgParts.push(`<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" fill="${bg}" stroke="${b}" stroke-width="${s}"/>`);
+
+  // 对角线从中心点开始，向四个角延伸
+  const centerX = pos.x + w / 2;
+  const centerY = pos.y + h / 2;
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x}" y2="${pos.y}" stroke="${b}" stroke-width="${s}"/>`);
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x + w}" y2="${pos.y}" stroke="${b}" stroke-width="${s}"/>`);
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x + w}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
   
   const text = element.text || 'Placeholder';
   svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${fontSize}">${escapeHtml(text)}</text>`);
@@ -256,13 +268,16 @@ export function renderImage(
   const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 80);
   const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0');
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
+  const borderColor = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#cccccc');
+  const borderSize = getNumberAttribute(element.attributes, context.globalDefaults, 's', 0);
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
   const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
-  
+
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'image'})"` : '';
+  const borderAttr = borderSize > 0 ? ` stroke="${borderColor}" stroke-width="${borderSize}"` : '';
 
   const resolvedUrl = imageUrlResolver ? imageUrlResolver(element.url) : element.url;
   const hasValidUrl = !!resolvedUrl && resolvedUrl.length > 0;
@@ -272,7 +287,7 @@ export function renderImage(
   svgParts.push(`<g>`);
 
   if (!hasValidUrl) {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${opacityAttr}${shadowFilterAttr}/>`);
+    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${opacityAttr}${shadowFilterAttr}${borderAttr}/>`);
 
     const iconSize = Math.min(w, h) * 0.3;
     const iconX = pos.x + w / 2;
@@ -286,7 +301,7 @@ export function renderImage(
 
     svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}"${opacityAttr}>Image</text>`);
   } else {
-    svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"${opacityAttr}${shadowFilterAttr}/>`);
+    svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"${opacityAttr}${shadowFilterAttr}${borderAttr}/>`);
   }
   
   const bounds: ElementBounds = {

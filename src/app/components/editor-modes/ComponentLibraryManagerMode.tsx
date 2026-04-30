@@ -1,6 +1,6 @@
 import React from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { ComponentLibrary, Component, ComponentCategory, parseNodeId, isPresetLibrary, makeUncategorizedKey } from '../../../shared/types/component';
+import { ComponentLibrary, Component, ComponentCategory, parseNodeId, isPresetLibrary, makeUncategorizedKey, isUncategorizedComponent, isComponentUncategorized } from '../../../shared/types/component';
 import { showToast } from '../../services/toast-service';
 import CreateLibraryModal from '../editor/CreateLibraryModal';
 import CreateCategoryModal from '../editor/CreateCategoryModal';
@@ -270,7 +270,7 @@ const ComponentLibraryManagerMode: React.FC = () => {
   const renderLibraryNode = (library: ComponentLibrary) => {
     const isSelected = selectedLibrary?.metadata.id === library.metadata.id && selectedNodeType === 'library';
     const isExpanded = expandedNodes.includes(library.metadata.id);
-    const uncategorizedComponents = library.components.filter(c => !c.categoryId);
+    const uncategorizedComponents = library.components.filter(c => isComponentUncategorized(c.categoryId, library.categories));
     const hasUncategorized = uncategorizedComponents.length > 0;
 
     return (
@@ -378,15 +378,14 @@ const ComponentLibraryManagerMode: React.FC = () => {
             // Change parent not implemented yet
             console.log('Change component parent');
           }}
-          onChangeLibrary={async (newLibraryId) => {
+          onChangeLibrary={async (newLibraryId, newCategoryId) => {
             // Move component to different library
-            const newCategoryId = selectedComponent.categoryId || '';
             try {
               await moveComponent(
                 selectedLibrary.metadata.id,
                 selectedComponent.internalId,
                 newLibraryId,
-                newCategoryId,
+                newCategoryId || null,
                 '',
                 'after'
               );

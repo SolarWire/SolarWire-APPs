@@ -127,8 +127,15 @@
 
 .code-editor-area {
   flex: 1;
-  overflow: auto;
-  padding: 20px;
+  overflow: hidden;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
+
+.code-editor-area > div {
+  height: 100% !important;
+  width: 100% !important;
 }
 
 .metadata-code-display {

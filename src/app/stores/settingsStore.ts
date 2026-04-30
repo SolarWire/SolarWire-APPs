@@ -3,7 +3,6 @@ import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
 import { showToast } from '../services/toast-service';
 
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
-type RenderMode = 'svg' | 'canvas';
 
 const defaultFavoriteColors = [
   '#333333',
@@ -19,22 +18,14 @@ const defaultFavoriteColors = [
 export interface SettingsState {
   primaryColor: string;
   favoriteColors: string[];
-  showGrid: boolean;
-  gridSize: number;
-  snapToGrid: boolean;
   selectionTool: SelectionTool;
   noteTextareaHeight: number;
-  renderMode: RenderMode;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
   resetFavoriteColors: () => void;
-  setShowGrid: (show: boolean) => void;
-  setGridSize: (size: number) => void;
-  setSnapToGrid: (snap: boolean) => void;
   setSelectionTool: (tool: SelectionTool) => void;
   setNoteTextareaHeight: (height: number) => void;
-  setRenderMode: (mode: RenderMode) => void;
   loadSettings: () => void;
   saveSettings: () => void;
 }
@@ -42,12 +33,8 @@ export interface SettingsState {
 const defaultSettings = {
   primaryColor: '#FCA506',
   favoriteColors: defaultFavoriteColors,
-  showGrid: false,
-  gridSize: 20,
-  snapToGrid: false,
   selectionTool: 'select' as SelectionTool,
   noteTextareaHeight: 120,
-  renderMode: 'svg' as RenderMode,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -87,28 +74,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     get().saveSettings();
   },
 
-  setShowGrid: (show: boolean) => {
-    set({ showGrid: show });
-    get().saveSettings();
-  },
-
-  setGridSize: (size: number) => {
-    set({ gridSize: size });
-    get().saveSettings();
-  },
-
-  setSnapToGrid: (snap: boolean) => {
-    set({ snapToGrid: snap });
-    get().saveSettings();
-  },
-
   setNoteTextareaHeight: (height: number) => {
     set({ noteTextareaHeight: height });
-    get().saveSettings();
-  },
-
-  setRenderMode: (mode: RenderMode) => {
-    set({ renderMode: mode });
     get().saveSettings();
   },
 
@@ -120,11 +87,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         set({
           primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
           favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
-          showGrid: parsed.showGrid ?? defaultSettings.showGrid,
-          gridSize: parsed.gridSize || defaultSettings.gridSize,
-          snapToGrid: parsed.snapToGrid ?? defaultSettings.snapToGrid,
           selectionTool: parsed.selectionTool || defaultSettings.selectionTool,
-          renderMode: parsed.renderMode || defaultSettings.renderMode,
         });
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
       }
@@ -144,15 +107,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: () => {
     try {
-      const { primaryColor, favoriteColors, showGrid, gridSize, snapToGrid, selectionTool, renderMode } = get();
+      const { primaryColor, favoriteColors, selectionTool } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
         primaryColor,
         favoriteColors,
-        showGrid,
-        gridSize,
-        snapToGrid,
         selectionTool,
-        renderMode,
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useEditorStore } from '../../stores/editorStore';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { ComponentLibrary, Component, ComponentCategory, parseNodeId, isPresetLibrary, makeUncategorizedKey } from '../../../shared/types/component';
+import { ComponentLibrary, Component, ComponentCategory, parseNodeId, isPresetLibrary, makeUncategorizedKey, isUncategorizedComponent, isComponentUncategorized } from '../../../shared/types/component';
 import { showToast } from '../../services/toast-service';
 import CreateLibraryModal from '../editor/CreateLibraryModal';
 import CreateCategoryModal from '../editor/CreateCategoryModal';
@@ -254,7 +254,6 @@ const ComponentLibraryManagerView: React.FC = () => {
       }});
     }
 
-    console.log('Menu items:', items);
     return items;
   };
 
@@ -301,7 +300,7 @@ const ComponentLibraryManagerView: React.FC = () => {
   const renderLibraryNode = (library: ComponentLibrary) => {
     const isSelected = parsedNode?.id === library.metadata.id && selectedNodeType === 'library';
     const isExpanded = expandedNodes.includes(library.metadata.id);
-    const uncategorizedComponents = library.components.filter(c => !c.categoryId);
+    const uncategorizedComponents = library.components.filter(c => isComponentUncategorized(c.categoryId, library.categories));
     const hasUncategorized = uncategorizedComponents.length > 0;
 
     return (

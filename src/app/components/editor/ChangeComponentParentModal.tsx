@@ -22,13 +22,13 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
   const { libraries, moveComponent } = useComponentLibraryStore();
   
   const [selectedLibraryId, setSelectedLibraryId] = useState(currentLibraryId);
-  const [selectedCategoryId, setSelectedCategoryId] = useState(currentCategoryId || '');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(currentCategoryId || null);
   const [availableCategories, setAvailableCategories] = useState<ComponentCategory[]>([]);
   
   // 当props变化时更新内部状态
   useEffect(() => {
     setSelectedLibraryId(currentLibraryId);
-    setSelectedCategoryId(currentCategoryId || '');
+    setSelectedCategoryId(normalizeCategoryId(currentCategoryId));
   }, [currentLibraryId, currentCategoryId]);
 
   // ESC键关闭模态窗
@@ -117,9 +117,8 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
           <div className="form-group">
             <label htmlFor="target-category">目标分类（可选）</label>
             <select
-              id="target-category"
-              value={selectedCategoryId}
-              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              value={selectedCategoryId || ''}
+              onChange={(e) => setSelectedCategoryId(e.target.value || null)}
               disabled={!selectedLibraryId}
             >
               <option value="">未分类</option>
@@ -150,7 +149,7 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
           <button 
             className="btn-primary" 
             onClick={handleMove}
-            disabled={selectedLibraryId === currentLibraryId && selectedCategoryId === (currentCategoryId || '')}
+            disabled={selectedLibraryId === currentLibraryId && selectedCategoryId === (currentCategoryId || null)}
           >
             移动组件
           </button>

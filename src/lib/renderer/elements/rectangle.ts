@@ -42,11 +42,18 @@ export function renderRectangle(
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'rect'})"` : '';
-  
+
+  // 边框往内渲染：调整rect的位置和尺寸
+  const strokeOffset = s / 2;
+  const rectX = pos.x + strokeOffset;
+  const rectY = pos.y + strokeOffset;
+  const rectW = Math.max(0, w - s);
+  const rectH = Math.max(0, h - s);
+
   if (isRounded) {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" rx="${r}" ry="${r}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
+    svgParts.push(`<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" rx="${r}" ry="${r}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
   } else {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
+    svgParts.push(`<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
   }
   
   if (element.text) {

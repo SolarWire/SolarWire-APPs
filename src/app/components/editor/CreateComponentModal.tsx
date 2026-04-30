@@ -14,12 +14,18 @@ interface CreateComponentModalProps {
 const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onClose, defaultLibraryId, defaultCategoryId }) => {
   const { createComponent, libraries } = useComponentLibraryStore();
   
-  const [componentData, setComponentData] = useState({
+  const [componentData, setComponentData] = useState<{
+    name: string;
+    description: string;
+    code: string;
+    libraryId: string;
+    categoryId: string | undefined;
+  }>({
     name: '',
     description: '',
     code: '',
     libraryId: defaultLibraryId || '',
-    categoryId: defaultCategoryId || ''
+    categoryId: defaultCategoryId || undefined
   });
   
   const [formErrors, setFormErrors] = useState<{ name?: string; libraryId?: string }>({});
@@ -33,7 +39,7 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
       setComponentData(prev => ({ 
         ...prev, 
         libraryId: defaultLibraryId,
-        categoryId: defaultCategoryId || ''
+        categoryId: defaultCategoryId || null
       }));
     }
   }, [defaultLibraryId, defaultCategoryId]);
@@ -93,7 +99,7 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
       description: '', 
       code: '', 
       libraryId: defaultLibraryId || '',
-      categoryId: defaultCategoryId || ''
+      categoryId: defaultCategoryId || null
     });
     setFormErrors({});
     onClose();
@@ -108,7 +114,7 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
     
     // 如果改变了组件库，清空分类选择
     if (field === 'libraryId') {
-      setComponentData(prev => ({ ...prev, categoryId: '' }));
+      setComponentData(prev => ({ ...prev, categoryId: null }));
     }
   };
 
@@ -172,7 +178,7 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
             <label htmlFor="component-category">分类（可选）</label>
             <select
               id="component-category"
-              value={componentData.categoryId}
+              value={componentData.categoryId || ''}
               onChange={(e) => handleInputChange('categoryId', e.target.value)}
               disabled={!componentData.libraryId}
             >

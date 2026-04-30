@@ -488,13 +488,22 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
         </div>
         
         {showBorderControls && (
-          <PropertyRow label="Border Width">
-            <input
-              type="number"
-              value={borderSize}
-              onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
-            />
-          </PropertyRow>
+          <>
+            <PropertyRow label="Border Width">
+              <input
+                type="number"
+                value={borderSize}
+                onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
+              />
+            </PropertyRow>
+            <div className="property-row">
+              <ColorPicker
+                label="Border"
+                value={borderColor}
+                onChange={(color) => handleChange('b', color)}
+              />
+            </div>
+          </>
         )}
 
         {!showLineControls && (
@@ -511,28 +520,50 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
         )}
 
         <PropertyGroupTitle>Shadow</PropertyGroupTitle>
-        <PropertyPair
-          label1="X"
-          value1={attrs['shadow-x'] || ''}
-          onChange1={(v) => handleChange('shadow-x', v)}
-          label2="Y"
-          value2={attrs['shadow-y'] || ''}
-          onChange2={(v) => handleChange('shadow-y', v)}
-        />
-        <PropertyRow label="Blur">
+        <PropertyRow label="Enable">
           <input
-            type="number"
-            value={attrs['shadow-blur'] || ''}
-            onChange={(e) => handleChange('shadow-blur', parseInt(e.target.value) || 0)}
+            type="checkbox"
+            checked={!!attrs['shadow-enabled']}
+            onChange={(e) => {
+              if (e.target.checked) {
+                handleChange('shadow-enabled', true);
+              } else {
+                // 关闭时移除所有阴影属性（设置为空值）
+                handleChange('shadow-enabled', false);
+                handleChange('shadow-x', '');
+                handleChange('shadow-y', '');
+                handleChange('shadow-blur', 0);
+                handleChange('shadow-color', '');
+              }
+            }}
           />
         </PropertyRow>
-        <PropertyRow label="Color">
-          <ColorPicker
-            label="Shadow Color"
-            value={attrs['shadow-color'] || '#000000'}
-            onChange={(color) => handleChange('shadow-color', color)}
-          />
-        </PropertyRow>
+        {attrs['shadow-enabled'] && (
+          <>
+            <PropertyPair
+              label1="X"
+              value1={attrs['shadow-x'] || ''}
+              onChange1={(v) => handleChange('shadow-x', v)}
+              label2="Y"
+              value2={attrs['shadow-y'] || ''}
+              onChange2={(v) => handleChange('shadow-y', v)}
+            />
+            <PropertyRow label="Blur">
+              <input
+                type="number"
+                value={attrs['shadow-blur'] || ''}
+                onChange={(e) => handleChange('shadow-blur', parseInt(e.target.value) || 0)}
+              />
+            </PropertyRow>
+            <PropertyRow label="Color">
+              <ColorPicker
+                label="Shadow Color"
+                value={attrs['shadow-color'] || '#000000'}
+                onChange={(color) => handleChange('shadow-color', color)}
+              />
+            </PropertyRow>
+          </>
+        )}
 
         {showTextControls && (
           <>
@@ -628,46 +659,55 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
         )}
 
         {type === 'image' && (
-          <PropertyRow label="URL">
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="text"
-                value={url || ''}
-                onChange={(e) => handleChange('url', e.target.value)}
-                style={{ flex: 1 }}
-              />
-              <button
-                onClick={async () => {
-                  try {
-                    const filePaths = await dialogService.openFileDialog({
-                      properties: ['openFile'],
-                      filters: [
-                        { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'] },
-                        { name: 'All Files', extensions: ['*'] }
-                      ]
-                    });
-                    if (filePaths && filePaths.length > 0) {
-                      handleChange('url', filePaths[0]);
+          <>
+            <PropertyRow label="URL">
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  type="text"
+                  value={url || ''}
+                  onChange={(e) => handleChange('url', e.target.value)}
+                  style={{ flex: 1 }}
+                />
+                <button
+                  onClick={async () => {
+                    try {
+                      const filePaths = await dialogService.openFileDialog({
+                        properties: ['openFile'],
+                        filters: [
+                          { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'] },
+                          { name: 'All Files', extensions: ['*'] }
+                        ]
+                      });
+                      if (filePaths && filePaths.length > 0) {
+                        handleChange('url', filePaths[0]);
+                      }
+                    } catch (error) {
+                      console.error('Error opening file dialog:', error);
+                      showToast('Failed to open file dialog', 'error');
                     }
-                  } catch (error) {
-                    console.error('Error opening file dialog:', error);
-                    showToast('Failed to open file dialog', 'error');
-                  }
-                }}
-                style={{
-                  padding: '4px 8px',
-                  backgroundColor: theme === 'dark' ? '#333' : '#f0f0f0',
-                  border: `1px solid ${theme === 'dark' ? '#555' : '#ccc'}`,
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px',
-                  color: theme === 'dark' ? '#fff' : '#333'
-                }}
-              >
-                Browse
-              </button>
-            </div>
-          </PropertyRow>
+                  }}
+                  style={{
+                    padding: '4px 8px',
+                    backgroundColor: theme === 'dark' ? '#333' : '#f0f0f0',
+                    border: `1px solid ${theme === 'dark' ? '#555' : '#ccc'}`,
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    color: theme === 'dark' ? '#fff' : '#333'
+                  }}
+                >
+                  Browse
+                </button>
+              </div>
+            </PropertyRow>
+            <PropertyRow label="Border Width">
+              <input
+                type="number"
+                value={borderSize}
+                onChange={(e) => handleChange('s', parseInt(e.target.value) || 0)}
+              />
+            </PropertyRow>
+          </>
         )}
       </div>
 

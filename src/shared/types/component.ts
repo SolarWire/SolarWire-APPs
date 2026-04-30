@@ -6,7 +6,10 @@ import {
   generateInternalId,
   generatePrefixedId,
   PRESET_ID_PREFIX,
-  UNCATEGORIZED_NODE_ID
+  UNCATEGORIZED_NODE_ID,
+  normalizeCategoryId,
+  isUncategorizedComponent,
+  isComponentUncategorized
 } from '../utils/component-utils';
 
 export {
@@ -17,7 +20,10 @@ export {
   generateInternalId,
   generatePrefixedId,
   PRESET_ID_PREFIX,
-  UNCATEGORIZED_NODE_ID
+  UNCATEGORIZED_NODE_ID,
+  normalizeCategoryId,
+  isUncategorizedComponent,
+  isComponentUncategorized
 };
 
 export interface ComponentLibraryMetadata {
@@ -41,7 +47,7 @@ export interface Component {
   internalId: string;
   name: string;
   description?: string;
-  categoryId?: string;
+  categoryId: string | null;
   code: string;
   createdAt: string;
   updatedAt: string;

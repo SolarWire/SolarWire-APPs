@@ -2,6 +2,7 @@ import React from 'react';
 import { ComponentLibrary, ComponentCategory, isPresetLibrary } from '../../../shared/types/component';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import { showToast } from '../../services/toast-service';
+import MonacoEditor from '../editor/MonacoEditor';
 import './ComponentLibraryCategoryEditMode.css';
 
 interface ComponentLibraryCategoryEditModeProps {
@@ -155,9 +156,29 @@ const ComponentLibraryCategoryEditMode: React.FC<ComponentLibraryCategoryEditMod
           </TabPanel>
           <TabPanel id="code">
             <div className="code-editor-area">
-              <pre className="metadata-code-display">{`id: ${category.id}
+              <MonacoEditor
+                language="text"
+                value={`id: ${category.id}
 name: ${category.name}
-parentId: ${category.parentId || 'null'}`}</pre>
+parentId: ${category.parentId || 'null'}`}
+                height="100%"
+                onChange={(value) => {
+                  if (!isPreset) {
+                    try {
+                      const lines = value.split('\n');
+                      const parsed: any = { ...category };
+                      lines.forEach(line => {
+                        if (line.includes('name:')) {
+                          parsed.name = line.split(':')[1].trim();
+                        }
+                      });
+                      onUpdate(parsed);
+                    } catch (e) {
+                      // Ignore parse errors during typing
+                    }
+                  }
+                }}
+              />
             </div>
           </TabPanel>
         </div>

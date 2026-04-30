@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ComponentLibrary, Component } from '../../../shared/types/component';
+import { ComponentLibrary, Component, normalizeCategoryId } from '../../../shared/types/component';
 import MonacoEditor from '../editor/MonacoEditor';
 import SolarWireVisualEditor from '../editor/SolarWireVisualEditor';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
@@ -14,7 +14,7 @@ interface ComponentLibraryComponentEditModeProps {
   onReorder: (direction: 'top' | 'up' | 'down' | 'bottom') => void;
   onChangeParent: () => void;
   onDelete: () => void;
-  onChangeLibrary: (newLibraryId: string) => void;
+  onChangeLibrary: (newLibraryId: string, newCategoryId?: string | null) => void;
 }
 
 const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditModeProps> = ({ 
@@ -36,7 +36,7 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
   const [localData, setLocalData] = React.useState({
     name: component.name,
     description: component.description || '',
-    categoryId: component.categoryId || '',
+    categoryId: component.categoryId,
     libraryId: library.metadata.id
   });
 
@@ -45,7 +45,7 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
     setLocalData({
       name: component.name,
       description: component.description || '',
-      categoryId: component.categoryId || '',
+      categoryId: component.categoryId,
       libraryId: library.metadata.id
     });
   }, [component.internalId, component.name, component.description, component.categoryId, library.metadata.id]);
@@ -53,12 +53,12 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
   const handleSave = () => {
     // 如果组件库改变了，需要调用onChangeLibrary
     if (localData.libraryId !== library.metadata.id) {
-      onChangeLibrary(localData.libraryId);
+      onChangeLibrary(localData.libraryId, localData.categoryId || undefined);
     }
     onUpdate({ 
       name: localData.name,
       description: localData.description,
-      categoryId: localData.categoryId || undefined
+      categoryId: normalizeCategoryId(localData.categoryId)
     });
     showToast('保存成功', 'success');
   };
@@ -120,7 +120,7 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
                   value={localData.libraryId}
                   onChange={(e) => {
                     const newLibraryId = e.target.value;
-                    setLocalData({ ...localData, libraryId: newLibraryId, categoryId: '' });
+                    setLocalData({ ...localData, libraryId: newLibraryId, categoryId: null });
                   }}
                 >
                   {allLibraries.map((lib) => (
@@ -131,8 +131,8 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
               <div className="form-group">
                 <label>分类</label>
                 <select 
-                  value={localData.categoryId} 
-                  onChange={(e) => setLocalData({ ...localData, categoryId: e.target.value })}
+                  value={localData.categoryId || ''} 
+                  onChange={(e) => setLocalData({ ...localData, categoryId: e.target.value || null })}
                 >
                   <option value="">未分类</option>
                   {allLibraries.find(lib => lib.metadata.id === localData.libraryId)?.categories.map((cat) => (

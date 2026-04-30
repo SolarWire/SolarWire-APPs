@@ -234,6 +234,8 @@ interface SolarWirePreviewProps {
   isPanMode?: boolean;
   /** 空格键是否按下 */
   isSpacePressed?: boolean;
+  /** 是否启用智能吸附（对齐辅助线） */
+  snapToGuides?: boolean;
   /** 是否显示网格（外部属性） */
   showGridProp?: boolean;
   /** 是否启用网格吸附（外部属性） */
@@ -258,7 +260,7 @@ interface SolarWirePreviewProps {
  * SolarWire 预览组件
  * 提供可视化编辑功能，包括元素拖拽、缩放、选择等交互
  */
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false }: SolarWirePreviewProps): React.ReactElement {
+function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, snapToGuides = true, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false }: SolarWirePreviewProps): React.ReactElement {
   // 实例唯一标识，用于区分多个预览实例
   const instanceId = useRef(Math.random().toString(36).substr(2, 9)).current;
   // 选中的元素 ID 列表
@@ -272,7 +274,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   // 文件目录
   const fileDir = getFileDir(selectedFile?.path, currentPath);
   // 设置相关的状态
-  const { primaryColor, showGrid, gridSize, snapToGrid, setShowGrid, setSnapToGrid } = useSettingsStore();
+  const { primaryColor } = useSettingsStore();
 
   // 预览交互状态
   const {
@@ -306,10 +308,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   // 有效内容设置方法
   const effectiveSetContent = isExternalMode ? (onExternalContentChange || (() => {})) : setContent;
 
-  // 有效网格设置（优先使用外部属性）
-  const effectiveShowGrid = showGrid || showGridProp;
-  const effectiveSnapToGrid = snapToGrid || snapToGridProp;
-  const effectiveGridSize = gridSize || gridSizeProp;
+  // 有效网格设置（网格功能已禁用）
+  const effectiveShowGrid = false;
+  const effectiveSnapToGrid = false;
+  const effectiveGridSize = 20;
 
   // 创建 RAF 内容更新器，用于优化性能
   const rafUpdater = useMemo(() => createRafContentUpdater(effectiveSetContent), [effectiveSetContent]);
@@ -1377,7 +1379,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     bottom: handle.includes('s'),
   });
 
-  const snapToGuides = useCallback((
+  const snapToGuidesInternal = useCallback((
     guides: AlignmentGuide[],
     currentX: number,
     currentY: number,
@@ -2135,7 +2137,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       if (dragElementState.isLine) {
         setAlignmentGuides([]);
-      } else if (effectiveSnapToGrid) {
+      } else if (snapToGuides) {
         const newX = dragElementState.elementX + dx;
         const newY = dragElementState.elementY + dy;
         const currentBounds = { x: newX, y: newY, w: elementW, h: elementH };
@@ -2156,7 +2158,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const allGuides = [...elementGuides, ...canvasGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuides(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD);
+        const snapped = snapToGuidesInternal(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD);
 
         if (snapped.snapped) {
           dx = snapped.x - dragElementState.elementX;
@@ -2250,9 +2252,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       dx = Math.max(minDx, Math.min(maxDx, dx));
       dy = Math.max(minDy, Math.min(maxDy, dy));
 
-      const useGridSnap = effectiveShowGrid && effectiveSnapToGrid;
-
-      if (effectiveSnapToGrid) {
+      // 多选元素智能吸附
+      if (snapToGuides) {
         // 多选元素对齐吸附：不按 Alt 时始终执行（与网格吸附不互斥）
         const newX = groupBounds.x + dx;
         const newY = groupBounds.y + dy;
@@ -2279,7 +2280,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const allGuides = [...elementGuides, ...canvasGuides, ...userGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD);
+        const snapped = snapToGuidesInternal(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD);
 
         dx += snapped.snapped ? snapped.x - newX : 0;
         dy += snapped.snapped ? snapped.y - newY : 0;
@@ -2963,48 +2964,68 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             />
           );
         });
-      } else if (elementData && elementData.type !== 'text') {
-        const isCircle = elementData.type === 'circle';
-        const corners = isCircle
-          ? [
-              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const }
-            ]
-          : [
-              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-              { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
-              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-              { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
-              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
-              { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
-              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-              { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
-            ];
-
-        const cursorMap: Record<string, string> = isCircle
-          ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
-          : { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
-              se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' };
-
-        corners.forEach((corner) => {
+      } else if (elementData) {
+        // 文本元素和其他元素（非线段）渲染选择边框
+        if (elementData.type === 'text') {
+          // 文本元素：只渲染边框，不渲染缩放句柄
           handles.push(
             <rect
-              key={`${elementId}-handle-${corner.handle}`}
+              key={`${elementId}-selection-border`}
               data-element-id={elementId}
-              data-handle={corner.handle}
-              x={corner.x - handleSize / 2}
-              y={corner.y - handleSize / 2}
-              width={handleSize}
-              height={handleSize}
-              fill="white"
+              x={bounds.x}
+              y={bounds.y}
+              width={bounds.w}
+              height={bounds.h}
+              fill="none"
               stroke={primaryColor}
               strokeWidth={2 / scale}
-              style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
+              style={{ pointerEvents: 'none' }}
             />
           );
-        });
+        } else {
+          // 其他元素：渲染边框和缩放句柄
+          const isCircle = elementData.type === 'circle';
+          const corners = isCircle
+            ? [
+                { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+                { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+                { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+                { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const }
+              ]
+            : [
+                { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+                { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
+                { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+                { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
+                { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
+                { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
+                { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+                { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
+              ];
+
+          const cursorMap: Record<string, string> = isCircle
+            ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
+            : { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
+                se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' };
+
+          corners.forEach((corner) => {
+            handles.push(
+              <rect
+                key={`${elementId}-handle-${corner.handle}`}
+                data-element-id={elementId}
+                data-handle={corner.handle}
+                x={corner.x - handleSize / 2}
+                y={corner.y - handleSize / 2}
+                width={handleSize}
+                height={handleSize}
+                fill="white"
+                stroke={primaryColor}
+                strokeWidth={2 / scale}
+                style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
+              />
+            );
+          });
+        }
       }
     });
 

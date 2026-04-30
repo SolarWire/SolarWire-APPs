@@ -2,6 +2,8 @@ import React from 'react';
 import { ComponentLibrary, isPresetLibrary } from '../../../shared/types/component';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import { showToast } from '../../services/toast-service';
+import MonacoEditor from '../editor/MonacoEditor';
+import { componentLibraryManager } from '../../services/ComponentLibraryManager';
 import './ComponentLibraryLibraryEditMode.css';
 
 interface ComponentLibraryLibraryEditModeProps {
@@ -45,6 +47,15 @@ const ComponentLibraryLibraryEditMode: React.FC<ComponentLibraryLibraryEditModeP
   const handleSave = () => {
     onUpdate({ metadata: { ...library.metadata, ...localMetadata } });
     showToast('保存成功', 'success');
+  };
+
+  const handleExport = () => {
+    try {
+      componentLibraryManager.exportLibrary(library.metadata.id);
+      showToast('组件库导出成功', 'success');
+    } catch (error) {
+      showToast('导出失败: ' + (error as Error).message, 'error');
+    }
   };
 
   React.useEffect(() => {
@@ -125,6 +136,10 @@ const ComponentLibraryLibraryEditMode: React.FC<ComponentLibraryLibraryEditModeP
                       <span className="btn-icon">💾</span>
                       <span className="btn-text">保存</span>
                     </button>
+                    <button className="btn-compact" onClick={handleExport}>
+                      <span className="btn-icon">📤</span>
+                      <span className="btn-text">导出</span>
+                    </button>
                   </div>
                   <div className="action-group">
                     <button className="btn-compact" onClick={() => {
@@ -184,14 +199,35 @@ const ComponentLibraryLibraryEditMode: React.FC<ComponentLibraryLibraryEditModeP
           </TabPanel>
           <TabPanel id="code">
             <div className="code-editor-area">
-              <pre className="metadata-code-display">{`id: ${library.metadata.id}
+              <MonacoEditor
+                language="text"
+                value={`id: ${library.metadata.id}
 $schema: ${library.$schema}
 name: ${library.metadata.name}
 description: ${library.metadata.description || ''}
 version: ${library.metadata.version}
 author: ${library.metadata.author || ''}
 createdAt: ${library.metadata.createdAt}
-updatedAt: ${library.metadata.updatedAt}`}</pre>
+updatedAt: ${library.metadata.updatedAt}`}
+                height="100%"
+                onChange={(value) => {
+                  if (!isPreset) {
+                    // Parse text format back to library object
+                    try {
+                      const lines = value.split('\n');
+                      const parsed: any = { ...library };
+                      lines.forEach(line => {
+                        if (line.includes('id:')) {
+                          parsed.metadata = { ...parsed.metadata, id: line.split(':')[1].trim() };
+                        }
+                      });
+                      onUpdate(parsed);
+                    } catch (e) {
+                      // Ignore parse errors during typing
+                    }
+                  }
+                }}
+              />
             </div>
           </TabPanel>
         </div>

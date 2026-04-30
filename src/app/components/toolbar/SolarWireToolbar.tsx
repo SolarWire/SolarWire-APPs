@@ -9,19 +9,18 @@ interface ToolbarState {
   showLayerPanel: boolean;
   showComponentLibrary: boolean;
   showNotes: boolean;
-  snapToGrid: boolean;
   zoomLevel: number;
   isPanMode: boolean;
   isSpacePressed: boolean;
   selectionTool: SelectionTool;
   selectedCount: number;
+  snapToGuides: boolean;
 }
 
 interface ToolbarCallbacks {
   onToggleLayerPanel: () => void;
   onToggleComponentLibrary: () => void;
   onToggleNotes: () => void;
-  onToggleSnap: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onTogglePanMode: () => void;
@@ -29,6 +28,7 @@ interface ToolbarCallbacks {
   onBringToFront: () => void;
   onAlign: (type: AlignmentType) => void;
   onExportSvg: () => void;
+  onToggleSnapGuides: () => void;
 }
 
 interface SolarWireToolbarProps {
@@ -44,13 +44,13 @@ const selectionTools = [
 
 const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks }) => {
   const {
-    showLayerPanel, showComponentLibrary, showNotes, snapToGrid,
-    zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedCount
+    showLayerPanel, showComponentLibrary, showNotes,
+    zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedCount, snapToGuides
   } = state;
   const {
     onToggleLayerPanel, onToggleComponentLibrary, onToggleNotes,
-    onToggleSnap, onZoomIn, onZoomOut, onTogglePanMode, onSelectTool,
-    onBringToFront, onAlign, onExportSvg
+    onZoomIn, onZoomOut, onTogglePanMode, onSelectTool,
+    onBringToFront, onAlign, onExportSvg, onToggleSnapGuides
   } = callbacks;
 
   return (
@@ -78,12 +78,13 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks })
           {showNotes ? '👁️' : '🙈'}
         </button>
         <button
-          className={`unified-tool-button snap-toggle-button ${snapToGrid ? 'active' : ''}`}
-          onClick={onToggleSnap}
-          title={snapToGrid ? 'Disable Snap' : 'Enable Snap'}
+          className={`unified-tool-button snap-guides-button ${snapToGuides ? 'active' : ''}`}
+          onClick={onToggleSnapGuides}
+          title="Toggle Smart Snap Guides"
         >
-          🧲
+          <span className="tool-icon">🧲</span>
         </button>
+      <div className="toolbar-divider"></div>
         <div className="zoom-controls">
           <button className="zoom-button" onClick={onZoomOut}>-</button>
           <span className="zoom-label">{zoomLevel}%</span>

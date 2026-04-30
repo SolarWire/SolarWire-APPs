@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import SolarWirePreview from './SolarWirePreview';
-import CanvasPreview from './CanvasPreview';
 import PropertyPanel from './PropertyPanel';
 import ComponentLibrary from './ComponentLibrary';
 import LayerPanel from './LayerPanel';
@@ -12,6 +11,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements, detectElementBounds, validateDropContent } from '../../../shared/utils/solarwire-utils';
 import { parse } from '../../../lib/parser';
+import { render as renderSvg, renderElement, createRenderContext } from '../../../lib/renderer';
 import type { Element as SolarWireElement } from '../../../lib/parser/types';
 import { Component } from '../../../shared/types/component';
 import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
@@ -77,9 +77,8 @@ function SolarWireVisualEditor({
 
   // 内部状态：图层面板显示状态
   const [internalShowLayerPanel, setInternalShowLayerPanel] = useState(false);
-  // 内部状态：组件库显示状态
   const [internalShowComponentLibrary, setInternalShowComponentLibrary] = useState(false);
-  // 右键菜单位置
+  const [snapToGuides, setSnapToGuides] = useState(true);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   // 导出通知状态
   const [exportNotification, setExportNotification] = useState<{ type: 'progress' | 'success' | 'error'; message: string; error?: string } | null>(null);
@@ -162,8 +161,6 @@ function SolarWireVisualEditor({
   const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
   const setSelectedElements = useSolarWireStore(s => s.setSelectedElements);
   const selectElements = useSolarWireStore(s => s.selectElements);
-  // 设置相关状态
-  const { showGrid, gridSize, snapToGrid, setShowGrid, setGridSize, setSnapToGrid, renderMode } = useSettingsStore();
 
   // 语法错误状态
   const [internalSyntaxErrors, setInternalSyntaxErrors] = useState<any[]>([]);
@@ -212,13 +209,9 @@ function SolarWireVisualEditor({
       onSwitchToCodeTab(line, column);
     } else {
       // 否则使用原有的方式切换到代码模式
-      const { setRenderMode } = useSettingsStore.getState();
-      setRenderMode('code' as any);
-      
       // 触发 tab 切换和滚动
       setTimeout(() => {
-        // 通过设置 renderMode 来触发 SolarWireMode 的 tab 切换
-        // 同时触发滚动和高亮
+        // 触发 SolarWireMode 的 tab 切换和滚动高亮
         const event = new CustomEvent('jumpToError', { 
           detail: { line, column } 
         });
@@ -356,9 +349,36 @@ function SolarWireVisualEditor({
 
   const handleAlign = useCallback((alignmentType: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom') => {
     if (selectedElements.length < 2) return;
-    const newContent = alignElements(content, selectedElements, alignmentType);
+    
+    // 获取元素边界信息 - 使用渲染器获取准确的边界（包括文本元素的实际渲染边界）
+    let elementsBounds: Map<number, { x: number; y: number; width: number; height: number }> | undefined;
+    
+    try {
+      const ast = parse(effectiveContent);
+      const context = createRenderContext(ast.declarations, effectiveContent);
+      elementsBounds = new Map();
+      
+      // 遍历所有元素，使用渲染器获取准确的边界（与悬停高亮使用相同的边界计算方法）
+      ast.elements.forEach((elem: SolarWireElement) => {
+        const lineNum = elem.location?.line;
+        if (lineNum && selectedElements.includes(lineNum.toString())) {
+          const result = renderElement(elem, context);
+          elementsBounds!.set(lineNum, {
+            x: result.bounds.x,
+            y: result.bounds.y,
+            width: result.bounds.width,
+            height: result.bounds.height
+          });
+        }
+      });
+    } catch (e) {
+      // 如果解析失败，使用代码中的属性值
+      elementsBounds = undefined;
+    }
+    
+    const newContent = alignElements(content, selectedElements, alignmentType, elementsBounds);
     handleContentChange?.(newContent);
-  }, [selectedElements, content, handleContentChange]);
+  }, [selectedElements, content, handleContentChange, effectiveContent]);
 
   const handleReorderElements = useCallback((reorderedIds: string[]) => {
     const lines = content.split(/\r?\n/);
@@ -468,11 +488,6 @@ function SolarWireVisualEditor({
         }
       }
       handleKeyDown(e);
-      if (e.key === 'g' && !e.ctrlKey && !e.metaKey) {
-        const activeElement = document.activeElement;
-        const isEditor = activeElement?.tagName === 'TEXTAREA' || activeElement?.getAttribute('contenteditable') === 'true' || activeElement?.closest('.monaco-editor');
-        if (!isEditor) setShowGrid(!showGrid);
-      }
     };
     const handleKeyUpEvent = (e: KeyboardEvent) => {
       if (e.code === 'Space') setIsSpacePressed(false);
@@ -483,7 +498,7 @@ function SolarWireVisualEditor({
       window.removeEventListener('keydown', handleKeyDownEvent);
       window.removeEventListener('keyup', handleKeyUpEvent);
     };
-  }, [handleKeyDown, handleDeleteSelected, selectedElements, showGrid]);
+  }, [handleKeyDown, handleDeleteSelected, selectedElements]);
 
   useEffect(() => {
     if (!contextMenu) return;
@@ -501,19 +516,18 @@ function SolarWireVisualEditor({
     showLayerPanel,
     showComponentLibrary,
     showNotes,
-    snapToGrid,
     zoomLevel,
     isPanMode,
     isSpacePressed,
     selectionTool,
-    selectedCount: selectedElements.length
-  }), [showLayerPanel, showComponentLibrary, showNotes, snapToGrid, zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedElements.length]);
+    selectedCount: selectedElements.length,
+    snapToGuides
+  }), [showLayerPanel, showComponentLibrary, showNotes, zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedElements.length, snapToGuides]);
 
   const toolbarCallbacks = useMemo(() => ({
     onToggleLayerPanel: () => setShowLayerPanel(!showLayerPanel),
     onToggleComponentLibrary: () => setShowComponentLibrary(!showComponentLibrary),
     onToggleNotes: () => setShowNotes(!showNotes),
-    onToggleSnap: () => setSnapToGrid(!snapToGrid),
     onZoomIn: handleZoomIn,
     onZoomOut: handleZoomOut,
     onTogglePanMode: () => setIsPanMode(!isPanMode),
@@ -523,25 +537,23 @@ function SolarWireVisualEditor({
     },
     onBringToFront: handleBringToFront,
     onAlign: handleAlign,
-    onExportSvg: handleExportSvg
-  }), [showLayerPanel, showComponentLibrary, showNotes, snapToGrid, isPanMode, handleZoomIn, handleZoomOut, handleBringToFront, handleAlign, handleExportSvg]);
+    onExportSvg: handleExportSvg,
+    onToggleSnapGuides: () => setSnapToGuides(!snapToGuides)
+  }), [showLayerPanel, showComponentLibrary, showNotes, isPanMode, handleZoomIn, handleZoomOut, handleBringToFront, handleAlign, handleExportSvg, snapToGuides]);
 
   return (
     <div className="solarwire-visual-editor">
       <SolarWireToolbar state={toolbarState} callbacks={toolbarCallbacks} />
 
       <div className="solarwire-content">
-        {renderMode === 'canvas' ? (
-          <CanvasPreview
-            onElementClick={(id) => setSelectedElements([id])}
+        <SolarWirePreview
             zoomLevel={zoomLevel}
             selectionTool={selectionTool}
             showNotes={showNotes}
             onZoomChange={setZoomLevel}
             isPanMode={isPanMode}
             isSpacePressed={isSpacePressed}
-            snapToGridProp={snapToGrid}
-            gridSizeProp={gridSize}
+            snapToGuides={snapToGuides}
             externalContent={externalContent}
             onExternalContentChange={onExternalContentChange}
             onContextMenu={handleContextMenu}
@@ -549,25 +561,6 @@ function SolarWireVisualEditor({
             onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
             hasSyntaxErrors={currentSyntaxErrors.length > 0}
           />
-        ) : (
-          <SolarWirePreview
-            zoomLevel={zoomLevel}
-            selectionTool={selectionTool}
-            showNotes={showNotes}
-            onZoomChange={setZoomLevel}
-            isPanMode={isPanMode}
-            isSpacePressed={isSpacePressed}
-            showGridProp={showGrid}
-            snapToGridProp={snapToGrid}
-            gridSizeProp={gridSize}
-            externalContent={externalContent}
-            onExternalContentChange={onExternalContentChange}
-            onContextMenu={handleContextMenu}
-            allowImageElements={allowImageElements}
-            onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
-            hasSyntaxErrors={currentSyntaxErrors.length > 0}
-          />
-        )}
 
         {currentSyntaxErrors.length > 0 && (
           <>

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 10px;
+  padding: 8px;
   background: var(--bg-secondary);
   color: var(--text-primary);
   box-sizing: border-box;
@@ -30,28 +30,28 @@
 }
 
 .property-panel h3 {
-  margin: 0 0 15px 0;
-  font-size: 14px;
+  margin: 0 0 10px 0;
+  font-size: 13px;
   color: var(--text-primary);
 }
 
 .property-panel .empty-state {
   color: var(--text-muted);
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
-  margin-top: 50px;
+  margin-top: 40px;
 }
 
 .properties-section {
-  padding-right: 5px;
-  margin-bottom: 10px;
+  padding-right: 4px;
+  margin-bottom: 8px;
 }
 
 .property-group-title {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text-muted);
-  margin: 15px 0 8px 0;
-  padding-bottom: 4px;
+  margin: 12px 0 6px 0;
+  padding-bottom: 3px;
   border-bottom: 1px solid var(--border-color);
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -63,8 +63,8 @@
 
 .property-row {
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .property-row .property-group {
@@ -97,8 +97,8 @@
 
 .property-group label {
   display: block;
-  margin-bottom: 5px;
-  font-size: 12px;
+  margin-bottom: 4px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
@@ -106,10 +106,10 @@
 .property-group textarea,
 .property-group select {
   width: 100%;
-  padding: 6px 8px;
+  padding: 5px 6px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  font-size: 12px;
+  font-size: 11px;
   background: var(--bg-tertiary);
   color: var(--text-primary);
   box-sizing: border-box;
@@ -123,7 +123,7 @@
 }
 
 .property-group input[type="color"] {
-  height: 32px;
+  height: 28px;
   cursor: pointer;
   padding: 2px;
 }
@@ -139,7 +139,7 @@
 
 .color-picker-wrapper input[type="color"] {
   flex: 1;
-  height: 32px;
+  height: 28px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
@@ -152,8 +152,8 @@
 }
 
 .color-picker-toggle {
-  height: 32px;
-  padding: 4px 8px;
+  height: 28px;
+  padding: 3px 6px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-tertiary);
@@ -171,29 +171,29 @@
   top: 100%;
   right: 0;
   margin-top: 4px;
-  padding: 8px;
+  padding: 6px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: 1000;
-  min-width: 160px;
+  min-width: 150px;
 }
 
 .color-picker-popup {
   position: fixed;
-  padding: 8px;
+  padding: 6px;
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   z-index: var(--z-color-picker-popup);
-  min-width: 160px;
+  min-width: 150px;
 }
 
 .color-picker-popup .color-picker-input {
-  width: 180px;
-  height: 32px;
+  width: 170px;
+  height: 28px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
@@ -202,13 +202,13 @@
 }
 
 .color-picker-section {
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .color-picker-section-title {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--text-muted);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -220,8 +220,8 @@
 }
 
 .color-picker-swatch {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   cursor: pointer;
@@ -242,12 +242,12 @@
 
 .color-picker-add {
   width: 100%;
-  padding: 6px 8px;
+  padding: 5px 6px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
 }
 

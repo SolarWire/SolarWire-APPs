@@ -12,7 +12,7 @@ export async function generateThumbnail(code: string, width: number = 150, heigh
   try {
     // 解析 SolarWire DSL 代码为 AST
     const ast = parse(code);
-    
+
     // 渲染 AST 为 SVG，第三个参数 true 表示返回包含元数据的对象
     const result = render(ast, undefined, true);
 
@@ -35,8 +35,9 @@ export async function generateThumbnail(code: string, width: number = 150, heigh
       return createErrorThumbnail();
     }
 
-    // 清理 SVG 内容 - 移除外层 SVG 标签
-    const cleanSvgContent = svgContent.replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '');
+    // 清理 SVG 内容 - 移除外层 SVG 标签和 XML 声明
+    // XML声明在HTML中可能导致渲染问题，特别是在Electron环境下
+    let cleanSvgContent = svgContent.replace(/<\?xml[^>]*\?>/, '').replace(/<svg[^>]*>/, '').replace(/<\/svg>/, '');
 
     // 检查清理后的内容是否为空
     if (!cleanSvgContent || cleanSvgContent.trim() === '') {
@@ -60,7 +61,8 @@ export async function generateThumbnail(code: string, width: number = 150, heigh
 
     return thumbnailSvg;
   } catch (error) {
-    console.error('Thumbnail generation error:', error);
+    // 缩略图生成失败时返回错误缩略图，不输出错误日志
+    // 错误已通过UI中的修复按钮处理，避免控制台报错干扰用户
     return createErrorThumbnail();
   }
 }
