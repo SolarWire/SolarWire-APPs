@@ -44,7 +44,7 @@ import { updateLineAttribute, getElementRelatedLines, detectElementBounds, isIns
 import { useImageDrop, getFileDir, saveImageToAssetsDir, getImageSizeFromBlob, validateImagePath } from '../../hooks/useImageDrop';
 import type { Document, Element as SolarWireElement } from '../../../lib/parser/types';
 import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
-import { showToast } from '../ui/Toast';
+import { feedback } from '../../stores/feedbackStore';
 import './SolarWirePreview.css';
 
 import type { SelectionTool } from '../../stores/solarWireStore';
@@ -363,7 +363,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const handleImageAdded = useCallback((assetPath: string, x: number, y: number, size?: { width: number; height: number }) => {
     // 验证图片路径是否安全
     if (!validateImagePath(assetPath)) {
-      showToast('Invalid image path', 'error');
+      feedback.toast.error('Invalid image path');
       return;
     }
 

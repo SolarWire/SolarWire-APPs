@@ -16,7 +16,7 @@ import type { Element as SolarWireElement } from '../../../lib/parser/types';
 import { Component } from '../../../shared/types/component';
 import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
 import { fileDialogService } from '../../services/file-dialog-service';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
 import './SolarWireVisualEditor.css';
 
@@ -430,13 +430,13 @@ function SolarWireVisualEditor({
 
   const handleDropComponentToCanvas = useCallback((component: Component, x: number, y: number) => {
     if (!component.code) {
-      showToast('Component code is empty', 'error');
+      feedback.toast.error('Component code is empty');
       return;
     }
     
     // 验证组件代码是否安全
     if (!validateDropContent(component.code)) {
-      showToast('Invalid or unsafe component code', 'error');
+      feedback.toast.error('Invalid or unsafe component code');
       return;
     }
     
@@ -467,7 +467,7 @@ function SolarWireVisualEditor({
       setShowComponentLibrary(false);
     } catch (error) {
       console.error('Failed to drop component:', error);
-      showToast(`Failed to drop component: ${error instanceof Error ? error.message : String(error)}`, 'error');
+      feedback.toast.error(`Failed to drop component: ${error instanceof Error ? error.message : String(error)}`);
     }
   }, [content, handleContentChange, setShowComponentLibrary]);
 

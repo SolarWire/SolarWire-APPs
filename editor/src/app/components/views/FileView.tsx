@@ -4,7 +4,7 @@ import { useAppStore } from '../../stores/appStore';
 import FileTree from '../editor/FileTree';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { Scrollbar } from '../ui/Scrollbar';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import CreateMarkdownModal from '../editor/CreateMarkdownModal';
 import CreateSolarWireModal from '../editor/CreateSolarWireModal';
 import CreateFolderModal from '../editor/CreateFolderModal';
@@ -52,7 +52,7 @@ const FileView: React.FC = () => {
       const api = (window as any).api;
       if (!api || !api.openFileDialog) {
         console.warn('File dialog not available in current environment');
-        showToast('File dialog is only available in the Electron app', 'error');
+        feedback.toast.error('File dialog is only available in the Electron app');
         return;
       }
 
@@ -142,11 +142,11 @@ const FileView: React.FC = () => {
         await api.showItemInFolder(targetNode.path);
       } else {
         console.warn('showItemInFolder not available in current environment');
-        showToast('此功能仅在Electron应用中可用', 'error');
+        feedback.toast.error('此功能仅在Electron应用中可用');
       }
     } catch (err) {
       console.error('Failed to show item in folder:', err);
-      showToast('打开资源管理器失败', 'error');
+      feedback.toast.error('打开资源管理器失败');
     }
     closeContextMenu();
   };

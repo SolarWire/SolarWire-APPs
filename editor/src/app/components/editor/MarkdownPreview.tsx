@@ -97,7 +97,7 @@ function extractGraphvizBlocks(content: string): { processed: string; blocks: Di
 
 function MarkdownPreview(): React.ReactElement {
   const { content, setMode, setContent } = useEditorStore();
-  const { selectedFile, fileContent } = useFileStore();
+  const { selectedFile, fullFileContent } = useFileStore();
   const { setCurrentView } = useAppStore();
   const { setSelection } = useSelectionStore();
   const [html, setHtml] = useState<string>('');
@@ -446,7 +446,7 @@ function MarkdownPreview(): React.ReactElement {
 
       let contentToRender = content;
       if (!contentToRender || contentToRender === '') {
-        contentToRender = fileContent;
+        contentToRender = fullFileContent;
       }
 
       if (!contentToRender) return;
@@ -610,7 +610,7 @@ function MarkdownPreview(): React.ReactElement {
         }
       }
     }, 300); // 300ms 防抖
-  }, [content, fileContent, selectedFile, renderSolarWireBlocks, renderMermaidBlocks, renderGraphvizBlocks, loadImages]);
+  }, [content, fullFileContent, selectedFile, renderSolarWireBlocks, renderMermaidBlocks, renderGraphvizBlocks, loadImages]);
 
   useEffect(() => {
     renderMarkdown();

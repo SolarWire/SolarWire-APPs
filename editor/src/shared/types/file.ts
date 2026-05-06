@@ -20,7 +20,7 @@ export interface FileState {
   fileTree: FileNode[];
   selectedFile: FileNode | null;
   selectedImage: { path: string } | null;
-  fileContent: string;
+  fullFileContent: string;
   expandedDirectories: Set<string>;
   currentSnippet: SolarWireSnippet | null;
   autoRefreshEnabled: boolean;
@@ -31,8 +31,7 @@ export interface FileState {
   setSelectedFile: (file: FileNode | null) => void;
   setSelectedImage: (image: { path: string } | null) => void;
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => void;
-  setFileContent: (content: string) => void;
-  updateFileContent: (file: FileNode | string, content: string) => void;
+  syncFullFileContent: (editorContent: string) => void;
   openFileAtPath?: (filePath: string) => Promise<void>;
   openSolarWireSnippet?: (snippet: SolarWireSnippet) => Promise<void>;
   openDirectoryAtPath?: (dirPath: string) => Promise<void>;
