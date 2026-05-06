@@ -1,0 +1,52 @@
+.left-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.left-panel-logo {
+  width: 20px;
+  height: 20px;
+}
+
+.left-panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.left-panel-action-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.15s ease;
+}
+
+.left-panel-action-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.left-panel-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.left-panel-action-btn.modified {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+  background: var(--accent-opacity-10);
+}

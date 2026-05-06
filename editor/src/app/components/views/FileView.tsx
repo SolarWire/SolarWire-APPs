@@ -9,7 +9,6 @@ import CreateMarkdownModal from '../editor/CreateMarkdownModal';
 import CreateSolarWireModal from '../editor/CreateSolarWireModal';
 import CreateFolderModal from '../editor/CreateFolderModal';
 import RenameModal from '../editor/RenameModal';
-import DeleteConfirmModal from '../editor/DeleteConfirmModal';
 import ContextMenu, { ContextMenuItem, MenuItem, MenuSeparator } from '../ui/ContextMenu';
 import { FileNode } from '../../../shared/types/file';
 import './FileView.css';
@@ -17,6 +16,7 @@ import './FileView.css';
 const FileView: React.FC = () => {
   const {
     fileTree,
+    setFileTree,
     selectedFile,
     currentPath,
     expandedDirectories,
@@ -35,7 +35,6 @@ const FileView: React.FC = () => {
   const [showCreateSolarWireModal, setShowCreateSolarWireModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'modified'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -83,6 +82,47 @@ const FileView: React.FC = () => {
   };
 
   const { setSelection, getSelectionForView } = useSelectionStore();
+
+  const handleDeleteNode = async (targetNode: FileNode) => {
+    const typeText = targetNode.type === 'directory' ? '文件夹' : '文件';
+    const confirmed = await feedback.confirm({
+      title: '删除确认',
+      message: `确定要删除${typeText} "${targetNode.name}" 吗？此操作不可撤销。`,
+      type: 'danger',
+      confirmText: '删除',
+    });
+    if (!confirmed) return;
+
+    try {
+      const api = (window as any).api;
+      if (!api) {
+        throw new Error('文件系统API不可用');
+      }
+
+      if (targetNode.type === 'directory') {
+        if (!api.deleteDirectory) {
+          throw new Error('删除目录API不可用');
+        }
+        await api.deleteDirectory(targetNode.path);
+      } else {
+        if (!api.deleteFile) {
+          throw new Error('删除文件API不可用');
+        }
+        await api.deleteFile(targetNode.path);
+      }
+
+      feedback.toast.success('删除成功');
+
+      if (api && api.getFileTree && currentPath) {
+        const newTree = await api.getFileTree(currentPath);
+        setFileTree(newTree);
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        feedback.toast.error(`删除失败: ${err.message}`);
+      }
+    }
+  };
 
   const handleSelectFile = async (file: any) => {
     if (openFileAtPath) {
@@ -173,14 +213,13 @@ const FileView: React.FC = () => {
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '在资源管理器中查看', icon: '📂', onClick: handleShowInFolder });
       items.push({ type: 'separator' });
-      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => setShowDeleteModal(true) });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => handleDeleteNode(targetNode) });
     } else {
-      // 文件
       items.push({ type: 'item', label: '重命名', icon: '✏️', onClick: () => setShowRenameModal(true) });
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '在资源管理器中查看', icon: '📂', onClick: handleShowInFolder });
       items.push({ type: 'separator' });
-      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => setShowDeleteModal(true) });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => handleDeleteNode(targetNode) });
     }
 
     return items;
@@ -362,17 +401,6 @@ const FileView: React.FC = () => {
         <RenameModal
           isOpen={showRenameModal}
           onClose={() => setShowRenameModal(false)}
-          target={{
-            type: contextMenu.targetNode.type,
-            name: contextMenu.targetNode.name,
-            path: contextMenu.targetNode.path
-          }}
-        />
-      )}
-      {contextMenu.targetNode && (
-        <DeleteConfirmModal
-          isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
           target={{
             type: contextMenu.targetNode.type,
             name: contextMenu.targetNode.name,

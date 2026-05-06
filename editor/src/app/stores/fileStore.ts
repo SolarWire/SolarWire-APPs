@@ -3,7 +3,8 @@ import { FileState, FileNode, SolarWireSnippet } from '../../shared/types/file';
 import { readFile } from '../../shared/utils/file-utils';
 import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
 import { fileSystemService } from '../services/file-system-service';
-import { useStatusStore, showInfo, showSuccess, showError } from './statusStore';
+import { useStatusStore } from './statusStore';
+import { feedback } from './feedbackStore';
 import { useEditorStore } from './editorStore';
 import { syntaxErrorService } from '../services/syntax-error-service';
 
@@ -110,6 +111,17 @@ export const useFileStore = create<FileState>()((set, get) => ({
     set({ expandedDirectories: expanded });
   },
 
+  expandToPath: (filePath: string) => {
+    const expanded = new Set(get().expandedDirectories);
+    const parts = filePath.split(/[/\\]/);
+    let currentPath = parts[0];
+    for (let i = 1; i < parts.length - 1; i++) {
+      currentPath = currentPath + '\\' + parts[i];
+      expanded.add(currentPath);
+    }
+    set({ expandedDirectories: expanded });
+  },
+
   syncFullFileContent: (editorContent: string) => {
     const { currentSnippet } = get();
     if (currentSnippet && currentSnippet.type === 'snippet' && currentSnippet.snippetIndex !== undefined) {
@@ -126,9 +138,9 @@ export const useFileStore = create<FileState>()((set, get) => ({
 
   openFileAtPath: async (filePath: string) => {
     const statusStore = useStatusStore.getState();
+    const opId = feedback.operation.start('open', '打开文件中...');
 
     try {
-      statusStore.startOperation('open', '打开文件中...');
       statusStore.setCurrentFilePath(filePath);
 
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'start', filePath });
@@ -141,8 +153,8 @@ export const useFileStore = create<FileState>()((set, get) => ({
         eventBus.emit(EditorEvents.MODE_CHANGED, 'image');
         eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: name });
 
-        statusStore.completeOperation('已打开图片');
-        showInfo(`已打开图片: ${name}`);
+        feedback.operation.complete(opId, '已打开图片');
+        feedback.toast.info(`已打开图片: ${name}`);
         return;
       }
 
@@ -161,7 +173,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
       const editorStore = useEditorStore.getState();
       editorStore.clearHistory();
 
-      syntaxErrorService.clearErrors();
+      syntaxErrorService.clearAllErrors();
 
       eventBus.emit(EditorEvents.CONTENT_CHANGED, content);
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'set-path', filePath });
@@ -182,23 +194,23 @@ export const useFileStore = create<FileState>()((set, get) => ({
       }
 
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: name });
-      statusStore.completeOperation(`已打开: ${name}`);
-      showSuccess(`文件已打开: ${name}`);
+      feedback.operation.complete(opId, `已打开: ${name}`);
+      feedback.toast.success(`文件已打开: ${name}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'error', error: errorMessage });
       console.error('Failed to open file', err);
 
-      statusStore.failOperation('打开文件失败', errorMessage);
-      showError(`打开文件失败: ${errorMessage}`);
+      feedback.operation.fail(opId, '打开文件失败', errorMessage);
+      feedback.notify.error(`打开文件失败: ${errorMessage}`);
     }
   },
 
   openSolarWireSnippet: async (snippet: SolarWireSnippet) => {
     const statusStore = useStatusStore.getState();
+    const opId = feedback.operation.start('open', '打开代码片段中...');
 
     try {
-      statusStore.startOperation('open', '打开代码片段中...');
 
       const node: FileNode = { name: snippet.name, path: snippet.sourceFile, type: 'file' };
 
@@ -217,7 +229,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
       const editorStore = useEditorStore.getState();
       editorStore.clearHistory();
 
-      syntaxErrorService.clearErrors();
+      syntaxErrorService.clearAllErrors();
 
       eventBus.emit(EditorEvents.CONTENT_CHANGED, snippetCode);
       eventBus.emit(EditorEvents.MODE_CHANGED, 'solarwire');
@@ -229,22 +241,22 @@ export const useFileStore = create<FileState>()((set, get) => ({
         lineCount: snippetCode.split('\n').length
       });
 
-      statusStore.completeOperation(`已打开: ${snippet.name}`);
-      showInfo(`已打开代码片段: ${snippet.name}`);
+      feedback.operation.complete(opId, `已打开: ${snippet.name}`);
+      feedback.toast.info(`已打开代码片段: ${snippet.name}`);
     } catch (err) {
       console.error('Failed to open solarwire snippet', err);
       const errorMessage = err instanceof Error ? err.message : '未知错误';
 
-      statusStore.failOperation('打开代码片段失败', errorMessage);
-      showError(`打开代码片段失败: ${errorMessage}`);
+      feedback.operation.fail(opId, '打开代码片段失败', errorMessage);
+      feedback.notify.error(`打开代码片段失败: ${errorMessage}`);
     }
   },
 
   openDirectoryAtPath: async (dirPath: string) => {
     const statusStore = useStatusStore.getState();
+    const opId = feedback.operation.start('open', '打开目录中...');
 
     try {
-      statusStore.startOperation('open', '打开目录中...');
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'start', filePath: dirPath });
 
       const api = (window as any).api;
@@ -257,15 +269,15 @@ export const useFileStore = create<FileState>()((set, get) => ({
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'set-path', filePath: dirPath });
 
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: dirPath });
-      statusStore.completeOperation(`已打开目录: ${dirPath}`);
-      showSuccess(`目录已打开: ${dirPath}`);
+      feedback.operation.complete(opId, `已打开目录: ${dirPath}`);
+      feedback.toast.success(`目录已打开: ${dirPath}`);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'error', error: errorMessage });
       console.error('Failed to open directory', err);
 
-      statusStore.failOperation('打开目录失败', errorMessage);
-      showError(`打开目录失败: ${errorMessage}`);
+      feedback.operation.fail(opId, '打开目录失败', errorMessage);
+      feedback.notify.error(`打开目录失败: ${errorMessage}`);
     }
   },
 
@@ -280,13 +292,14 @@ export const useFileStore = create<FileState>()((set, get) => ({
       console.error('No file selected');
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'error', error: '没有选择文件' });
 
-      statusStore.failOperation('保存失败', '没有选择文件');
-      showError('没有选择文件');
+      feedback.operation.fail(feedback.operation.start('save', ''), '保存失败', '没有选择文件');
+      feedback.notify.error('没有选择文件');
       return;
     }
 
+    const opId = feedback.operation.start('save', '保存中...');
+
     try {
-      statusStore.startOperation('save', '保存中...');
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'start' });
 
       const isSnippet = currentSnippet && currentSnippet.type === 'snippet';
@@ -322,46 +335,45 @@ export const useFileStore = create<FileState>()((set, get) => ({
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'complete' });
 
       statusStore.updateFileStatus({ isModified: false });
-      statusStore.completeOperation('保存成功');
-      showSuccess('文件保存成功');
+      feedback.operation.complete(opId, '保存成功');
+      feedback.toast.success('文件保存成功');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'error', error: errorMessage });
       console.error('Failed to save file', err);
 
-      statusStore.failOperation('保存失败', errorMessage);
-      showError(`保存失败: ${errorMessage}`);
+      feedback.operation.fail(opId, '保存失败', errorMessage);
+      feedback.notify.error(`保存失败: ${errorMessage}`);
     }
   },
 
   refreshCurrentDirectory: async () => {
     const { currentPath } = get();
     const statusStore = useStatusStore.getState();
+    const opId = feedback.operation.start('refresh', '刷新中...');
 
     try {
-      statusStore.startOperation('refresh', '刷新中...');
-
       if (currentPath) {
         const tree = await getFileTree(currentPath);
         set({ fileTree: tree, refreshKey: Date.now() });
-        showSuccess('文件视图已刷新');
+        feedback.toast.success('文件视图已刷新');
       } else {
         const api = (window as any).api;
         if (api && typeof api.getDefaultDirectory === 'function') {
           const defaultDir = await api.getDefaultDirectory();
           const tree = await getFileTree(defaultDir);
           set({ currentPath: defaultDir, fileTree: tree, refreshKey: Date.now() });
-          showSuccess('文件视图已刷新');
+          feedback.toast.success('文件视图已刷新');
         }
       }
 
-      statusStore.completeOperation('刷新完成');
+      feedback.operation.complete(opId, '刷新完成');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       console.error('Failed to refresh directory', err);
 
-      statusStore.failOperation('刷新失败', errorMessage);
-      showError(`刷新失败: ${errorMessage}`);
+      feedback.operation.fail(opId, '刷新失败', errorMessage);
+      feedback.notify.error(`刷新失败: ${errorMessage}`);
     }
   },
 
@@ -386,9 +398,9 @@ export const useFileStore = create<FileState>()((set, get) => ({
       }, AUTO_REFRESH_INTERVAL);
 
       set({ autoRefreshTimer: timer });
-      showInfo('自动刷新已启用');
+      feedback.toast.info('自动刷新已启用');
     } else {
-      showInfo('自动刷新已禁用');
+      feedback.toast.info('自动刷新已禁用');
     }
   },
 }));

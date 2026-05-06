@@ -35,7 +35,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     
     // 当切换到非SolarWire模式时，清除语法错误状态
     if (mode !== 'solarwire') {
-      syntaxErrorService.clearErrors();
+      syntaxErrorService.clearAllErrors();
     }
   });
 

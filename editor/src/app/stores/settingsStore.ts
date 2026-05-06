@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
-import { showToast } from '../services/toast-service';
+import { feedback } from './feedbackStore';
 
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
 
@@ -20,12 +20,14 @@ export interface SettingsState {
   favoriteColors: string[];
   selectionTool: SelectionTool;
   noteTextareaHeight: number;
+  textTextareaHeight: number;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
   resetFavoriteColors: () => void;
   setSelectionTool: (tool: SelectionTool) => void;
   setNoteTextareaHeight: (height: number) => void;
+  setTextTextareaHeight: (height: number) => void;
   loadSettings: () => void;
   saveSettings: () => void;
 }
@@ -35,6 +37,7 @@ const defaultSettings = {
   favoriteColors: defaultFavoriteColors,
   selectionTool: 'select' as SelectionTool,
   noteTextareaHeight: 120,
+  textTextareaHeight: 120,
 };
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -79,6 +82,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     get().saveSettings();
   },
 
+  setTextTextareaHeight: (height: number) => {
+    set({ textTextareaHeight: height });
+    get().saveSettings();
+  },
+
   loadSettings: () => {
     try {
       const saved = localStorage.getItem('solarwire-settings');
@@ -88,6 +96,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
           favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
           selectionTool: parsed.selectionTool || defaultSettings.selectionTool,
+          noteTextareaHeight: parsed.noteTextareaHeight || defaultSettings.noteTextareaHeight,
+          textTextareaHeight: parsed.textTextareaHeight || defaultSettings.textTextareaHeight,
         });
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
       }
@@ -101,21 +111,23 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       });
     } catch (error) {
       console.error('Failed to load settings:', error);
-      showToast('Failed to load settings', 'error');
+      feedback.toast.error('Failed to load settings');
     }
   },
 
   saveSettings: () => {
     try {
-      const { primaryColor, favoriteColors, selectionTool } = get();
+      const { primaryColor, favoriteColors, selectionTool, noteTextareaHeight, textTextareaHeight } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
         primaryColor,
         favoriteColors,
         selectionTool,
+        noteTextareaHeight,
+        textTextareaHeight,
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);
-      showToast('Failed to save settings', 'error');
+      feedback.toast.error('Failed to save settings');
     }
   }
 }));

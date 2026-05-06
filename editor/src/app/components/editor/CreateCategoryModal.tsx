@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './CreateCategoryModal.css';
 
 interface CreateCategoryModalProps {
@@ -52,11 +52,11 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
         name: categoryData.name.trim(),
       });
       
-      showToast('分类创建成功', 'success');
+      feedback.toast.success('分类创建成功');
       handleClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };

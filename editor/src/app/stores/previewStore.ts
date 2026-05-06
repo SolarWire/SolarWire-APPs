@@ -1,38 +1,7 @@
 import { create } from 'zustand';
+import type { AlignmentGuide, DistanceLine } from '../components/editor/snap';
 
-export type GuideType =
-  | 'left' | 'right' | 'top' | 'bottom'
-  | 'centerX' | 'centerY'
-  | 'spacingX' | 'spacingY'
-  | 'canvasLeft' | 'canvasRight' | 'canvasTop' | 'canvasBottom' | 'canvasCenterX' | 'canvasCenterY'
-  | 'distributeX' | 'distributeY'
-  | 'userH' | 'userV';
-
-export interface AlignmentGuide {
-  type: GuideType;
-  position: number;
-  distance?: number;
-  sourceElementId?: string;
-  sourceBounds?: { x: number; y: number; w: number; h: number };
-  relatedElementIds?: string[];
-  priority: number;
-  isSnapped: boolean;
-  isNearby?: boolean;
-  targetBounds?: { x: number; y: number; w: number; h: number };
-  currentEdge?: number;
-  isHorizontal?: boolean;
-}
-
-export interface EdgeGap {
-  type: string;
-  targetBounds: { x: number; y: number; w: number; h: number };
-  distance: number;
-  currentEdge: number;
-  targetEdge: number;
-  hasOverlap: boolean;
-  overlapStart: number;
-  overlapEnd: number;
-}
+export type { AlignmentGuide, DistanceLine } from '../components/editor/snap';
 
 export interface BoxSelectionState {
   startX: number;
@@ -101,7 +70,7 @@ interface PreviewState {
   dropOverlay: boolean;
   error: string | null;
   alignmentGuides: AlignmentGuide[];
-  edgeGaps: EdgeGap[];
+  distanceLines: DistanceLine[];
   altKeyPressed: boolean;
 }
 
@@ -122,7 +91,7 @@ interface PreviewActions {
   setDropOverlay: (show: boolean) => void;
   setError: (error: string | null) => void;
   setAlignmentGuides: (guides: AlignmentGuide[]) => void;
-  setEdgeGaps: (gaps: EdgeGap[]) => void;
+  setDistanceLines: (lines: DistanceLine[]) => void;
   setAltKeyPressed: (pressed: boolean) => void;
 
   resetInteractionStates: () => void;
@@ -137,7 +106,7 @@ const initialInteractionState = {
   resizeHandleState: null as ResizeHandleState | null,
   dragPreviewElement: null as DragPreviewElement | null,
   alignmentGuides: [] as AlignmentGuide[],
-  edgeGaps: [] as EdgeGap[],
+  distanceLines: [] as DistanceLine[],
 };
 
 export const usePreviewStore = create<PreviewStore>((set) => ({
@@ -157,7 +126,7 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   dropOverlay: false,
   error: null,
   alignmentGuides: [],
-  edgeGaps: [],
+  distanceLines: [],
   altKeyPressed: false,
 
   setScale: (scale) => set({ scale }),
@@ -182,7 +151,7 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   setDropOverlay: (show) => set({ dropOverlay: show }),
   setError: (error) => set({ error }),
   setAlignmentGuides: (guides) => set({ alignmentGuides: guides }),
-  setEdgeGaps: (gaps) => set({ edgeGaps: gaps }),
+  setDistanceLines: (lines) => set({ distanceLines: lines }),
   setAltKeyPressed: (pressed) => set({ altKeyPressed: pressed }),
 
   resetInteractionStates: () => set(initialInteractionState),

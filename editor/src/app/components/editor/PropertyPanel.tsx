@@ -1,150 +1,42 @@
 import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useAppStore } from '../../stores/appStore';
 import { parse } from '../../../lib/parser';
-import { updateLineAttribute } from '../../../shared/utils/solarwire-utils';
+import { updateLineAttribute, deleteLineAttribute } from '../../../shared/utils/solarwire-utils';
 import type { Element } from '../../../lib/parser/types';
-import { ColorPicker } from './ColorPicker';
+import ColorPicker from '../ui/ColorPicker';
+import PropertyRow, { PropertyPair, DraggableNumberInput } from './property/PropertyRow';
+import PropertyGroupTitle from './property/PropertyGroupTitle';
+import ShadowEditor from './property/ShadowEditor';
 import { fileDialogService, IFileDialogService } from '../../services/file-dialog-service';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './PropertyPanel.css';
 
-/**
- * 属性行组件属性接口
- */
-interface PropertyRowProps {
-  /** 属性标签 */
-  label: string;
-  /** 子组件 */
-  children: React.ReactNode;
-}
-
-/**
- * 属性行组件
- * 用于显示单个属性的标签和输入控件
- */
-function PropertyRow({ label, children }: PropertyRowProps): React.JSX.Element {
-  return (
-    <div className="property-row">
-      <div className="property-group">
-        <label>{label}</label>
-        {children}
-      </div>
-    </div>
-  );
-}
-
-/**
- * 属性对组件属性接口
- */
-interface PropertyPairProps {
-  /** 第一个属性标签 */
-  label1: string;
-  /** 第一个属性值 */
-  value1: string | number;
-  /** 第一个属性变化回调 */
-  onChange1: (value: any) => void;
-  /** 第二个属性标签 */
-  label2: string;
-  /** 第二个属性值 */
-  value2: string | number;
-  /** 第二个属性变化回调 */
-  onChange2: (value: any) => void;
-  /** 输入类型 */
-  type?: 'number' | 'text';
-}
-
-/**
- * 属性对组件
- * 用于显示两个并排的属性输入框
- */
-function PropertyPair({ label1, value1, onChange1, label2, value2, onChange2, type = 'number' }: PropertyPairProps): React.JSX.Element {
-  return (
-    <div className="property-row">
-      <div className="property-group">
-        <label>{label1}</label>
-        <input
-          type={type}
-          value={value1}
-          onChange={(e) => onChange1(type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
-        />
-      </div>
-      <div className="property-group">
-        <label>{label2}</label>
-        <input
-          type={type}
-          value={value2}
-          onChange={(e) => onChange2(type === 'number' ? parseInt(e.target.value) || 0 : e.target.value)}
-        />
-      </div>
-    </div>
-  );
-}
-
-/**
- * 属性组标题组件属性接口
- */
-interface PropertyGroupTitleProps {
-  /** 子组件 */
-  children: React.ReactNode;
-}
-
-/**
- * 属性组标题组件
- * 用于显示属性组的标题
- */
-function PropertyGroupTitle({ children }: PropertyGroupTitleProps): React.JSX.Element {
-  return <div className="property-group-title">{children}</div>;
-}
-
-/**
- * 属性面板组件属性接口
- */
 interface PropertyPanelProps {
-  /** 外部内容（用于组件编辑模式） */
   externalContent?: string;
-  /** 外部内容变化回调 */
   onExternalContentChange?: (content: string) => void;
-  /** 文件对话框服务 */
   fileDialogService?: IFileDialogService;
-  /** 错误行点击回调 */
   onErrorLineClick?: (line: number) => void;
 }
 
-/**
- * 属性面板组件
- * 用于编辑选中元素的属性
- */
 function PropertyPanel({ externalContent, onExternalContentChange, fileDialogService: dialogService = fileDialogService, onErrorLineClick }: PropertyPanelProps): React.JSX.Element {
-  // 选中的元素 ID 列表
   const selectedElements = useSolarWireStore(s => s.selectedElements);
-  // 编辑器内容和设置内容的方法
   const { content, setContent } = useEditorStore();
-  // 主题
   const { theme } = useAppStore();
 
-  // 判断是否为外部模式（组件编辑模式）
   const isExternalMode = externalContent !== undefined;
-  
-  // 在外部模式下，确保有有效的默认内容
+
   const safeContent = useMemo(() => {
     if (isExternalMode && externalContent) return externalContent;
     return content || '';
   }, [isExternalMode, externalContent, content]);
-  // 有效内容（外部模式使用外部内容，否则使用编辑器内容）
   const effectiveContent = isExternalMode ? externalContent : content;
-  // 有效内容设置方法
   const effectiveSetContent = isExternalMode ? (c: string) => onExternalContentChange?.(c) : setContent;
 
-  // 解析错误状态
   const [parseError, setParseError] = React.useState<string | null>(null);
 
-  /**
-   * 解析内容为 AST
-   */
   const ast = useMemo(() => {
     try {
       setParseError(null);
@@ -155,9 +47,6 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     }
   }, [safeContent]);
 
-  /**
-   * 获取当前选中的元素
-   */
   const element = useMemo(() => {
     if (selectedElements.length !== 1) return null;
     const elementId = selectedElements[0];
@@ -167,27 +56,25 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     });
   }, [ast, selectedElements]);
 
-  /**
-   * 处理属性变化
-   * @param property 属性名
-   * @param value 属性值
-   */
-  const handleChange = useCallback((property: string, value: string | number | boolean) => {
+  const handleChange = useCallback((property: string, value: string | number | boolean | undefined) => {
     if (!element) return;
     const lineNum = element.location?.line;
     if (!lineNum) return;
-    const newContent = updateLineAttribute(safeContent, lineNum, property, value);
-    effectiveSetContent(newContent);
+    if (value === undefined) {
+      const newContent = deleteLineAttribute(safeContent, lineNum, property);
+      effectiveSetContent(newContent);
+    } else {
+      const newContent = updateLineAttribute(safeContent, lineNum, property, value);
+      effectiveSetContent(newContent);
+    }
   }, [element, safeContent, effectiveSetContent]);
 
-  // 提前声明所有需要的hooks，确保在条件返回之前调用
   const [noteValue, setNoteValue] = useState('');
   const [textValue, setTextValue] = useState('');
   const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const { noteTextareaHeight, setNoteTextareaHeight } = useSettingsStore();
+  const { noteTextareaHeight, setNoteTextareaHeight, textTextareaHeight, setTextTextareaHeight } = useSettingsStore();
 
-  // 处理解析错误
   const handleGoToError = useCallback(() => {
     if (parseError) {
       const lineMatch = parseError.match(/line (\d+)/);
@@ -198,9 +85,6 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     }
   }, [parseError, onErrorLineClick]);
 
-  // 提前声明所有其他hooks，确保在条件返回之前调用
-  // 这些hooks暂时不依赖条件变量，会在条件检查后重新计算
-
   const handleNoteResize = useCallback(() => {
     if (noteTextareaRef.current) {
       setNoteTextareaHeight(noteTextareaRef.current.offsetHeight);
@@ -209,14 +93,10 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
   const handleTextResize = useCallback(() => {
     if (textTextareaRef.current) {
-      setNoteTextareaHeight(textTextareaRef.current.offsetHeight);
+      setTextTextareaHeight(textTextareaRef.current.offsetHeight);
     }
   }, []);
 
-  /**
-   * 通用的 textarea resize 处理函数
-   * 避免代码重复
-   */
   const createResizeHandler = useCallback((textareaRef: React.RefObject<HTMLTextAreaElement | null>, onResize: () => void) => {
     return (e: React.MouseEvent) => {
       e.preventDefault();
@@ -246,11 +126,10 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   const handleNoteResizeStart = createResizeHandler(noteTextareaRef, handleNoteResize);
   const handleTextResizeStart = createResizeHandler(textTextareaRef, handleTextResize);
 
-  // 计算元素属性 - 只在element存在时计算
   const elementProps = useMemo(() => {
     if (!element) return null;
 
-    const el = element as Element & { 
+    const el = element as Element & {
       type: string;
       attributes?: Record<string, unknown>;
       coordinates?: { x: { type: string; value: number }; y: { type: string; value: number } };
@@ -262,10 +141,10 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     };
     const type = el.type;
     const attrs = (el.attributes || {}) as Record<string, string>;
-    
+
     let x = 0;
     let y = 0;
-    
+
     if (type === 'line') {
       if (el.start && el.start.x && el.start.y) {
         if (el.start.x.type === 'absolute') {
@@ -332,20 +211,20 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     };
   }, [element]);
 
-  // 同步note和text值到state
   useEffect(() => {
     if (elementProps?.note !== undefined && elementProps.note !== noteValue) {
       setNoteValue(elementProps.note);
+      setNoteTextareaHeight(60);
     }
-  }, [elementProps?.note, noteValue]);
+  }, [elementProps?.note]);
 
   useEffect(() => {
     if (elementProps?.textContent !== undefined && elementProps.textContent !== textValue) {
       setTextValue(elementProps.textContent);
+      setTextTextareaHeight(60);
     }
-  }, [elementProps?.textContent, textValue]);
+  }, [elementProps?.textContent]);
 
-  // 使用条件渲染而不是提前返回，确保所有渲染路径都调用相同数量的hooks
   const lineMatch = parseError ? parseError.match(/line (\d+)/) : null;
   const errorLine = lineMatch ? parseInt(lineMatch[1]) : null;
 
@@ -358,7 +237,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
             <pre>{parseError}</pre>
           </div>
           {errorLine && (
-            <button 
+            <button
               className="error-button"
               onClick={handleGoToError}
             >
@@ -401,10 +280,11 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
   return (
     <div className="property-panel">
-      <div className="properties-section">
-        <h3>Properties - {type}</h3>
+      <div className="property-panel-header">
+        <span className="property-panel-type">{type}</span>
+      </div>
 
-        <PropertyGroupTitle>Position</PropertyGroupTitle>
+      <PropertyGroupTitle title="Position">
         <PropertyPair
           label1="X"
           value1={x}
@@ -413,65 +293,63 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
           value2={y}
           onChange2={(v) => handleChange('y', v)}
         />
+      </PropertyGroupTitle>
 
-        {showSizeControls && (
-          <>
-            <PropertyGroupTitle>Size</PropertyGroupTitle>
-            <PropertyPair
-              label1="Width"
-              value1={w}
-              onChange1={(v) => handleChange('w', v)}
-              label2="Height"
-              value2={h}
-              onChange2={(v) => handleChange('h', v)}
-            />
-          </>
-        )}
-
-        {showRadiusControl && (
-          <PropertyRow label="Corner Radius">
-            <input
-              type="number"
-              value={r}
-              onChange={(e) => handleChange('r', parseInt(e.target.value) || 0)}
-            />
-          </PropertyRow>
-        )}
-
-        {showLineControls && (
-          <>
-            <PropertyGroupTitle>Line End</PropertyGroupTitle>
-            <PropertyPair
-              label1="X2"
-              value1={end?.type === 'relative' ? (end?.dx ?? '') : (end?.x?.type === 'absolute' ? end.x.value : '')}
-              onChange1={(v) => handleChange('x2', v)}
-              label2="Y2"
-              value2={end?.type === 'relative' ? (end?.dy ?? '') : (end?.y?.type === 'absolute' ? end.y.value : '')}
-              onChange2={(v) => handleChange('y2', v)}
-            />
-            <PropertyRow label="Style">
-              <select
-                value={attrs.style || 'solid'}
-                onChange={(e) => handleChange('style', e.target.value)}
-              >
-                <option value="solid">Solid</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
+      {showSizeControls && (
+        <PropertyGroupTitle title="Size">
+          <PropertyPair
+            label1="W"
+            value1={w}
+            onChange1={(v) => handleChange('w', v)}
+            label2="H"
+            value2={h}
+            onChange2={(v) => handleChange('h', v)}
+          />
+          {showRadiusControl && (
+            <PropertyRow label="R">
+              <DraggableNumberInput
+                label=""
+                value={r}
+                onChange={(v) => handleChange('r', v)}
+              />
             </PropertyRow>
-            {label !== undefined && (
-              <PropertyRow label="Label">
-                <input
-                  type="text"
-                  value={label || ''}
-                  onChange={(e) => handleChange('label', e.target.value)}
-                />
-              </PropertyRow>
-            )}
-          </>
-        )}
+          )}
+        </PropertyGroupTitle>
+      )}
 
-        <PropertyGroupTitle>Appearance</PropertyGroupTitle>
+      {showLineControls && (
+        <PropertyGroupTitle title="Line End">
+          <PropertyPair
+            label1="X2"
+            value1={end?.type === 'relative' ? (end?.dx ?? '') : (end?.x?.type === 'absolute' ? end.x.value : '')}
+            onChange1={(v) => handleChange('x2', v)}
+            label2="Y2"
+            value2={end?.type === 'relative' ? (end?.dy ?? '') : (end?.y?.type === 'absolute' ? end.y.value : '')}
+            onChange2={(v) => handleChange('y2', v)}
+          />
+          <PropertyRow label="Style">
+            <select
+              value={attrs.style || 'solid'}
+              onChange={(e) => handleChange('style', e.target.value)}
+            >
+              <option value="solid">Solid</option>
+              <option value="dashed">Dashed</option>
+              <option value="dotted">Dotted</option>
+            </select>
+          </PropertyRow>
+          {label !== undefined && (
+            <PropertyRow label="Label">
+              <input
+                type="text"
+                value={label || ''}
+                onChange={(e) => handleChange('label', e.target.value)}
+              />
+            </PropertyRow>
+          )}
+        </PropertyGroupTitle>
+      )}
+
+      <PropertyGroupTitle title="Appearance">
         <div className="property-row">
           <ColorPicker
             label="Fill"
@@ -486,233 +364,197 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
             />
           )}
         </div>
-        
         {showBorderControls && (
-          <>
-            <PropertyRow label="Border Width">
-              <input
-                type="number"
-                value={borderSize}
-                onChange={(e) => handleChange('s', parseInt(e.target.value) || 1)}
-              />
-            </PropertyRow>
-            <div className="property-row">
-              <ColorPicker
-                label="Border"
-                value={borderColor}
-                onChange={(color) => handleChange('b', color)}
-              />
-            </div>
-          </>
+          <PropertyRow label="Width">
+            <DraggableNumberInput
+              label=""
+              value={borderSize}
+              onChange={(v) => handleChange('s', v)}
+            />
+          </PropertyRow>
         )}
-
         {!showLineControls && (
           <PropertyRow label="Opacity">
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.1"
-              value={opacity}
-              onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
-            />
-          </PropertyRow>
-        )}
-
-        <PropertyGroupTitle>Shadow</PropertyGroupTitle>
-        <PropertyRow label="Enable">
-          <input
-            type="checkbox"
-            checked={!!attrs['shadow-enabled']}
-            onChange={(e) => {
-              if (e.target.checked) {
-                handleChange('shadow-enabled', true);
-              } else {
-                // 关闭时移除所有阴影属性（设置为空值）
-                handleChange('shadow-enabled', false);
-                handleChange('shadow-x', '');
-                handleChange('shadow-y', '');
-                handleChange('shadow-blur', 0);
-                handleChange('shadow-color', '');
-              }
-            }}
-          />
-        </PropertyRow>
-        {attrs['shadow-enabled'] && (
-          <>
-            <PropertyPair
-              label1="X"
-              value1={attrs['shadow-x'] || ''}
-              onChange1={(v) => handleChange('shadow-x', v)}
-              label2="Y"
-              value2={attrs['shadow-y'] || ''}
-              onChange2={(v) => handleChange('shadow-y', v)}
-            />
-            <PropertyRow label="Blur">
+            <div className="opacity-control">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.1"
+                value={opacity}
+                onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
+              />
               <input
                 type="number"
-                value={attrs['shadow-blur'] || ''}
-                onChange={(e) => handleChange('shadow-blur', parseInt(e.target.value) || 0)}
+                className="opacity-number"
+                min="0"
+                max="1"
+                step="0.1"
+                value={opacity}
+                onChange={(e) => handleChange('opacity', parseFloat(e.target.value) || 0)}
               />
-            </PropertyRow>
-            <PropertyRow label="Color">
-              <ColorPicker
-                label="Shadow Color"
-                value={attrs['shadow-color'] || '#000000'}
-                onChange={(color) => handleChange('shadow-color', color)}
-              />
-            </PropertyRow>
-          </>
-        )}
-
-        {showTextControls && (
-          <>
-            <PropertyGroupTitle>Text</PropertyGroupTitle>
-            {'text' in element && (
-              <PropertyRow label="Content">
-                {isMultilineText ? (
-                  <div className="note-textarea-wrapper">
-                    <textarea
-                      ref={textTextareaRef}
-                      value={textValue}
-                      placeholder="Enter text content..."
-                      onChange={(e) => setTextValue(e.target.value)}
-                      onBlur={() => handleChange('text', `"""${textValue}"""`)}
-                      onMouseUp={handleTextResize}
-                      style={{
-                        whiteSpace: 'pre-wrap',
-                        height: noteTextareaHeight,
-                        minHeight: 60,
-                        maxHeight: 500
-                      }}
-                    />
-                    <div
-                      className="note-resize-handle"
-                      onMouseDown={handleTextResizeStart}
-                    ></div>
-                  </div>
-                ) : (
-                  <input
-                    type="text"
-                    value={text}
-                    onChange={(e) => handleChange('text', e.target.value)}
-                  />
-                )}
-              </PropertyRow>
-            )}
-            <div className="property-row">
-              <ColorPicker
-                label="Color"
-                value={textColor}
-                onChange={(color) => handleChange('c', color)}
-              />
-              <div className="property-group">
-                <label>Size</label>
-                <input
-                  type="number"
-                  value={fontSize}
-                  onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
-                />
-              </div>
             </div>
-            {showAlignControl && (
-              <PropertyRow label="Align">
-                <select
-                  value={align}
-                  onChange={(e) => handleChange('align', e.target.value)}
-                >
-                  <option value="l">Left</option>
-                  <option value="c">Center</option>
-                  <option value="r">Right</option>
-                </select>
-              </PropertyRow>
-            )}
-            <div className="property-row checkbox-row">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={String(attrs.bold) === 'true'}
-                  onChange={(e) => handleChange('bold', e.target.checked)}
-                />
-                Bold
-              </label>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={String(attrs.italic) === 'true'}
-                  onChange={(e) => handleChange('italic', e.target.checked)}
-                />
-                Italic
-              </label>
-            </div>
-          </>
-        )}
-
-        {type === 'text' && (
-          <PropertyRow label="Line Height">
-            <input
-              type="number"
-              value={attrs['line-height'] || '22'}
-              onChange={(e) => handleChange('line-height', parseInt(e.target.value) || 22)}
-            />
           </PropertyRow>
         )}
+      </PropertyGroupTitle>
 
-        {type === 'image' && (
-          <>
-            <PropertyRow label="URL">
-              <div style={{ display: 'flex', gap: '8px' }}>
+      <PropertyGroupTitle title="Shadow" defaultCollapsed={true}>
+        <ShadowEditor attrs={attrs} onChange={handleChange} />
+      </PropertyGroupTitle>
+
+      {showTextControls && (
+        <PropertyGroupTitle title="Text">
+          {'text' in element && (
+            <PropertyRow label="Content">
+              {isMultilineText ? (
+                <div className="note-textarea-wrapper">
+                  <textarea
+                    ref={textTextareaRef}
+                    value={textValue}
+                    placeholder="Enter text content..."
+                    onChange={(e) => setTextValue(e.target.value)}
+                    onBlur={() => handleChange('text', `"""${textValue}"""`)}
+                    onMouseUp={handleTextResize}
+                    style={{
+                      whiteSpace: 'pre-wrap',
+                      height: textTextareaHeight,
+                      minHeight: 60,
+                      maxHeight: 500
+                    }}
+                  />
+                  <div
+                    className="note-resize-handle"
+                    onMouseDown={handleTextResizeStart}
+                  ></div>
+                </div>
+              ) : (
                 <input
                   type="text"
-                  value={url || ''}
-                  onChange={(e) => handleChange('url', e.target.value)}
-                  style={{ flex: 1 }}
+                  value={textValue}
+                  onChange={(e) => setTextValue(e.target.value)}
+                  onBlur={() => handleChange('text', textValue)}
                 />
-                <button
-                  onClick={async () => {
-                    try {
-                      const filePaths = await dialogService.openFileDialog({
-                        properties: ['openFile'],
-                        filters: [
-                          { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'] },
-                          { name: 'All Files', extensions: ['*'] }
-                        ]
-                      });
-                      if (filePaths && filePaths.length > 0) {
-                        handleChange('url', filePaths[0]);
-                      }
-                    } catch (error) {
-                      console.error('Error opening file dialog:', error);
-                      showToast('Failed to open file dialog', 'error');
-                    }
-                  }}
-                  style={{
-                    padding: '4px 8px',
-                    backgroundColor: theme === 'dark' ? '#333' : '#f0f0f0',
-                    border: `1px solid ${theme === 'dark' ? '#555' : '#ccc'}`,
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '12px',
-                    color: theme === 'dark' ? '#fff' : '#333'
-                  }}
-                >
-                  Browse
-                </button>
-              </div>
+              )}
             </PropertyRow>
-            <PropertyRow label="Border Width">
+          )}
+          <div className="property-row">
+            <ColorPicker
+              label="Color"
+              value={textColor}
+              onChange={(color) => handleChange('c', color)}
+            />
+            <div className="property-drag-input">
+              <span className="property-drag-label" onMouseDown={(e) => {
+                e.preventDefault();
+                const startX = e.clientX;
+                const startVal = parseInt(fontSize) || 12;
+                const onMove = (me: MouseEvent) => {
+                  const delta = me.clientX - startX;
+                  const sens = me.shiftKey ? 10 : 1;
+                  handleChange('size', Math.max(1, Math.round(startVal + delta * sens)));
+                };
+                const onUp = () => {
+                  document.removeEventListener('mousemove', onMove);
+                  document.removeEventListener('mouseup', onUp);
+                  document.body.style.cursor = '';
+                  document.body.style.userSelect = '';
+                };
+                document.body.style.cursor = 'ew-resize';
+                document.body.style.userSelect = 'none';
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+              }}>Size</span>
               <input
                 type="number"
-                value={borderSize}
-                onChange={(e) => handleChange('s', parseInt(e.target.value) || 0)}
+                value={fontSize}
+                onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
               />
+            </div>
+          </div>
+          {showAlignControl && (
+            <PropertyRow label="Align">
+              <div className="align-buttons">
+                <button
+                  className={`align-btn${align === 'l' ? ' active' : ''}`}
+                  onClick={() => handleChange('align', 'l')}
+                  title="Left"
+                >≡</button>
+                <button
+                  className={`align-btn${align === 'c' ? ' active' : ''}`}
+                  onClick={() => handleChange('align', 'c')}
+                  title="Center"
+                >≡</button>
+                <button
+                  className={`align-btn${align === 'r' ? ' active' : ''}`}
+                  onClick={() => handleChange('align', 'r')}
+                  title="Right"
+                >≡</button>
+              </div>
             </PropertyRow>
-          </>
-        )}
-      </div>
+          )}
+          <div className="property-row toggle-row">
+            <button
+              className={`toggle-btn${String(attrs.bold) === 'true' ? ' active' : ''}`}
+              onClick={() => handleChange('bold', String(attrs.bold) === 'true' ? false : true)}
+              title="Bold"
+            ><b>B</b></button>
+            <button
+              className={`toggle-btn${String(attrs.italic) === 'true' ? ' active' : ''}`}
+              onClick={() => handleChange('italic', String(attrs.italic) === 'true' ? false : true)}
+              title="Italic"
+            ><i>I</i></button>
+          </div>
+        </PropertyGroupTitle>
+      )}
 
-      <div className="note-section">
-        <PropertyGroupTitle>Note</PropertyGroupTitle>
+      {type === 'text' && (
+        <PropertyRow label="Line Height">
+          <DraggableNumberInput
+            label=""
+            value={attrs['line-height'] || '22'}
+            onChange={(v) => handleChange('line-height', v)}
+          />
+        </PropertyRow>
+      )}
+
+      {type === 'image' && (
+        <PropertyGroupTitle title="Image">
+          <PropertyRow label="URL">
+            <div className="image-url-row">
+              <input
+                type="text"
+                className="image-url-input"
+                value={url || ''}
+                onChange={(e) => handleChange('url', e.target.value)}
+              />
+              <button
+                className="image-browse-btn"
+                onClick={async () => {
+                  try {
+                    const filePaths = await dialogService.openFileDialog({
+                      properties: ['openFile'],
+                      filters: [
+                        { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg'] },
+                        { name: 'All Files', extensions: ['*'] }
+                      ]
+                    });
+                    if (filePaths && filePaths.length > 0) {
+                      handleChange('url', filePaths[0]);
+                    }
+                  } catch (error) {
+                    console.error('Error opening file dialog:', error);
+                    feedback.toast.error('Failed to open file dialog');
+                  }
+                }}
+              >
+                ...
+              </button>
+            </div>
+          </PropertyRow>
+        </PropertyGroupTitle>
+      )}
+
+      <PropertyGroupTitle title="Note" defaultCollapsed={true}>
         <div className="note-textarea-wrapper">
           <textarea
             ref={noteTextareaRef}
@@ -733,7 +575,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
             onMouseDown={handleNoteResizeStart}
           ></div>
         </div>
-      </div>
+      </PropertyGroupTitle>
     </div>
   );
 }

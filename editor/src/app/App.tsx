@@ -6,12 +6,11 @@ import { useSettingsStore } from './stores/settingsStore';
 import { useI18nStore } from './stores/i18nStore';
 import { EditorProvider } from './context/EditorContext';
 import { FeedbackProvider } from './components/feedback/FeedbackProvider';
-import { systemMonitorService } from './services/system-monitor-service';
 import './styles/global.css';
 
 function App(): React.ReactElement {
   const { setTheme } = useAppStore();
-  const { openDirectoryAtPath, currentPath } = useFileStore();
+  const { openDirectoryAtPath, openFileAtPath, currentPath } = useFileStore();
   const { loadSettings } = useSettingsStore();
   const { loadLanguage } = useI18nStore();
 
@@ -42,12 +41,20 @@ function App(): React.ReactElement {
     }
   }, [currentPath]);
 
-  // 清理系统监控服务
   useEffect(() => {
-    return () => {
-      systemMonitorService.destroy();
-    };
-  }, []);
+    const api = (window as any).api;
+    if (!api || !api.onOpenPath) return;
+
+    const cleanup = api.onOpenPath(async (data: { filePath: string | null; dirPath: string | null }) => {
+      if (data.filePath && openFileAtPath) {
+        await openFileAtPath(data.filePath);
+      } else if (data.dirPath && openDirectoryAtPath) {
+        await openDirectoryAtPath(data.dirPath);
+      }
+    });
+
+    return cleanup;
+  }, [openFileAtPath, openDirectoryAtPath]);
 
   return (
     <EditorProvider>

@@ -25,7 +25,8 @@ export {
 // 从 attribute-updater.ts 重新导出
 export {
   updateLineCoords,
-  updateLineAttribute
+  updateLineAttribute,
+  deleteLineAttribute
 } from './attribute-updater';
 
 // 从 element-operations.ts 重新导出

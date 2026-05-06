@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './CreateFileModal.css';
 
 interface RenameModalProps {
@@ -67,7 +67,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
       // 重命名
       await api.rename(target.path, newPath);
 
-      showToast('重命名成功', 'success');
+      feedback.toast.success('重命名成功');
       onClose();
 
       // 刷新文件树
@@ -78,7 +78,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
-        showToast(`重命名失败: ${err.message}`, 'error');
+        feedback.toast.error(`重命名失败: ${err.message}`);
       }
     }
   };

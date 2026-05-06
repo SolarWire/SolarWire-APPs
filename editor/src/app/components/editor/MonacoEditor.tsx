@@ -34,6 +34,8 @@ interface MonacoEditorProps {
   preserveScrollPosition?: boolean;
   /** 滚动位置键（用于区分不同的编辑器实例） */
   scrollKey?: string;
+  /** 错误来源标识，用于语法错误服务隔离 */
+  errorSourceId?: string;
 }
 
 /**
@@ -50,7 +52,8 @@ function MonacoEditor({
   scrollTrigger,
   highlightTrigger,
   preserveScrollPosition = false,
-  scrollKey
+  scrollKey,
+  errorSourceId
 }: MonacoEditorProps): React.ReactElement {
   // 主题
   const { theme } = useAppStore();
@@ -83,10 +86,9 @@ function MonacoEditor({
   // 监听语法错误变化
   useEffect(() => {
     const listener = {
+      sourceId: errorSourceId || 'main-editor',
       onErrorsChanged: (errors: SyntaxError[]) => {
-        // 更新错误行高亮
         const errorLines = errors.map(e => e.line);
-        // 这里可以触发错误行高亮更新
       }
     };
 
@@ -94,7 +96,7 @@ function MonacoEditor({
     return () => {
       syntaxErrorService.removeListener(listener);
     };
-  }, []);
+  }, [errorSourceId]);
 
   /**
    * 编辑器挂载完成回调
@@ -238,7 +240,7 @@ function MonacoEditor({
       targetLine = highlightLinesRef.current[0];
     } else {
       // 如果没有错误行或高亮行，尝试从语法错误服务获取最新的错误行
-      const currentErrors = syntaxErrorService.getErrors();
+      const currentErrors = syntaxErrorService.getErrors(errorSourceId);
       if (currentErrors.length > 0) {
         targetLine = currentErrors[0].line;
       }
@@ -363,12 +365,12 @@ function MonacoEditor({
         const model = editor.getModel();
         syntaxErrorService.setMonacoRef(monaco);
         
-        // 监听内容变化，只触发渲染器检测
         model.onDidChangeContent(() => {
+          syntaxErrorService.setCurrentSourceId(errorSourceId || 'main-editor');
           syntaxErrorService.runRendererCheck(model.getValue());
         });
         
-        // 初始运行渲染器检测
+        syntaxErrorService.setCurrentSourceId(errorSourceId || 'main-editor');
         syntaxErrorService.runRendererCheck(model.getValue());
       }
     }

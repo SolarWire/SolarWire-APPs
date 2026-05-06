@@ -18,6 +18,11 @@ contextBridge.exposeInMainWorld('api', {
   mkdir: (dirPath: string) => ipcRenderer.invoke('file:mkdir', dirPath),
   exists: (filePath: string) => ipcRenderer.invoke('file:exists', filePath),
   showItemInFolder: (filePath: string) => ipcRenderer.invoke('file:showItemInFolder', filePath),
+  onOpenPath: (callback: (data: { filePath: string | null; dirPath: string | null }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: { filePath: string | null; dirPath: string | null }) => callback(data);
+    ipcRenderer.on('open-path', handler);
+    return () => ipcRenderer.removeListener('open-path', handler);
+  },
 });
 
 // 在测试环境中暴露额外 API

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FileNode } from '../../../shared/types/file';
 import './FileTree.css';
 
@@ -35,8 +35,15 @@ const TreeItem: React.FC<TreeItemProps> = ({
   onSelectFile,
   onContextMenu,
 }) => {
+  const itemRef = useRef<HTMLDivElement>(null);
   const isExpanded = expandedDirectories.has(node.path);
   const isSelected = selectedFile && selectedFile.path === node.path;
+
+  useEffect(() => {
+    if (isSelected && itemRef.current) {
+      itemRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isSelected]);
 
   const handleClick = () => {
     if (node.type === 'directory') {
@@ -84,6 +91,7 @@ const TreeItem: React.FC<TreeItemProps> = ({
   return (
     <>
       <div
+        ref={itemRef}
         className={`tree-item ${isSelected ? 'selected' : ''}`}
         onClick={handleClick}
         onContextMenu={handleContextMenu}

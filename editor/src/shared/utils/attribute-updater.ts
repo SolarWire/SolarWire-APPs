@@ -37,7 +37,7 @@ export function updateLineCoords(
   const lineIndex = lineNum - 1;
   let line = lines[lineIndex];
   
-  const lineCoordPattern = /@\(\d+,\s*\d+\)->\(\d+,\s*\d+\)/;
+  const lineCoordPattern = /@\(-?\d+,\s*-?\d+\)->\(-?\d+,\s*-?\d+\)/;
   
   if (lineCoordPattern.test(line)) {
     line = line.replace(lineCoordPattern, `@(${x1}, ${y1})->(${x2}, ${y2})`);
@@ -45,6 +45,37 @@ export function updateLineCoords(
     line = line.trimEnd() + ` @(${x1}, ${y1})->(${x2}, ${y2})`;
   }
   
+  lines[lineIndex] = line;
+  return lines.join('\n');
+}
+
+export function deleteLineAttribute(
+  content: string,
+  lineNum: number,
+  attributeName: string
+): string {
+  const lines = content.split(/\r?\n/);
+
+  if (lineNum < 1 || lineNum > lines.length) {
+    return content;
+  }
+
+  const lineIndex = lineNum - 1;
+  let line = lines[lineIndex];
+
+  const actualStartLine = getElementStartLine(content, lineNum);
+  if (lineNum !== actualStartLine) {
+    return content;
+  }
+
+  if (attributeName === 'bold' || attributeName === 'italic') {
+    const attrPattern = new RegExp(`\\s+${attributeName}(?:=[^\\s]+)?`);
+    line = line.replace(attrPattern, '');
+  } else {
+    const attrPattern = new RegExp(`\\s+${attributeName}=[^\\s]+`);
+    line = line.replace(attrPattern, '');
+  }
+
   lines[lineIndex] = line;
   return lines.join('\n');
 }
@@ -169,7 +200,7 @@ export function updateLineAttribute(
     const bounds = detectElementBounds(content, lineNum);
     const isSameLine = bounds.elementLine === bounds.attributeLine;
     
-    const coordPattern = /@\((\d+),\s*(\d+)\)/;
+    const coordPattern = /@\((-?\d+),\s*(-?\d+)\)/;
     const match = line.match(coordPattern);
 
     if (match) {
@@ -255,7 +286,7 @@ export function updateLineAttribute(
   }
 
   if (attributeName === 'x2' || attributeName === 'y2') {
-    const lineEndPattern = /->\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)/;
+    const lineEndPattern = /->\s*\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/;
     const lineEndMatch = line.match(lineEndPattern);
 
     if (lineEndMatch) {
@@ -272,7 +303,7 @@ export function updateLineAttribute(
       return lines.join('\n');
     }
 
-    const startCoordPattern = /@\(\d+,\s*\d+\)/;
+    const startCoordPattern = /@\(-?\d+,\s*-?\d+\)/;
     if (startCoordPattern.test(line) && !lineEndPattern.test(line)) {
       line = line.trimEnd() + ` ->(${attributeValue}, 0)`;
       lines[lineIndex] = line;

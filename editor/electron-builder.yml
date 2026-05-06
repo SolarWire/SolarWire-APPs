@@ -6,9 +6,24 @@ files:
   - dist/**/*
   - package.json
   - public/**/*
+fileAssociations:
+  - ext: md
+    name: Markdown Document
+    role: Editor
+  - ext: solarwire
+    name: SolarWire Document
+    role: Editor
+  - ext: sw
+    name: SolarWire Document
+    role: Editor
 win:
   target: nsis
   icon: public/logo.ico
+  artifactName: "${productName}-${version}-setup.${ext}"
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  include: build/installer.nsh
 mac:
   target: dmg
   icon: public/logo.png

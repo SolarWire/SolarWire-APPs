@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { FileNode } from '../../../shared/types/file';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './CreateFileModal.css';
 
 interface CreateMarkdownModalProps {
@@ -101,7 +101,7 @@ const CreateMarkdownModal: React.FC<CreateMarkdownModalProps> = ({ isOpen, onClo
       // 写入文件
       await api.writeFile(filePath, '');
 
-      showToast('文件创建成功', 'success');
+      feedback.toast.success('文件创建成功');
       onClose();
 
       // 刷新文件树
@@ -112,7 +112,7 @@ const CreateMarkdownModal: React.FC<CreateMarkdownModalProps> = ({ isOpen, onClo
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
-        showToast(`创建文件失败: ${err.message}`, 'error');
+        feedback.toast.error(`创建文件失败: ${err.message}`);
       }
     }
   };

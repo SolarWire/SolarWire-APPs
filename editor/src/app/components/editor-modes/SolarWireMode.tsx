@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import MonacoEditor from '../editor/MonacoEditor';
 import SolarWireVisualEditor from '../editor/SolarWireVisualEditor';
@@ -20,9 +20,11 @@ function SolarWireMode(): React.ReactElement {
   const [scrollTrigger, setScrollTrigger] = useState(0);
   const [highlightTrigger, setHighlightTrigger] = useState(0);
   const [syntaxErrors, setSyntaxErrors] = useState<SyntaxError[]>([]);
+  const mainErrorSourceId = useRef('main-editor').current;
 
   useEffect(() => {
     const listener = {
+      sourceId: mainErrorSourceId,
       onErrorsChanged: (errors: SyntaxError[]) => {
         setSyntaxErrors(errors);
       }
@@ -32,7 +34,7 @@ function SolarWireMode(): React.ReactElement {
     return () => {
       syntaxErrorService.removeListener(listener);
     };
-  }, []);
+  }, [mainErrorSourceId]);
 
   useEffect(() => {
     const handleJumpToErrorEvent = (event: CustomEvent) => {
@@ -56,8 +58,9 @@ function SolarWireMode(): React.ReactElement {
     setContent(newContent);
     syncFullFileContent(newContent);
 
+    syntaxErrorService.setCurrentSourceId(mainErrorSourceId);
     syntaxErrorService.runRendererCheck(newContent);
-  }, [setContent, syncFullFileContent]);
+  }, [setContent, syncFullFileContent, mainErrorSourceId]);
 
   const handleJumpToError = useCallback((line: number, column: number) => {
     setActiveTab('code');
@@ -142,6 +145,7 @@ function SolarWireMode(): React.ReactElement {
                 errorLines={syntaxErrors.map(e => e.line)}
                 scrollTrigger={scrollTrigger}
                 highlightTrigger={highlightTrigger}
+                errorSourceId={mainErrorSourceId}
               />
               {syntaxErrors.length > 0 && (
                 <ErrorPanel
@@ -157,6 +161,7 @@ function SolarWireMode(): React.ReactElement {
               onContentChange={handleContentChange}
               syntaxErrors={syntaxErrors}
               setSyntaxErrors={setSyntaxErrors}
+              errorSourceId={mainErrorSourceId}
             />
           </TabPanel>
         </div>

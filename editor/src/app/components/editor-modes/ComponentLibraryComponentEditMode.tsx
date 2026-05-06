@@ -3,7 +3,7 @@ import { ComponentLibrary, Component, normalizeCategoryId } from '../../../share
 import MonacoEditor from '../editor/MonacoEditor';
 import SolarWireVisualEditor from '../editor/SolarWireVisualEditor';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './ComponentLibraryComponentEditMode.css';
 
 interface ComponentLibraryComponentEditModeProps {
@@ -60,7 +60,7 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
       description: localData.description,
       categoryId: normalizeCategoryId(localData.categoryId)
     });
-    showToast('保存成功', 'success');
+    feedback.toast.success('保存成功');
   };
 
   const handleContentChange = useCallback((code: string) => {
@@ -158,28 +158,28 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
                 <div className="action-group">
                   <button className="btn-compact" onClick={() => {
                     onReorder('top');
-                    showToast('已置顶', 'success');
+                    feedback.toast.success('已置顶');
                   }}>
                     <span className="btn-icon">⬆️</span>
                     <span className="btn-text">置顶</span>
                   </button>
                   <button className="btn-compact" onClick={() => {
                     onReorder('up');
-                    showToast('已上移', 'success');
+                    feedback.toast.success('已上移');
                   }}>
                     <span className="btn-icon">🔼</span>
                     <span className="btn-text">上移</span>
                   </button>
                   <button className="btn-compact" onClick={() => {
                     onReorder('down');
-                    showToast('已下移', 'success');
+                    feedback.toast.success('已下移');
                   }}>
                     <span className="btn-icon">🔽</span>
                     <span className="btn-text">下移</span>
                   </button>
                   <button className="btn-compact" onClick={() => {
                     onReorder('bottom');
-                    showToast('已置底', 'success');
+                    feedback.toast.success('已置底');
                   }}>
                     <span className="btn-icon">⬇️</span>
                     <span className="btn-text">置底</span>
@@ -205,6 +205,9 @@ const ComponentLibraryComponentEditMode: React.FC<ComponentLibraryComponentEditM
               showComponentLibrary={localShowCompLibPanel}
               onShowComponentLibraryChange={setLocalShowCompLibPanel}
               allowImageElements={false}
+              onSwitchToCodeTab={(_line: number, _column: number) => {
+                setActiveTab('code');
+              }}
             />
           </TabPanel>
           <TabPanel id="code">

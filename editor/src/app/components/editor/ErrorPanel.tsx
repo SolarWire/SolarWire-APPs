@@ -1,16 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useAppStore } from '../../stores/appStore';
+import React, { useState } from 'react';
+import type { SyntaxError } from '../../../shared/types/feedback';
 import './ErrorPanel.css';
 
-interface ErrorInfo {
-  line: number;
-  column: number;
-  message: string;
-  severity: 'error' | 'warning';
-}
-
 interface ErrorPanelProps {
-  errors: ErrorInfo[];
+  errors: SyntaxError[];
   onJumpToError: (line: number, column: number) => void;
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { fileSystemService } from '../services/file-system-service';
-import { showToast } from '../services/toast-service';
+import { feedback } from '../stores/feedbackStore';
 
 interface ImageSize {
   width: number;
@@ -166,7 +166,7 @@ export function useImageDrop({
       setIsDragOver(false);
 
       if (!fileDir) {
-        showToast('File directory not available', 'error');
+        feedback.toast.error('File directory not available');
         return;
       }
 
@@ -184,7 +184,7 @@ export function useImageDrop({
         }
       } catch (error) {
         console.error('Failed to save images:', error);
-        showToast(`Failed to save images: ${error instanceof Error ? error.message : String(error)}`, 'error');
+        feedback.toast.error(`Failed to save images: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
     [onImageAdded, fileDir]
@@ -193,7 +193,7 @@ export function useImageDrop({
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
       if (!fileDir) {
-        showToast('File directory not available', 'error');
+        feedback.toast.error('File directory not available');
         return;
       }
 
@@ -222,7 +222,7 @@ export function useImageDrop({
         }
       } catch (error) {
         console.error('Failed to paste images:', error);
-        showToast(`Failed to paste images: ${error instanceof Error ? error.message : String(error)}`, 'error');
+        feedback.toast.error(`Failed to paste images: ${error instanceof Error ? error.message : String(error)}`);
       }
     },
     [onImageAdded, fileDir]

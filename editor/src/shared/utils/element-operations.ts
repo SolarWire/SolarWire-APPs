@@ -242,7 +242,7 @@ export function alignElements(
     
     const lineIndex = coord.lineNum - 1;
     const line = lines[lineIndex];
-    const coordPattern = /@\((\d+),\s*(\d+)\)/;
+    const coordPattern = /@\((-?\d+),\s*(-?\d+)\)/;
     lines[lineIndex] = line.replace(coordPattern, `@(${newX}, ${newY})`);
   }
   

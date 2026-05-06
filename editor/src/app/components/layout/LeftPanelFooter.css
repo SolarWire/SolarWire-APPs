@@ -1,0 +1,63 @@
+.left-panel-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 12px;
+  border-top: 1px solid var(--border-color);
+  flex-shrink: 0;
+  background: var(--bg-secondary);
+}
+
+.left-panel-footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.left-panel-footer-file {
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.left-panel-footer-file .modified-dot {
+  color: var(--accent-color);
+}
+
+.left-panel-footer-status {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+.left-panel-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.left-panel-footer-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.left-panel-footer-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}

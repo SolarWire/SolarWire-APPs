@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './ChangeCategoryParentModal.css';
 
 interface ChangeCategoryParentModalProps {
@@ -46,11 +46,11 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
         'after'
       );
       
-      showToast('分类归属已更改', 'success');
+      feedback.toast.success('分类归属已更改');
       onClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };

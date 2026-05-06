@@ -48,6 +48,8 @@ interface SolarWireVisualEditorProps {
   setSyntaxErrors?: (errors: any[]) => void;
   /** 切换到代码tab并定位到指定行 */
   onSwitchToCodeTab?: (line: number, column: number) => void;
+  /** 错误来源标识，用于语法错误服务隔离 */
+  errorSourceId?: string;
 }
 
 /**
@@ -66,7 +68,8 @@ function SolarWireVisualEditor({
   allowImageElements = true,
   syntaxErrors,
   setSyntaxErrors,
-  onSwitchToCodeTab
+  onSwitchToCodeTab,
+  errorSourceId: externalErrorSourceId
 }: SolarWireVisualEditorProps): React.ReactElement {
   // 判断是否为外部模式（组件编辑模式）
   const isExternalMode = externalContent !== undefined;
@@ -80,9 +83,7 @@ function SolarWireVisualEditor({
   const [internalShowComponentLibrary, setInternalShowComponentLibrary] = useState(false);
   const [snapToGuides, setSnapToGuides] = useState(true);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  // 导出通知状态
-  const [exportNotification, setExportNotification] = useState<{ type: 'progress' | 'success' | 'error'; message: string; error?: string } | null>(null);
-  // SVG 内容获取函数引用
+  const exportOpIdRef = useRef<string>('');
   const getSvgContentRef = useRef<(() => string | null) | null>(null);
 
   /**
@@ -91,26 +92,29 @@ function SolarWireVisualEditor({
    */
   const handleExportSvg = useCallback(async () => {
     if (!getSvgContentRef.current) {
-      setExportNotification({ type: 'error', message: 'Export not available' });
+      const opId = feedback.operation.start('export', 'Export not available');
+      feedback.operation.fail(opId, 'Export not available');
       return;
     }
 
     const svgContent = getSvgContentRef.current();
     if (!svgContent) {
-      setExportNotification({ type: 'error', message: 'No content to export' });
+      const opId = feedback.operation.start('export', 'No content to export');
+      feedback.operation.fail(opId, 'No content to export');
       return;
     }
 
     const svgWithXmlDecl = svgContent.trim().startsWith('<?xml') ? svgContent : `<?xml version="1.0" encoding="UTF-8"?>\n${svgContent}`;
 
-    setExportNotification({ type: 'progress', message: 'Choosing location...' });
+    exportOpIdRef.current = feedback.operation.start('export', 'Choosing location...');
     const filePath = await fileDialogService.saveFileDialog({
       filters: [{ name: 'SVG Files', extensions: ['svg'] }],
       defaultPath: 'solarwire-export.svg'
     });
 
     if (!filePath) {
-      setExportNotification(null);
+      feedback.operation.removeOperation(exportOpIdRef.current);
+      exportOpIdRef.current = '';
       return;
     }
 
@@ -118,30 +122,20 @@ function SolarWireVisualEditor({
     const arrayBuffer = await blob.arrayBuffer();
     const api = (window as any).api;
     if (api?.writeFile) {
-      // 使用 Electron API 写入文件
       await api.writeFile(filePath, new Uint8Array(arrayBuffer));
-      setExportNotification({ type: 'success', message: 'SVG saved successfully!' });
+      feedback.operation.complete(exportOpIdRef.current, 'SVG saved successfully!');
     } else {
-      // 回退到浏览器下载
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'solarwire-export.svg';
       a.click();
       URL.revokeObjectURL(url);
-      setExportNotification({ type: 'success', message: 'SVG downloaded!' });
+      feedback.operation.complete(exportOpIdRef.current, 'SVG downloaded!');
     }
-    setTimeout(() => setExportNotification(null), 3000);
+    exportOpIdRef.current = '';
   }, []);
 
-  /**
-   * 清除导出通知
-   */
-  const clearExportNotification = useCallback(() => {
-    setExportNotification(null);
-  }, []);
-
-  // 图层面板和组件库的显示状态
   const showLayerPanel = externalShowLayerPanel !== undefined ? externalShowLayerPanel : internalShowLayerPanel;
   const showComponentLibrary = externalShowComponentLibrary !== undefined ? externalShowComponentLibrary : internalShowComponentLibrary;
   const setShowLayerPanel = onShowLayerPanelChange || setInternalShowLayerPanel;
@@ -165,38 +159,32 @@ function SolarWireVisualEditor({
   // 语法错误状态
   const [internalSyntaxErrors, setInternalSyntaxErrors] = useState<any[]>([]);
 
-  // 使用外部传入的语法错误状态，否则使用内部状态
   const currentSyntaxErrors = syntaxErrors || internalSyntaxErrors;
   const currentSetSyntaxErrors = setSyntaxErrors || setInternalSyntaxErrors;
+  const setSyntaxErrorsRef = useRef(currentSetSyntaxErrors);
+  setSyntaxErrorsRef.current = currentSetSyntaxErrors;
 
-  /**
-   * 处理语法错误检测
-   * 使用统一的语法错误服务
-   */
+  const internalErrorSourceId = useRef(Math.random().toString(36).substr(2, 9)).current;
+  const errorSourceId = externalErrorSourceId || internalErrorSourceId;
+
   useEffect(() => {
-    
-    // 启动渲染器错误监听
     syntaxErrorService.startRendererErrorMonitoring();
     
-    // 监听错误变化
     const listener = {
+      sourceId: errorSourceId,
       onErrorsChanged: (errors: SyntaxError[]) => {
-        if (setSyntaxErrors) {
-          setSyntaxErrors(errors);
-        }
+        setSyntaxErrorsRef.current(errors);
       }
     };
     
     syntaxErrorService.addListener(listener);
-    
-    // 在内容变化时清除之前的错误，让渲染器重新检测
-    syntaxErrorService.clearErrors();
+    syntaxErrorService.clearErrors(errorSourceId);
     
     return () => {
       syntaxErrorService.removeListener(listener);
       syntaxErrorService.stopRendererErrorMonitoring();
     };
-  }, [content, setSyntaxErrors]);
+  }, [effectiveContent, errorSourceId]);
 
   /**
    * 跳转到错误位置
@@ -249,25 +237,25 @@ function SolarWireVisualEditor({
     if (lineNum < 1 || lineNum > lines.length) return null;
     const line = lines[lineNum - 1];
     let x = 0, y = 0, x2 = 0, y2 = 0;
-    const coordPattern = /@\((\d+),\s*(\d+)\)/;
+    const coordPattern = /@\((-?\d+),\s*(-?\d+)\)/;
     const match = line.match(coordPattern);
     if (match) {
       x = parseInt(match[1]);
       y = parseInt(match[2]);
     } else {
-      const xMatch = line.match(/x=(\d+)/);
-      const yMatch = line.match(/y=(\d+)/);
+      const xMatch = line.match(/x=(-?\d+)/);
+      const yMatch = line.match(/y=(-?\d+)/);
       if (xMatch) x = parseInt(xMatch[1]);
       if (yMatch) y = parseInt(yMatch[1]);
     }
-    const lineEndPattern = /->\((\d+),\s*(\d+)\)/;
+    const lineEndPattern = /->\((-?\d+),\s*(-?\d+)\)/;
     const lineEndMatch = line.match(lineEndPattern);
     if (lineEndMatch) {
       x2 = parseInt(lineEndMatch[1]);
       y2 = parseInt(lineEndMatch[2]);
     } else {
-      const x2Match = line.match(/x2=(\d+)/);
-      const y2Match = line.match(/y2=(\d+)/);
+      const x2Match = line.match(/x2=(-?\d+)/);
+      const y2Match = line.match(/y2=(-?\d+)/);
       if (x2Match) x2 = parseInt(x2Match[1]);
       if (y2Match) y2 = parseInt(y2Match[1]);
     }
@@ -434,7 +422,6 @@ function SolarWireVisualEditor({
       return;
     }
     
-    // 验证组件代码是否安全
     if (!validateDropContent(component.code)) {
       feedback.toast.error('Invalid or unsafe component code');
       return;
@@ -443,33 +430,47 @@ function SolarWireVisualEditor({
     try {
       const adjustedCode = component.code.split(/\r?\n/).map((line) => {
         let resultLine = line;
-        resultLine = resultLine.replace(/@\((\d+),\s*(\d+)\)/g, (match) => {
-          const m = match.match(/@\((\d+),\s*(\d+)\)/);
+        resultLine = resultLine.replace(/@\((\-?\d+),\s*(\-?\d+)\)/g, (match) => {
+          const m = match.match(/@\((\-?\d+),\s*(\-?\d+)\)/);
           if (m) {
             const nx = x + parseInt(m[1], 10);
             const ny = y + parseInt(m[2], 10);
-            return `@(${Math.max(0, nx)},${Math.max(0, ny)})`;
+            return `@(${nx},${ny})`;
           }
           return match;
         });
-        resultLine = resultLine.replace(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/g, (match) => {
-          const m = match.match(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+        resultLine = resultLine.replace(/->\(\s*(\-?\d+)\s*,\s*(\-?\d+)\s*\)/g, (match) => {
+          const m = match.match(/->\(\s*(\-?\d+)\s*,\s*(\-?\d+)\s*\)/);
           if (m) {
             const nx = x + parseInt(m[1], 10);
             const ny = y + parseInt(m[2], 10);
-            return `->(${Math.max(0, nx)},${Math.max(0, ny)})`;
+            return `->(${nx},${ny})`;
           }
           return match;
         });
         return resultLine;
       }).join('\n');
-      handleContentChange?.(content.trimEnd() + '\n\n' + adjustedCode);
+      const newContent = content.trimEnd() + '\n\n' + adjustedCode;
+      handleContentChange?.(newContent);
       setShowComponentLibrary(false);
+
+      const existingLineCount = content.trimEnd().split(/\r?\n/).length;
+      setTimeout(() => {
+        try {
+          const ast = parse(newContent);
+          const newElementIds = ast.elements
+            .filter((el: SolarWireElement) => (el.location?.line ?? 0) > existingLineCount)
+            .map((el: SolarWireElement) => String(el.location?.line));
+          if (newElementIds.length > 0) {
+            useSolarWireStore.getState().setSelectedElements(newElementIds);
+          }
+        } catch {}
+      }, 50);
     } catch (error) {
       console.error('Failed to drop component:', error);
       feedback.toast.error(`Failed to drop component: ${error instanceof Error ? error.message : String(error)}`);
     }
-  }, [content, handleContentChange, setShowComponentLibrary]);
+  }, [content, handleContentChange, setShowComponentLibrary, setSelectedElements]);
 
   useEffect(() => {
     const handleKeyDownEvent = (e: KeyboardEvent) => {
@@ -560,6 +561,7 @@ function SolarWireVisualEditor({
             allowImageElements={allowImageElements}
             onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
             hasSyntaxErrors={currentSyntaxErrors.length > 0}
+            errorSourceId={errorSourceId}
           />
 
         {currentSyntaxErrors.length > 0 && (
@@ -593,23 +595,6 @@ function SolarWireVisualEditor({
         {showComponentLibrary && (
           <div className="component-library-panel-fixed">
             <ComponentLibrary onDropToCanvas={handleDropComponentToCanvas} />
-          </div>
-        )}
-
-        {exportNotification && (
-          <div className={`export-notification ${exportNotification.type}`}>
-            {exportNotification.type === 'progress' && <span className="spinner"></span>}
-            {exportNotification.type === 'success' && <span className="icon">✓</span>}
-            {exportNotification.type === 'error' && <span className="icon">✗</span>}
-            <div className="notification-content">
-              <span className="notification-message">{exportNotification.message}</span>
-              {exportNotification.error && (
-                <div className="notification-error">{exportNotification.error}</div>
-              )}
-            </div>
-            {exportNotification.type === 'error' && (
-              <button className="notification-close" onClick={clearExportNotification}>×</button>
-            )}
           </div>
         )}
 

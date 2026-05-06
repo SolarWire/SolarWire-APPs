@@ -222,6 +222,7 @@ export const feedback = {
     updateProgress: (id: string, progress: number) => useFeedbackStore.getState().updateOperationProgress(id, progress),
     complete: (id: string, msg?: string) => useFeedbackStore.getState().completeOperation(id, msg),
     fail: (id: string, msg: string, detail?: string) => useFeedbackStore.getState().failOperation(id, msg, detail),
+    removeOperation: (id: string) => useFeedbackStore.getState().removeOperation(id),
   },
   confirm: (options: ConfirmOptions) => useFeedbackStore.getState().confirm(options),
 };

@@ -3,7 +3,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { useI18nStore } from '../../stores/i18nStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../i18n';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -45,7 +45,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
   const handleSave = () => {
     if (!isValidColor(tempPrimaryColor)) {
       setColorError('Invalid color format. Use hex format like #FCA506');
-      showToast('Invalid color format', 'error');
+      feedback.toast.error('Invalid color format');
       return;
     }
     setPrimaryColor(tempPrimaryColor);

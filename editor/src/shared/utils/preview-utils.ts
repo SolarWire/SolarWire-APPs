@@ -44,27 +44,26 @@ const parseCoordinatesFromLine = (line: string): { x: number; y: number; x2: num
   let x2 = 0;
   let y2 = 0;
 
-  const coordPattern = /@\((\d+),\s*(\d+)\)/;
+  const coordPattern = /@\((-?\d+),\s*(-?\d+)\)/;
   const match = line.match(coordPattern);
   if (match) {
     x = parseInt(match[1]);
     y = parseInt(match[2]);
   } else {
-    const xMatch = line.match(/x=([\d]+)/);
-    const yMatch = line.match(/y=([\d]+)/);
+    const xMatch = line.match(/x=(-?[\d]+)/);
+    const yMatch = line.match(/y=(-?[\d]+)/);
     if (xMatch) x = parseInt(xMatch[1]);
     if (yMatch) y = parseInt(yMatch[1]);
   }
 
-  // 检查是否是线段元素，获取终点坐标
-  const lineEndPattern = /->\((\d+),\s*(\d+)\)/;
+  const lineEndPattern = /->\((-?\d+),\s*(-?\d+)\)/;
   const lineEndMatch = line.match(lineEndPattern);
   if (lineEndMatch) {
     x2 = parseInt(lineEndMatch[1]);
     y2 = parseInt(lineEndMatch[2]);
   } else {
-    const x2Match = line.match(/x2=([\d]+)/);
-    const y2Match = line.match(/y2=([\d]+)/);
+    const x2Match = line.match(/x2=(-?[\d]+)/);
+    const y2Match = line.match(/y2=(-?[\d]+)/);
     if (x2Match) x2 = parseInt(x2Match[1]);
     if (y2Match) y2 = parseInt(y2Match[1]);
   }

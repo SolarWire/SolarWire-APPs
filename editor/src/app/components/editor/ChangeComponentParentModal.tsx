@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, ComponentCategory } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './ChangeComponentParentModal.css';
 
 interface ChangeComponentParentModalProps {
@@ -71,11 +71,11 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
         'after'
       );
       
-      showToast('组件归属已更改', 'success');
+      feedback.toast.success('组件归属已更改');
       onClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };

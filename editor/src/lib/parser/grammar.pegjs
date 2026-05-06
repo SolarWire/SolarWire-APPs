@@ -121,14 +121,14 @@ LineElement
   }
 
 LineCoordinates
-  = "@(" startX:SignedNumber _* "," _* startY:SignedNumber _* ")->(+" dx:Number _* "," _* "+" dy:Number _* ")"
+  = "@(" startX:Coordinate _* "," _* startY:Coordinate _* ")->(+" dx:Number _* "," _* "+" dy:Number _* ")"
   {
     return {
       start: { x: startX, y: startY },
       end: { type: 'relative', dx: dx, dy: dy }
     };
   }
-  / "@(" startX:SignedNumber _* "," _* startY:SignedNumber _* ")->(" endX:SignedNumber _* "," _* endY:SignedNumber _* ")"
+  / "@(" startX:Coordinate _* "," _* startY:Coordinate _* ")->(" endX:Coordinate _* "," _* endY:Coordinate _* ")"
   {
     return {
       start: { x: startX, y: startY },
@@ -173,7 +173,7 @@ ElementRest
   }
 
 Coordinates
-  = _+ "@(" x:SignedNumber _* "," _* y:SignedNumber _* ")"
+  = _+ "@(" x:Coordinate _* "," _* y:Coordinate _* ")"
   {
     return { x: x, y: y };
   }

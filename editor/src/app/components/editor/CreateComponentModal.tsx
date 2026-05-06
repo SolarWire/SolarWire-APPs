@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, ComponentCategory } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './CreateComponentModal.css';
 
 interface CreateComponentModalProps {
@@ -84,11 +84,11 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
         code: componentData.code.trim() || '[]'
       });
       
-      showToast('组件创建成功', 'success');
+      feedback.toast.success('组件创建成功');
       handleClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import './CreateFileModal.css';
 
 interface DeleteConfirmModalProps {
@@ -46,7 +46,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
         await api.deleteFile(target.path);
       }
 
-      showToast('删除成功', 'success');
+      feedback.toast.success('删除成功');
       onClose();
 
       // 刷新文件树
@@ -56,7 +56,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
       }
     } catch (err) {
       if (err instanceof Error) {
-        showToast(`删除失败: ${err.message}`, 'error');
+        feedback.toast.error(`删除失败: ${err.message}`);
       }
     }
   };

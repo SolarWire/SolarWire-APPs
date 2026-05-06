@@ -1,11 +1,10 @@
 import React from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, Component, ComponentCategory, parseNodeId, isPresetLibrary, makeUncategorizedKey, isUncategorizedComponent, isComponentUncategorized } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import CreateLibraryModal from '../editor/CreateLibraryModal';
 import CreateCategoryModal from '../editor/CreateCategoryModal';
 import CreateComponentModal from '../editor/CreateComponentModal';
-import ConfirmModal from '../ui/ConfirmModal';
 import ContextMenu, { ContextMenuItem } from '../ui/ContextMenu';
 import ComponentLibraryLibraryEditMode from './ComponentLibraryLibraryEditMode';
 import ComponentLibraryCategoryEditMode from './ComponentLibraryCategoryEditMode';
@@ -55,15 +54,6 @@ const ComponentLibraryManagerMode: React.FC = () => {
       componentId?: string;
     } | null;
   }>({ visible: false, x: 0, y: 0, targetNode: null });
-
-  const [confirmDlg, setConfirmDlg] = React.useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-    type: 'info' | 'warning' | 'danger';
-  }>({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
 
   const closeCtxMenu = React.useCallback(() => {
     setCtxMenu(prev => ({ ...prev, visible: false }));
@@ -138,19 +128,17 @@ const ComponentLibraryManagerMode: React.FC = () => {
       items.push({ type: 'separator' });
       const isPreset = isPresetLibrary(targetNode.libraryId!);
       if (!isPreset) {
-        items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => {
+        items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: async () => {
           const libName = clStore.libraries.find((l: ComponentLibrary) => l.metadata.id === targetNode.libraryId)?.metadata.name || '';
-          setConfirmDlg({
-            isOpen: true,
+          const confirmed = await feedback.confirm({
             title: '删除组件库',
             message: `确定要删除组件库 "${libName}" 吗？此操作不可撤销。`,
-            onConfirm: () => {
-              clStore.removeLibrary(targetNode.libraryId!);
-              setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
-            },
-            onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' }),
-            type: 'danger'
+            type: 'danger',
+            confirmText: '删除',
           });
+          if (confirmed) {
+            clStore.removeLibrary(targetNode.libraryId!);
+          }
         }});
       }
     } else if (targetNode.type === 'category') {
@@ -165,20 +153,18 @@ const ComponentLibraryManagerMode: React.FC = () => {
       items.push({ type: 'item', label: '下移', icon: '🔽', onClick: () => clStore.reorderCategory(targetNode.libraryId!, targetNode.categoryId!, 'down') });
       items.push({ type: 'item', label: '置底', icon: '⬇️', onClick: () => clStore.reorderCategory(targetNode.libraryId!, targetNode.categoryId!, 'bottom') });
       items.push({ type: 'separator' });
-      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => {
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: async () => {
         const library = clStore.libraries.find((l: ComponentLibrary) => l.metadata.id === targetNode.libraryId);
         const catName = library?.categories.find((c: ComponentCategory) => c.id === targetNode.categoryId)?.name || '';
-        setConfirmDlg({
-          isOpen: true,
+        const confirmed = await feedback.confirm({
           title: '删除分类',
           message: `确定要删除分类 "${catName}" 吗？此操作不可撤销。`,
-          onConfirm: () => {
-            clStore.deleteCategory(targetNode.libraryId!, targetNode.categoryId!);
-            setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
-          },
-          onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' }),
-          type: 'danger'
+          type: 'danger',
+          confirmText: '删除',
         });
+        if (confirmed) {
+          clStore.deleteCategory(targetNode.libraryId!, targetNode.categoryId!);
+        }
       }});
     } else if (targetNode.type === 'component') {
       items.push({ type: 'item', label: '编辑', icon: '✏️', onClick: () => setSelectedNode(targetNode.componentId!, 'component', targetNode.libraryId!) });
@@ -188,20 +174,18 @@ const ComponentLibraryManagerMode: React.FC = () => {
       items.push({ type: 'item', label: '下移', icon: '🔽', onClick: () => clStore.reorderComponent(targetNode.libraryId!, targetNode.componentId!, 'down') });
       items.push({ type: 'item', label: '置底', icon: '⬇️', onClick: () => clStore.reorderComponent(targetNode.libraryId!, targetNode.componentId!, 'bottom') });
       items.push({ type: 'separator' });
-      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => {
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: async () => {
         const library = clStore.libraries.find((l: ComponentLibrary) => l.metadata.id === targetNode.libraryId);
         const compName = library?.components.find((c: Component) => c.internalId === targetNode.componentId)?.name || '';
-        setConfirmDlg({
-          isOpen: true,
+        const confirmed = await feedback.confirm({
           title: '删除组件',
           message: `确定要删除组件 "${compName}" 吗？此操作不可撤销。`,
-          onConfirm: () => {
-            clStore.deleteComponent(targetNode.libraryId!, targetNode.componentId!);
-            setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
-          },
-          onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' }),
-          type: 'danger'
+          type: 'danger',
+          confirmText: '删除',
         });
+        if (confirmed) {
+          clStore.deleteComponent(targetNode.libraryId!, targetNode.componentId!);
+        }
       }});
     }
 
@@ -221,10 +205,10 @@ const ComponentLibraryManagerMode: React.FC = () => {
       const content = await file.text();
       const fileObj = new File([content], file.name, { type: 'application/json' });
       await importLibrary(fileObj);
-      showToast('导入成功', 'success');
+      feedback.toast.success('导入成功');
     } catch (err) {
       console.error('导入失败:', err);
-      showToast('导入失败: ' + (err as Error).message, 'error');
+      feedback.toast.error('导入失败: ' + (err as Error).message);
     }
 
     // Reset the file input so the same file can be selected again if needed
@@ -391,24 +375,22 @@ const ComponentLibraryManagerMode: React.FC = () => {
               );
               // Update selected node to point to the new library
               setSelectedNode(selectedComponent.internalId, 'component', newLibraryId);
-              showToast('组件已移动到新组件库', 'success');
+              feedback.toast.success('组件已移动到新组件库');
             } catch (error) {
-              showToast('移动组件失败: ' + (error as Error).message, 'error');
+              feedback.toast.error('移动组件失败: ' + (error as Error).message);
             }
           }}
-          onDelete={() => {
-            setConfirmDlg({
-              isOpen: true,
+          onDelete={async () => {
+            const confirmed = await feedback.confirm({
               title: '删除组件',
               message: '确定要删除此组件吗？',
               type: 'danger',
-              onConfirm: async () => {
-                await deleteComponent(selectedLibrary.metadata.id, selectedComponent.internalId);
-                setSelectedNode(null, null, null);
-                setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
-              },
-              onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' })
+              confirmText: '删除',
             });
+            if (confirmed) {
+              await deleteComponent(selectedLibrary.metadata.id, selectedComponent.internalId);
+              setSelectedNode(null, null, null);
+            }
           }}
         />
       );
@@ -444,24 +426,22 @@ const ComponentLibraryManagerMode: React.FC = () => {
               );
               // Update selected node to point to the new library
               setSelectedNode(selectedCategory.id, 'category', newLibraryId);
-              showToast('分类已移动到新组件库', 'success');
+              feedback.toast.success('分类已移动到新组件库');
             } catch (error) {
-              showToast('移动分类失败: ' + (error as Error).message, 'error');
+              feedback.toast.error('移动分类失败: ' + (error as Error).message);
             }
           }}
-          onDelete={() => {
-            setConfirmDlg({
-              isOpen: true,
+          onDelete={async () => {
+            const confirmed = await feedback.confirm({
               title: '删除分类',
               message: '确定要删除此分类吗？',
               type: 'danger',
-              onConfirm: async () => {
-                await deleteCategory(selectedLibrary.metadata.id, selectedCategory.id);
-                setSelectedNode(null, null, null);
-                setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
-              },
-              onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' })
+              confirmText: '删除',
             });
+            if (confirmed) {
+              await deleteCategory(selectedLibrary.metadata.id, selectedCategory.id);
+              setSelectedNode(null, null, null);
+            }
           }}
         />
       );
@@ -482,19 +462,17 @@ const ComponentLibraryManagerMode: React.FC = () => {
         onReorder={(direction) => {
           reorderLibrary(selectedLibrary.metadata.id, direction);
         }}
-        onDelete={() => {
-          setConfirmDlg({
-            isOpen: true,
+        onDelete={async () => {
+          const confirmed = await feedback.confirm({
             title: '删除组件库',
             message: `确定要删除组件库 "${selectedLibrary.metadata.name}" 吗？此操作不可撤销。`,
             type: 'danger',
-            onConfirm: async () => {
-              await deleteLibrary(selectedLibrary.metadata.id);
-              setSelectedNode(null, null, null);
-              setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' });
-            },
-            onCancel: () => setConfirmDlg({ isOpen: false, title: '', message: '', onConfirm: () => {}, onCancel: () => {}, type: 'info' })
+            confirmText: '删除',
           });
+          if (confirmed) {
+            await deleteLibrary(selectedLibrary.metadata.id);
+            setSelectedNode(null, null, null);
+          }
         }}
       />
     );
@@ -527,17 +505,6 @@ const ComponentLibraryManagerMode: React.FC = () => {
           defaultLibraryId={createCtx.libraryId}
           defaultCategoryId={createCtx.categoryId}
           onClose={() => setShowCreateCompModal(false)}
-        />
-      )}
-      
-      {confirmDlg.isOpen && (
-        <ConfirmModal
-          isOpen={confirmDlg.isOpen}
-          title={confirmDlg.title}
-          message={confirmDlg.message}
-          onConfirm={confirmDlg.onConfirm}
-          onCancel={confirmDlg.onCancel}
-          type={confirmDlg.type}
         />
       )}
       

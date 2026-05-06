@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { useCoordinateSystem } from '../../../shared/hooks/useCoordinateSystem';
+import { ViewportManager } from '../../../shared/utils/ViewportManager';
 import { useDragCoordinate } from '../../../shared/hooks/useDragCoordinate';
 import {
   getLineStartCoords,
@@ -34,10 +35,21 @@ import type {
   DragElementState,
   ResizeHandleState,
   DragPreviewElement,
-  AlignmentGuide,
-  EdgeGap,
-  GuideType,
 } from '../../stores/previewStore';
+import {
+  collectAllGuides,
+  computeSnap,
+  getActiveEdgesForMove,
+  getActiveEdgesForResize,
+  calculateDistances,
+  renderAlignmentGuides,
+  renderDistanceLines,
+} from './snap';
+import type {
+  AlignmentGuide,
+  SnapElement,
+  RenderContext,
+} from './snap';
 import { parse } from '../../../lib/parser';
 import { render, RenderResultWithMeta } from '../../../lib/renderer';
 import { updateLineAttribute, getElementRelatedLines, detectElementBounds, isInsideMultilineNoteContent } from '../../../shared/utils/solarwire-utils';
@@ -46,6 +58,7 @@ import type { Document, Element as SolarWireElement } from '../../../lib/parser/
 import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
 import { feedback } from '../../stores/feedbackStore';
 import './SolarWirePreview.css';
+import CanvasRuler from './CanvasRuler';
 
 import type { SelectionTool } from '../../stores/solarWireStore';
 
@@ -98,7 +111,6 @@ function validateDropContent(content: string): boolean {
  * @param dy Y 轴偏移量
  * @param setContentFn 内容更新函数
  * @param isRelative 是否使用相对坐标模式
- * @param maxBounds 画布边界（可选）
  * @returns 更新后的文档内容
  */
 const handleLineDrag = (
@@ -111,8 +123,7 @@ const handleLineDrag = (
   dx: number,
   dy: number,
   setContentFn: (content: string) => void,
-  isRelative: boolean = false,
-  maxBounds?: { width: number; height: number }
+  isRelative: boolean = false
 ): string => {
   let newContent = content;
   
@@ -121,18 +132,11 @@ const handleLineDrag = (
   const attributeLine = bounds.attributeLine;
   
   if (isRelative && elementX2 !== undefined && elementY2 !== undefined) {
-    // 相对模式：保持相对偏移不变
     const originalDx = elementX2 - elementX;
     const originalDy = elementY2 - elementY;
     
-    let newX = Math.max(0, Math.round(elementX + dx));
-    let newY = Math.max(0, Math.round(elementY + dy));
-    
-    // 边界检查：确保线段不超出画布边界
-    if (maxBounds) {
-      newX = Math.min(newX, maxBounds.width);
-      newY = Math.min(newY, maxBounds.height);
-    }
+    const newX = Math.round(elementX + dx);
+    const newY = Math.round(elementY + dy);
     
     const newX2 = newX + originalDx;
     const newY2 = newY + originalDy;
@@ -142,19 +146,10 @@ const handleLineDrag = (
     newContent = updateLineAttribute(newContent, attributeLine, 'x2', newX2);
     newContent = updateLineAttribute(newContent, attributeLine, 'y2', newY2);
   } else {
-    // 绝对模式：直接更新所有坐标
-    let newX = Math.max(0, Math.round(elementX + dx));
-    let newY = Math.max(0, Math.round(elementY + dy));
-    let newX2 = elementX2 !== undefined ? Math.max(0, Math.round(elementX2 + dx)) : undefined;
-    let newY2 = elementY2 !== undefined ? Math.max(0, Math.round(elementY2 + dy)) : undefined;
-    
-    // 边界检查：确保线段不超出画布边界
-    if (maxBounds) {
-      newX = Math.min(newX, maxBounds.width);
-      newY = Math.min(newY, maxBounds.height);
-      if (newX2 !== undefined) newX2 = Math.min(newX2, maxBounds.width);
-      if (newY2 !== undefined) newY2 = Math.min(newY2, maxBounds.height);
-    }
+    const newX = Math.round(elementX + dx);
+    const newY = Math.round(elementY + dy);
+    const newX2 = elementX2 !== undefined ? Math.round(elementX2 + dx) : undefined;
+    const newY2 = elementY2 !== undefined ? Math.round(elementY2 + dy) : undefined;
     
     newContent = updateLineAttribute(newContent, attributeLine, 'x', newX);
     newContent = updateLineAttribute(newContent, attributeLine, 'y', newY);
@@ -190,17 +185,10 @@ const handleElementDrag = (
   dy: number,
   setContentFn: (content: string) => void,
   snapToGrid: boolean = false,
-  gridSize: number = 20,
-  maxBounds?: { width: number; height: number }
+  gridSize: number = 20
 ): string => {
-  let newX = Math.max(0, Math.round(elementX + dx));
-  let newY = Math.max(0, Math.round(elementY + dy));
-  
-  // 边界检查：确保元素不超出画布边界
-  if (maxBounds) {
-    newX = Math.min(newX, maxBounds.width);
-    newY = Math.min(newY, maxBounds.height);
-  }
+  let newX = Math.round(elementX + dx);
+  let newY = Math.round(elementY + dy);
   
   if (snapToGrid && gridSize > 0) {
     newX = Math.round(newX / gridSize) * gridSize;
@@ -291,8 +279,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     hoveredElement, setHoveredElement,  // 悬停元素
     dropOverlay, setDropOverlay,        // 拖放覆盖层
     error: storeError, setError: setStoreError,  // 错误状态
-    alignmentGuides, setAlignmentGuides,  // 对齐辅助线
-    edgeGaps, setEdgeGaps,              // 边缘间距
+    alignmentGuides, setAlignmentGuides,
+    distanceLines, setDistanceLines,
+    altKeyPressed, setAltKeyPressed,
     resetInteractionStates,            // 重置交互状态
   } = usePreviewStore();
 
@@ -321,12 +310,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     setScale(zoomLevel / 100);
   }, [zoomLevel]);
 
-  // 坐标系统 hook
-  const { getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
-    position,
-    scale
-  });
-
   // SVG 容器引用
   const svgContainerRef = useRef<HTMLDivElement>(null);
   // 图片缓存，避免重复加载
@@ -335,6 +318,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const loadingUrlsRef = useRef<Set<string>>(new Set());
   // 图片缓存版本号，用于触发重新渲染
   const [imageCacheTick, setImageCacheTick] = useState(0);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   // 上次错误引用，用于避免重复显示相同错误
   const prevErrorRef = useRef<string | null>(null);
   // 元素边界缓存，提高性能
@@ -352,38 +336,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
     return url;
   }, [fileDir, imageCacheTick]);
-
-  /**
-   * 处理图片添加
-   * @param assetPath 图片资源路径
-   * @param x X 坐标
-   * @param y Y 坐标
-   * @param size 图片尺寸（可选）
-   */
-  const handleImageAdded = useCallback((assetPath: string, x: number, y: number, size?: { width: number; height: number }) => {
-    // 验证图片路径是否安全
-    if (!validateImagePath(assetPath)) {
-      feedback.toast.error('Invalid image path');
-      return;
-    }
-
-    const svgCoords = getSvgCoords(x, y);
-    const imagePath = assetPath;
-    const safeX = Math.max(0, Math.round(svgCoords.x));
-    const safeY = Math.max(0, Math.round(svgCoords.y));
-    const { w, h } = calculateImageSize(size);
-    const attrStr = h ? `w=${w} h=${h}` : `w=${w}`;
-    const imageElement = `<${imagePath}> @(${safeX}, ${safeY}) ${attrStr}`;
-    const newContent = effectiveContent ? `${effectiveContent}\n${imageElement}` : imageElement;
-    effectiveSetContent(newContent);
-  }, [effectiveContent, effectiveSetContent, getSvgCoords]);
-
-  // 图片拖放处理
-  const { handleDragOver: handleImageDragOver, handleDrop: handleImageDrop } = useImageDrop({
-    onImageAdded: handleImageAdded,
-    fileDir: fileDir || '',
-    enablePaste: true,
-  });
 
   /**
    * 解析和渲染 SolarWire 内容
@@ -412,6 +364,44 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
   }, [effectiveContent, selectedElements, primaryColor, showNotes, currentPath, resolveImageUrl]);
 
+  const { viewport, getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
+    position,
+    scale,
+    viewBoxOffset: { x: viewBox?.x || 0, y: viewBox?.y || 0 }
+  });
+
+  /**
+   * 处理图片添加
+   * @param assetPath 图片资源路径
+   * @param x X 坐标
+   * @param y Y 坐标
+   * @param size 图片尺寸（可选）
+   */
+  const handleImageAdded = useCallback((assetPath: string, x: number, y: number, size?: { width: number; height: number }) => {
+    // 验证图片路径是否安全
+    if (!validateImagePath(assetPath)) {
+      feedback.toast.error('Invalid image path');
+      return;
+    }
+
+    const svgCoords = getSvgCoords(x, y);
+    const imagePath = assetPath;
+    const safeX = Math.round(svgCoords.x);
+    const safeY = Math.round(svgCoords.y);
+    const { w, h } = calculateImageSize(size);
+    const attrStr = h ? `w=${w} h=${h}` : `w=${w}`;
+    const imageElement = `<${imagePath}> @(${safeX}, ${safeY}) ${attrStr}`;
+    const newContent = effectiveContent ? `${effectiveContent}\n${imageElement}` : imageElement;
+    effectiveSetContent(newContent);
+  }, [effectiveContent, effectiveSetContent, getSvgCoords]);
+
+  // 图片拖放处理
+  const { handleDragOver: handleImageDragOver, handleDrop: handleImageDrop } = useImageDrop({
+    onImageAdded: handleImageAdded,
+    fileDir: fileDir || '',
+    enablePaste: true,
+  });
+
   // 在useEffect中处理错误，避免渲染期间状态更新
   useEffect(() => {
     if (renderParseError) {
@@ -422,25 +412,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
   }, [renderParseError]);
 
-  // viewBox 偏移量
-  const viewBoxOffsetX = viewBox?.x || 0;
-  const viewBoxOffsetY = viewBox?.y || 0;
-
-  /**
-   * 将客户端坐标转换为 SVG 坐标
-   * @param clientX 客户端 X 坐标
-   * @param clientY 客户端 Y 坐标
-   * @returns SVG 坐标
-   */
-  const toSvgCoord = useCallback((clientX: number, clientY: number) => {
-    const world = getSvgCoords(clientX, clientY);
-    return {
-      x: world.x + viewBoxOffsetX,
-      y: world.y + viewBoxOffsetY
-    };
-  }, [getSvgCoords, viewBoxOffsetX, viewBoxOffsetY]);
-
-  // 监听解析错误变化
   useEffect(() => {
     const errorFromAst = (ast as any)?.parseError || null;
     if (prevErrorRef.current !== errorFromAst) {
@@ -555,11 +526,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const resizeObserver = new ResizeObserver(() => {
-      // 当容器大小变化时，重新计算位置和缩放
-      // 这里我们不需要改变缩放比例，只需要确保渲染层和交互层的位置正确
-      // 由于我们使用了 transform 来定位和缩放，容器大小变化应该不会影响坐标系统
-      // 但是为了确保一致性，我们可以在这里添加必要的调整逻辑
+    const resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setContainerSize({ width: Math.round(width), height: Math.round(height) });
+      }
     });
 
     resizeObserver.observe(containerRef.current);
@@ -934,217 +905,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return boundsMap;
   }, [effectiveContent, getElementBoundsFromData]);
 
-  /**
-   * 吸附阈值（px）- 元素边缘与引导线距离小于此值时触发吸附
-   */
   const SNAP_THRESHOLD = 6;
-  const ALIGN_THRESHOLD = SNAP_THRESHOLD;
-
-  interface ActiveEdges {
-    left: boolean;
-    right: boolean;
-    top: boolean;
-    bottom: boolean;
-  }
 
   const getCanvasBounds = useCallback(() => {
-    if (viewBox) {
-      return { width: viewBox.width, height: viewBox.height };
-    }
-    return { width: 100000, height: 100000 };
-  }, [viewBox]);
-
-  const collectElementGuides = useCallback((
-    excludeIds: string[],
-    elements: SolarWireElement[],
-    boundsMap?: Map<string, { x: number; y: number; w: number; h: number; r: number }>
-  ): AlignmentGuide[] => {
-    const guides: AlignmentGuide[] = [];
-
-    elements.forEach((el: SolarWireElement, index: number) => {
-      const id = el.location?.line?.toString() || (index + 1).toString();
-      if (excludeIds.includes(id)) return;
-
-      let bounds;
-      if (boundsMap && boundsMap.has(id)) {
-        bounds = boundsMap.get(id);
-      } else {
-        bounds = getElementBounds(id);
-      }
-      if (!bounds || (bounds.w === 0 && bounds.h === 0)) return;
-
-      const { x, y, w, h } = bounds;
-
-      guides.push(
-        { type: 'left',     position: x,         sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
-        { type: 'right',    position: x + w,     sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
-        { type: 'top',      position: y,         sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
-        { type: 'bottom',   position: y + h,     sourceElementId: id, sourceBounds: bounds, priority: 1, isSnapped: false },
-        { type: 'centerX',  position: x + w / 2, sourceElementId: id, sourceBounds: bounds, priority: 2, isSnapped: false },
-        { type: 'centerY',  position: y + h / 2, sourceElementId: id, sourceBounds: bounds, priority: 2, isSnapped: false },
-      );
-    });
-
-    return guides;
-  }, [getElementBounds]);
-
-  const collectSpacingGuides = useCallback((
-    currentBounds: { x: number; y: number; w: number; h: number },
-    allElementsBounds: Array<{ id: string; bounds: { x: number; y: number; w: number; h: number } }>,
-    threshold: number
-  ): AlignmentGuide[] => {
-    const guides: AlignmentGuide[] = [];
-
-    const allWithCurrent = [
-      ...allElementsBounds,
-      { id: 'current', bounds: currentBounds }
-    ];
-
-    const sortedByX = allWithCurrent
-      .filter(e => Math.abs(e.bounds.y - currentBounds.y) < threshold * 2)
-      .sort((a, b) => a.bounds.x - b.bounds.x);
-
-    for (let i = 1; i < sortedByX.length - 1; i++) {
-      const prev = sortedByX[i - 1];
-      const curr = sortedByX[i];
-      const next = sortedByX[i + 1];
-      const gap1 = curr.bounds.x - (prev.bounds.x + prev.bounds.w);
-      const gap2 = next.bounds.x - (curr.bounds.x + curr.bounds.w);
-
-      if (Math.abs(gap1 - gap2) < 2 && gap1 > 0 && gap2 > 0) {
-        const spacingX = curr.bounds.x + curr.bounds.w + gap1 / 2;
-        guides.push({
-          type: 'spacingX',
-          position: spacingX,
-          distance: Math.round(gap1),
-          relatedElementIds: [prev.id, curr.id, next.id],
-          priority: 3,
-          isSnapped: false
-        });
-      }
-    }
-
-    const sortedByY = allWithCurrent
-      .filter(e => Math.abs(e.bounds.x - currentBounds.x) < threshold * 2)
-      .sort((a, b) => a.bounds.y - b.bounds.y);
-
-    for (let i = 1; i < sortedByY.length - 1; i++) {
-      const prev = sortedByY[i - 1];
-      const curr = sortedByY[i];
-      const next = sortedByY[i + 1];
-      const gap1 = curr.bounds.y - (prev.bounds.y + prev.bounds.h);
-      const gap2 = next.bounds.y - (curr.bounds.y + curr.bounds.h);
-
-      if (Math.abs(gap1 - gap2) < 2 && gap1 > 0 && gap2 > 0) {
-        const spacingY = curr.bounds.y + curr.bounds.h + gap1 / 2;
-        guides.push({
-          type: 'spacingY',
-          position: spacingY,
-          distance: Math.round(gap1),
-          relatedElementIds: [prev.id, curr.id, next.id],
-          priority: 3,
-          isSnapped: false
-        });
-      }
-    }
-
-    return guides;
+    return { width: Infinity, height: Infinity };
   }, []);
-
-  const collectCanvasGuides = useCallback(
-    (): AlignmentGuide[] => {
-      const canvasBounds = getCanvasBounds();
-      return [
-        { type: 'canvasLeft',     position: 0,                   priority: 4, isSnapped: false },
-        { type: 'canvasRight',    position: canvasBounds.width,  priority: 4, isSnapped: false },
-        { type: 'canvasTop',      position: 0,                   priority: 4, isSnapped: false },
-        { type: 'canvasBottom',   position: canvasBounds.height, priority: 4, isSnapped: false },
-        { type: 'canvasCenterX',  position: canvasBounds.width / 2,  priority: 4, isSnapped: false },
-        { type: 'canvasCenterY',  position: canvasBounds.height / 2, priority: 4, isSnapped: false },
-      ];
-    },
-    [getCanvasBounds]
-  );
-
-  const collectDistributeGuides = useCallback((
-    currentBounds: { x: number; y: number; w: number; h: number },
-    allElementsBounds: Array<{ id: string; bounds: { x: number; y: number; w: number; h: number } }>,
-    threshold: number
-  ): AlignmentGuide[] => {
-    const guides: AlignmentGuide[] = [];
-
-    const allWithCurrent = [
-      ...allElementsBounds,
-      { id: 'current', bounds: currentBounds }
-    ];
-
-    const yAligned = allWithCurrent
-      .filter(e => Math.abs(e.bounds.y - currentBounds.y) < threshold * 2)
-      .sort((a, b) => a.bounds.x - b.bounds.x);
-
-    if (yAligned.length >= 3) {
-      const gaps: number[] = [];
-      for (let i = 0; i < yAligned.length - 1; i++) {
-        const gap = yAligned[i + 1].bounds.x - (yAligned[i].bounds.x + yAligned[i].bounds.w);
-        gaps.push(gap);
-      }
-
-      const avgGap = gaps.reduce((sum, g) => sum + g, 0) / gaps.length;
-      const isUniform = gaps.every(g => Math.abs(g - avgGap) < 2 && g > 0);
-
-      if (isUniform && gaps.length >= 2) {
-        for (let i = 0; i < yAligned.length - 1; i++) {
-          const distX = yAligned[i].bounds.x + yAligned[i].bounds.w + avgGap / 2;
-          guides.push({
-            type: 'distributeX',
-            position: distX,
-            distance: Math.round(avgGap),
-            relatedElementIds: [yAligned[i].id, yAligned[i + 1].id],
-            priority: 6,
-            isSnapped: false
-          });
-        }
-      }
-    }
-
-    const xAligned = allWithCurrent
-      .filter(e => Math.abs(e.bounds.x - currentBounds.x) < threshold * 2)
-      .sort((a, b) => a.bounds.y - b.bounds.y);
-
-    if (xAligned.length >= 3) {
-      const gaps: number[] = [];
-      for (let i = 0; i < xAligned.length - 1; i++) {
-        const gap = xAligned[i + 1].bounds.y - (xAligned[i].bounds.y + xAligned[i].bounds.h);
-        gaps.push(gap);
-      }
-
-      const avgGap = gaps.reduce((sum, g) => sum + g, 0) / gaps.length;
-      const isUniform = gaps.every(g => Math.abs(g - avgGap) < 2 && g > 0);
-
-      if (isUniform && gaps.length >= 2) {
-        for (let i = 0; i < xAligned.length - 1; i++) {
-          const distY = xAligned[i].bounds.y + xAligned[i].bounds.h + avgGap / 2;
-          guides.push({
-            type: 'distributeY',
-            position: distY,
-            distance: Math.round(avgGap),
-            relatedElementIds: [xAligned[i].id, xAligned[i + 1].id],
-            priority: 6,
-            isSnapped: false
-          });
-        }
-      }
-    }
-
-    return guides;
-  }, []);
-
-  const collectUserGuides = useCallback(
-    (): AlignmentGuide[] => {
-      return [];
-    },
-    []
-  );
 
   const getGroupBounds = useCallback((
     elementIds: string[]
@@ -1171,394 +936,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       h: maxY - minY
     };
   }, [getElementBounds]);
-
-  const calculateEdgeGaps = useCallback((elementId: string, currentX: number, currentY: number, currentW: number, currentH: number, elements: SolarWireElement[]) => {
-    if (!elements || elements.length === 0) return [];
-    
-    const gaps: Array<{
-      type: string;
-      targetBounds: { x: number; y: number; w: number; h: number };
-      distance: number;
-      currentEdge: number;
-      targetEdge: number;
-      hasOverlap: boolean;
-      overlapStart: number;
-      overlapEnd: number;
-    }> = [];
-    
-    const myLeft = currentX;
-    const myRight = currentX + currentW;
-    const myTop = currentY;
-    const myBottom = currentY + currentH;
-    const myCenterX = currentX + currentW / 2;
-    const myCenterY = currentY + currentH / 2;
-
-    // 检查所有其他元素，计算当前元素各边到最近元素的距离
-    elements.forEach((el: SolarWireElement, index: number) => {
-      const id = el.location?.line?.toString() || (index + 1).toString();
-      if (id === elementId) return;
-      
-      const bounds = getElementBounds(id);
-      if (!bounds || bounds.w === 0 && bounds.h === 0) return;
-
-      const bx = bounds.x;
-      const by = bounds.y;
-      const bw = bounds.w;
-      const bh = bounds.h;
-      const bLeft = bx;
-      const bRight = bx + bw;
-      const bTop = by;
-      const bBottom = by + bh;
-      const bCenterX = bx + bw / 2;
-      const bCenterY = by + bh / 2;
-
-      // 计算水平方向重叠范围（用于 Y 轴方向的连线）
-      const xOverlapStart = Math.max(myLeft, bLeft);
-      const xOverlapEnd = Math.min(myRight, bRight);
-      const xHasOverlap = xOverlapEnd > xOverlapStart;
-
-      // 计算垂直方向重叠范围（用于 X 轴方向的连线）
-      const yOverlapStart = Math.max(myTop, bTop);
-      const yOverlapEnd = Math.min(myBottom, bBottom);
-      const yHasOverlap = yOverlapEnd > yOverlapStart;
-
-      // 水平方向距离检测（左右方向）
-      if (yHasOverlap) {
-        // 有交叉：显示同方向边的距离（左-左、右-右）
-        const leftToLeft = Math.abs(myLeft - bLeft);
-        if (leftToLeft < 100) {
-          gaps.push({
-            type: 'left',
-            targetBounds: bounds,
-            distance: Math.round(leftToLeft),
-            currentEdge: myLeft,
-            targetEdge: bLeft,
-            hasOverlap: true,
-            overlapStart: yOverlapStart,
-            overlapEnd: yOverlapEnd
-          });
-        }
-
-        const rightToRight = Math.abs(myRight - bRight);
-        if (rightToRight < 100) {
-          gaps.push({
-            type: 'right',
-            targetBounds: bounds,
-            distance: Math.round(rightToRight),
-            currentEdge: myRight,
-            targetEdge: bRight,
-            hasOverlap: true,
-            overlapStart: yOverlapStart,
-            overlapEnd: yOverlapEnd
-          });
-        }
-      } else {
-        // 无交叉：显示反方向边的距离（左-右、右-左）
-        if (myLeft > bRight) {
-          const dist = Math.round(myLeft - bRight);
-          if (dist < 100) {
-            gaps.push({
-              type: 'left',
-              targetBounds: bounds,
-              distance: dist,
-              currentEdge: myLeft,
-              targetEdge: bRight,
-              hasOverlap: false,
-              overlapStart: yOverlapStart,
-              overlapEnd: yOverlapEnd
-            });
-          }
-        }
-
-        if (bLeft > myRight) {
-          const dist = Math.round(bLeft - myRight);
-          if (dist < 100) {
-            gaps.push({
-              type: 'right',
-              targetBounds: bounds,
-              distance: dist,
-              currentEdge: myRight,
-              targetEdge: bLeft,
-              hasOverlap: false,
-              overlapStart: yOverlapStart,
-              overlapEnd: yOverlapEnd
-            });
-          }
-        }
-      }
-
-      // 垂直方向距离检测（上下方向）
-      if (xHasOverlap) {
-        // 有交叉：显示同方向边的距离（上-上、下-下）
-        const topToTop = Math.abs(myTop - bTop);
-        if (topToTop < 100) {
-          gaps.push({
-            type: 'top',
-            targetBounds: bounds,
-            distance: Math.round(topToTop),
-            currentEdge: myTop,
-            targetEdge: bTop,
-            hasOverlap: true,
-            overlapStart: xOverlapStart,
-            overlapEnd: xOverlapEnd
-          });
-        }
-
-        const bottomToBottom = Math.abs(myBottom - bBottom);
-        if (bottomToBottom < 100) {
-          gaps.push({
-            type: 'bottom',
-            targetBounds: bounds,
-            distance: Math.round(bottomToBottom),
-            currentEdge: myBottom,
-            targetEdge: bBottom,
-            hasOverlap: true,
-            overlapStart: xOverlapStart,
-            overlapEnd: xOverlapEnd
-          });
-        }
-      } else {
-        // 无交叉：显示反方向边的距离（上-下、下-上）
-        if (myTop > bBottom) {
-          const dist = Math.round(myTop - bBottom);
-          if (dist < 100) {
-            gaps.push({
-              type: 'top',
-              targetBounds: bounds,
-              distance: dist,
-              currentEdge: myTop,
-              targetEdge: bBottom,
-              hasOverlap: false,
-              overlapStart: xOverlapStart,
-              overlapEnd: xOverlapEnd
-            });
-          }
-        }
-
-        if (bTop > myBottom) {
-          const dist = Math.round(bTop - myBottom);
-          if (dist < 100) {
-            gaps.push({
-              type: 'bottom',
-              targetBounds: bounds,
-              distance: dist,
-              currentEdge: myBottom,
-              targetEdge: bTop,
-              hasOverlap: false,
-              overlapStart: xOverlapStart,
-              overlapEnd: xOverlapEnd
-            });
-          }
-        }
-      }
-    });
-
-    return gaps;
-  }, [getElementBounds]);
-
-  interface SnapResult {
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-    snapped: boolean;
-    snappedGuides: AlignmentGuide[];
-    nearbyGuides: AlignmentGuide[];
-  }
-
-  const getActiveEdgesForMove = (): ActiveEdges => ({
-    left: true, right: true, top: true, bottom: true
-  });
-
-  const getActiveEdgesForResize = (
-    handle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w'
-  ): ActiveEdges => ({
-    left: handle.includes('w'),
-    right: handle.includes('e'),
-    top: handle.includes('n'),
-    bottom: handle.includes('s'),
-  });
-
-  const snapToGuidesInternal = useCallback((
-    guides: AlignmentGuide[],
-    currentX: number,
-    currentY: number,
-    currentW: number,
-    currentH: number,
-    activeEdges: ActiveEdges,
-    threshold: number = ALIGN_THRESHOLD
-  ): SnapResult => {
-    let resultX = currentX;
-    let resultY = currentY;
-    let snapped = false;
-    const snappedGuides: AlignmentGuide[] = [];
-    const nearbyGuides: AlignmentGuide[] = [];
-    const nearbyThreshold = threshold * 2;
-
-    const myLeft = currentX;
-    const myRight = currentX + currentW;
-    const myTop = currentY;
-    const myBottom = currentY + currentH;
-    const myCenterX = currentX + currentW / 2;
-    const myCenterY = currentY + currentH / 2;
-
-    const sortedGuides = [...guides].sort((a, b) => b.priority - a.priority);
-
-    let bestXDistance = threshold;
-    let bestXGuide: AlignmentGuide | null = null;
-    let bestXSnappedX = currentX;
-    const xGuideResults: Map<AlignmentGuide, { distance: number; snappedX: number | null }> = new Map();
-
-    for (const guide of sortedGuides) {
-      let distance = Infinity;
-      let snappedX: number | null = null;
-
-      switch (guide.type) {
-        case 'left':
-        case 'canvasLeft':
-        case 'userV':
-          if (activeEdges.left) {
-            distance = Math.abs(myLeft - guide.position);
-            if (distance < bestXDistance) {
-              snappedX = guide.position;
-            }
-          }
-          break;
-
-        case 'right':
-        case 'canvasRight':
-          if (activeEdges.right) {
-            distance = Math.abs(myRight - guide.position);
-            if (distance < bestXDistance) {
-              snappedX = guide.position - currentW;
-            }
-          }
-          break;
-
-        case 'centerX':
-        case 'canvasCenterX':
-          if (activeEdges.left || activeEdges.right) {
-            distance = Math.abs(myCenterX - guide.position);
-            if (distance < bestXDistance) {
-              snappedX = currentX + (guide.position - myCenterX);
-            }
-          }
-          break;
-
-        case 'spacingX':
-        case 'distributeX':
-          if (activeEdges.right) {
-            distance = Math.abs(myRight - guide.position);
-            if (distance < bestXDistance) {
-              snappedX = guide.position - currentW;
-            }
-          }
-          break;
-      }
-
-      xGuideResults.set(guide, { distance, snappedX });
-      if (snappedX !== null && distance < bestXDistance) {
-        bestXDistance = distance;
-        bestXSnappedX = snappedX;
-        bestXGuide = guide;
-      }
-    }
-
-    if (bestXGuide) {
-      resultX = bestXSnappedX;
-      snapped = true;
-      bestXGuide.isSnapped = true;
-      snappedGuides.push(bestXGuide);
-    }
-
-    let bestYDistance = threshold;
-    let bestYGuide: AlignmentGuide | null = null;
-    let bestYSnappedY = currentY;
-    const yGuideResults: Map<AlignmentGuide, { distance: number; snappedY: number | null }> = new Map();
-
-    for (const guide of sortedGuides) {
-      let distance = Infinity;
-      let snappedY: number | null = null;
-
-      switch (guide.type) {
-        case 'top':
-        case 'canvasTop':
-        case 'userH':
-          if (activeEdges.top) {
-            distance = Math.abs(myTop - guide.position);
-            if (distance < bestYDistance) {
-              snappedY = guide.position;
-            }
-          }
-          break;
-
-        case 'bottom':
-        case 'canvasBottom':
-          if (activeEdges.bottom) {
-            distance = Math.abs(myBottom - guide.position);
-            if (distance < bestYDistance) {
-              snappedY = guide.position - currentH;
-            }
-          }
-          break;
-
-        case 'centerY':
-        case 'canvasCenterY':
-          if (activeEdges.top || activeEdges.bottom) {
-            distance = Math.abs(myCenterY - guide.position);
-            if (distance < bestYDistance) {
-              snappedY = currentY + (guide.position - myCenterY);
-            }
-          }
-          break;
-
-        case 'spacingY':
-        case 'distributeY':
-          if (activeEdges.bottom) {
-            distance = Math.abs(myBottom - guide.position);
-            if (distance < bestYDistance) {
-              snappedY = guide.position - currentH;
-            }
-          }
-          break;
-      }
-
-      yGuideResults.set(guide, { distance, snappedY });
-      if (snappedY !== null && distance < bestYDistance) {
-        bestYDistance = distance;
-        bestYSnappedY = snappedY;
-        bestYGuide = guide;
-      }
-    }
-
-    if (bestYGuide) {
-      resultY = bestYSnappedY;
-      snapped = true;
-      bestYGuide.isSnapped = true;
-      snappedGuides.push(bestYGuide);
-    }
-
-    for (const [guide, result] of xGuideResults) {
-      if (result.snappedX !== null && result.distance <= nearbyThreshold && !snappedGuides.includes(guide)) {
-        nearbyGuides.push({ ...guide, distance: Math.round(result.distance), isSnapped: false, isNearby: true });
-      }
-    }
-    for (const [guide, result] of yGuideResults) {
-      if (result.snappedY !== null && result.distance <= nearbyThreshold && !snappedGuides.includes(guide) && !nearbyGuides.includes(guide)) {
-        nearbyGuides.push({ ...guide, distance: Math.round(result.distance), isSnapped: false, isNearby: true });
-      }
-    }
-
-    return {
-      x: resultX,
-      y: resultY,
-      w: currentW,
-      h: currentH,
-      snapped,
-      snappedGuides,
-      nearbyGuides
-    };
-  }, []);
 
   /**
    * 检测鼠标位置附近的所有元素（包括线段）
@@ -1775,7 +1152,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     // 如果没有直接获取到元素 ID，尝试检测附近的元素（10px 容差）
     if (!elementId && (currentTool === 'select' || currentTool === 'box-include' || currentTool === 'box-intersect')) {
-      const svgCoords = toSvgCoord(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       elementId = findElementAtPosition(svgCoords.x, svgCoords.y, 10);
     }
 
@@ -1887,8 +1264,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const handleMouseMove = (e: React.MouseEvent) => {
     const svgCoords = getSvgCoords(e.clientX, e.clientY);
     setLastMousePosition({
-      x: svgCoords.x + viewBoxOffsetX,
-      y: svgCoords.y + viewBoxOffsetY
+      x: svgCoords.x,
+      y: svgCoords.y
     });
 
     if (isDraggingCanvas || ((isPanMode || isSpacePressed) && isDraggingCanvas)) {
@@ -1927,11 +1304,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               const origX1 = x1, origY1 = y1, origX2 = x2, origY2 = y2;
               
               if (resizeHandleState.handle === 'start') {
-                x1 = Math.max(0, Math.round(origX1 + dx));
-                y1 = Math.max(0, Math.round(origY1 + dy));
+                x1 = Math.round(origX1 + dx);
+                y1 = Math.round(origY1 + dy);
               } else {
-                x2 = Math.max(0, Math.round(origX2 + dx));
-                y2 = Math.max(0, Math.round(origY2 + dy));
+                x2 = Math.round(origX2 + dx);
+                y2 = Math.round(origY2 + dy);
               }
               
               if (e.shiftKey) {
@@ -1969,7 +1346,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
                 line = line.replace(/\s+x2=[\d]+/g, '');
                 line = line.replace(/\s+y2=[\d]+/g, '');
                 // 然后更新起点和终点
-                line = line.replace(/--\s*@\([\d]+,\s*[\d]+\)->\([\d]+,\s*[\d]+\)/, `-- @(${x1}, ${y1})->(${x2}, ${y2})`);
+                line = line.replace(/--\s*@\(-?[\d]+,\s*-?[\d]+\)->\(-?[\d]+,\s*-?[\d]+\)/, `-- @(${x1}, ${y1})->(${x2}, ${y2})`);
               } else {
                 // 不是标准格式，转换为 -- @(x,y)->(x2,y2) 格式
                 // 先移除任何现有的 x, y, x2, y2 属性
@@ -2052,17 +1429,17 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         // 原有自由缩放逻辑
         switch (resizeHandleState.handle) {
           case 'nw':
-            newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
-            newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
+            newX = Math.round(resizeHandleState.elementX + dx);
+            newY = Math.round(resizeHandleState.elementY + dy);
             newW = Math.round(startW - dx);
             newH = Math.round(startH - dy);
             break;
           case 'n':
-            newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
+            newY = Math.round(resizeHandleState.elementY + dy);
             newH = Math.round(startH - dy);
             break;
           case 'ne':
-            newY = Math.max(0, Math.round(resizeHandleState.elementY + dy));
+            newY = Math.round(resizeHandleState.elementY + dy);
             newW = Math.round(startW + dx);
             newH = Math.round(startH - dy);
             break;
@@ -2077,25 +1454,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             newH = Math.round(startH + dy);
             break;
           case 'w':
-            newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
+            newX = Math.round(resizeHandleState.elementX + dx);
             newW = Math.round(startW - dx);
             break;
           case 'sw':
-            newX = Math.max(0, Math.round(resizeHandleState.elementX + dx));
+            newX = Math.round(resizeHandleState.elementX + dx);
             newW = Math.round(startW - dx);
             newH = Math.round(startH + dy);
             break;
         }
-      }
-
-      // 确保新的坐标不会导致元素超出边界
-      if (newX < 0) {
-        newW += newX;
-        newX = 0;
-      }
-      if (newY < 0) {
-        newH += newY;
-        newY = 0;
       }
 
       if (newW >= 10 && newH >= 10) {
@@ -2104,7 +1471,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           const elements = ast?.elements || [];
 
           setAlignmentGuides([]);
-          setEdgeGaps([]);
+          setDistanceLines([]);
 
           // 获取元素边界信息，确定正确的属性行
           const bounds = detectElementBounds(effectiveContent, lineNum);
@@ -2137,6 +1504,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       if (dragElementState.isLine) {
         setAlignmentGuides([]);
+        setDistanceLines([]);
       } else if (snapToGuides) {
         const newX = dragElementState.elementX + dx;
         const newY = dragElementState.elementY + dy;
@@ -2144,30 +1512,38 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const excludeIds = [dragElementState.elementId];
 
         const allElementsBoundsMap = getAllElementsBoundsMap(elements);
-        const elementGuides = collectElementGuides(excludeIds, elements, allElementsBoundsMap);
-        const canvasGuides = collectCanvasGuides();
-
-        const otherElementsBounds = elements.map((el: SolarWireElement, idx: number) => {
+        const snapElements: SnapElement[] = elements.map((el: SolarWireElement, idx: number) => {
           const id = el.location?.line?.toString() || (idx + 1).toString();
-          return { id, bounds: allElementsBoundsMap.get(id)! };
-        }).filter(e => e.bounds && !(e.bounds.w === 0 && e.bounds.h === 0));
+          const b = allElementsBoundsMap.get(id);
+          return { id, bounds: { x: b?.x ?? 0, y: b?.y ?? 0, w: b?.w ?? 0, h: b?.h ?? 0 } };
+        }).filter(e => !(e.bounds.w === 0 && e.bounds.h === 0));
 
-        const spacingGuides = collectSpacingGuides(currentBounds, otherElementsBounds, ALIGN_THRESHOLD);
-        const distributeGuides = collectDistributeGuides(currentBounds, otherElementsBounds, ALIGN_THRESHOLD);
-
-        const allGuides = [...elementGuides, ...canvasGuides, ...spacingGuides, ...distributeGuides];
+        const allGuides = collectAllGuides({
+          currentBounds,
+          excludeIds,
+          elements: snapElements,
+          threshold: SNAP_THRESHOLD,
+        });
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuidesInternal(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD);
+        const snapped = computeSnap(allGuides, newX, newY, elementW, elementH, activeEdges, SNAP_THRESHOLD);
 
         if (snapped.snapped) {
           dx = snapped.x - dragElementState.elementX;
           dy = snapped.y - dragElementState.elementY;
         }
 
-        setAlignmentGuides([...snapped.snappedGuides, ...snapped.nearbyGuides]);
+        setAlignmentGuides([...snapped.snappedGuides]);
+
+        const distances = calculateDistances(
+          { x: snapped.x, y: snapped.y, w: elementW, h: elementH },
+          snapElements,
+          excludeIds
+        );
+        setDistanceLines(distances);
       } else {
         setAlignmentGuides([]);
+        setDistanceLines([]);
       }
 
       const lineNum = parseInt(dragElementState.elementId);
@@ -2176,8 +1552,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           const lines = effectiveContent.split(/\r?\n/);
           const line = lines[lineNum - 1];
           const isEndRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
-          const canvasBounds = getCanvasBounds();
-          
           handleLineDrag(
             effectiveContent,
             lineNum,
@@ -2188,12 +1562,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dx,
             dy,
             rafUpdater,
-            isEndRelative,
-            canvasBounds
+            isEndRelative
           );
         } else {
           const gridSnapSize = useGridSnap ? 10 : 0;
-          const canvasBounds = getCanvasBounds();
           
           handleElementDrag(
             effectiveContent,
@@ -2204,8 +1576,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dy,
             rafUpdater,
             useGridSnap,
-            gridSnapSize,
-            canvasBounds
+            gridSnapSize
           );
         }
       }
@@ -2229,32 +1600,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         return;
       }
 
-      // 计算边界限制，确保所有元素都不会超出边界
-      const canvasBounds = getCanvasBounds();
-      let minDx = -Infinity;
-      let maxDx = Infinity;
-      let minDy = -Infinity;
-      let maxDy = Infinity;
-      
-      multiDragElements.forEach((el) => {
-        const minX = -el.elementX; // 不能小于0
-        const maxX = canvasBounds.width - el.elementX;
-        const minY = -el.elementY;
-        const maxY = canvasBounds.height - el.elementY;
-        
-        minDx = Math.max(minDx, minX);
-        maxDx = Math.min(maxDx, maxX);
-        minDy = Math.max(minDy, minY);
-        maxDy = Math.min(maxDy, maxY);
-      });
-      
-      // 限制dx和dy，确保所有元素都在边界内
-      dx = Math.max(minDx, Math.min(maxDx, dx));
-      dy = Math.max(minDy, Math.min(maxDy, dy));
-
       // 多选元素智能吸附
       if (snapToGuides) {
-        // 多选元素对齐吸附：不按 Alt 时始终执行（与网格吸附不互斥）
         const newX = groupBounds.x + dx;
         const newY = groupBounds.y + dy;
 
@@ -2265,29 +1612,34 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         });
 
         const otherElementsBoundsMap = getAllElementsBoundsMap(otherElements);
-        const elementGuides = collectElementGuides(excludeIds, otherElements, otherElementsBoundsMap);
-        const canvasGuides = collectCanvasGuides();
-        const userGuides = collectUserGuides();
-
-        const otherElementsBounds = otherElements.map((el: SolarWireElement, idx: number) => {
+        const snapElements: SnapElement[] = otherElements.map((el: SolarWireElement, idx: number) => {
           const id = el.location?.line?.toString() || (idx + 1).toString();
-          return { id, bounds: otherElementsBoundsMap.get(id)! };
-        }).filter(e => e.bounds && !(e.bounds.w === 0 && e.bounds.h === 0));
+          const b = otherElementsBoundsMap.get(id);
+          return { id, bounds: { x: b?.x ?? 0, y: b?.y ?? 0, w: b?.w ?? 0, h: b?.h ?? 0 } };
+        }).filter(e => !(e.bounds.w === 0 && e.bounds.h === 0));
 
-        const spacingGuides = collectSpacingGuides(groupBounds, otherElementsBounds, ALIGN_THRESHOLD);
-        const distributeGuides = collectDistributeGuides(groupBounds, otherElementsBounds, ALIGN_THRESHOLD);
-
-        const allGuides = [...elementGuides, ...canvasGuides, ...userGuides, ...spacingGuides, ...distributeGuides];
+        const allGuides = collectAllGuides({
+          currentBounds: groupBounds,
+          excludeIds,
+          elements: snapElements,
+          threshold: SNAP_THRESHOLD,
+        });
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuidesInternal(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD);
+        const snapped = computeSnap(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, SNAP_THRESHOLD);
 
         dx += snapped.snapped ? snapped.x - newX : 0;
         dy += snapped.snapped ? snapped.y - newY : 0;
 
-        setAlignmentGuides([...snapped.snappedGuides, ...snapped.nearbyGuides]);
+        setAlignmentGuides([...snapped.snappedGuides]);
 
-        // 应用网格吸附到整个组，而不是每个元素单独应用
+        const distances = calculateDistances(
+          { x: snapped.x, y: snapped.y, w: groupBounds.w, h: groupBounds.h },
+          snapElements,
+          excludeIds
+        );
+        setDistanceLines(distances);
+
         const gridSnapSize = 10;
         const snappedDx = Math.round(dx / gridSnapSize) * gridSnapSize;
         const snappedDy = Math.round(dy / gridSnapSize) * gridSnapSize;
@@ -2295,6 +1647,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         dy = snappedDy;
       } else {
         setAlignmentGuides([]);
+        setDistanceLines([]);
       }
 
       let newContent = effectiveContent;
@@ -2307,7 +1660,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const bounds = detectElementBounds(effectiveContent, lineNum);
         const attributeLine = bounds.attributeLine;
         
-        // dx和dy已经在前面统一限制，确保所有元素都在边界内
         let finalX = Math.round(el.elementX + dx);
         let finalY = Math.round(el.elementY + dy);
         
@@ -2342,10 +1694,63 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         currentY: e.clientY
       });
     } else {
-      // 更新悬停元素 - 使用 document.elementFromPoint 获取鼠标下的实际 SVG 元素
       const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
       const elementId = hoveredElement ? getElementIdFromSVGElement(hoveredElement as SVGElement) : null;
       setHoveredElement(elementId);
+    }
+
+    if (!dragElementState && multiDragElements.length === 0 && !resizeHandleState && !dragPreviewElement) {
+      if (altKeyPressed && selectedElements.length > 0 && hoveredElement) {
+        const selectedId = selectedElements[0];
+        if (selectedId !== hoveredElement) {
+          const selectedBounds = getElementBounds(selectedId);
+          const hoveredBounds = getElementBounds(hoveredElement);
+          if (selectedBounds && hoveredBounds &&
+              !(selectedBounds.w === 0 && selectedBounds.h === 0) &&
+              !(hoveredBounds.w === 0 && hoveredBounds.h === 0)) {
+            const snapElements: SnapElement[] = [{ id: hoveredElement, bounds: hoveredBounds }];
+            const distances = calculateDistances(selectedBounds, snapElements, []);
+            setDistanceLines(distances);
+          }
+        }
+      } else if (altKeyPressed && selectedElements.length > 0 && !hoveredElement) {
+        setDistanceLines([]);
+      }
+    }
+
+    if (!altKeyPressed && selectedElements.length > 0 && !dragElementState && multiDragElements.length === 0 && !resizeHandleState) {
+      const selectedId = selectedElements[0];
+      const selectedBounds = getElementBounds(selectedId);
+      if (selectedBounds && !(selectedBounds.w === 0 && selectedBounds.h === 0)) {
+        const elements = ast?.elements || [];
+        const allElementsBoundsMap = getAllElementsBoundsMap(elements);
+        const snapElements: SnapElement[] = elements.map((el: SolarWireElement, idx: number) => {
+          const id = el.location?.line?.toString() || (idx + 1).toString();
+          const b = allElementsBoundsMap.get(id);
+          return { id, bounds: { x: b?.x ?? 0, y: b?.y ?? 0, w: b?.w ?? 0, h: b?.h ?? 0 } };
+        }).filter(e => !(e.bounds.w === 0 && e.bounds.h === 0) && e.id !== selectedId);
+
+        let nearestElement: SnapElement | null = null;
+        let nearestDist = Infinity;
+        for (const el of snapElements) {
+          const cx1 = selectedBounds.x + selectedBounds.w / 2;
+          const cy1 = selectedBounds.y + selectedBounds.h / 2;
+          const cx2 = el.bounds.x + el.bounds.w / 2;
+          const cy2 = el.bounds.y + el.bounds.h / 2;
+          const dist = Math.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2);
+          if (dist < nearestDist) {
+            nearestDist = dist;
+            nearestElement = el;
+          }
+        }
+
+        if (nearestElement) {
+          const distances = calculateDistances(selectedBounds, [nearestElement], []);
+          setDistanceLines(distances);
+        } else {
+          setDistanceLines([]);
+        }
+      }
     }
   };
 
@@ -2390,7 +1795,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     e.dataTransfer.dropEffect = 'copy';
     
     if (dragPreviewElement) {
-      const svgCoords = toSvgCoord(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       setDragPreviewElement({
         ...dragPreviewElement,
         x: Math.round(svgCoords.x),
@@ -2404,7 +1809,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     const plainText = e.dataTransfer.getData('text/plain');
     if (plainText) {
-      const svgCoords = toSvgCoord(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       setDragPreviewElement({
         type: 'component',
         x: Math.round(svgCoords.x),
@@ -2419,7 +1824,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     try {
       const elementData = JSON.parse(jsonData);
-      const svgCoords = toSvgCoord(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       setDragPreviewElement({
         type: elementData.type,
         x: Math.round(svgCoords.x),
@@ -2445,7 +1850,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (imageFiles.length > 0) {
         // 不需要再次调用 handleImageDrop，因为它的实现已经在 useImageDrop hook 中处理了 preventDefault
         // 直接调用 onImageAdded 回调
-        const svgCoords = toSvgCoord(e.clientX, e.clientY);
+        const svgCoords = getSvgCoords(e.clientX, e.clientY);
         for (let i = 0; i < imageFiles.length; i++) {
           const file = imageFiles[i];
           try {
@@ -2454,7 +1859,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             handleImageAdded(relativePath, e.clientX + i * 20, e.clientY + i * 20, size);
           } catch (error) {
             console.error('Failed to save image:', error);
-            showToast(`Failed to save image: ${error instanceof Error ? error.message : String(error)}`, 'error');
+            feedback.toast.error(`Failed to save image: ${error instanceof Error ? error.message : String(error)}`);
           }
         }
         return;
@@ -2464,11 +1869,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (plainText) {
         // 验证拖放内容是否安全
         if (!validateDropContent(plainText)) {
-          showToast('Invalid or unsafe content', 'error');
+          feedback.toast.error('Invalid or unsafe content');
           return;
         }
         
-        const svgCoords = toSvgCoord(e.clientX, e.clientY);
+        const svgCoords = getSvgCoords(e.clientX, e.clientY);
         const x = Math.round(svgCoords.x);
         const y = Math.round(svgCoords.y);
 
@@ -2493,8 +1898,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               (match) => {
                 const m = match.match(/@\((\d+),\s*(\d+)\)/);
                 if (m) {
-                  const nx = Math.max(0, x + parseInt(m[1], 10));
-                  const ny = Math.max(0, y + parseInt(m[2], 10));
+                  const nx = x + parseInt(m[1], 10);
+                  const ny = y + parseInt(m[2], 10);
                   return `@(${nx},${ny})`;
                 }
                 return match;
@@ -2506,8 +1911,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               (match) => {
                 const m = match.match(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
                 if (m) {
-                  const nx = Math.max(0, x + parseInt(m[1], 10));
-                  const ny = Math.max(0, y + parseInt(m[2], 10));
+                  const nx = x + parseInt(m[1], 10);
+                  const ny = y + parseInt(m[2], 10);
                   return `->(${nx},${ny})`;
                 }
                 return match;
@@ -2521,6 +1926,20 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const currentContent = effectiveContent || '';
         const newContent = currentContent.trimEnd() + '\n\n' + adjustedCode;
         effectiveSetContent(newContent);
+
+        const existingLineCount = currentContent.trimEnd().split(/\r?\n/).length;
+        setTimeout(() => {
+          try {
+            const ast = parse(newContent);
+            const newElementIds = ast.elements
+              .filter((el: SolarWireElement) => (el.location?.line ?? 0) > existingLineCount)
+              .map((el: SolarWireElement) => String(el.location?.line));
+            if (newElementIds.length > 0) {
+              useSolarWireStore.getState().selectElements(newElementIds);
+            }
+          } catch {}
+        }, 50);
+
         return;
       }
 
@@ -2528,7 +1947,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (!jsonData) return;
 
       const elementData = JSON.parse(jsonData);
-      const svgCoords = toSvgCoord(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       const x = Math.round(svgCoords.x);
       const y = Math.round(svgCoords.y);
 
@@ -2548,18 +1967,18 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           break;
         case 'image':
           if (!allowImageElements) {
-            showToast('Image elements are not allowed in component editing mode', 'error', false);
+            feedback.toast.error('Image elements are not allowed in component editing mode');
             return;
           }
           {
             const api = (window as any).api;
             if (!api || !api.openFileDialog) {
-              showToast('File dialog not available', 'error', false);
+              feedback.toast.error('File dialog not available');
               return;
             }
             const projectDir = getProjectDir(currentPath, selectedFile?.path);
             if (!projectDir) {
-              showToast('Please open a project directory first', 'error', false);
+              feedback.toast.error('Please open a project directory first');
               return;
             }
             try {
@@ -2574,24 +1993,24 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
               const relativePath = `assets/images/${timestamp}_${sanitizedName}`;
 
-              showToast('Copying image...', 'info');
+              feedback.toast.info('Copying image...');
 
               try {
                 await api.ensureDir(`${projectDir}/assets/images`);
               } catch (dirErr) {
                 const errMsg = dirErr instanceof Error ? dirErr.message : String(dirErr);
-                showToast(`Failed to create assets directory: ${errMsg}`, 'error', false);
+                feedback.toast.error(`Failed to create assets directory: ${errMsg}`);
                 return;
               }
               try {
                 await api.copyFile(filePath, `${projectDir}/${relativePath}`);
               } catch (copyErr) {
                 const errMsg = copyErr instanceof Error ? copyErr.message : String(copyErr);
-                showToast(`Failed to copy image file: ${errMsg}`, 'error', false);
+                feedback.toast.error(`Failed to copy image file: ${errMsg}`);
                 return;
               }
 
-              showToast('Image added successfully', 'success');
+              feedback.toast.success('Image added successfully');
 
               const img = new Image();
               img.onload = () => {
@@ -2615,7 +2034,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             } catch (err) {
               console.error('Image insert failed:', err);
               const errMsg = err instanceof Error ? err.message : String(err);
-              showToast(`Failed to add image: ${errMsg}`, 'error', false);
+              feedback.toast.error(`Failed to add image: ${errMsg}`);
             }
             return;
           }
@@ -2643,7 +2062,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     e.dataTransfer.dropEffect = 'copy';
     
     if (dragPreviewElement) {
-      const svgCoords = toSvgCoord(e.clientX, e.clientY);
+      const svgCoords = getSvgCoords(e.clientX, e.clientY);
       setDragPreviewElement({
         ...dragPreviewElement,
         x: Math.round(svgCoords.x),
@@ -3115,178 +2534,24 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     );
   };
 
-  const renderAlignmentGuides = () => {
-    if (alignmentGuides.length === 0) return null;
+  const snapRenderContext: RenderContext = useMemo(() => ({
+    viewBox: viewBox || null,
+    scale,
+    primaryColor,
+  }), [viewBox, scale, primaryColor]);
 
-    const canvasBounds = getCanvasBounds();
+  const renderSnapOverlays = () => {
+    const guidesEl = renderAlignmentGuides(alignmentGuides, snapRenderContext);
+    const distancesEl = renderDistanceLines(distanceLines, snapRenderContext);
 
-    const isGuideSnapped = (guide: AlignmentGuide) => guide.isSnapped;
+    if (!guidesEl && !distancesEl) return null;
 
-    const isHorizontalGuide = (type: string) =>
-      type === 'top' || type === 'bottom' || type === 'centerY' ||
-      type === 'spacingY' || type === 'distributeY' || type === 'userH' ||
-      type === 'canvasTop' || type === 'canvasBottom' || type === 'canvasCenterY';
-
-    const renderSnappedGuide = (guide: AlignmentGuide, index: number) => {
-      const pos = guide.position;
-      const isH = isHorizontalGuide(guide.type);
-
-      return (
-        <g key={`align-${index}`} pointerEvents="none">
-          <line
-            x1={isH ? 0 : pos}
-            y1={isH ? pos : 0}
-            x2={isH ? canvasBounds.width : pos}
-            y2={isH ? pos : canvasBounds.height}
-            stroke={primaryColor}
-            strokeWidth={2 / scale}
-            strokeDasharray="none"
-            opacity={0.9}
-          />
-          {guide.distance && (
-            <>
-              <rect
-                x={isH ? canvasBounds.width / 2 - 18 / scale : pos + 4 / scale}
-                y={isH ? pos + 4 / scale : canvasBounds.height / 2 - 7 / scale}
-                width={36 / scale}
-                height={14 / scale}
-                fill="var(--bg-primary)"
-                fillOpacity={0.9}
-                rx={3 / scale}
-                stroke={primaryColor}
-                strokeWidth={0.5 / scale}
-              />
-              <text
-                x={isH ? canvasBounds.width / 2 : pos + 4 / scale}
-                y={isH ? pos + 14 / scale : canvasBounds.height / 2 + 4 / scale}
-                fontSize={`${9 / scale}px`}
-                fill={primaryColor}
-                textAnchor="middle"
-                fontFamily="Menlo, Consolas, monospace"
-              >
-                {guide.distance}px
-              </text>
-            </>
-          )}
-        </g>
-      );
-    };
-
-    const renderFaintGuide = (guide: AlignmentGuide, index: number) => {
-      const pos = guide.position;
-      const isH = isHorizontalGuide(guide.type);
-
-      return (
-        <line
-          key={`faint-${index}`}
-          x1={isH ? 0 : pos}
-          y1={isH ? pos : 0}
-          x2={isH ? canvasBounds.width : pos}
-          y2={isH ? pos : canvasBounds.height}
-          stroke={primaryColor}
-          strokeWidth={1 / scale}
-          strokeDasharray={`${4 / scale},${4 / scale}`}
-          opacity={0.3}
-          pointerEvents="none"
-        />
-      );
-    };
-
-    const renderNearbyGuide = (guide: AlignmentGuide, index: number) => {
-      const pos = guide.position;
-      const isH = isHorizontalGuide(guide.type);
-
-      return (
-        <g key={`nearby-${index}`} pointerEvents="none">
-          <line
-            x1={isH ? 0 : pos}
-            y1={isH ? pos : 0}
-            x2={isH ? canvasBounds.width : pos}
-            y2={isH ? pos : canvasBounds.height}
-            stroke={primaryColor}
-            strokeWidth={1.5 / scale}
-            strokeDasharray="none"
-            opacity={0.6}
-          />
-          {guide.distance && (
-            <text
-              x={isH ? canvasBounds.width / 2 : pos + 4 / scale}
-              y={isH ? pos - 4 / scale : canvasBounds.height / 2}
-              fontSize={`${8 / scale}px`}
-              fill={primaryColor}
-              textAnchor={isH ? "middle" : "start"}
-              opacity={0.6}
-              fontFamily="Menlo, Consolas, monospace"
-            >
-              {guide.distance}px
-            </text>
-          )}
-        </g>
-      );
-    };
-
-    const renderCanvasGuide = (guide: AlignmentGuide, index: number) => {
-      const pos = guide.position;
-      const isH = isHorizontalGuide(guide.type);
-
-      return (
-        <line
-          key={`canvas-${index}`}
-          x1={isH ? 0 : pos}
-          y1={isH ? pos : 0}
-          x2={isH ? canvasBounds.width : pos}
-          y2={isH ? pos : canvasBounds.height}
-          stroke={primaryColor}
-          strokeWidth={1 / scale}
-          strokeDasharray={`${6 / scale},${6 / scale}`}
-          opacity={0.5}
-          pointerEvents="none"
-        />
-      );
-    };
-
-    const renderUserGuide = (guide: AlignmentGuide, index: number) => {
-      const pos = guide.position;
-      const isH = isHorizontalGuide(guide.type);
-
-      return (
-        <line
-          key={`user-${index}`}
-          x1={isH ? 0 : pos}
-          y1={isH ? pos : 0}
-          x2={isH ? canvasBounds.width : pos}
-          y2={isH ? pos : canvasBounds.height}
-          stroke="#8B5CF6"
-          strokeWidth={2 / scale}
-          strokeDasharray="none"
-          opacity={0.8}
-          pointerEvents="none"
-        />
-      );
-    };
-
-    return alignmentGuides.map((guide, index) => {
-      if (guide.type.startsWith('canvas')) {
-        if ((guide.type === 'canvasCenterX' || guide.type === 'canvasCenterY') && !guide.isSnapped) {
-          return null;
-        }
-        return renderCanvasGuide(guide, index);
-      }
-
-      if (guide.type === 'userH' || guide.type === 'userV') {
-        return renderUserGuide(guide, index);
-      }
-
-      if (guide.isSnapped) {
-        return renderSnappedGuide(guide, index);
-      }
-
-      if (guide.isNearby) {
-        return renderNearbyGuide(guide, index);
-      }
-
-      return renderFaintGuide(guide, index);
-    });
+    return (
+      <g className="snap-overlays">
+        {guidesEl}
+        {distancesEl}
+      </g>
+    );
   };
 
   const renderEmpty = () => {
@@ -3308,6 +2573,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   useEffect(() => {
     const handleKeyDown = async (e: KeyboardEvent) => {
+      if (e.key === 'Alt') {
+        setAltKeyPressed(true);
+        return;
+      }
+
       const path = e.composedPath();
       const isInPreview = containerRef.current && path.includes(containerRef.current);
 
@@ -3358,8 +2628,19 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       if (!isInPreview || selectedElements.length === 0) return;
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Alt') {
+        setAltKeyPressed(false);
+        setDistanceLines([]);
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
   }, [selectedElements, effectiveContent, effectiveSetContent, selectElements, lastMousePosition, fileDir]);
 
   return (
@@ -3395,6 +2676,16 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }}
       tabIndex={0}
     >
+      {svg && containerSize.width > 0 && containerSize.height > 0 && (
+        <CanvasRuler
+          position={position}
+          scale={scale}
+          viewBoxOffset={{ x: viewBox?.x || 0, y: viewBox?.y || 0 }}
+          width={containerSize.width}
+          height={containerSize.height}
+        />
+      )}
+
       {svg && (
         <div
           ref={svgContainerRef}
@@ -3444,7 +2735,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
               {renderBoxSelection()}
               {renderReferenceLines()}
               {renderSelectionHandles()}
-              {renderAlignmentGuides()}
+              {renderSnapOverlays()}
             </g>
           </svg>
         </div>

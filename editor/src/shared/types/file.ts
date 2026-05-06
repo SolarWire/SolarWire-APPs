@@ -36,6 +36,7 @@ export interface FileState {
   openSolarWireSnippet?: (snippet: SolarWireSnippet) => Promise<void>;
   openDirectoryAtPath?: (dirPath: string) => Promise<void>;
   toggleDirectory?: (dirPath: string) => void;
+  expandToPath?: (filePath: string) => void;
   saveFile: () => Promise<void>;
   refreshCurrentDirectory: () => Promise<void>;
   toggleAutoRefresh: () => void;

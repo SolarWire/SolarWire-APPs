@@ -1,7 +1,8 @@
 .view-tabs-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
 }
 
 .view-tabs {
@@ -14,8 +15,8 @@
 
 .view-content {
   flex: 1;
-  height: 100%;
-  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
+  min-height: 0;
+  overflow: hidden;
 }
 
 .view-placeholder {

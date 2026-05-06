@@ -1,13 +1,6 @@
 import React from 'react';
+import type { SyntaxError } from '../../../shared/types/feedback';
 import './ErrorCard.css';
-
-export interface SyntaxError {
-  line: number;
-  column: number;
-  message: string;
-  severity: 'error' | 'warning';
-  source?: 'parser' | 'diagnostic';
-}
 
 interface ErrorCardProps {
   error: SyntaxError;
