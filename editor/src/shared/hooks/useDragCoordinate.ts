@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { absoluteToRelative, relativeToAbsolute } from '../utils/coordinate-converter';
+import { absoluteToRelative, relativeToAbsolute } from '../utils/line-coordinate-utils';
 
 export interface ElementBounds {
   x: number;

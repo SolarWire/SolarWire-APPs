@@ -7,6 +7,7 @@ import SolarWireToolbar from '../toolbar/SolarWireToolbar';
 import ErrorPanel from './ErrorPanel';
 import ErrorCard from './ErrorCard';
 import { useSolarWireStore, SelectionTool } from '../../stores/solarWireStore';
+import { usePreviewStore } from '../../stores/previewStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements, detectElementBounds, validateDropContent } from '../../../shared/utils/solarwire-utils';
@@ -149,8 +150,8 @@ function SolarWireVisualEditor({
   const setIsPanMode = useSolarWireStore(s => s.setIsPanMode);
   const showNotes = useSolarWireStore(s => s.showNotes);
   const setShowNotes = useSolarWireStore(s => s.setShowNotes);
-  const zoomLevel = useSolarWireStore(s => s.zoomLevel);
-  const setZoomLevel = useSolarWireStore(s => s.setZoomLevel);
+  const scale = usePreviewStore(s => s.scale);
+  const setScale = usePreviewStore(s => s.setScale);
   const isSpacePressed = useSolarWireStore(s => s.isSpacePressed);
   const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
   const setSelectedElements = useSolarWireStore(s => s.setSelectedElements);
@@ -413,8 +414,8 @@ function SolarWireVisualEditor({
     setSelectedElements(newSelectedIds);
   }, [content, handleContentChange, selectedElements, setSelectedElements]);
 
-  const handleZoomIn = () => setZoomLevel(Math.min(zoomLevel + 10, 200));
-  const handleZoomOut = () => setZoomLevel(Math.max(zoomLevel - 10, 25));
+  const handleZoomIn = () => setScale(Math.min(scale + 0.1, 2));
+  const handleZoomOut = () => setScale(Math.max(scale - 0.1, 0.25));
 
   const handleDropComponentToCanvas = useCallback((component: Component, x: number, y: number) => {
     if (!component.code) {
@@ -517,13 +518,13 @@ function SolarWireVisualEditor({
     showLayerPanel,
     showComponentLibrary,
     showNotes,
-    zoomLevel,
+    scale,
     isPanMode,
     isSpacePressed,
     selectionTool,
     selectedCount: selectedElements.length,
     snapToGuides
-  }), [showLayerPanel, showComponentLibrary, showNotes, zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedElements.length, snapToGuides]);
+  }), [showLayerPanel, showComponentLibrary, showNotes, scale, isPanMode, isSpacePressed, selectionTool, selectedElements.length, snapToGuides]);
 
   const toolbarCallbacks = useMemo(() => ({
     onToggleLayerPanel: () => setShowLayerPanel(!showLayerPanel),
@@ -548,10 +549,8 @@ function SolarWireVisualEditor({
 
       <div className="solarwire-content">
         <SolarWirePreview
-            zoomLevel={zoomLevel}
             selectionTool={selectionTool}
             showNotes={showNotes}
-            onZoomChange={setZoomLevel}
             isPanMode={isPanMode}
             isSpacePressed={isSpacePressed}
             snapToGuides={snapToGuides}
@@ -561,7 +560,6 @@ function SolarWireVisualEditor({
             allowImageElements={allowImageElements}
             onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
             hasSyntaxErrors={currentSyntaxErrors.length > 0}
-            errorSourceId={errorSourceId}
           />
 
         {currentSyntaxErrors.length > 0 && (

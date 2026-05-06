@@ -4,7 +4,6 @@ import { useAppStore } from './stores/appStore';
 import { useFileStore } from './stores/fileStore';
 import { useSettingsStore } from './stores/settingsStore';
 import { useI18nStore } from './stores/i18nStore';
-import { EditorProvider } from './context/EditorContext';
 import { FeedbackProvider } from './components/feedback/FeedbackProvider';
 import './styles/global.css';
 
@@ -57,12 +56,10 @@ function App(): React.ReactElement {
   }, [openFileAtPath, openDirectoryAtPath]);
 
   return (
-    <EditorProvider>
-      <div className="app">
-        <AppLayout />
-        <FeedbackProvider />
-      </div>
-    </EditorProvider>
+    <div className="app">
+      <AppLayout />
+      <FeedbackProvider />
+    </div>
   );
 }
 

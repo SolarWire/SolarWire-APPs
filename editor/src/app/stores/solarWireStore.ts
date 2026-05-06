@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
 
 // 选择工具类型
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
@@ -20,8 +19,6 @@ interface SolarWireState {
   resizeState: any;
   /** 是否显示备注 */
   showNotes: boolean;
-  /** 缩放级别 */
-  zoomLevel: number;
   /** 空格键是否按下 */
   isSpacePressed: boolean;
   /** 预览是否聚焦 */
@@ -40,8 +37,6 @@ interface SolarWireState {
   setResizeState: (state: any) => void;
   /** 设置是否显示备注 */
   setShowNotes: (show: boolean) => void;
-  /** 设置缩放级别 */
-  setZoomLevel: (zoom: number) => void;
   /** 设置空格键按下状态 */
   setIsSpacePressed: (pressed: boolean) => void;
   /** 设置预览聚焦状态 */
@@ -54,12 +49,20 @@ interface SolarWireState {
  */
 export const useSolarWireStore = create<SolarWireState>((set) => ({
   selectedElements: [],
-  selectionTool: 'select',
+  selectionTool: (() => {
+    try {
+      const saved = localStorage.getItem('solarwire-settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.selectionTool) return parsed.selectionTool;
+      }
+    } catch {}
+    return 'select';
+  })(),
   isPanMode: false,
   dragState: null,
   resizeState: null,
   showNotes: true,
-  zoomLevel: 100,
   isSpacePressed: false,
   isPreviewFocused: false,
 
@@ -78,7 +81,12 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
    */
   setSelectionTool: (tool: SelectionTool) => {
     set({ selectionTool: tool });
-    eventBus.emit(EditorEvents.SETTINGS_CHANGED, { selectionTool: tool });
+    try {
+      const saved = localStorage.getItem('solarwire-settings');
+      const parsed = saved ? JSON.parse(saved) : {};
+      parsed.selectionTool = tool;
+      localStorage.setItem('solarwire-settings', JSON.stringify(parsed));
+    } catch {}
   },
   
   /**
@@ -100,11 +108,6 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
    * 设置是否显示备注
    */
   setShowNotes: (show) => set({ showNotes: show }),
-  
-  /**
-   * 设置缩放级别
-   */
-  setZoomLevel: (zoom) => set({ zoomLevel: zoom }),
   
   /**
    * 设置空格键按下状态

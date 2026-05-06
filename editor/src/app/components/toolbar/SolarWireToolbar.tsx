@@ -9,7 +9,7 @@ interface ToolbarState {
   showLayerPanel: boolean;
   showComponentLibrary: boolean;
   showNotes: boolean;
-  zoomLevel: number;
+  scale: number;
   isPanMode: boolean;
   isSpacePressed: boolean;
   selectionTool: SelectionTool;
@@ -45,7 +45,7 @@ const selectionTools = [
 const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks }) => {
   const {
     showLayerPanel, showComponentLibrary, showNotes,
-    zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedCount, snapToGuides
+    scale, isPanMode, isSpacePressed, selectionTool, selectedCount, snapToGuides
   } = state;
   const {
     onToggleLayerPanel, onToggleComponentLibrary, onToggleNotes,
@@ -87,7 +87,7 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks })
       <div className="toolbar-divider"></div>
         <div className="zoom-controls">
           <button className="zoom-button" onClick={onZoomOut}>-</button>
-          <span className="zoom-label">{zoomLevel}%</span>
+          <span className="zoom-label">{Math.round(scale * 100)}%</span>
           <button className="zoom-button" onClick={onZoomIn}>+</button>
         </div>
       </div>

@@ -8,15 +8,22 @@
   flex-shrink: 0;
 }
 
-.left-panel-logo {
-  width: 20px;
-  height: 20px;
-}
-
-.left-panel-actions {
+.left-panel-header-left {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+.left-panel-header-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.left-panel-logo {
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
 }
 
 .left-panel-action-btn {

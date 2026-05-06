@@ -11,8 +11,15 @@
 }
 
 .blank-mode-icon {
-  font-size: 64px;
   margin-bottom: 24px;
+  display: flex;
+  justify-content: center;
+}
+
+.blank-mode-logo {
+  width: 64px;
+  height: 64px;
+  opacity: 0.6;
 }
 
 .blank-mode-title {

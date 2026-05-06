@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
 import { feedback } from './feedbackStore';
 
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
@@ -18,14 +17,12 @@ const defaultFavoriteColors = [
 export interface SettingsState {
   primaryColor: string;
   favoriteColors: string[];
-  selectionTool: SelectionTool;
   noteTextareaHeight: number;
   textTextareaHeight: number;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
   resetFavoriteColors: () => void;
-  setSelectionTool: (tool: SelectionTool) => void;
   setNoteTextareaHeight: (height: number) => void;
   setTextTextareaHeight: (height: number) => void;
   loadSettings: () => void;
@@ -35,7 +32,6 @@ export interface SettingsState {
 const defaultSettings = {
   primaryColor: '#FCA506',
   favoriteColors: defaultFavoriteColors,
-  selectionTool: 'select' as SelectionTool,
   noteTextareaHeight: 120,
   textTextareaHeight: 120,
 };
@@ -47,11 +43,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ primaryColor: color });
     get().saveSettings();
     document.documentElement.style.setProperty('--accent-color', color);
-  },
-
-  setSelectionTool: (tool: SelectionTool) => {
-    set({ selectionTool: tool });
-    get().saveSettings();
   },
 
   addFavoriteColor: (color: string) => {
@@ -95,20 +86,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         set({
           primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
           favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
-          selectionTool: parsed.selectionTool || defaultSettings.selectionTool,
           noteTextareaHeight: parsed.noteTextareaHeight || defaultSettings.noteTextareaHeight,
           textTextareaHeight: parsed.textTextareaHeight || defaultSettings.textTextareaHeight,
         });
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
       }
-      
-      // 监听来自 solarWireStore 的 selectionTool 变化
-      eventBus.on(EditorEvents.SETTINGS_CHANGED, (data: { selectionTool?: SelectionTool }) => {
-        if (data.selectionTool !== undefined) {
-          set({ selectionTool: data.selectionTool });
-          get().saveSettings();
-        }
-      });
     } catch (error) {
       console.error('Failed to load settings:', error);
       feedback.toast.error('Failed to load settings');
@@ -117,11 +99,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: () => {
     try {
-      const { primaryColor, favoriteColors, selectionTool, noteTextareaHeight, textTextareaHeight } = get();
+      const { primaryColor, favoriteColors, noteTextareaHeight, textTextareaHeight } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
         primaryColor,
         favoriteColors,
-        selectionTool,
         noteTextareaHeight,
         textTextareaHeight,
       }));

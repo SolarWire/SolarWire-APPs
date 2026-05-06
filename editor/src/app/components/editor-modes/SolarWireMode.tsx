@@ -15,7 +15,6 @@ function SolarWireMode(): React.ReactElement {
   const { selectedFile, fullFileContent, currentSnippet, syncFullFileContent } = useFileStore();
   const selectedElements = useSolarWireStore(s => s.selectedElements);
   const setSelectedElements = useSolarWireStore(s => s.setSelectedElements);
-  const zoomLevel = useSolarWireStore(s => s.zoomLevel);
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
   const [highlightTrigger, setHighlightTrigger] = useState(0);

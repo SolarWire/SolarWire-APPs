@@ -3,14 +3,8 @@ import { useCoordinateSystem } from '../../../shared/hooks/useCoordinateSystem';
 import { ViewportManager } from '../../../shared/utils/ViewportManager';
 import { useDragCoordinate } from '../../../shared/hooks/useDragCoordinate';
 import {
-  getLineStartCoords,
-  getLineEndCoords,
-  getLineStartMode,
-  getLineEndMode,
-  updateLineEndRelative,
-  updateLineEndAbsolute,
   getLineCoordinates
-} from '../../../shared/utils/coordinate-converter';
+} from '../../../shared/utils/line-coordinate-utils';
 import {
   createRafContentUpdater,
   isValidFileDir,
@@ -210,14 +204,10 @@ const handleElementDrag = (
  * SolarWire 预览组件的属性接口
  */
 interface SolarWirePreviewProps {
-  /** 缩放级别（0-200） */
-  zoomLevel: number;
   /** 当前选择的工具 */
   selectionTool: SelectionTool;
   /** 是否显示备注 */
   showNotes?: boolean;
-  /** 缩放变化回调 */
-  onZoomChange?: (zoom: number) => void;
   /** 是否处于平移模式 */
   isPanMode?: boolean;
   /** 空格键是否按下 */
@@ -248,7 +238,7 @@ interface SolarWirePreviewProps {
  * SolarWire 预览组件
  * 提供可视化编辑功能，包括元素拖拽、缩放、选择等交互
  */
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, snapToGuides = true, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false }: SolarWirePreviewProps): React.ReactElement {
+function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, isSpacePressed = false, snapToGuides = true, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false }: SolarWirePreviewProps): React.ReactElement {
   // 实例唯一标识，用于区分多个预览实例
   const instanceId = useRef(Math.random().toString(36).substr(2, 9)).current;
   // 选中的元素 ID 列表
@@ -304,11 +294,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   // 创建 RAF 内容更新器，用于优化性能
   const rafUpdater = useMemo(() => createRafContentUpdater(effectiveSetContent), [effectiveSetContent]);
-
-  // 同步缩放级别到 scale
-  useEffect(() => {
-    setScale(zoomLevel / 100);
-  }, [zoomLevel]);
 
   // SVG 容器引用
   const svgContainerRef = useRef<HTMLDivElement>(null);
@@ -491,9 +476,9 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   // 初始化缩放
   useEffect(() => {
     if (!isInitialized) {
-      setScale(zoomLevel / 100);
+      setScale(1);
     }
-  }, [zoomLevel, isInitialized]);
+  }, [isInitialized]);
 
   // 提供 SVG 导出函数
   useEffect(() => {
@@ -566,10 +551,6 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       setScale(newScale);
       setPosition({ x: newX, y: newY });
       setIsInitialized(true);
-
-      if (onZoomChange) {
-        onZoomChange(Math.round(newScale * 100));
-      }
     };
 
     container.addEventListener('wheel', handleWheelEvent, { passive: false });
@@ -577,7 +558,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return () => {
       container.removeEventListener('wheel', handleWheelEvent);
     };
-  }, [scale, position, onZoomChange]);
+  }, [scale, position]);
 
   /**
    * 处理 React 滚轮事件
@@ -602,11 +583,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     setScale(newScale);
     setPosition({ x: newX, y: newY });
     setIsInitialized(true);
-
-    if (onZoomChange) {
-      onZoomChange(Math.round(newScale * 100));
-    }
-  }, [scale, position, onZoomChange]);
+  }, [scale, position]);
 
   /**
    * 从 SVG 元素获取元素 ID
