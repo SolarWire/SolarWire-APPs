@@ -1,3 +1,25 @@
+/* ========================================
+   SolarWire Editor - 全局样式文件
+   ========================================
+   
+   功能说明：
+   1. 定义全局CSS变量系统（主题色、字体、z-index等）
+   2. 提供暗色和亮色主题支持
+   3. 实现ResizableDivider全场景保护机制
+   4. 统一滚动条样式
+   5. 标准化字体大小体系
+   
+   使用规范：
+   - 所有组件应优先使用CSS变量而非硬编码值
+   - 主题切换通过修改body类名实现
+   - z-index层级管理遵循标准化体系
+   
+   更新记录：
+   - 2026-04-28: 添加字体大小变量、z-index层级管理、移除响应式代码
+   - 2026-04-28: 统一滚动条样式，修复硬编码颜色
+   ======================================== */
+
+/* 全局重置样式 */
 * {
   margin: 0;
   padding: 0;
@@ -5,130 +27,285 @@
 }
 
 :root {
-  /* 背景色 */
-  --bg-primary: #1e1e1e;
-  --bg-secondary: #252526;
-  --bg-tertiary: #2d2d2d;
-  --bg-light: #f5f5f5;
-  --bg-hover: #3d3d3d;
-  --bg-selected: #0e639c;
+  /* ========================================
+     暗色主题 (Dark Theme) CSS变量定义
+     ======================================== */
   
-  /* 文本色 */
-  --text-primary: #ffffff;
-  --text-secondary: #cccccc;
-  --text-muted: #888888;
-  --text-dark: #333333;
-  --text-info: #9cdcfe;
+  /* 背景色系统 - 从深到浅的层级 */
+  --bg-primary: #1e1e1e;     /* 主要背景色 - 最深 */
+  --bg-secondary: #252526;   /* 次要背景色 - 面板、侧边栏 */
+  --bg-tertiary: #2d2d2d;     /* 第三级背景色 - 输入框、按钮 */
+  --bg-light: #f5f5f5;       /* 浅色背景 - 用于对比 */
+  --bg-hover: #3d3d3d;       /* 悬停状态背景色 */
+  --bg-selected: #0e639c;    /* 选中状态背景色 */
   
-  /* 边框色 */
-  --border-color: #3c3c3c;
-  --border-light: #cccccc;
-  --border-lighter: #ddd;
-  --border-dark: #404040;
+  /* 文本色系统 - 从深到浅的对比度 */
+  --text-primary: #ffffff;   /* 主要文本色 - 最高对比度 */
+  --text-secondary: #cccccc; /* 次要文本色 - 中等对比度 */
+  --text-muted: #888888;     /* 弱化文本色 - 低对比度 */
+  --text-dark: #333333;     /* 深色文本 - 用于亮色主题 */
+  --text-info: #9cdcfe;     /* 信息文本色 - 蓝色调 */
   
-  /* 强调色 */
-  --accent-color: #FCA506;
-  --accent-hover: #e89700;
-  --primary-color: #007bff;
-  --status-bar-bg: #007acc;
+  /* 边框色系统 - 不同权重的边框 */
+  --border-color: #3c3c3c;   /* 标准边框色 */
+  --border-light: #cccccc;   /* 浅色边框 - 用于亮色主题 */
+  --border-lighter: #ddd;    /* 更浅边框 - 细分使用 */
+  --border-dark: #404040;     /* 深色边框 - 强调边框 */
   
-  /* 主色派生变量 - 统一透明度 */
+  /* 强调色系统 - 品牌色和功能色 */
+  --accent-color: #FCA506;   /* 主强调色 - SolarWire品牌橙 */
+  --accent-hover: #e89700;   /* 强调色悬停状态 */
+  --primary-color: #007bff;  /* 主色调 - 蓝色系 */
+  --status-bar-bg: #007acc;  /* 状态栏背景色 */
+  
+  /* 主色派生变量 - 统一透明度体系 */
   --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
   --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
   --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
   --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
   --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
   
-  /* 基础色 */
-  --white: #ffffff;
-  --black: #000000;
+  /* 基础色 - 纯色定义 */
+  --white: #ffffff;          /* 纯白色 */
+  --black: #000000;          /* 纯黑色 */
   
-  /* 语义化颜色 */
-  --error-bg: rgba(211, 47, 47, 0.1);
-  --error-border: rgba(211, 47, 47, 0.5);
-  --error-text: #ff6b6b;
-  --error-bg-solid: #d32f2f;
-  --warning-bg: rgba(255, 152, 0, 0.1);
-  --warning-border: rgba(255, 152, 0, 0.5);
-  --warning-text: #ff9800;
-  --success-bg: rgba(76, 175, 80, 0.1);
-  --success-border: rgba(76, 175, 80, 0.5);
-  --success-text: #4caf50;
+  /* 语义化颜色 - 状态和反馈色彩 */
+  --error-bg: rgba(211, 47, 47, 0.1);        /* 错误背景色 - 透明红 */
+  --error-border: rgba(211, 47, 47, 0.5);     /* 错误边框色 - 半透明红 */
+  --error-text: #ff6b6b;                     /* 错误文本色 - 鲜红色 */
+  --error-bg-solid: #d32f2f;                 /* 错误实色背景 - 深红色 */
+  --warning-bg: rgba(255, 152, 0, 0.1);        /* 警告背景色 - 透明橙 */
+  --warning-border: rgba(255, 152, 0, 0.5);     /* 警告边框色 - 半透明橙 */
+  --warning-text: #ff9800;                     /* 警告文本色 - 橙色 */
+  --success-bg: rgba(76, 175, 80, 0.1);        /* 成功背景色 - 透明绿 */
+  --success-border: rgba(76, 175, 80, 0.5);     /* 成功边框色 - 半透明绿 */
+  --success-text: #4caf50;                     /* 成功文本色 - 绿色 */
   
-  /* 状态颜色 */
-  --status-blue: #2196f3;
-  --status-gray: #9e9e9e;
-  --status-orange: #ffb347;
-  --status-green: #4caf50;
+  /* 状态指示颜色 - 用于状态标识和标签 */
+  --status-blue: #2196f3;   /* 信息状态 - 蓝色 */
+  --status-gray: #9e9e9e;   /* 中性状态 - 灰色 */
+  --status-orange: #ffb347; /* 警告状态 - 橙色 */
+  --status-green: #4caf50;  /* 成功状态 - 绿色 */
   
-  /* 其他常用色 */
-  --divider-bg: #666;
-  --divider-horizontal: var(--accent-color);
+  /* 功能性颜色 - 特定UI组件使用 */
+  --divider-bg: #666;               /* 分隔线背景色 */
+  --divider-horizontal: var(--accent-color); /* 水平分隔线色 - 使用强调色 */
   
-  /* 网格颜色 */
-  --grid-color: rgba(128, 128, 128, 0.1);
+  /* 辅助颜色 - 装饰和背景 */
+  --grid-color: rgba(128, 128, 128, 0.1);  /* 网格线颜色 - 浅灰色透明 */
+  
+  /* ========================================
+     滚动条样式标准化变量
+     ========================================
+     统一所有组件的滚动条外观和交互效果
+  ======================================== */
+  --scrollbar-width: 14px;           /* 滚动条宽度 */
+  --scrollbar-height: 10px;          /* 滚动条高度 */
+  --scrollbar-track: transparent;     /* 滚动条轨道背景 - 透明 */
+  --scrollbar-thumb: var(--border-color); /* 滚动条滑块颜色 - 使用边框色 */
+  --scrollbar-thumb-hover: var(--text-muted); /* 滑块悬停颜色 - 使用弱化文本色 */
+  --scrollbar-corner: transparent;    /* 滚动条角落颜色 - 透明 */
+  
+  /* ========================================
+     z-index 层级管理标准化体系
+     ========================================
+     确保UI元素的正确层级关系，避免遮挡问题
+     层级从低到高：基础 -> 面板 -> 模态框 -> 弹出层 -> 菜单 -> 通知
+     规则：所有 z-index 必须使用变量，禁止硬编码
+  ======================================== */
+  --z-base: 1;                    /* 基础内容（列表项、折叠区域等） */
+  --z-drag-area: 5;               /* 拖拽区域 */
+  --z-drag-handle: 6;             /* 拖拽手柄 */
+  --z-resizable-divider: 10;      /* 可调整大小分隔条 */
+  --z-dropdown: 10;               /* 下拉菜单 */
+  --z-toolbar: 20;                /* 工具栏 */
+  --z-preview-controls: 20;       /* 预览控件（缩放等） */
+  --z-drag-preview: 100;          /* 拖拽预览（临时浮动） */
+  --z-layer-panel: 45;            /* 图层面板（低于模态框） */
+  --z-error-panel: 48;            /* 错误面板/错误卡片（低于模态框） */
+  --z-overlay-backdrop: 50;       /* 模态框遮罩 */
+  --z-modal: 50;                  /* 模态框 */
+  --z-popover: 60;                /* 弹出层（颜色选择器等） */
+  --z-tooltip: 70;                /* 工具提示 */
+  --z-context-menu: 80;           /* 右键菜单（可覆盖模态框） */
+  --z-toast: 90;                  /* 提示消息 */
+  --z-notification: 95;           /* 通知（导出通知等） */
+  --z-color-picker-popup: 60;     /* 颜色选择器弹出（= popover） */
+  
+  /* ========================================
+     字体大小标准化体系
+     ========================================
+     统一字体大小规范，确保视觉层次和可读性
+     从最小到最大：xs -> sm -> base -> md -> lg -> xl -> 2xl -> 3xl
+  ======================================== */
+  --font-size-xs: 10px;   /* 超小字体 - 标签、徽章 */
+  --font-size-sm: 11px;   /* 小字体 - 辅助信息 */
+  --font-size-base: 12px; /* 基础字体 - 默认文本 */
+  --font-size-md: 13px;   /* 中等字体 - 正文内容 */
+  --font-size-lg: 14px;   /* 大字体 - 重要文本 */
+  --font-size-xl: 16px;   /* 超大字体 - 小标题 */
+  --font-size-2xl: 18px;  /* 2倍大字体 - 标题 */
+  --font-size-3xl: 20px;  /* 3倍大字体 - 大标题 */
 }
 
 body.theme-light {
-  /* 背景色 */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f5f5f5;
-  --bg-tertiary: #eeeeee;
-  --bg-light: #f5f5f5;
-  --bg-hover: #e0e0e0;
-  --bg-selected: #0e639c;
+  /* 背景色系统 - 从浅到深的层级（与暗色主题相反） */
+  --bg-primary: #ffffff;     /* 主要背景色 - 纯白色 */
+  --bg-secondary: #f5f5f5;   /* 次要背景色 - 浅灰色 */
+  --bg-tertiary: #eeeeee;     /* 第三级背景色 - 更浅灰色 */
+  --bg-light: #f5f5f5;       /* 浅色背景 - 保持一致 */
+  --bg-hover: #e0e0e0;       /* 悬停状态背景色 - 中灰色 */
+  --bg-selected: #0e639c;    /* 选中状态背景色 - 保持蓝色 */
   
-  /* 文本色 */
-  --text-primary: #1a1a1a;
-  --text-secondary: #444444;
-  --text-muted: #888888;
-  --text-dark: #333333;
-  --text-info: #9cdcfe;
+  /* 文本色系统 - 从深到浅的对比度（与暗色主题相反） */
+  --text-primary: #333333;   /* 主要文本色 - 深灰色 */
+  --text-secondary: #666666; /* 次要文本色 - 中灰色 */
+  --text-muted: #999999;     /* 弱化文本色 - 浅灰色 */
+  --text-dark: #333333;     /* 深色文本 - 保持一致 */
+  --text-info: #007acc;     /* 信息文本色 - 蓝色 */
   
-  /* 边框色 */
-  --border-color: #e0e0e0;
-  --border-light: #cccccc;
-  --border-lighter: #ddd;
-  --border-dark: #404040;
+  /* 边框色系统 - 适配亮色主题的边框 */
+  --border-color: #ddd;      /* 标准边框色 - 浅灰色 */
+  --border-light: #ddd;      /* 浅色边框 - 保持一致 */
+  --border-lighter: #ddd;    /* 更浅边框 - 保持一致 */
+  --border-dark: #ccc;       /* 深色边框 - 中灰色 */
   
-  /* 强调色 */
-  --accent-color: #FCA506;
-  --accent-hover: #e89700;
-  --primary-color: #007bff;
-  --status-bar-bg: #007acc;
+  /* 强调色系统 - 保持品牌一致性 */
+  --accent-color: #FCA506;   /* 主强调色 - SolarWire品牌橙 */
+  --accent-hover: #e89700;   /* 强调色悬停状态 */
+  --primary-color: #007bff;  /* 主色调 - 蓝色系 */
+  --status-bar-bg: #007acc;  /* 状态栏背景色 */
   
-  /* 主色派生变量 - 统一透明度 */
+  /* 主色派生变量 - 统一透明度体系 */
   --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
   --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
   --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
   --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
   --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
   
-  /* 基础色 */
-  --white: #ffffff;
-  --black: #000000;
+  /* 基础色 - 保持纯色定义 */
+  --white: #ffffff;          /* 纯白色 */
+  --black: #000000;          /* 纯黑色 */
   
-  /* 语义化颜色（亮色主题） */
-  --error-bg: rgba(211, 47, 47, 0.1);
-  --error-border: rgba(211, 47, 47, 0.5);
-  --error-text: #d32f2f;
-  --error-bg-solid: #d32f2f;
-  --warning-bg: rgba(255, 152, 0, 0.1);
-  --warning-border: rgba(255, 152, 0, 0.5);
-  --warning-text: #ff9800;
-  --success-bg: rgba(76, 175, 80, 0.1);
-  --success-border: rgba(76, 175, 80, 0.5);
-  --success-text: #4caf50;
+  /* 语义化颜色 - 适配亮色主题的状态色彩 */
+  --error-bg: rgba(211, 47, 47, 0.1);        /* 错误背景色 - 透明红 */
+  --error-border: rgba(211, 47, 47, 0.5);     /* 错误边框色 - 半透明红 */
+  --error-text: #d32f2f;                     /* 错误文本色 - 深红色 */
+  --error-bg-solid: #d32f2f;                 /* 错误实色背景 - 深红色 */
+  --warning-bg: rgba(255, 152, 0, 0.1);        /* 警告背景色 - 透明橙 */
+  --warning-border: rgba(255, 152, 0, 0.5);     /* 警告边框色 - 半透明橙 */
+  --warning-text: #f57c00;                     /* 警告文本色 - 深橙色 */
+  --success-bg: rgba(76, 175, 80, 0.1);        /* 成功背景色 - 透明绿 */
+  --success-border: rgba(76, 175, 80, 0.5);     /* 成功边框色 - 半透明绿 */
+  --success-text: #388e3c;                     /* 成功文本色 - 深绿色 */
   
-  /* 状态颜色 */
-  --status-blue: #2196f3;
-  --status-gray: #9e9e9e;
-  --status-orange: #ffb347;
-  --status-green: #4caf50;
+  /* 状态指示颜色 - 保持与暗色主题一致 */
+  --status-blue: #2196f3;   /* 信息状态 - 蓝色 */
+  --status-gray: #9e9e9e;   /* 中性状态 - 灰色 */
+  --status-orange: #ffb347; /* 警告状态 - 橙色 */
+  --status-green: #4caf50;  /* 成功状态 - 绿色 */
   
-  /* 其他常用色 */
-  --divider-bg: #666;
-  --divider-horizontal: var(--accent-color);
+  /* 功能性颜色 - 保持一致性 */
+  --divider-bg: #666;               /* 分隔线背景色 */
+  --divider-horizontal: var(--accent-color); /* 水平分隔线色 - 使用强调色 */
+  
+  /* 辅助颜色 - 保持一致性 */
+  --grid-color: rgba(128, 128, 128, 0.1);  /* 网格线颜色 - 浅灰色透明 */
+  
+  /* 滚动条样式 - 继承全局标准化变量 */
+  --scrollbar-width: 14px;
+  --scrollbar-height: 10px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: var(--border-color);
+  --scrollbar-thumb-hover: var(--text-muted);
+  --scrollbar-corner: transparent;
+  
+  /* z-index 层级管理 - 继承 :root 标准化体系，不覆盖 */
+  
+  /* 字体大小标准化 - 继承全局标准化体系 */
+  --font-size-xs: 10px;
+  --font-size-sm: 11px;
+  --font-size-base: 12px;
+  --font-size-md: 13px;
+  --font-size-lg: 14px;
+  --font-size-xl: 16px;
+  --font-size-2xl: 18px;
+  --font-size-3xl: 20px;
+}
+
+/* ========================================
+   ResizableDivider 全场景保护机制
+   ========================================
+   确保 ResizableDivider 在所有模式下都可见且可交互
+   不受任何 overflow 或其他 CSS 规则影响
+   ======================================== */
+
+.resizable-divider {
+  position: relative !important;
+  background-color: var(--divider-bg) !important;
+  cursor: col-resize !important;
+  user-select: none !important;
+  transition: background-color 0.2s !important;
+  z-index: var(--z-resizable-divider) !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+.resizable-divider.vertical {
+  width: 2px !important;
+  height: 100% !important;
+  margin: 0 !important;
+  min-width: 2px !important;
+  max-width: 2px !important;
+}
+
+.resizable-divider.horizontal {
+  width: 100% !important;
+  height: 2px !important;
+  margin: 0 !important;
+  min-height: 2px !important;
+  max-height: 2px !important;
+}
+
+.resizable-divider:hover {
+  background-color: var(--accent-color) !important;
+}
+
+.resizable-divider:active {
+  background-color: var(--accent-color) !important;
+}
+
+.resizable-divider::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  opacity: 0 !important;
+}
+
+.resizable-divider.vertical:hover::before {
+  left: -5px !important;
+  right: -5px !important;
+  opacity: 0.3 !important;
+  background-color: var(--accent-color) !important;
+}
+
+.resizable-divider.horizontal:hover::before {
+  top: -5px !important;
+  bottom: -5px !important;
+  opacity: 0.3 !important;
+  background-color: var(--accent-color) !important;
+}
+
+/* 确保在任何容器中都不会被隐藏 */
+.resizable-divider {
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
 }
 
 html {
@@ -155,205 +332,6 @@ body {
   color: var(--text-primary);
 }
 
-/* ========================================
-   响应式布局
-   ======================================== */
-
-/* 平板设备（宽度 ≤ 1024px） */
-@media (max-width: 1024px) {
-  .app {
-    overflow-x: hidden;
-  }
-
-  /* 侧边面板最大宽度限制 */
-  .left-panel,
-  .right-panel {
-    max-width: 40vw;
-  }
-
-  /* 主内容区域最小宽度 */
-  .main-content {
-    min-width: 300px;
-  }
-
-  /* Tab 字体略小 */
-  .tab {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
-}
-
-/* 移动设备（宽度 ≤ 768px） */
-@media (max-width: 768px) {
-  /* 全局滚动 */
-  body {
-    overflow-x: hidden;
-  }
-
-  /* 侧边面板默认隐藏，通过按钮切换显示 */
-  .left-panel,
-  .right-panel {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    transition: transform 0.3s ease;
-  }
-
-  .left-panel {
-    left: 0;
-    width: 280px;
-    max-width: 80vw;
-    transform: translateX(-100%);
-  }
-
-  .left-panel.open {
-    transform: translateX(0);
-  }
-
-  .right-panel {
-    right: 0;
-    width: 300px;
-    max-width: 85vw;
-    transform: translateX(100%);
-  }
-
-  .right-panel.open {
-    transform: translateX(0);
-  }
-
-  /* 主内容区域占满全屏 */
-  .main-content {
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* 顶部菜单栏紧凑布局 */
-  .top-menu-bar {
-    padding: 4px 8px;
-  }
-
-  .top-menu-bar .menu-button {
-    padding: 4px 6px;
-    font-size: 11px;
-  }
-
-  /* Tab 紧凑布局 */
-  .tab-list {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .tab {
-    flex-shrink: 0;
-    font-size: 10px;
-    padding: 6px 8px;
-  }
-
-  /* 工具栏紧凑布局 */
-  .toolbar {
-    padding: 4px 8px;
-    gap: 6px;
-  }
-
-  .toolbar-button {
-    padding: 3px 6px;
-    font-size: 10px;
-  }
-
-  /* 按钮最小点击区域 */
-  button,
-  .button {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  /* 输入框和文本域 */
-  input[type="text"],
-  input[type="number"],
-  textarea {
-    font-size: 16px; /* 防止 iOS 自动缩放 */
-  }
-
-  /* 隐藏非必要的装饰元素 */
-  .toolbar-divider {
-    display: none;
-  }
-}
-
-/* 小屏移动设备（宽度 ≤ 480px） */
-@media (max-width: 480px) {
-  /* 侧边面板更窄 */
-  .left-panel,
-  .right-panel {
-    max-width: 90vw;
-  }
-
-  /* 字体更小 */
-  .tab {
-    font-size: 9px;
-    padding: 5px 6px;
-  }
-
-  /* 工具栏垂直布局 */
-  .toolbar {
-    flex-wrap: wrap;
-  }
-
-  /* 属性面板标签堆叠 */
-  .property-row {
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .property-label {
-    margin-bottom: 0;
-  }
-}
-
-/* 横屏移动设备 */
-@media (max-height: 500px) and (orientation: landscape) {
-  /* 减少垂直方向的空间占用 */
-  .top-menu-bar {
-    min-height: 32px;
-  }
-
-  .toolbar {
-    min-height: 36px;
-  }
-
-  .tab-list {
-    min-height: 32px;
-  }
-}
-
-/* 打印样式 */
-@media print {
-  /* 隐藏所有交互元素 */
-  .top-menu-bar,
-  .toolbar,
-  .tab-list,
-  .left-panel,
-  .right-panel,
-  button {
-    display: none !important;
-  }
-
-  /* 主内容区域占满页面 */
-  .main-content,
-  .app {
-    width: 100%;
-    height: auto;
-    position: static;
-  }
-
-  /* 打印样式 */
-  body,
-  .app {
-    background: white !important;
-    color: black !important;
-  }
-}
 
 /* ========================================
    主色强调样式

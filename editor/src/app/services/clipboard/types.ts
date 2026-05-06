@@ -1,6 +1,5 @@
 export type ElementType =
   | 'rectangle'
-  | 'rounded-rectangle'
   | 'circle'
   | 'text'
   | 'line'

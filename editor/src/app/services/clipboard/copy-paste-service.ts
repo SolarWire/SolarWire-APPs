@@ -9,6 +9,31 @@ import type {
 import { useClipboardStore } from './clipboardStore';
 import { getElementRelatedLines } from '../../../shared/utils/solarwire-utils';
 
+/**
+ * 剪贴板服务接口
+ * 用于解耦服务层与具体 store 实现
+ */
+export interface IClipboardService {
+  setClipboardContent(elements: ClipboardElementData[], referencePos: { x: number; y: number }, rawContent: string): void;
+  getClipboardContent(): { elements: ClipboardElementData[]; referencePosition: { x: number; y: number } | null; rawContent: string; hasContent: boolean };
+}
+
+/**
+ * 剪贴板服务实现
+ */
+export class ClipboardService implements IClipboardService {
+  setClipboardContent(elements: ClipboardElementData[], referencePos: { x: number; y: number }, rawContent: string): void {
+    useClipboardStore.getState().setClipboardContent(elements, referencePos, rawContent);
+  }
+
+  getClipboardContent() {
+    return useClipboardStore.getState();
+  }
+}
+
+// 单例实例
+export const clipboardService = new ClipboardService();
+
 export async function extractImageBase64(
   imagePath: string,
   fileDir: string
@@ -75,15 +100,14 @@ export function getElementType(content: string, lineNumber: number): ElementType
   if (line.startsWith('--')) return 'line';
   if (line.startsWith('<')) return 'image';
   if (line.startsWith('[?"')) return 'placeholder';
-  if (line.startsWith('((')) return 'circle';
-  if (line.startsWith('("')) return 'rounded-rectangle';
+  if (line.startsWith('(')) return 'circle';
   if (line.startsWith('[')) return 'rectangle';
   if (line.startsWith('"')) return 'text';
 
   return 'unknown';
 }
 
-export async function copyElements(options: CopyOptions): Promise<CopyResult> {
+export async function copyElements(options: CopyOptions, clipboardService?: IClipboardService): Promise<CopyResult> {
   const { elementIds, content, fileDir } = options;
 
   if (elementIds.length === 0) {
@@ -194,7 +218,8 @@ export async function copyElements(options: CopyOptions): Promise<CopyResult> {
 
   const copyText = allLinesToCopy.join('\n');
 
-  useClipboardStore.getState().setClipboardContent(
+  const service = clipboardService || new ClipboardService();
+  service.setClipboardContent(
     clipboardElements,
     referencePos || { x: 0, y: 0 },
     copyText
@@ -207,9 +232,10 @@ export async function copyElements(options: CopyOptions): Promise<CopyResult> {
   };
 }
 
-export async function pasteElements(options: PasteOptions): Promise<PasteResult> {
+export async function pasteElements(options: PasteOptions, clipboardService?: IClipboardService): Promise<PasteResult> {
   const { content, targetPosition, selectedElementId, setContent, setSelectedElements, fileDir } = options;
-  const store = useClipboardStore.getState();
+  const service = clipboardService || new ClipboardService();
+  const store = service.getClipboardContent();
 
   let clipboardText: string;
   let offsetX = 0;
@@ -309,8 +335,9 @@ export async function pasteElements(options: PasteOptions): Promise<PasteResult>
   };
 }
 
-export async function copyToSystemClipboard(): Promise<boolean> {
-  const store = useClipboardStore.getState();
+export async function copyToSystemClipboard(clipboardService?: IClipboardService): Promise<boolean> {
+  const service = clipboardService || new ClipboardService();
+  const store = service.getClipboardContent();
 
   if (!store.hasContent || !store.rawContent) {
     return false;

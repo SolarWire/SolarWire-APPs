@@ -1,6 +1,20 @@
 import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter } from '../context';
 import { RenderResult } from './rectangle';
+
+/**
+ * 表格行元素类型（带 children）
+ */
+export type TableRowWithChildren = TableRowElement & {
+  children?: Element[];
+};
+
+/**
+ * 类型守卫：检查元素是否有 children 属性
+ */
+export function hasChildren(element: Element): element is Element & { children: Element[] } {
+  return 'children' in element && Array.isArray((element as any).children);
+}
 
 export function renderCircle(element: CircleElement, context: RenderContext): RenderResult {
   let pos: AbsolutePosition;
@@ -24,12 +38,14 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
+  const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'circle'})"` : '';
   
   let svgParts: string[] = [];
   svgParts.push(`<g>`);
-  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}/>`);
+  svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
   
   if (element.text) {
     let fontStyle = '';
@@ -53,9 +69,12 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   
   svgParts.push(`</g>`);
   
+  const shadowFilter = shadow ? generateShadowFilter(shadow, element.location?.line?.toString() || 'circle') : undefined;
+  
   return {
     svg: svgParts.join(''),
     bounds,
+    shadowFilter,
   };
 }
 
@@ -66,7 +85,7 @@ export function renderText(element: TextElement, context: RenderContext): Render
   } else {
     pos = { x: context.offsetX, y: context.offsetY };
   }
-  
+
   const lines = element.text.split('\n');
   const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 0);
   const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
@@ -77,11 +96,16 @@ export function renderText(element: TextElement, context: RenderContext): Render
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
-  
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+
+  // 字间距属性
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults);
+
   let fontStyle = '';
   if (bold) fontStyle += 'font-weight="bold" ';
   if (italic) fontStyle += 'font-style="italic" ';
-  
+  if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
+
   const textAnchor = align;
   let textX = pos.x;
   if (textAnchor === 'middle') {
@@ -89,15 +113,16 @@ export function renderText(element: TextElement, context: RenderContext): Render
   } else if (textAnchor === 'end') {
     textX = pos.x + (w || 100);
   }
-  
+
   const textY = pos.y + fontSize;
-  
+
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
-  
+  const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'text'})"` : '';
+
   let svgParts: string[] = [];
   svgParts.push(`<g>`);
-  svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" fill="${c}" font-size="${fontSize}" ${fontStyle}${opacityAttr}>`);
-  
+  svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" fill="${c}" font-size="${fontSize}" ${fontStyle}${opacityAttr}${shadowFilterAttr}>`);
+
   lines.forEach((line, i) => {
     if (i === 0) {
       svgParts.push(escapeHtml(line));
@@ -105,11 +130,26 @@ export function renderText(element: TextElement, context: RenderContext): Render
       svgParts.push(`<tspan x="${textX}" dy="${lineHeight}">${escapeHtml(line)}</tspan>`);
     }
   });
-  
+
   svgParts.push('</text>');
-  
-  // 计算文本宽度 - 对汉字特殊处理，汉字宽度约为英文的1.5倍
+
+  // 使用Canvas API准确计算文本宽度
   const calculateTextWidth = (text: string, fontSize: number): number => {
+    // 在浏览器环境中使用Canvas API
+    if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+      try {
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        if (context) {
+          context.font = `${fontSize}px Arial, sans-serif`;
+          return context.measureText(text).width;
+        }
+      } catch (e) {
+        // Canvas创建失败时回退到估算方法
+      }
+    }
+
+    // 回退到估算方法 - 对汉字特殊处理
     let width = 0;
     for (let i = 0; i < text.length; i++) {
       const char = text[i];
@@ -141,9 +181,12 @@ export function renderText(element: TextElement, context: RenderContext): Render
   
   svgParts.push(`</g>`);
   
+  const shadowFilter = shadow ? generateShadowFilter(shadow, element.location?.line?.toString() || 'text') : undefined;
+  
   return {
     svg: svgParts.join(''),
     bounds,
+    shadowFilter,
   };
 }
 
@@ -168,10 +211,22 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   
   const svgParts: string[] = [];
   svgParts.push(`<g>`);
-  svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}" stroke="${b}" stroke-width="${s}"/>`);
-  
-  svgParts.push(`<line x1="${pos.x}" y1="${pos.y}" x2="${pos.x + w}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
-  svgParts.push(`<line x1="${pos.x + w}" y1="${pos.y}" x2="${pos.x}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
+
+  // 边框往内渲染：调整rect的位置和尺寸
+  const strokeOffset = s / 2;
+  const rectX = pos.x + strokeOffset;
+  const rectY = pos.y + strokeOffset;
+  const rectW = Math.max(0, w - s);
+  const rectH = Math.max(0, h - s);
+  svgParts.push(`<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" fill="${bg}" stroke="${b}" stroke-width="${s}"/>`);
+
+  // 对角线从中心点开始，向四个角延伸
+  const centerX = pos.x + w / 2;
+  const centerY = pos.y + h / 2;
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x}" y2="${pos.y}" stroke="${b}" stroke-width="${s}"/>`);
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x + w}" y2="${pos.y}" stroke="${b}" stroke-width="${s}"/>`);
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
+  svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x + w}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
   
   const text = element.text || 'Placeholder';
   svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${fontSize}">${escapeHtml(text)}</text>`);
@@ -213,10 +268,16 @@ export function renderImage(
   const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 80);
   const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0');
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
+  const borderColor = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#cccccc');
+  const borderSize = getNumberAttribute(element.attributes, context.globalDefaults, 's', 0);
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
+  const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'image'})"` : '';
+  const borderAttr = borderSize > 0 ? ` stroke="${borderColor}" stroke-width="${borderSize}"` : '';
 
   const resolvedUrl = imageUrlResolver ? imageUrlResolver(element.url) : element.url;
   const hasValidUrl = !!resolvedUrl && resolvedUrl.length > 0;
@@ -226,7 +287,7 @@ export function renderImage(
   svgParts.push(`<g>`);
 
   if (!hasValidUrl) {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${opacityAttr}/>`);
+    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${opacityAttr}${shadowFilterAttr}${borderAttr}/>`);
 
     const iconSize = Math.min(w, h) * 0.3;
     const iconX = pos.x + w / 2;
@@ -240,7 +301,7 @@ export function renderImage(
 
     svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}"${opacityAttr}>Image</text>`);
   } else {
-    svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"${opacityAttr}/>`);
+    svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"${opacityAttr}${shadowFilterAttr}${borderAttr}/>`);
   }
   
   const bounds: ElementBounds = {
@@ -258,9 +319,12 @@ export function renderImage(
   
   svgParts.push(`</g>`);
   
+  const shadowFilter = shadow ? generateShadowFilter(shadow, element.location?.line?.toString() || 'image') : undefined;
+  
   return {
     svg: svgParts.join(''),
     bounds,
+    shadowFilter,
   };
 }
 
@@ -283,26 +347,19 @@ export function renderTable(
   }
 }
 
-function renderTableElement(
+interface CellData {
+  row: number;
+  col: number;
+  colspan: number;
+  rowspan: number;
+  cell: any;
+}
+
+function validateTableStructure(
   element: TableElement,
-  context: RenderContext,
-  pos: AbsolutePosition,
-  renderChild: (child: Element, childContext: RenderContext) => RenderResult
-): RenderResult {
-  const border = getNumberAttribute(element.attributes, context.globalDefaults, 'border', 1);
-  const cellspacing = getNumberAttribute(element.attributes, context.globalDefaults, 'cellspacing', 0);
-  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
-  const note = element.attributes['note'];
-  
-  const svgParts: string[] = [];
-  
-  svgParts.push(`<g>`);
-  // 添加一个透明的矩形作为整个表格的点击区域
-  svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="0" height="0" fill="transparent" stroke="none" pointer-events="fill"/>`);
-  
-  const rows = element.children || [];
-  const declaredNumRows = rows.length;
-  
+  rows: TableRowElement[],
+  context: RenderContext
+): void {
   rows.forEach((row, rowIndex) => {
     if (row.type !== 'table-row') {
       throw new Error(formatRenderError({
@@ -315,32 +372,26 @@ function renderTableElement(
       }, context.sourceInput, element.location));
     }
   });
-  
-  const tableWidth = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 600);
-  const declaredTableHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 0);
-  
-  const defaultRowHeight = 40;
-  
-  let estimatedMaxColCount = 0;
-  let estimatedMaxRowSpan = 0;
-  
+
   rows.forEach((row, rowIndex) => {
-    const rowNote = (row as any).attributes?.['note'];
+    const rowWithChildren = row as TableRowWithChildren;
+    const rowNote = rowWithChildren.attributes?.['note'];
     if (rowNote) {
       throw new Error(formatRenderError({
         title: 'Table row does not support "note" attribute',
-        expected: 'No "note" attribute on row element',
+        expected: 'No note attribute',
         found: `note="${rowNote}"`,
         location: `${getElementLocationInfo(element)}, Row ${rowIndex + 1}`,
-        reason: 'Notes are only supported on individual cell elements.',
-        solution: 'Remove the "note" attribute from the row element. Add notes to individual cells if needed.'
-      }, context.sourceInput, row.location));
+        reason: 'Table row elements (#) do not support the note attribute.',
+        solution: 'Remove the note attribute from the table row or move it to the table element (##).'
+      }, context.sourceInput, element.location));
     }
   });
 
   rows.forEach((row, rowIndex) => {
-    const cells = (row as any).children || [];
-    cells.forEach((cell: any, cellIndex: number) => {
+    const rowWithChildren = row as TableRowWithChildren;
+    const cells = rowWithChildren.children || [];
+    cells.forEach((cell, cellIndex) => {
       if ('w' in cell.attributes || 'h' in cell.attributes) {
         const attrName = 'w' in cell.attributes ? 'w' : 'h';
         const attrValue = cell.attributes[attrName];
@@ -363,68 +414,35 @@ function renderTableElement(
           solution: 'Use text ("..."), rectangle ([...]), rounded rectangle ((...)), circle (((...))), or placeholder ([?...]) elements instead.'
         }, context.sourceInput, cell.location));
       }
-      const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
-      const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
-      estimatedMaxColCount = Math.max(estimatedMaxColCount, colspan);
-      estimatedMaxRowSpan = Math.max(estimatedMaxRowSpan, rowIndex + rowspan);
     });
   });
-  
-  estimatedMaxColCount = Math.max(estimatedMaxColCount, 10);
-  
-  let tempGrid: boolean[][] = [];
-  for (let r = 0; r < estimatedMaxRowSpan + 10; r++) {
-    tempGrid[r] = [];
-    for (let c = 0; c < estimatedMaxColCount + 10; c++) {
-      tempGrid[r][c] = false;
-    }
-  }
-  
-  let actualMaxColCount = 0;
-  let actualMaxRowCount = 0;
-  
+}
+
+function estimateTableDimensions(rows: TableRowElement[]): { maxColCount: number; maxRowSpan: number } {
+  let maxColCount = 0;
+  let maxRowSpan = 0;
+
   rows.forEach((row, rowIndex) => {
     const cells = (row as any).children || [];
-    let colIndex = 0;
-    
-    while (colIndex < tempGrid[rowIndex].length && tempGrid[rowIndex][colIndex]) {
-      colIndex++;
-    }
-    
-    (cells as any[]).forEach((cell: any) => {
+    cells.forEach((cell: any) => {
       const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
       const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
-      
-      actualMaxColCount = Math.max(actualMaxColCount, colIndex + colspan);
-      actualMaxRowCount = Math.max(actualMaxRowCount, rowIndex + rowspan);
-      
-      for (let r = rowIndex; r < rowIndex + rowspan; r++) {
-        for (let c = colIndex; c < colIndex + colspan; c++) {
-          tempGrid[r][c] = true;
-        }
-      }
-      
-      colIndex += colspan;
-      while (colIndex < tempGrid[rowIndex].length && tempGrid[rowIndex][colIndex]) {
-        colIndex++;
-      }
+      maxColCount = Math.max(maxColCount, colspan);
+      maxRowSpan = Math.max(maxRowSpan, rowIndex + rowspan);
     });
   });
-  
-  const finalNumRows = Math.max(declaredNumRows, actualMaxRowCount);
-  const finalNumCols = actualMaxColCount;
-  
-  let tableHeight: number;
-  let rowHeight: number;
-  
-  if (declaredTableHeight > 0) {
-    tableHeight = declaredTableHeight;
-    rowHeight = tableHeight / finalNumRows;
-  } else {
-    tableHeight = finalNumRows * defaultRowHeight + (finalNumRows - 1) * cellspacing;
-    rowHeight = defaultRowHeight;
-  }
-  
+
+  return {
+    maxColCount: Math.max(maxColCount, 10),
+    maxRowSpan
+  };
+}
+
+function buildCellGrid(
+  rows: TableRowElement[],
+  finalNumRows: number,
+  finalNumCols: number
+): { cellData: CellData[]; grid: boolean[][] } {
   const grid: boolean[][] = [];
   for (let r = 0; r < finalNumRows; r++) {
     grid[r] = [];
@@ -432,30 +450,24 @@ function renderTableElement(
       grid[r][c] = false;
     }
   }
-  
-  const cellData: Array<{
-    row: number;
-    col: number;
-    colspan: number;
-    rowspan: number;
-    cell: any;
-  }> = [];
-  
+
+  const cellData: CellData[] = [];
+
   rows.forEach((row, rowIndex) => {
     const cells = (row as any).children || [];
     let colIndex = 0;
-    
+
     while (colIndex < finalNumCols && grid[rowIndex][colIndex]) {
       colIndex++;
     }
-    
+
     (cells as any[]).forEach((cell: any) => {
       const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
       const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
-      
+
       const actualColspan = Math.min(colspan, finalNumCols - colIndex);
       const actualRowspan = Math.min(rowspan, finalNumRows - rowIndex);
-      
+
       cellData.push({
         row: rowIndex,
         col: colIndex,
@@ -463,30 +475,41 @@ function renderTableElement(
         rowspan: actualRowspan,
         cell
       });
-      
+
       for (let r = rowIndex; r < rowIndex + actualRowspan; r++) {
         for (let c = colIndex; c < colIndex + actualColspan; c++) {
           grid[r][c] = true;
         }
       }
-      
+
       colIndex += actualColspan;
       while (colIndex < finalNumCols && grid[rowIndex][colIndex]) {
         colIndex++;
       }
     });
   });
-  
-  const colWidth = finalNumCols > 0 ? tableWidth / finalNumCols : 100;
-  
+
+  return { cellData, grid };
+}
+
+function renderTableCells(
+  cellData: CellData[],
+  rows: TableRowElement[],
+  pos: AbsolutePosition,
+  colWidth: number,
+  rowHeight: number,
+  context: RenderContext,
+  renderChild: (child: Element, childContext: RenderContext) => RenderResult,
+  svgParts: string[]
+): void {
   cellData.forEach(data => {
     const cellX = pos.x + data.col * colWidth;
     const cellY = pos.y + data.row * rowHeight;
     const cellWidth = colWidth * data.colspan;
     const cellHeight = data.rowspan * rowHeight;
-    
+
     const rowAttributes = (rows[data.row] as any).attributes || {};
-    
+
     const cellBg = getColorAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'bg', '#ffffff');
     const cellBorder = getColorAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'b', '#333333');
     const cellStrokeWidth = getNumberAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 's', 1);
@@ -495,9 +518,9 @@ function renderTableElement(
     const cellBold = getBooleanAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'bold');
     const cellItalic = getBooleanAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'italic');
     const cellAlign = getAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'start');
-    
+
     svgParts.push(`<rect x="${cellX}" y="${cellY}" width="${cellWidth}" height="${cellHeight}" fill="${cellBg}" stroke="${cellBorder}" stroke-width="${cellStrokeWidth}"/>`);
-    
+
     const cellContext = createChildContext(context, cellX, cellY);
     const modifiedCell = { ...data.cell };
     modifiedCell.attributes = { ...modifiedCell.attributes };
@@ -511,35 +534,117 @@ function renderTableElement(
     if (cellBold) modifiedCell.attributes['bold'] = 'true';
     if (cellItalic) modifiedCell.attributes['italic'] = 'true';
     modifiedCell.attributes['align'] = cellAlign === 'start' ? 'l' : cellAlign === 'middle' ? 'c' : 'r';
-    
+
     const result = renderChild(modifiedCell as any, cellContext);
     svgParts.push(result.svg);
   });
-  
+}
+
+function renderTableElement(
+  element: TableElement,
+  context: RenderContext,
+  pos: AbsolutePosition,
+  renderChild: (child: Element, childContext: RenderContext) => RenderResult
+): RenderResult {
+  const border = getNumberAttribute(element.attributes, context.globalDefaults, 'border', 1);
+  const cellspacing = getNumberAttribute(element.attributes, context.globalDefaults, 'cellspacing', 0);
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
+  const note = element.attributes['note'];
+
+  const svgParts: string[] = [];
+
+  svgParts.push(`<g>`);
+  svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="0" height="0" fill="transparent" stroke="none" pointer-events="fill"/>`);
+
+  const rows = element.children || [];
+  validateTableStructure(element, rows, context);
+
+  const tableWidth = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 600);
+  const declaredTableHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 0);
+  const defaultRowHeight = 40;
+
+  const { maxColCount: estimatedMaxColCount, maxRowSpan: estimatedMaxRowSpan } = estimateTableDimensions(rows);
+
+  const tempGrid: boolean[][] = [];
+  for (let r = 0; r < estimatedMaxRowSpan + 10; r++) {
+    tempGrid[r] = [];
+    for (let c = 0; c < estimatedMaxColCount + 10; c++) {
+      tempGrid[r][c] = false;
+    }
+  }
+
+  let actualMaxColCount = 0;
+  let actualMaxRowCount = 0;
+
+  rows.forEach((row, rowIndex) => {
+    const cells = (row as any).children || [];
+    let colIndex = 0;
+
+    while (colIndex < tempGrid[rowIndex].length && tempGrid[rowIndex][colIndex]) {
+      colIndex++;
+    }
+
+    (cells as any[]).forEach((cell: any) => {
+      const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
+      const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
+
+      actualMaxColCount = Math.max(actualMaxColCount, colIndex + colspan);
+      actualMaxRowCount = Math.max(actualMaxRowCount, rowIndex + rowspan);
+
+      for (let r = rowIndex; r < rowIndex + rowspan; r++) {
+        for (let c = colIndex; c < colIndex + colspan; c++) {
+          tempGrid[r][c] = true;
+        }
+      }
+
+      colIndex += colspan;
+      while (colIndex < tempGrid[rowIndex].length && tempGrid[rowIndex][colIndex]) {
+        colIndex++;
+      }
+    });
+  });
+
+  const finalNumRows = Math.max(rows.length, actualMaxRowCount);
+  const finalNumCols = actualMaxColCount;
+
+  let tableHeight: number;
+  let rowHeight: number;
+
+  if (declaredTableHeight > 0) {
+    tableHeight = declaredTableHeight;
+    rowHeight = tableHeight / finalNumRows;
+  } else {
+    tableHeight = finalNumRows * defaultRowHeight + (finalNumRows - 1) * cellspacing;
+    rowHeight = defaultRowHeight;
+  }
+
+  const { cellData } = buildCellGrid(rows, finalNumRows, finalNumCols);
+  const colWidth = finalNumCols > 0 ? tableWidth / finalNumCols : 100;
+
+  renderTableCells(cellData, rows, pos, colWidth, rowHeight, context, renderChild, svgParts);
+
   if (border > 0) {
     svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="none" stroke="${b}" stroke-width="${border}"/>`);
   }
-  
-  // 更新透明矩形尺寸，使其覆盖整个表格
-  // 找到之前添加的透明矩形并替换为正确的尺寸
+
   const transparentRectIndex = svgParts.findIndex(part => part.includes('fill="transparent"'));
   if (transparentRectIndex !== -1) {
     svgParts[transparentRectIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="transparent" stroke="none" pointer-events="all"/>`;
   }
-  
+
   const bounds: ElementBounds = {
     x: pos.x,
     y: pos.y,
     width: tableWidth,
     height: tableHeight,
   };
-  
+
   updateLastElementBounds(context, bounds);
-  
+
   if (note) {
     svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);
   }
-  
+
   return {
     svg: svgParts.join(''),
     bounds,

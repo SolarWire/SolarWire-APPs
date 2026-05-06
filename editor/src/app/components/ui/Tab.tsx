@@ -86,7 +86,7 @@ export const TabPanel: React.FC<TabPanelProps> = ({ id, children, className = ''
   }
 
   return (
-    <div className={`tab-panel ${className}`} role="tabpanel">
+    <div key={id} className={`tab-panel ${className}`} role="tabpanel">
       {children}
     </div>
   );

@@ -18,7 +18,6 @@ function ElementLibrary({ compact = false }: ElementLibraryProps): React.ReactEl
 
   const elements: Element[] = [
     { type: 'rectangle', name: 'Rectangle', icon: '⬜', category: 'basic' },
-    { type: 'rounded-rectangle', name: 'Rounded', icon: '⬛', category: 'basic' },
     { type: 'circle', name: 'Circle', icon: '⭕', category: 'basic' },
     { type: 'text', name: 'Text', icon: '📝', category: 'basic' },
     { type: 'line', name: 'Line', icon: '📏', category: 'basic' },

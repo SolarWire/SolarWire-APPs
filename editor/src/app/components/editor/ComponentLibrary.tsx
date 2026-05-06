@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { Component } from '../../../shared/types/component';
+import { useEditorStore } from '../../stores/editorStore';
+import { useAppStore } from '../../stores/appStore';
+import { Component, ComponentLibrary as ComponentLibraryType, isComponentUncategorized } from '../../../shared/types/component';
 import { componentLibraryManager } from '../../services/ComponentLibraryManager';
 import { generateThumbnailBatch } from '../../../lib/components/thumbnail-generator';
 import './ComponentLibrary.css';
@@ -73,6 +75,8 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
   const setSearchQuery = useComponentLibraryStore(s => s.setSearchQuery);
   const setActiveCategoryId = useComponentLibraryStore(s => s.setActiveCategoryId);
   const openManagerAtComponent = useComponentLibraryStore(s => s.openManagerAtComponent);
+  const setMode = useEditorStore(s => s.setMode);
+  const setCurrentView = useAppStore(s => s.setCurrentView);
 
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const [isLoading, setIsLoading] = useState(false);
@@ -91,6 +95,40 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     return activeLibrary?.components.map(c => c.internalId).join(',') || '';
   }, [activeLibrary?.components]);
 
+  const generateThumbnails = useCallback(async (library: ComponentLibraryType) => {
+    const components = library.components.map((c: Component) => ({ internalId: c.internalId, code: c.code }));
+
+    try {
+      const results = await generateThumbnailBatch(components, (completed, total, componentInternalId, success) => {
+        setLoadingProgress({ current: completed, total });
+
+        if (!success) {
+          const component = library.components.find((c: Component) => c.internalId === componentInternalId);
+          if (component) {
+            setComponentParseErrors(prev => new Map(prev).set(componentInternalId, component.name));
+          }
+        }
+      }, 120, 80);
+
+      // 只缓存成功的缩略图
+      // 这样可以确保第二次打开时，失败的组件不会被误认为已有缓存，从而正确显示修复按钮
+      const successfulThumbnails = new Map<string, string>();
+      results.forEach((thumbnail, componentId) => {
+        if (!thumbnail.includes('&#10060;')) {
+          successfulThumbnails.set(componentId, thumbnail);
+        }
+      });
+
+      componentLibraryManager.setThumbnailCache(library.metadata.id, successfulThumbnails);
+      setThumbnails(results);
+    } catch (error) {
+      console.error('Failed to generate thumbnails:', error);
+    } finally {
+      setIsLoading(false);
+      setLoadingProgress(null);
+    }
+  }, [componentLibraryManager]);
+
   useEffect(() => {
     if (!activeLibrary) {
       setThumbnails(new Map());
@@ -99,52 +137,18 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     }
 
     const cachedThumbnails = componentLibraryManager.getThumbnailCache(activeLibrary.metadata.id);
-    if (cachedThumbnails.size > 0) {
+    const hasAllThumbnails = activeLibrary.components.every(c => cachedThumbnails.has(c.internalId));
+
+    if (cachedThumbnails.size > 0 && hasAllThumbnails) {
       setThumbnails(cachedThumbnails);
       setComponentParseErrors(new Map());
       return;
     }
 
-    let cancelled = false;
     setIsLoading(true);
     setLoadingProgress({ current: 0, total: activeLibrary.components.length });
-
-    const generateThumbnails = async () => {
-      const components = activeLibrary.components.map(c => ({ internalId: c.internalId, code: c.code }));
-
-      try {
-        const results = await generateThumbnailBatch(components, (completed, total, componentInternalId, success) => {
-          if (cancelled) return;
-          setLoadingProgress({ current: completed, total });
-
-          if (!success) {
-            const component = activeLibrary.components.find(c => c.internalId === componentInternalId);
-            if (component) {
-              setComponentParseErrors(prev => new Map(prev).set(componentInternalId, component.name));
-            }
-          }
-        }, 120, 80);
-
-        if (!cancelled) {
-          componentLibraryManager.setThumbnailCache(activeLibrary.metadata.id, results);
-          setThumbnails(results);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          console.error('Failed to generate thumbnails:', error);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-          setLoadingProgress(null);
-        }
-      }
-    };
-
-    generateThumbnails();
-
-    return () => { cancelled = true; };
-  }, [activeLibraryIdValue, activeLibraryComponentCount, activeLibraryComponentIds]);
+    generateThumbnails(activeLibrary);
+  }, [activeLibraryIdValue, activeLibraryComponentIds, componentLibraryManager, generateThumbnails]);
 
   const filteredComponents = useMemo(() => {
     if (!activeLibrary) return [];
@@ -152,7 +156,13 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     let components = [...activeLibrary.components];
 
     if (activeCategoryId) {
-      components = components.filter(c => c.categoryId === activeCategoryId);
+      if (activeCategoryId === 'uncategorized') {
+        components = components.filter(c => isComponentUncategorized(c.categoryId, activeLibrary.categories));
+        // 如果未分类没有组件，返回空数组
+        if (components.length === 0) return [];
+      } else {
+        components = components.filter(c => c.categoryId === activeCategoryId);
+      }
     } else if (!searchQuery) {
       const categoryOrder = activeLibrary.categories.map(c => c.id);
       const getCatOrder = (categoryId: string | undefined) => {
@@ -178,7 +188,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     }
 
     return components;
-  }, [activeLibraryId, activeLibrary?.components, activeLibrary?.categories, activeCategoryId, searchQuery]);
+  }, [activeLibrary?.components, activeLibrary?.categories, activeCategoryId, searchQuery]);
 
   const handleDragStart = useCallback((e: React.DragEvent, component: Component) => {
     e.dataTransfer.setData('text/plain', component.code);
@@ -195,8 +205,14 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
 
   const categories = useMemo(() => {
     if (!activeLibrary) return [];
+    const uncategorizedComponents = activeLibrary.components.filter(c => isComponentUncategorized(c.categoryId, activeLibrary.categories));
+    const hasUncategorized = uncategorizedComponents.length > 0;
+
+    if (hasUncategorized) {
+      return [...activeLibrary.categories, { id: 'uncategorized', name: '未分类' }];
+    }
     return activeLibrary.categories;
-  }, [activeLibraryId, activeLibrary?.categories.length]);
+  }, [activeLibrary?.categories, activeLibrary?.components]);
 
   const needsExpandButton = categories.length > 6;
 
@@ -206,12 +222,45 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
 
   const handleFixError = useCallback((componentInternalId: string) => {
     handleOpenManagerForFailedComponent(activeLibraryId || '', componentInternalId);
-  }, [activeLibraryId, handleOpenManagerForFailedComponent]);
+    setMode('componentLibraryManager');
+    setCurrentView('componentLibraryManager');
+  }, [activeLibraryId, handleOpenManagerForFailedComponent, setMode, setCurrentView]);
+
+  const handleImportLibrary = useCallback(() => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.swc,.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        try {
+          await useComponentLibraryStore.getState().importLibrary(file);
+        } catch (err) {
+          alert(`导入失败：${err instanceof Error ? err.message : '未知错误'}`);
+        }
+      }
+    };
+    input.click();
+  }, []);
+
+  // 自动初始化组件库
+  useEffect(() => {
+    const initialize = useComponentLibraryStore.getState().initialize;
+    initialize();
+  }, []);
 
   if (libraries.length === 0) {
     return (
       <div className="component-library">
-        <div className="component-library-header"><span>组件库</span></div>
+        <div className="component-library-header">
+          <span>组件库</span>
+          <div className="component-library-actions">
+            <button title="刷新组件库" onClick={() => {
+              const initialize = useComponentLibraryStore.getState().initialize;
+              initialize();
+            }}>🔄</button>
+          </div>
+        </div>
         <div className="component-library-empty">
           <div className="component-library-empty-icon">📦</div>
           <div>暂无组件库</div>
@@ -226,22 +275,18 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
       <div className="component-library-header">
         <span>组件库</span>
         <div className="component-library-actions">
-          <button title="导入组件库" onClick={() => {
-            const input = document.createElement('input');
-            input.type = 'file';
-            input.accept = '.swc,.json';
-            input.onchange = async (e) => {
-              const file = (e.target as HTMLInputElement).files?.[0];
-              if (file) {
-                try {
-                  await useComponentLibraryStore.getState().importLibrary(file);
-                } catch (err) {
-                  alert(`导入失败：${err instanceof Error ? err.message : '未知错误'}`);
-                }
-              }
-            };
-            input.click();
-          }}>➕</button>
+          <button title="刷新组件库" onClick={() => {
+            if (activeLibrary) {
+              setThumbnails(new Map());
+              setComponentParseErrors(new Map());
+              componentLibraryManager.setThumbnailCache(activeLibrary.metadata.id, new Map());
+              setIsLoading(true);
+              setLoadingProgress({ current: 0, total: activeLibrary.components.length });
+              setTimeout(() => {
+                generateThumbnails(activeLibrary);
+              }, 100);
+            }
+          }}>🔄</button>
         </div>
       </div>
 
@@ -278,18 +323,6 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
             <div className="loading-progress-bar">
               <div className="loading-progress-fill" style={{ width: `${(loadingProgress.current / loadingProgress.total) * 100}%` }}></div>
             </div>
-          </div>
-        )}
-
-        {componentParseErrors.size > 0 && (
-          <div className="component-library-errors">
-            {Array.from(componentParseErrors.entries()).map(([componentInternalId, componentName]) => (
-              <div key={componentInternalId} className="error-item">
-                <span className="error-icon">❌</span>
-                <span className="error-text">{componentName}: 解析失败</span>
-                <button className="error-fix-btn" onClick={() => handleFixError(componentInternalId)}>修复</button>
-              </div>
-            ))}
           </div>
         )}
 

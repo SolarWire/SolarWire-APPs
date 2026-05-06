@@ -74,7 +74,7 @@
   top: 8px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: var(--z-drag-preview);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -169,7 +169,7 @@
   gap: 0;
   background: var(--bg-secondary);
   border-left: 1px solid var(--border-color);
-  z-index: 10;
+  z-index: var(--z-layer-panel);
 }
 
 .property-panel-fixed > * {
@@ -217,7 +217,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  z-index: 1000;
+  z-index: var(--z-error-panel);
   width: 300px;
   max-height: 80vh;
   overflow: visible;
@@ -273,7 +273,7 @@
   width: 220px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  z-index: 5;
+  z-index: var(--z-layer-panel);
   overflow: visible;
 }
 
@@ -286,7 +286,7 @@
   width: 280px;
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
-  z-index: 6;
+  z-index: var(--z-layer-panel);
   overflow: visible;
 }
 
@@ -357,7 +357,7 @@
 /* 右键菜单样式 */
 .context-menu {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--z-context-menu);
   min-width: 160px;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);

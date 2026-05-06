@@ -57,7 +57,7 @@
 
 .image-preview-container {
   flex: 1;
-  overflow: hidden;
+  overflow: visible; /* 改为 visible，确保 ResizableDivider 可见 */
   display: flex;
   align-items: center;
   justify-content: center;

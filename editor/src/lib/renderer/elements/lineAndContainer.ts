@@ -15,7 +15,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
   
   let svgParts: string[] = [];
   
-  svgParts.push(`<g pointer-events="bounding-box">`);
+  svgParts.push(`<g pointer-events="stroke">`);
 
   let strokeDasharray = '';
   if (style.strokeDasharray) {
@@ -47,12 +47,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
     height: Math.abs(end.y - start.y),
   };
   
-  updateLastElementBounds(context, {
-    x: end.x,
-    y: end.y,
-    width: 0,
-    height: 0,
-  });
+  updateLastElementBounds(context, bounds);
   
   if (note) {
     svgParts[0] = svgParts[0].replace(/<g(\s[^>]*)?>/, `<g$1 data-note="${escapeHtml(note)}">`);

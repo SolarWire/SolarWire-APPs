@@ -2,12 +2,19 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+}
+
+.main-content .resizable-divider {
+  z-index: var(--z-drag-area);
 }
 
 .left-panel-container {
   height: 100%;
   overflow: hidden;
-  width: var(--panel-width, 300px);
+  min-width: 150px;
+  max-width: 600px;
+  flex-shrink: 0;
 }
 
 /* ================================================

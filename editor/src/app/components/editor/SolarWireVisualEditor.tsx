@@ -4,28 +4,56 @@ import PropertyPanel from './PropertyPanel';
 import ComponentLibrary from './ComponentLibrary';
 import LayerPanel from './LayerPanel';
 import SolarWireToolbar from '../toolbar/SolarWireToolbar';
+import ErrorPanel from './ErrorPanel';
+import ErrorCard from './ErrorCard';
 import { useSolarWireStore, SelectionTool } from '../../stores/solarWireStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements, detectNoteBounds, detectTableBounds } from '../../../shared/utils/solarwire-utils';
+import { getElementRelatedLines, updateLineAttribute, bringElementsToFront, alignElements, detectElementBounds, validateDropContent } from '../../../shared/utils/solarwire-utils';
 import { parse } from '../../../lib/parser';
+import { render as renderSvg, renderElement, createRenderContext } from '../../../lib/renderer';
 import type { Element as SolarWireElement } from '../../../lib/parser/types';
 import { Component } from '../../../shared/types/component';
 import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
+import { fileDialogService } from '../../services/file-dialog-service';
+import { showToast } from '../../services/toast-service';
+import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
 import './SolarWireVisualEditor.css';
 
+/**
+ * SolarWire 可视化编辑器组件属性接口
+ */
 interface SolarWireVisualEditorProps {
+  /** 编辑器内容 */
   content: string;
+  /** 内容变化回调 */
   onContentChange: (content: string) => void;
+  /** 外部内容（用于组件编辑模式） */
   externalContent?: string;
+  /** 外部内容变化回调 */
   onExternalContentChange?: (content: string) => void;
+  /** 是否显示图层面板（外部控制） */
   showLayerPanel?: boolean;
+  /** 图层面板显示状态变化回调 */
   onShowLayerPanelChange?: (show: boolean) => void;
+  /** 是否显示组件库（外部控制） */
   showComponentLibrary?: boolean;
+  /** 组件库显示状态变化回调 */
   onShowComponentLibraryChange?: (show: boolean) => void;
+  /** 是否允许图片元素 */
   allowImageElements?: boolean;
+  /** 语法错误列表 */
+  syntaxErrors?: any[];
+  /** 设置语法错误列表 */
+  setSyntaxErrors?: (errors: any[]) => void;
+  /** 切换到代码tab并定位到指定行 */
+  onSwitchToCodeTab?: (line: number, column: number) => void;
 }
 
+/**
+ * SolarWire 可视化编辑器组件
+ * 提供可视化编辑功能，包括元素拖拽、缩放、对齐、图层管理等
+ */
 function SolarWireVisualEditor({
   content,
   onContentChange,
@@ -35,18 +63,32 @@ function SolarWireVisualEditor({
   onShowLayerPanelChange,
   showComponentLibrary: externalShowComponentLibrary,
   onShowComponentLibraryChange,
-  allowImageElements = true
+  allowImageElements = true,
+  syntaxErrors,
+  setSyntaxErrors,
+  onSwitchToCodeTab
 }: SolarWireVisualEditorProps): React.ReactElement {
+  // 判断是否为外部模式（组件编辑模式）
   const isExternalMode = externalContent !== undefined;
+  // 有效内容（外部模式使用外部内容，否则使用编辑器内容）
   const effectiveContent = isExternalMode ? externalContent : content;
+  // 有效内容设置方法
   const handleContentChange = isExternalMode ? onExternalContentChange : onContentChange;
 
+  // 内部状态：图层面板显示状态
   const [internalShowLayerPanel, setInternalShowLayerPanel] = useState(false);
   const [internalShowComponentLibrary, setInternalShowComponentLibrary] = useState(false);
+  const [snapToGuides, setSnapToGuides] = useState(true);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  // 导出通知状态
   const [exportNotification, setExportNotification] = useState<{ type: 'progress' | 'success' | 'error'; message: string; error?: string } | null>(null);
+  // SVG 内容获取函数引用
   const getSvgContentRef = useRef<(() => string | null) | null>(null);
 
+  /**
+   * 处理 SVG 导出
+   * 将当前画布导出为 SVG 文件
+   */
   const handleExportSvg = useCallback(async () => {
     if (!getSvgContentRef.current) {
       setExportNotification({ type: 'error', message: 'Export not available' });
@@ -61,9 +103,26 @@ function SolarWireVisualEditor({
 
     const svgWithXmlDecl = svgContent.trim().startsWith('<?xml') ? svgContent : `<?xml version="1.0" encoding="UTF-8"?>\n${svgContent}`;
 
+    setExportNotification({ type: 'progress', message: 'Choosing location...' });
+    const filePath = await fileDialogService.saveFileDialog({
+      filters: [{ name: 'SVG Files', extensions: ['svg'] }],
+      defaultPath: 'solarwire-export.svg'
+    });
+
+    if (!filePath) {
+      setExportNotification(null);
+      return;
+    }
+
+    const blob = new Blob([svgWithXmlDecl], { type: 'image/svg+xml' });
+    const arrayBuffer = await blob.arrayBuffer();
     const api = (window as any).api;
-    if (!api?.saveFileDialog) {
-      const blob = new Blob([svgWithXmlDecl], { type: 'image/svg+xml' });
+    if (api?.writeFile) {
+      // 使用 Electron API 写入文件
+      await api.writeFile(filePath, new Uint8Array(arrayBuffer));
+      setExportNotification({ type: 'success', message: 'SVG saved successfully!' });
+    } else {
+      // 回退到浏览器下载
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -71,46 +130,24 @@ function SolarWireVisualEditor({
       a.click();
       URL.revokeObjectURL(url);
       setExportNotification({ type: 'success', message: 'SVG downloaded!' });
-      setTimeout(() => setExportNotification(null), 3000);
-      return;
     }
-
-    setExportNotification({ type: 'progress', message: 'Choosing location...' });
-    const result = await api.saveFileDialog({
-      filters: [{ name: 'SVG Files', extensions: ['svg'] }],
-      defaultPath: 'solarwire-export.svg'
-    });
-
-    if (!result || result.canceled) {
-      setExportNotification(null);
-      return;
-    }
-
-    if (!result.filePath) {
-      setExportNotification({ type: 'error', message: 'No file path selected' });
-      return;
-    }
-
-    setExportNotification({ type: 'progress', message: 'Saving...' });
-    try {
-      await api.writeFile(result.filePath, svgWithXmlDecl, true);
-      setExportNotification({ type: 'success', message: 'SVG saved!' });
-      setTimeout(() => setExportNotification(null), 3000);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      setExportNotification({ type: 'error', message: 'Save failed', error: errorMessage });
-    }
+    setTimeout(() => setExportNotification(null), 3000);
   }, []);
 
+  /**
+   * 清除导出通知
+   */
   const clearExportNotification = useCallback(() => {
     setExportNotification(null);
   }, []);
 
+  // 图层面板和组件库的显示状态
   const showLayerPanel = externalShowLayerPanel !== undefined ? externalShowLayerPanel : internalShowLayerPanel;
   const showComponentLibrary = externalShowComponentLibrary !== undefined ? externalShowComponentLibrary : internalShowComponentLibrary;
   const setShowLayerPanel = onShowLayerPanelChange || setInternalShowLayerPanel;
   const setShowComponentLibrary = onShowComponentLibraryChange || setInternalShowComponentLibrary;
 
+  // SolarWire store 状态
   const selectedElements = useSolarWireStore(s => s.selectedElements);
   const selectionTool = useSolarWireStore(s => s.selectionTool);
   const isPanMode = useSolarWireStore(s => s.isPanMode);
@@ -124,8 +161,69 @@ function SolarWireVisualEditor({
   const setIsSpacePressed = useSolarWireStore(s => s.setIsSpacePressed);
   const setSelectedElements = useSolarWireStore(s => s.setSelectedElements);
   const selectElements = useSolarWireStore(s => s.selectElements);
-  const { showGrid, gridSize, snapToGrid, setShowGrid, setGridSize, setSnapToGrid } = useSettingsStore();
 
+  // 语法错误状态
+  const [internalSyntaxErrors, setInternalSyntaxErrors] = useState<any[]>([]);
+
+  // 使用外部传入的语法错误状态，否则使用内部状态
+  const currentSyntaxErrors = syntaxErrors || internalSyntaxErrors;
+  const currentSetSyntaxErrors = setSyntaxErrors || setInternalSyntaxErrors;
+
+  /**
+   * 处理语法错误检测
+   * 使用统一的语法错误服务
+   */
+  useEffect(() => {
+    
+    // 启动渲染器错误监听
+    syntaxErrorService.startRendererErrorMonitoring();
+    
+    // 监听错误变化
+    const listener = {
+      onErrorsChanged: (errors: SyntaxError[]) => {
+        if (setSyntaxErrors) {
+          setSyntaxErrors(errors);
+        }
+      }
+    };
+    
+    syntaxErrorService.addListener(listener);
+    
+    // 在内容变化时清除之前的错误，让渲染器重新检测
+    syntaxErrorService.clearErrors();
+    
+    return () => {
+      syntaxErrorService.removeListener(listener);
+      syntaxErrorService.stopRendererErrorMonitoring();
+    };
+  }, [content, setSyntaxErrors]);
+
+  /**
+   * 跳转到错误位置
+   * 切换到代码编辑tab并定位到错误行，添加红色高亮
+   */
+  const handleJumpToError = useCallback((line: number, column: number) => {
+    
+    // 如果有外部提供的切换函数，使用它
+    if (onSwitchToCodeTab) {
+      onSwitchToCodeTab(line, column);
+    } else {
+      // 否则使用原有的方式切换到代码模式
+      // 触发 tab 切换和滚动
+      setTimeout(() => {
+        // 触发 SolarWireMode 的 tab 切换和滚动高亮
+        const event = new CustomEvent('jumpToError', { 
+          detail: { line, column } 
+        });
+        window.dispatchEvent(event);
+      }, 100);
+    }
+  }, [onSwitchToCodeTab]);
+
+  /**
+   * 处理右键菜单
+   * 在预览区域右键时显示上下文菜单
+   */
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     const previewEl = document.querySelector('.solarwire-preview');
     if (!previewEl || !previewEl.contains(e.target as Node)) return;
@@ -133,10 +231,19 @@ function SolarWireVisualEditor({
     setContextMenu({ x: e.clientX, y: e.clientY });
   }, []);
 
+  /**
+   * 关闭右键菜单
+   */
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
 
+  /**
+   * 从内容中获取元素数据
+   * @param content 文档内容
+   * @param lineNum 行号
+   * @returns 元素坐标数据
+   */
   const getElementDataFromContent = (content: string, lineNum: number) => {
     const lines = content.split(/\r?\n/);
     if (lineNum < 1 || lineNum > lines.length) return null;
@@ -213,16 +320,8 @@ function SolarWireVisualEditor({
     selectedElements.forEach((elementId) => {
       const lineNum = parseInt(elementId);
       if (isNaN(lineNum) || lineNum < 1 || lineNum > lines.length) return;
-      const line = lines[lineNum - 1];
-      const trimmedLine = line.trim();
-      const isTableElement = trimmedLine.startsWith('##');
-      if (isTableElement) {
-        const { startLine, endLine } = detectTableBounds(content, lineNum);
-        for (let i = startLine; i <= endLine; i++) linesToDelete.add(i);
-      } else {
-        const { startLine, endLine } = detectNoteBounds(content, lineNum);
-        for (let i = startLine; i <= endLine; i++) linesToDelete.add(i);
-      }
+      const bounds = detectElementBounds(content, lineNum);
+      for (let i = bounds.getStartLine(); i <= bounds.getEndLine(); i++) linesToDelete.add(i);
     });
     const sortedLines = Array.from(linesToDelete).sort((a, b) => b - a);
     const newLines = [...lines];
@@ -250,9 +349,36 @@ function SolarWireVisualEditor({
 
   const handleAlign = useCallback((alignmentType: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom') => {
     if (selectedElements.length < 2) return;
-    const newContent = alignElements(content, selectedElements, alignmentType);
+    
+    // 获取元素边界信息 - 使用渲染器获取准确的边界（包括文本元素的实际渲染边界）
+    let elementsBounds: Map<number, { x: number; y: number; width: number; height: number }> | undefined;
+    
+    try {
+      const ast = parse(effectiveContent);
+      const context = createRenderContext(ast.declarations, effectiveContent);
+      elementsBounds = new Map();
+      
+      // 遍历所有元素，使用渲染器获取准确的边界（与悬停高亮使用相同的边界计算方法）
+      ast.elements.forEach((elem: SolarWireElement) => {
+        const lineNum = elem.location?.line;
+        if (lineNum && selectedElements.includes(lineNum.toString())) {
+          const result = renderElement(elem, context);
+          elementsBounds!.set(lineNum, {
+            x: result.bounds.x,
+            y: result.bounds.y,
+            width: result.bounds.width,
+            height: result.bounds.height
+          });
+        }
+      });
+    } catch (e) {
+      // 如果解析失败，使用代码中的属性值
+      elementsBounds = undefined;
+    }
+    
+    const newContent = alignElements(content, selectedElements, alignmentType, elementsBounds);
     handleContentChange?.(newContent);
-  }, [selectedElements, content, handleContentChange]);
+  }, [selectedElements, content, handleContentChange, effectiveContent]);
 
   const handleReorderElements = useCallback((reorderedIds: string[]) => {
     const lines = content.split(/\r?\n/);
@@ -263,17 +389,8 @@ function SolarWireVisualEditor({
       if (lineNum < 1 || lineNum > lines.length) return;
       const line = lines[lineNum - 1];
       if (!line) return;
-      const trimmedLine = line.trim();
-      const isTable = trimmedLine.startsWith('##');
-      let startLine = lineNum, endLine = lineNum;
-      if (isTable) {
-        const bounds = detectTableBounds(content, lineNum);
-        startLine = bounds.startLine; endLine = bounds.endLine;
-      } else {
-        const bounds = detectNoteBounds(content, lineNum);
-        startLine = bounds.startLine; endLine = bounds.endLine;
-      }
-      elementBlocks.push({ startLine, endLine, id: lineNum.toString() });
+      const bounds = detectElementBounds(content, lineNum);
+      elementBlocks.push({ startLine: bounds.getStartLine(), endLine: bounds.getEndLine(), id: lineNum.toString() });
     });
     const idToBlock = new Map<string, { startLine: number; endLine: number }>();
     elementBlocks.forEach(block => idToBlock.set(block.id, { startLine: block.startLine, endLine: block.endLine }));
@@ -312,23 +429,46 @@ function SolarWireVisualEditor({
   const handleZoomOut = () => setZoomLevel(Math.max(zoomLevel - 10, 25));
 
   const handleDropComponentToCanvas = useCallback((component: Component, x: number, y: number) => {
-    if (!component.code) return;
-    const adjustedCode = component.code.split(/\r?\n/).map((line) => {
-      let resultLine = line;
-      resultLine = resultLine.replace(/@\((\d+),\s*(\d+)\)/g, (match) => {
-        const m = match.match(/@\((\d+),\s*(\d+)\)/);
-        if (m) return `@(${Math.max(0, x + parseInt(m[1], 10))},${Math.max(0, y + parseInt(m[2], 10))})`;
-        return match;
-      });
-      resultLine = resultLine.replace(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/g, (match) => {
-        const m = match.match(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
-        if (m) return `->(${Math.max(0, x + parseInt(m[1], 10))},${Math.max(0, y + parseInt(m[2], 10))})`;
-        return match;
-      });
-      return resultLine;
-    }).join('\n');
-    handleContentChange?.(content.trimEnd() + '\n\n' + adjustedCode);
-    setShowComponentLibrary(false);
+    if (!component.code) {
+      showToast('Component code is empty', 'error');
+      return;
+    }
+    
+    // 验证组件代码是否安全
+    if (!validateDropContent(component.code)) {
+      showToast('Invalid or unsafe component code', 'error');
+      return;
+    }
+    
+    try {
+      const adjustedCode = component.code.split(/\r?\n/).map((line) => {
+        let resultLine = line;
+        resultLine = resultLine.replace(/@\((\d+),\s*(\d+)\)/g, (match) => {
+          const m = match.match(/@\((\d+),\s*(\d+)\)/);
+          if (m) {
+            const nx = x + parseInt(m[1], 10);
+            const ny = y + parseInt(m[2], 10);
+            return `@(${Math.max(0, nx)},${Math.max(0, ny)})`;
+          }
+          return match;
+        });
+        resultLine = resultLine.replace(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/g, (match) => {
+          const m = match.match(/->\(\s*(\d+)\s*,\s*(\d+)\s*\)/);
+          if (m) {
+            const nx = x + parseInt(m[1], 10);
+            const ny = y + parseInt(m[2], 10);
+            return `->(${Math.max(0, nx)},${Math.max(0, ny)})`;
+          }
+          return match;
+        });
+        return resultLine;
+      }).join('\n');
+      handleContentChange?.(content.trimEnd() + '\n\n' + adjustedCode);
+      setShowComponentLibrary(false);
+    } catch (error) {
+      console.error('Failed to drop component:', error);
+      showToast(`Failed to drop component: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    }
   }, [content, handleContentChange, setShowComponentLibrary]);
 
   useEffect(() => {
@@ -348,11 +488,6 @@ function SolarWireVisualEditor({
         }
       }
       handleKeyDown(e);
-      if (e.key === 'g' && !e.ctrlKey && !e.metaKey) {
-        const activeElement = document.activeElement;
-        const isEditor = activeElement?.tagName === 'TEXTAREA' || activeElement?.getAttribute('contenteditable') === 'true' || activeElement?.closest('.monaco-editor');
-        if (!isEditor) setShowGrid(!showGrid);
-      }
     };
     const handleKeyUpEvent = (e: KeyboardEvent) => {
       if (e.code === 'Space') setIsSpacePressed(false);
@@ -363,7 +498,7 @@ function SolarWireVisualEditor({
       window.removeEventListener('keydown', handleKeyDownEvent);
       window.removeEventListener('keyup', handleKeyUpEvent);
     };
-  }, [handleKeyDown, handleDeleteSelected, selectedElements, showGrid]);
+  }, [handleKeyDown, handleDeleteSelected, selectedElements]);
 
   useEffect(() => {
     if (!contextMenu) return;
@@ -381,19 +516,18 @@ function SolarWireVisualEditor({
     showLayerPanel,
     showComponentLibrary,
     showNotes,
-    snapToGrid,
     zoomLevel,
     isPanMode,
     isSpacePressed,
     selectionTool,
-    selectedCount: selectedElements.length
-  }), [showLayerPanel, showComponentLibrary, showNotes, snapToGrid, zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedElements.length]);
+    selectedCount: selectedElements.length,
+    snapToGuides
+  }), [showLayerPanel, showComponentLibrary, showNotes, zoomLevel, isPanMode, isSpacePressed, selectionTool, selectedElements.length, snapToGuides]);
 
   const toolbarCallbacks = useMemo(() => ({
     onToggleLayerPanel: () => setShowLayerPanel(!showLayerPanel),
     onToggleComponentLibrary: () => setShowComponentLibrary(!showComponentLibrary),
     onToggleNotes: () => setShowNotes(!showNotes),
-    onToggleSnap: () => setSnapToGrid(!snapToGrid),
     onZoomIn: handleZoomIn,
     onZoomOut: handleZoomOut,
     onTogglePanMode: () => setIsPanMode(!isPanMode),
@@ -403,8 +537,9 @@ function SolarWireVisualEditor({
     },
     onBringToFront: handleBringToFront,
     onAlign: handleAlign,
-    onExportSvg: handleExportSvg
-  }), [showLayerPanel, showComponentLibrary, showNotes, snapToGrid, isPanMode, handleZoomIn, handleZoomOut, handleBringToFront, handleAlign, handleExportSvg]);
+    onExportSvg: handleExportSvg,
+    onToggleSnapGuides: () => setSnapToGuides(!snapToGuides)
+  }), [showLayerPanel, showComponentLibrary, showNotes, isPanMode, handleZoomIn, handleZoomOut, handleBringToFront, handleAlign, handleExportSvg, snapToGuides]);
 
   return (
     <div className="solarwire-visual-editor">
@@ -412,21 +547,32 @@ function SolarWireVisualEditor({
 
       <div className="solarwire-content">
         <SolarWirePreview
-          zoomLevel={zoomLevel}
-          selectionTool={selectionTool}
-          showNotes={showNotes}
-          onZoomChange={setZoomLevel}
-          isPanMode={isPanMode}
-          isSpacePressed={isSpacePressed}
-          showGridProp={showGrid}
-          snapToGridProp={snapToGrid}
-          gridSizeProp={gridSize}
-          externalContent={externalContent}
-          onExternalContentChange={onExternalContentChange}
-          onContextMenu={handleContextMenu}
-          allowImageElements={allowImageElements}
-          onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
-        />
+            zoomLevel={zoomLevel}
+            selectionTool={selectionTool}
+            showNotes={showNotes}
+            onZoomChange={setZoomLevel}
+            isPanMode={isPanMode}
+            isSpacePressed={isSpacePressed}
+            snapToGuides={snapToGuides}
+            externalContent={externalContent}
+            onExternalContentChange={onExternalContentChange}
+            onContextMenu={handleContextMenu}
+            allowImageElements={allowImageElements}
+            onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
+            hasSyntaxErrors={currentSyntaxErrors.length > 0}
+          />
+
+        {currentSyntaxErrors.length > 0 && (
+          <>
+            {currentSyntaxErrors.slice(0, 3).map((error: SyntaxError, index: number) => (
+              <ErrorCard 
+                key={`${error.line}-${error.column}-${index}`}
+                error={error}
+                onViewInCode={handleJumpToError}
+              />
+            ))}
+          </>
+        )}
 
         {selectedElements.length > 0 && (
           <div className="property-panel-fixed">
@@ -436,7 +582,11 @@ function SolarWireVisualEditor({
 
         {showLayerPanel && (
           <div className="layer-panel-fixed">
-            <LayerPanel onSelectElement={(id) => setSelectedElements([id])} onReorderElements={handleReorderElements} />
+            <LayerPanel 
+              onSelectElement={(id) => setSelectedElements([id])} 
+              onReorderElements={handleReorderElements}
+              externalContent={externalContent}
+            />
           </div>
         )}
 
@@ -477,7 +627,8 @@ function SolarWireVisualEditor({
             <button className="context-menu-item" onClick={async () => {
               if (!handleContentChange) return;
               const targetPos = contextMenu ? { x: contextMenu.x, y: contextMenu.y } : { x: 200, y: 200 };
-              const result = await pasteElements({ content, targetPosition: targetPos, setContent: handleContentChange, setSelectedElements: (ids) => useSolarWireStore.getState().setSelectedElements(ids) });
+              // 使用 setSelectedElements 而非 getState()，避免直接访问 store 状态
+              const result = await pasteElements({ content, targetPosition: targetPos, setContent: handleContentChange, setSelectedElements: setSelectedElements });
               if (result.success) handleContentChange?.(result.newContent);
               closeContextMenu();
             }}>

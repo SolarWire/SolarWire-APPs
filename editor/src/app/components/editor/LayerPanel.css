@@ -41,11 +41,12 @@
 }
 
 .layer-list::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-height);
 }
 
 .layer-list::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .layer-list::-webkit-scrollbar-thumb {
@@ -59,7 +60,7 @@
 }
 
 .layer-list::-webkit-scrollbar-corner {
-  background: transparent;
+  background: var(--scrollbar-corner);
 }
 
 .layer-item {
@@ -152,7 +153,7 @@
 
 .layer-tooltip {
   position: fixed;
-  z-index: 1000;
+  z-index: var(--z-tooltip);
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;
@@ -214,11 +215,12 @@
 }
 
 .layer-tooltip-content::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-height);
 }
 
 .layer-tooltip-content::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .layer-tooltip-content::-webkit-scrollbar-thumb {

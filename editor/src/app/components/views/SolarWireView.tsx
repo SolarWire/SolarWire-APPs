@@ -16,7 +16,7 @@ function SolarWireView(): React.ReactElement {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [pages, setPages] = useState<SolarWirePage[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const { currentPath, openFileAtPath, openSolarWireSnippet } = useFileStore();
+  const { currentPath, openFileAtPath, openSolarWireSnippet, refreshKey } = useFileStore();
 
   useEffect(() => {
     const collectSnippets = async () => {
@@ -81,7 +81,7 @@ function SolarWireView(): React.ReactElement {
     };
 
     collectSnippets();
-  }, [currentPath]);
+  }, [currentPath, refreshKey]);
 
   const filteredPages = useMemo(() => {
     return pages.filter((page) =>

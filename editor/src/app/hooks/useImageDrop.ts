@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from 'react';
+import { fileSystemService } from '../services/file-system-service';
+import { showToast } from '../services/toast-service';
 
 interface ImageSize {
   width: number;
@@ -27,7 +29,9 @@ export function getImageSizeFromBlob(blob: Blob): Promise<ImageSize> {
       URL.revokeObjectURL(url);
     };
     img.onerror = () => {
-      resolve({ width: 200, height: 200 });
+      // 图片加载失败时返回更合理的默认尺寸
+      console.warn('Failed to load image, using default size');
+      resolve({ width: 100, height: 100 });
       URL.revokeObjectURL(url);
     };
     img.src = url;
@@ -35,46 +39,70 @@ export function getImageSizeFromBlob(blob: Blob): Promise<ImageSize> {
 }
 
 export async function saveImageToAssetsDir(file: File, fileDir: string): Promise<string> {
-  const api = (window as any).api;
-  if (!api || !api.ensureDir || !api.writeFile) {
-    throw new Error('File API not available');
-  }
-
   const assetsDir = `${fileDir}/assets/images`;
-  await api.ensureDir(assetsDir);
+  await fileSystemService.ensureDir(assetsDir);
 
   const timestamp = Date.now();
-  const sanitizedName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const destPath = `${assetsDir}/${timestamp}_${sanitizedName}`;
+  // 移除路径遍历字符和特殊字符，只保留字母、数字、点、下划线和连字符
+  const sanitizedName = file.name
+    .replace(/\.\./g, '') // 移除路径遍历
+    .replace(/[\/\\]/g, '') // 移除路径分隔符
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
+  
+  // 确保文件名不为空
+  const finalName = sanitizedName || 'image';
+  const destPath = `${assetsDir}/${timestamp}_${finalName}`;
 
   const electronFile = file as File & { path?: string };
   if (electronFile.path) {
-    await api.copyFile(electronFile.path, destPath);
+    const api = (window as any).api;
+    if (api && api.copyFile) {
+      try {
+        await api.copyFile(electronFile.path, destPath);
+      } catch (error) {
+        console.error('Failed to copy file:', error);
+        throw new Error(`Failed to copy file: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    } else {
+      throw new Error('copyFile API not available');
+    }
   } else {
-    const buffer = await file.arrayBuffer();
-    await api.writeFile(destPath, new Uint8Array(buffer));
+    try {
+      const buffer = await file.arrayBuffer();
+      await fileSystemService.writeFile(destPath, new Uint8Array(buffer));
+    } catch (error) {
+      console.error('Failed to write file:', error);
+      throw new Error(`Failed to write file: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
-  return `assets/images/${timestamp}_${sanitizedName}`;
+  return `assets/images/${timestamp}_${finalName}`;
 }
 
 export async function saveBlobToAssetsDir(blob: Blob, fileName: string, fileDir: string): Promise<string> {
-  const api = (window as any).api;
-  if (!api || !api.ensureDir || !api.writeFile) {
-    throw new Error('File API not available');
-  }
-
   const assetsDir = `${fileDir}/assets/images`;
-  await api.ensureDir(assetsDir);
+  await fileSystemService.ensureDir(assetsDir);
 
   const timestamp = Date.now();
-  const sanitizedName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
-  const destPath = `${assetsDir}/${timestamp}_${sanitizedName}`;
+  // 移除路径遍历字符和特殊字符，只保留字母、数字、点、下划线和连字符
+  const sanitizedName = fileName
+    .replace(/\.\./g, '') // 移除路径遍历
+    .replace(/[\/\\]/g, '') // 移除路径分隔符
+    .replace(/[^a-zA-Z0-9._-]/g, '_');
+  
+  // 确保文件名不为空
+  const finalName = sanitizedName || 'image';
+  const destPath = `${assetsDir}/${timestamp}_${finalName}`;
 
-  const arrayBuffer = await blob.arrayBuffer();
-  await api.writeFile(destPath, new Uint8Array(arrayBuffer));
+  try {
+    const arrayBuffer = await blob.arrayBuffer();
+    await fileSystemService.writeFile(destPath, new Uint8Array(arrayBuffer));
+  } catch (error) {
+    console.error('Failed to write blob to file:', error);
+    throw new Error(`Failed to write blob to file: ${error instanceof Error ? error.message : String(error)}`);
+  }
 
-  return `assets/images/${timestamp}_${sanitizedName}`;
+  return `assets/images/${timestamp}_${finalName}`;
 }
 
 export function getFileDir(selectedFilePath: string | null | undefined, fallbackDir: string): string {
@@ -82,6 +110,34 @@ export function getFileDir(selectedFilePath: string | null | undefined, fallback
     return selectedFilePath.replace(/[\\/][^\\/]*$/, '');
   }
   return fallbackDir;
+}
+
+/**
+ * 验证图片路径是否安全
+ * @param path 图片路径
+ * @returns 是否安全
+ */
+export function validateImagePath(path: string): boolean {
+  if (!path || typeof path !== 'string') {
+    return false;
+  }
+  
+  // 检查路径遍历
+  if (path.includes('..') || path.includes('~')) {
+    return false;
+  }
+  
+  // 检查是否以 assets/images/ 开头
+  if (!path.startsWith('assets/images/')) {
+    return false;
+  }
+  
+  // 检查是否包含非法字符
+  if (/[^a-zA-Z0-9._\-\/]/.test(path)) {
+    return false;
+  }
+  
+  return true;
 }
 
 export function useImageDrop({
@@ -109,18 +165,26 @@ export function useImageDrop({
       e.stopPropagation();
       setIsDragOver(false);
 
-      if (!fileDir) return;
+      if (!fileDir) {
+        showToast('File directory not available', 'error');
+        return;
+      }
 
       const files = Array.from(e.dataTransfer.files);
       const imageFiles = files.filter((f) => f.type.startsWith('image/'));
 
       if (imageFiles.length === 0) return;
 
-      for (let i = 0; i < imageFiles.length; i++) {
-        const file = imageFiles[i];
-        const relativePath = await saveImageToAssetsDir(file, fileDir);
-        const size = await getImageSizeFromBlob(file);
-        onImageAdded(relativePath, e.clientX + i * 20, e.clientY + i * 20, size);
+      try {
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          const relativePath = await saveImageToAssetsDir(file, fileDir);
+          const size = await getImageSizeFromBlob(file);
+          onImageAdded(relativePath, e.clientX + i * 20, e.clientY + i * 20, size);
+        }
+      } catch (error) {
+        console.error('Failed to save images:', error);
+        showToast(`Failed to save images: ${error instanceof Error ? error.message : String(error)}`, 'error');
       }
     },
     [onImageAdded, fileDir]
@@ -128,7 +192,10 @@ export function useImageDrop({
 
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
-      if (!fileDir) return;
+      if (!fileDir) {
+        showToast('File directory not available', 'error');
+        return;
+      }
 
       const items = e.clipboardData?.items;
       if (!items) return;
@@ -138,19 +205,24 @@ export function useImageDrop({
       let pasteClientY = rect ? Math.round(rect.top + lastMousePosRef.current.y) : 50;
 
       let imageIndex = 0;
-      for (const item of items) {
-        if (item.type.startsWith('image/')) {
-          const blob = item.getAsFile();
-          if (!blob) continue;
+      try {
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            const blob = item.getAsFile();
+            if (!blob) continue;
 
-          const extension = item.type.split('/')[1] || 'png';
-          const fileName = `pasted_${imageIndex}.${extension}`;
+            const extension = item.type.split('/')[1] || 'png';
+            const fileName = `pasted_${imageIndex}.${extension}`;
 
-          const relativePath = await saveBlobToAssetsDir(blob, fileName, fileDir);
-          const size = await getImageSizeFromBlob(blob);
-          onImageAdded(relativePath, pasteClientX + imageIndex * 30, pasteClientY + imageIndex * 30, size);
-          imageIndex++;
+            const relativePath = await saveBlobToAssetsDir(blob, fileName, fileDir);
+            const size = await getImageSizeFromBlob(blob);
+            onImageAdded(relativePath, pasteClientX + imageIndex * 30, pasteClientY + imageIndex * 30, size);
+            imageIndex++;
+          }
         }
+      } catch (error) {
+        console.error('Failed to paste images:', error);
+        showToast(`Failed to paste images: ${error instanceof Error ? error.message : String(error)}`, 'error');
       }
     },
     [onImageAdded, fileDir]

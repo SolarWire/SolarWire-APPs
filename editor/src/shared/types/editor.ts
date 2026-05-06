@@ -1,4 +1,4 @@
-export type EditorMode = 'blank' | 'markdown' | 'solarwire' | 'image';
+export type EditorMode = 'blank' | 'markdown' | 'solarwire' | 'image' | 'componentLibraryManager';
 
 export interface EditorState {
   mode: EditorMode;
@@ -9,5 +9,6 @@ export interface EditorState {
   setMode: (mode: EditorMode) => void;
   setContent: (content: string) => void;
   setModified: (modified: boolean) => void;
+  clearHistory: () => void;
   undo: () => void;
 }

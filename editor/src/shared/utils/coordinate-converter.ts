@@ -6,6 +6,72 @@
 import type { Element } from '../../lib/parser/types';
 
 /**
+ * 坐标类型
+ */
+export type CoordinateType = 'absolute' | 'relative';
+
+/**
+ * 绝对坐标
+ */
+export interface AbsoluteCoordinate {
+  type: 'absolute';
+  value: number;
+}
+
+/**
+ * 相对坐标
+ */
+export interface RelativeCoordinate {
+  type: 'relative';
+  value: number;
+}
+
+/**
+ * 坐标（绝对或相对）
+ */
+export type Coordinate = AbsoluteCoordinate | RelativeCoordinate;
+
+/**
+ * 线段起点
+ */
+export interface LineStart {
+  x: Coordinate;
+  y: Coordinate;
+}
+
+/**
+ * 线段终点（绝对坐标）
+ */
+export interface LineEndAbsolute {
+  type: 'absolute';
+  x: AbsoluteCoordinate;
+  y: AbsoluteCoordinate;
+}
+
+/**
+ * 线段终点（相对偏移）
+ */
+export interface LineEndRelative {
+  type: 'relative';
+  dx: number;
+  dy: number;
+}
+
+/**
+ * 线段终点
+ */
+export type LineEnd = LineEndAbsolute | LineEndRelative;
+
+/**
+ * 线段元素类型
+ */
+export type LineElement = Element & {
+  type: 'line';
+  start?: LineStart;
+  end?: LineEnd;
+};
+
+/**
  * 将绝对坐标转换为相对坐标（相对于参考点）
  * @param absolute 绝对坐标 { x, y }
  * @param reference 参考点坐标 { x, y }
@@ -47,7 +113,7 @@ export function getLineStartCoords(lineElement: Element): { x: number; y: number
     return { x: 0, y: 0 };
   }
 
-  const lineEl = lineElement as any;
+  const lineEl = lineElement as LineElement;
   let x = 0, y = 0;
 
   if (lineEl.start) {
@@ -76,13 +142,13 @@ export function getLineEndCoords(
     return { x: 0, y: 0 };
   }
 
-  const lineEl = lineElement as any;
+  const lineEl = lineElement as LineElement;
 
   if (!lineEl.end) {
     return { x: startCoords.x + 100, y: startCoords.y };
   }
 
-  if ('dx' in lineEl.end && 'dy' in lineEl.end) {
+  if (lineEl.end.type === 'relative') {
     return {
       x: startCoords.x + lineEl.end.dx,
       y: startCoords.y + lineEl.end.dy
@@ -116,11 +182,11 @@ export function updateLineEndRelative(
     return lineElement;
   }
 
-  const lineEl = lineElement as any;
+  const lineEl = lineElement as LineElement;
   return {
     ...lineEl,
     end: { type: 'relative', dx, dy }
-  } as Element;
+  };
 }
 
 /**
@@ -139,10 +205,11 @@ export function updateLineEndAbsolute(
     return lineElement;
   }
 
-  const lineEl = lineElement as any;
+  const lineEl = lineElement as LineElement;
   return {
     ...lineEl,
     end: {
+      type: 'absolute',
       x: { type: 'absolute', value: x },
       y: { type: 'absolute', value: y }
     }
@@ -159,8 +226,8 @@ export function getLineEndMode(lineElement: Element): 'absolute' | 'relative' {
     return 'absolute';
   }
 
-  const lineEl = lineElement as any;
-  if (lineEl.end && 'dx' in lineEl.end && 'dy' in lineEl.end) {
+  const lineEl = lineElement as LineElement;
+  if (lineEl.end && lineEl.end.type === 'relative') {
     return 'relative';
   }
   return 'absolute';
@@ -176,7 +243,7 @@ export function getLineStartMode(lineElement: Element): 'absolute' | 'relative' 
     return 'absolute';
   }
 
-  const lineEl = lineElement as any;
+  const lineEl = lineElement as LineElement;
   if (lineEl.start) {
     if (lineEl.start.x.type === 'relative' || lineEl.start.y.type === 'relative') {
       return 'relative';
@@ -200,7 +267,7 @@ export function getLineCoordinates(lineElement: Element): {
     return { x1: 0, y1: 0, x2: 0, y2: 0 };
   }
 
-  const lineEl = lineElement as any;
+  const lineEl = lineElement as LineElement;
   let x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 
   if (lineEl.start) {
@@ -213,16 +280,16 @@ export function getLineCoordinates(lineElement: Element): {
   }
 
   if (lineEl.end) {
-    if (lineEl.end.x && lineEl.end.y) {
+    if (lineEl.end.type === 'relative') {
+      x2 = x1 + lineEl.end.dx;
+      y2 = y1 + lineEl.end.dy;
+    } else {
       if (lineEl.end.x.type === 'absolute') {
         x2 = lineEl.end.x.value;
       }
       if (lineEl.end.y.type === 'absolute') {
         y2 = lineEl.end.y.value;
       }
-    } else if (lineEl.end.dx !== undefined && lineEl.end.dy !== undefined) {
-      x2 = x1 + lineEl.end.dx;
-      y2 = y1 + lineEl.end.dy;
     }
   }
 

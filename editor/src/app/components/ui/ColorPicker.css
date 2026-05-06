@@ -81,7 +81,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 8px;
   min-width: 200px;
-  z-index: 1000;
+  z-index: var(--z-popover);
 }
 
 .color-picker-section {

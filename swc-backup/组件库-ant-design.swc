@@ -80,7 +80,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("+")) @(10, 10) w=36 h=36 bg=#f0f5ff c=#1890ff size=16
+("+") @(10, 10) w=36 h=36 bg=#f0f5ff c=#1890ff size=16
 ```
 
 ### 按钮组
@@ -118,7 +118,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=40 h=40 bg=#e6f4ff c=#1890ff size=16
+("张") @(10, 10) w=40 h=40 bg=#e6f4ff c=#1890ff size=16
 ```
 
 ### 头像组
@@ -130,10 +130,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=40 h=40 bg=#e6f4ff c=#1890ff size=16
-(("李")) @(30, 10) w=40 h=40 bg=#f6ffed c=#52c41a size=16
-(("王")) @(50, 10) w=40 h=40 bg=#fff1f0 c=#ff4d4f size=16
-(("+3")) @(70, 10) w=40 h=40 bg=#f5f5f5 c=#666666 size=14
+("张") @(10, 10) w=40 h=40 bg=#e6f4ff c=#1890ff size=16
+("李") @(30, 10) w=40 h=40 bg=#f6ffed c=#52c41a size=16
+("王") @(50, 10) w=40 h=40 bg=#fff1f0 c=#ff4d4f size=16
+("+3") @(70, 10) w=40 h=40 bg=#f5f5f5 c=#666666 size=14
 ```
 
 ### 徽标
@@ -146,7 +146,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("9") @(10, 10) w=40 h=40 bg=#f5f5f5 c=#666666 size=14 r=8
-(("9")) @(42, 4) w=20 h=20 bg=#ff4d4f c=#ffffff size=10
+("9") @(42, 4) w=20 h=20 bg=#ff4d4f c=#ffffff size=10
 ```
 
 ### 标签
@@ -291,9 +291,9 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=10
+("●") @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=10
 "选项A" @(32, 13) c=#333333 size=13
-(("○")) @(90, 10) w=16 h=16 bg=#ffffff c=#d9d9d9 size=10 s=1
+("○") @(90, 10) w=16 h=16 bg=#ffffff c=#d9d9d9 size=10 s=1
 "选项B" @(112, 13) c=#333333 size=13
 ```
 
@@ -306,9 +306,9 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("✓")) @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=12
+("✓") @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=12
 "选项一" @(32, 13) c=#333333 size=13
-((" ")) @(90, 10) w=16 h=16 bg=#ffffff c=#d9d9d9 size=12 s=1
+(" ") @(90, 10) w=16 h=16 bg=#ffffff c=#d9d9d9 size=12 s=1
 "选项二" @(112, 13) c=#333333 size=13
 ```
 
@@ -322,7 +322,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=44 h=24 bg=#1890ff r=12
-(("●")) @(36, 14) w=16 h=16 bg=#ffffff size=8
+("●") @(36, 14) w=16 h=16 bg=#ffffff size=8
 ```
 
 ### 滑块
@@ -336,7 +336,7 @@ updatedAt: 2026-04-24T00:00:00Z
 ```solarwire
 ("") @(10, 13) w=200 h=4 bg=#e5e5e5 r=2
 ("") @(10, 13) w=100 h=4 bg=#1890ff r=2
-(("●")) @(95, 7) w=12 h=12 bg=#1890ff c=#ffffff size=6
+("●") @(95, 7) w=12 h=12 bg=#1890ff c=#ffffff size=6
 "50%" @(112, 26) c=#333333 size=12
 ```
 
@@ -349,11 +349,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("★")) @(10, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
-(("★")) @(35, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
-(("★")) @(60, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
-(("★")) @(85, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
-(("☆")) @(110, 10) w=20 h=20 bg=transparent c=#d9d9d9 size=16
+("★") @(10, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
+("★") @(35, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
+("★") @(60, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
+("★") @(85, 10) w=20 h=20 bg=transparent c=#ff4d4f size=16
+("☆") @(110, 10) w=20 h=20 bg=transparent c=#d9d9d9 size=16
 ```
 
 ### 颜色选择器
@@ -757,7 +757,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=14
+("张") @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=14
 "张三" @(55, 10) c=#333333 size=13 bold=true
 "zhangsan@email.com" @(55, 28) c=#999999 size=12
 ```
@@ -771,10 +771,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("通知")) @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
+("通知") @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
 "您有新的消息" @(55, 10) c=#333333 size=13 bold=true
 "5分钟前" @(55, 28) c=#999999 size=12
-(("1")) @(42, 4) w=16 h=16 bg=#ff4d4f c=#ffffff size=10
+("1") @(42, 4) w=16 h=16 bg=#ff4d4f c=#ffffff size=10
 ```
 
 ### 评论列表
@@ -786,7 +786,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=32 h=32 bg=#e6f4ff c=#1890ff size=12
+("张") @(10, 10) w=32 h=32 bg=#e6f4ff c=#1890ff size=12
 "张三" @(50, 10) c=#333333 size=13 bold=true
 "评论内容..." @(50, 28) c=#666666 size=12
 "2小时前 回复" @(50, 46) c=#1890ff size=11
@@ -987,9 +987,9 @@ updatedAt: 2026-04-24T00:00:00Z
 -- @(95, 150)->(95, 50) b=#1890ff s=2
 -- @(170, 150)->(170, 70) b=#1890ff s=2
 -- @(245, 150)->(245, 40) b=#1890ff s=2
-(("●")) @(92, 50) w=6 h=6 bg=#1890ff c=#1890ff size=4
-(("●")) @(167, 70) w=6 h=6 bg=#1890ff c=#1890ff size=4
-(("●")) @(242, 40) w=6 h=6 bg=#1890ff c=#1890ff size=4
+("●") @(92, 50) w=6 h=6 bg=#1890ff c=#1890ff size=4
+("●") @(167, 70) w=6 h=6 bg=#1890ff c=#1890ff size=4
+("●") @(242, 40) w=6 h=6 bg=#1890ff c=#1890ff size=4
 ```
 
 ### 柱状图
@@ -1022,8 +1022,8 @@ updatedAt: 2026-04-24T00:00:00Z
 ```solarwire
 ("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
 "饼图" @(20, 20) c=#333333 size=14 bold=true
-(("●")) @(120, 100) w=80 h=80 bg=#1890ff c=#1890ff size=4
-(("●")) @(140, 120) w=40 h=40 bg=#52c41a c=#52c41a size=4
+("●") @(120, 100) w=80 h=80 bg=#1890ff c=#1890ff size=4
+("●") @(140, 120) w=40 h=40 bg=#52c41a c=#52c41a size=4
 ("分类A") @(210, 80) c=#333333 size=12
 ("30%") @(210, 95) c=#666666 size=11
 ("分类B") @(210, 115) c=#333333 size=12
@@ -1098,12 +1098,12 @@ updatedAt: 2026-04-24T00:00:00Z
 "散点图" @(20, 20) c=#333333 size=14 bold=true
 -- @(20, 150)->(280, 150) b=#e5e5e5 s=1
 -- @(20, 50)->(20, 150) b=#e5e5e5 s=1
-(("●")) @(60, 80) w=8 h=8 bg=#1890ff c=#1890ff size=4
-(("●")) @(100, 120) w=8 h=8 bg=#1890ff c=#1890ff size=4
-(("●")) @(140, 60) w=8 h=8 bg=#1890ff c=#1890ff size=4
-(("●")) @(180, 100) w=8 h=8 bg=#1890ff c=#1890ff size=4
-(("●")) @(220, 90) w=8 h=8 bg=#1890ff c=#1890ff size=4
-(("●")) @(250, 70) w=8 h=8 bg=#1890ff c=#1890ff size=4
+("●") @(60, 80) w=8 h=8 bg=#1890ff c=#1890ff size=4
+("●") @(100, 120) w=8 h=8 bg=#1890ff c=#1890ff size=4
+("●") @(140, 60) w=8 h=8 bg=#1890ff c=#1890ff size=4
+("●") @(180, 100) w=8 h=8 bg=#1890ff c=#1890ff size=4
+("●") @(220, 90) w=8 h=8 bg=#1890ff c=#1890ff size=4
+("●") @(250, 70) w=8 h=8 bg=#1890ff c=#1890ff size=4
 ```
 
 ### 仪表盘
@@ -1132,7 +1132,7 @@ updatedAt: 2026-04-24T00:00:00Z
 ```solarwire
 ("") @(10, 10) w=300 h=180 bg=#f5f5f5 s=1 r=8
 "地图区域" @(130, 90) c=#bfbfbf size=14
-(("●")) @(140, 85) w=10 h=10 bg=#ff4d4f c=#ff4d4f size=4
+("●") @(140, 85) w=10 h=10 bg=#ff4d4f c=#ff4d4f size=4
 "北京" @(130, 100) c=#333333 size=11
 ```
 
@@ -1347,13 +1347,13 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("1")) @(10, 10) w=24 h=24 bg=#1890ff c=#ffffff size=12
+("1") @(10, 10) w=24 h=24 bg=#1890ff c=#ffffff size=12
 "第一步" @(40, 14) c=#333333 size=12
 -- @(35, 22)->(90, 22) b=#1890ff s=2
-(("2")) @(100, 10) w=24 h=24 bg=#1890ff c=#ffffff size=12
+("2") @(100, 10) w=24 h=24 bg=#1890ff c=#ffffff size=12
 "第二步" @(130, 14) c=#333333 size=12
 -- @(125, 22)->(180, 22) b=#e5e5e5 s=2
-(("3")) @(190, 10) w=24 h=24 bg=#e5e5e5 c=#999999 size=12
+("3") @(190, 10) w=24 h=24 bg=#e5e5e5 c=#999999 size=12
 "第三步" @(220, 14) c=#999999 size=12
 ```
 
@@ -1594,7 +1594,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("✓")) @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=12
+("✓") @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=12
 "我已阅读并同意" @(32, 13) c=#666666 size=12
 "《用户协议》" @(130, 13) c=#1890ff size=12
 "和" @(185, 13) c=#666666 size=12
@@ -1610,7 +1610,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("✓")) @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=12
+("✓") @(10, 10) w=16 h=16 bg=#1890ff c=#ffffff size=12
 "我已阅读并同意" @(32, 13) c=#666666 size=12
 "《隐私政策》" @(130, 13) c=#1890ff size=12
 ```
@@ -2137,7 +2137,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=8
-(("✓")) @(20, 30) w=24 h=24 bg=#1890ff c=#ffffff size=14
+("✓") @(20, 30) w=24 h=24 bg=#1890ff c=#ffffff size=14
 ("") @(55, 20) w=60 h=60 bg=#f5f5f5 r=4
 "商品名称" @(125, 25) c=#333333 size=13 bold=true
 "¥199.00" @(125, 50) c=#ff4d4f size=14
@@ -2227,10 +2227,10 @@ updatedAt: 2026-04-24T00:00:00Z
 ("") @(10, 10) w=400 h=150 bg=#ffffff s=1 r=8
 "物流跟踪" @(20, 20) c=#333333 size=14 bold=true
 "顺丰速运 SF1234567890" @(20, 50) c=#666666 size=12
-(("●")) @(20, 75) w=12 h=12 bg=#52c41a c=#52c41a size=4
+("●") @(20, 75) w=12 h=12 bg=#52c41a c=#52c41a size=4
 "商品已到达【北京分拨中心】" @(40, 75) c=#52c41a size=12
 "2026-04-24 08:30" @(40, 92) c=#999999 size=11
-(("●")) @(20, 115) w=12 h=12 bg=#1890ff c=#1890ff size=4
+("●") @(20, 115) w=12 h=12 bg=#1890ff c=#1890ff size=4
 "商品已发出" @(40, 115) c=#666666 size=12
 "2026-04-23 16:20" @(40, 132) c=#999999 size=11
 ```
@@ -2445,7 +2445,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("+")) @(10, 10) w=44 h=44 bg=#e6f4ff c=#1890ff size=20
+("+") @(10, 10) w=44 h=44 bg=#e6f4ff c=#1890ff size=20
 ```
 
 ### 胶囊按钮
@@ -2469,7 +2469,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=48 h=48 bg=#e6f4ff c=#1890ff size=18
+("张") @(10, 10) w=48 h=48 bg=#e6f4ff c=#1890ff size=18
 ```
 
 ### 徽标
@@ -2481,7 +2481,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("9")) @(42, 4) w=20 h=20 bg=#ff4d4f c=#ffffff size=10
+("9") @(42, 4) w=20 h=20 bg=#ff4d4f c=#ffffff size=10
 ```
 
 ### 标签
@@ -2573,9 +2573,9 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 12) w=20 h=20 bg=#1890ff c=#ffffff size=10
+("●") @(10, 12) w=20 h=20 bg=#1890ff c=#ffffff size=10
 "选项A" @(40, 15) c=#333333 size=14
-(("○")) @(10, 45) w=20 h=20 bg=#ffffff c=#d9d9d9 size=10 s=1
+("○") @(10, 45) w=20 h=20 bg=#ffffff c=#d9d9d9 size=10 s=1
 "选项B" @(40, 48) c=#333333 size=14
 ```
 
@@ -2588,9 +2588,9 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("✓")) @(10, 12) w=20 h=20 bg=#1890ff c=#ffffff size=12
+("✓") @(10, 12) w=20 h=20 bg=#1890ff c=#ffffff size=12
 "选项一" @(40, 15) c=#333333 size=14
-((" ")) @(10, 45) w=20 h=20 bg=#ffffff c=#d9d9d9 size=12 s=1
+(" ") @(10, 45) w=20 h=20 bg=#ffffff c=#d9d9d9 size=12 s=1
 "选项二" @(40, 48) c=#333333 size=14
 ```
 
@@ -2604,7 +2604,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=52 h=28 bg=#1890ff r=14
-(("●")) @(42, 14) w=20 h=20 bg=#ffffff size=10
+("●") @(42, 14) w=20 h=20 bg=#ffffff size=10
 ```
 
 ### 滑块
@@ -2618,7 +2618,7 @@ updatedAt: 2026-04-24T00:00:00Z
 ```solarwire
 ("") @(10, 18) w=280 h=4 bg=#e5e5e5 r=2
 ("") @(10, 18) w=140 h=4 bg=#1890ff r=2
-(("●")) @(135, 12) w=16 h=16 bg=#1890ff c=#ffffff size=6
+("●") @(135, 12) w=16 h=16 bg=#1890ff c=#ffffff size=6
 ```
 
 ### 评分
@@ -2630,11 +2630,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("★")) @(10, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
-(("★")) @(42, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
-(("★")) @(74, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
-(("★")) @(106, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
-(("☆")) @(138, 10) w=28 h=28 bg=transparent c=#d9d9d9 size=20
+("★") @(10, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
+("★") @(42, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
+("★") @(74, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
+("★") @(106, 10) w=28 h=28 bg=transparent c=#ff4d4f size=20
+("☆") @(138, 10) w=28 h=28 bg=transparent c=#d9d9d9 size=20
 ```
 
 ### 验证码
@@ -2721,11 +2721,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("消息")) @(10, 14) w=48 h=48 bg=#e6f4ff c=#1890ff size=12
+("消息") @(10, 14) w=48 h=48 bg=#e6f4ff c=#1890ff size=12
 "消息标题" @(70, 14) c=#333333 size=14 bold=true
 "消息摘要内容..." @(70, 36) c=#999999 size=12
 "10:30" @(270, 20) c=#999999 size=12
-(("1")) @(55, 8) w=18 h=18 bg=#ff4d4f c=#ffffff size=10
+("1") @(55, 8) w=18 h=18 bg=#ff4d4f c=#ffffff size=10
 ```
 
 ### 聊天列表
@@ -2737,11 +2737,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("头像")) @(10, 14) w=48 h=48 bg=#e6f4ff c=#1890ff size=12
+("头像") @(10, 14) w=48 h=48 bg=#e6f4ff c=#1890ff size=12
 "张三" @(70, 14) c=#333333 size=14 bold=true
 "你好，请问..." @(70, 36) c=#999999 size=12
 "10:30" @(270, 20) c=#999999 size=12
-(("●")) @(55, 8) w=18 h=18 bg=#52c41a c=#52c41a size=6
+("●") @(55, 8) w=18 h=18 bg=#52c41a c=#52c41a size=6
 ```
 
 ### 索引列表
@@ -2945,7 +2945,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=300 h=120 bg=#ffffff s=1 r=12
-(("张")) @(20, 20) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
+("张") @(20, 20) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
 "张三" @(65, 22) c=#333333 size=13 bold=true
 "★★★★★" @(65, 45) c=#ff4d4f size=12
 "评价内容：非常好的一款产品..." @(20, 70) c=#666666 size=13
@@ -3179,7 +3179,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=300 h=120 bg=#1890ff s=1 r=16
-(("张")) @(30, 30) w=60 h=60 bg=#ffffff c=#1890ff size=24
+("张") @(30, 30) w=60 h=60 bg=#ffffff c=#1890ff size=24
 "张三" @(100, 35) c=#ffffff size=18 bold=true
 "ID: 12345678" @(100, 60) c=#ffffff opacity=0.8 size=12
 ```
@@ -3281,10 +3281,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
+("张") @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
 ("你好，请问有什么可以帮你的吗？") @(55, 10) w=200 h=40 bg=#e6f4ff c=#333333 size=13 r=18
 ("这边显示的确实有些问题，我来看一下") @(65, 55) w=220 h=40 bg=#1890ff c=#ffffff size=13 r=18
-(("李")) @(280, 55) w=36 h=36 bg=#52c41a c=#ffffff size=12
+("李") @(280, 55) w=36 h=36 bg=#52c41a c=#ffffff size=12
 ```
 
 ### 气泡样式
@@ -3330,11 +3330,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
+("张") @(10, 10) w=36 h=36 bg=#e6f4ff c=#1890ff size=12
 (") @(55, 15) w=100 h=30 bg=#e6f4ff r=15
 "🔊" @(60, 22) c=#1890ff size=14
 "1\"" @(120, 22) c=#333333 size=12
-(("●")) @(280, 10) w=36 h=36 bg=#52c41a c=#ffffff size=10
+("●") @(280, 10) w=36 h=36 bg=#52c41a c=#ffffff size=10
 (") @(165, 15) w=100 h=30 bg=#1890ff r=15
 "🔊" @(240, 22) c=#ffffff size=14
 "3\"" @(180, 22) c=#ffffff size=12
@@ -3714,7 +3714,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=12
-(("✓")) @(20, 30) w=24 h=24 bg=#1890ff c=#ffffff size=14
+("✓") @(20, 30) w=24 h=24 bg=#1890ff c=#ffffff size=14
 ("") @(55, 20) w=60 h=60 bg=#f5f5f5 r=8
 "商品名称" @(125, 25) c=#333333 size=13 bold=true
 "¥199.00" @(125, 50) c=#ff4d4f size=14

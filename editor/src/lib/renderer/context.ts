@@ -385,3 +385,41 @@ export function getOpacityAttribute(
   if (isNaN(parsed)) return defaultValue;
   return Math.max(0, Math.min(1, parsed));
 }
+
+export function getLetterSpacingAttribute(
+  attributes: Record<string, string>,
+  globalDefaults: GlobalDefaults,
+  defaultValue: number = 0
+): number {
+  return getNumberAttribute(attributes, globalDefaults, 'letter-spacing', defaultValue);
+}
+
+export interface ShadowConfig {
+  x: number;
+  y: number;
+  blur: number;
+  color: string;
+}
+
+export function getShadowAttribute(
+  attributes: Record<string, string>,
+  globalDefaults: GlobalDefaults
+): ShadowConfig | null {
+  const x = getNumberAttribute(attributes, globalDefaults, 'shadow-x', 0);
+  const y = getNumberAttribute(attributes, globalDefaults, 'shadow-y', 0);
+  const blur = getNumberAttribute(attributes, globalDefaults, 'shadow-blur', 0);
+  const color = getColorAttribute(attributes, globalDefaults, 'shadow-color', 'transparent');
+  
+  // 如果所有值都是默认值，则没有阴影
+  if (x === 0 && y === 0 && blur === 0) {
+    return null;
+  }
+  
+  return { x, y, blur, color };
+}
+
+export function generateShadowFilter(shadow: ShadowConfig, elementId: string): string {
+  return `  <filter id="shadow-${elementId}" x="-50%" y="-50%" width="200%" height="200%">
+    <feDropShadow dx="${shadow.x}" dy="${shadow.y}" stdDeviation="${shadow.blur}" flood-color="${shadow.color}"/>
+  </filter>`;
+}

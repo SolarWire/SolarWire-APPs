@@ -3,8 +3,8 @@ import { useAppStore } from '../../stores/appStore';
 import { useFileStore } from '../../stores/fileStore';
 import { ViewType } from '../../../shared/types/app';
 import FileView from './FileView';
-import RequirementView from './RequirementView';
 import SolarWireView from './SolarWireView';
+import ComponentLibraryManagerView from './ComponentLibraryManagerView';
 import { getSelectedItemForView } from '../../../shared/utils/file-utils';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
 import './ViewTabs.css';
@@ -15,18 +15,18 @@ const ViewTabs: React.FC = () => {
 
   const views: { type: ViewType; emoji: string; title: string }[] = [
     { type: 'file', emoji: '📁', title: '文件管理器' },
-    { type: 'requirement', emoji: '📋', title: '需求文档' },
     { type: 'solarwire', emoji: '🎨', title: 'SolarWire' },
+    { type: 'componentLibraryManager', emoji: '🧩', title: '组件库管理' },
   ];
 
   const renderViewContent = () => {
     switch (currentView) {
       case 'file':
         return <FileView />;
-      case 'requirement':
-        return <RequirementView />;
       case 'solarwire':
         return <SolarWireView />;
+      case 'componentLibraryManager':
+        return <ComponentLibraryManagerView />;
       default:
         return null;
     }

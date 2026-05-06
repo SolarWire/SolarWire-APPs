@@ -1,15 +1,52 @@
 .resizable-divider {
   position: relative;
-  background-color: var(--divider-bg);
+  background-color: var(--border-color);
   cursor: col-resize;
   user-select: none;
   transition: background-color 0.2s;
+  z-index: var(--z-resizable-divider);
 }
 
 .resizable-divider.vertical {
-  width: 2px;
+  width: 4px;
   height: 100%;
   margin: 0;
+  background: var(--border-color);
+  cursor: col-resize;
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.resizable-divider.vertical:hover {
+  background: var(--accent-color);
+}
+
+.resizable-divider.vertical:active {
+  background: var(--accent-color);
+}
+
+.resizable-divider.vertical::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 20px;
+  background: var(--text-muted);
+  border-radius: 1px;
+  opacity: 0.5;
+}
+
+.resizable-divider.vertical:hover::before {
+  opacity: 1;
+  background: var(--accent-color);
+}
+
+.resizable-divider.vertical:active::before {
+  opacity: 1;
+  background: var(--accent-color);
 }
 
 .resizable-divider.horizontal {

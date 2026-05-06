@@ -1,52 +1,155 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { useAppStore } from '../../stores/appStore';
+import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
+import { useStatusStore } from '../../stores/statusStore';
 import './MonacoEditor.css';
 
+// 全局保存的滚动位置记录
 let globalSavedScrollPosition: Record<string, number> = {};
 
+/**
+ * Monaco 编辑器组件属性接口
+ */
 interface MonacoEditorProps {
+  /** 编辑器语言 */
   language: string;
+  /** 编辑器内容 */
   value: string;
+  /** 内容变化回调 */
   onChange: (value: string) => void;
+  /** 编辑器高度 */
   height?: string;
+  /** 高亮行号列表 */
   highlightLines?: number[];
+  /** 错误行号列表 */
+  errorLines?: number[];
+  /** 滚动触发器（用于触发滚动操作） */
   scrollTrigger?: number;
+  /** 高亮触发器（用于触发高亮更新） */
   highlightTrigger?: number;
+  /** 是否自动滚动 */
   autoScroll?: boolean;
+  /** 是否保持滚动位置 */
   preserveScrollPosition?: boolean;
+  /** 滚动位置键（用于区分不同的编辑器实例） */
   scrollKey?: string;
 }
 
+/**
+ * Monaco 编辑器组件
+ * 封装 Monaco Editor，提供 SolarWire 语言支持
+ */
 function MonacoEditor({
   language,
   value,
   onChange,
   height = '100%',
   highlightLines = [],
+  errorLines = [],
   scrollTrigger,
   highlightTrigger,
   preserveScrollPosition = false,
   scrollKey
 }: MonacoEditorProps): React.ReactElement {
+  // 主题
   const { theme } = useAppStore();
+  // 状态栏
+  const { updateFileStatus, updateEditorStatus } = useStatusStore();
+  // Monaco 实例引用
   const monacoRef = useRef<any>(null);
+  // 编辑器实例引用
   const editorRef = useRef<any>(null);
+  // 装饰器引用
   const decorationsRef = useRef<string[]>([]);
+  // 上次滚动触发器
   const prevScrollTriggerRef = useRef<number>(0);
+  // 上次高亮触发器
   const prevHighlightTriggerRef = useRef<number>(0);
+  // 高亮行号引用
   const highlightLinesRef = useRef<number[]>(highlightLines);
-  
+  // 上次内容引用（用于检测修改）
+  const lastContentRef = useRef<string>(value);
+  // 修改状态跟踪
+  const isModifiedRef = useRef<boolean>(false);
+
   // 保存待应用的高亮/滚动数据，用于编辑器挂载后应用
   const pendingHighlightRef = useRef<{lines: number[], trigger: number} | null>(null);
   const pendingScrollRef = useRef<{scrollTrigger: number, line: number} | null>(null);
-  
+
   // 始终同步 highlightLines 到 ref，确保滚动时使用最新值
   highlightLinesRef.current = highlightLines;
-  
+
+  // 监听语法错误变化
+  useEffect(() => {
+    const listener = {
+      onErrorsChanged: (errors: SyntaxError[]) => {
+        // 更新错误行高亮
+        const errorLines = errors.map(e => e.line);
+        // 这里可以触发错误行高亮更新
+      }
+    };
+
+    syntaxErrorService.addListener(listener);
+    return () => {
+      syntaxErrorService.removeListener(listener);
+    };
+  }, []);
+
+  /**
+   * 编辑器挂载完成回调
+   */
   const handleEditorDidMount = useCallback((editor: any, monaco: any) => {
     editorRef.current = editor;
     monacoRef.current = monaco;
+    
+    // 光标位置变化监听
+    const cursorChangeListener = () => {
+      const position = editor.getPosition();
+      if (position) {
+        updateFileStatus({
+          cursorPosition: { line: position.lineNumber, column: position.column }
+        });
+      }
+    };
+    
+    // 选择变化监听
+    const selectionChangeListener = () => {
+      const selection = editor.getSelection();
+      if (selection && !selection.isEmpty()) {
+        const selectedText = editor.getModel().getValueInRange(selection);
+        updateFileStatus({
+          selectionCount: selectedText.length
+        });
+      } else {
+        updateFileStatus({ selectionCount: 0 });
+      }
+    };
+    
+    // 内容变化监听
+    const contentChangeListener = () => {
+      const currentContent = editor.getValue();
+      const isModified = currentContent !== lastContentRef.current;
+      
+      if (isModified !== isModifiedRef.current) {
+        isModifiedRef.current = isModified;
+        updateFileStatus({ isModified });
+      }
+      
+      // 更新行数
+      const lineCount = currentContent.split('\n').length;
+      updateFileStatus({ lineCount });
+    };
+    
+    // 注册监听器
+    editor.onDidChangeCursorPosition(cursorChangeListener);
+    editor.onDidChangeCursorSelection(selectionChangeListener);
+    editor.onDidChangeModelContent(contentChangeListener);
+    
+    // 初始化状态
+    cursorChangeListener();
+    selectionChangeListener();
+    contentChangeListener();
     
     if (preserveScrollPosition && scrollKey) {
       const savedPosition = globalSavedScrollPosition[scrollKey];
@@ -63,81 +166,23 @@ function MonacoEditor({
       };
       editor.onDidScrollChange(scrollListener);
     }
-    
-    // Check if there is pending highlight data to apply
-    if (pendingHighlightRef.current && pendingHighlightRef.current.lines.length > 0) {
-      const newDecorations = pendingHighlightRef.current.lines.map(line => ({
-        range: new monaco.Range(line, 1, line, 1),
-        options: {
-          isWholeLine: true,
-          className: 'highlight-line',
-          inlineClassName: 'highlight-line-inline',
-          glyphMarginClassName: 'highlight-line-glyph'
-        }
-      }));
-      decorationsRef.current = editor.deltaDecorations([], newDecorations);
-      pendingHighlightRef.current = null;
-    }
+  }, [preserveScrollPosition, scrollKey, updateFileStatus]);
 
-    // Check if there is pending scroll data to apply
-    if (pendingScrollRef.current) {
-      editor.revealLineInCenter(pendingScrollRef.current.line);
-      pendingScrollRef.current = null;
-    }
-    
-    if (monaco) {
-      if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'solarwire')) {
-        monaco.languages.register({ id: 'solarwire' });
-        
-        monaco.languages.setMonarchTokensProvider('solarwire', {
-          tokenizer: {
-            root: [
-              [/\/\/.*$/, 'comment'],
-              [/\(\("[^"]*"\)\)/, 'type'],
-              [/\(\('[^']*'\)\)/, 'type'],
-              [/\["[^"]*"\]/, 'type'],
-              [/\('[^']*'\)/, 'type'],
-              [/\(\[[^\]]*\)\)/, 'type'],
-              [/\[[^\]]*\]/, 'type'],
-              [/"[^"]*"/, 'type'],
-              [/--/, 'type'],
-              [/##/, 'namespace'],
-              [/\[\?"[^"]*"\]/, 'type'],
-              [/<[^>]+>/, 'type'],
-              [/@\([^)]+\)/, 'number'],
-              [/->\([^)]+\)/, 'number'],
-              [/\b\w+\s*=\s*"[^"]*"/, 'attribute'],
-              [/\b\w+\s*=\s*'[^']*'/, 'attribute'],
-              [/\b\w+\s*=\s*[^\s]+/, 'attribute'],
-              [/\bbold\b/, 'attribute'],
-              [/\bitalic\b/, 'attribute'],
-              [/\bnote\b/, 'attribute'],
-              [/\b\d+\b/, 'number'],
-              [/#[0-9a-fA-F]{6}/, 'string']
-            ]
-          }
-        });
-        
-        monaco.languages.setLanguageConfiguration('solarwire', {
-          comments: { lineComment: '//' },
-          brackets: [['(', ')'], ['[', ']'], ['{', '}']]
-        });
-      }
-    }
-  }, [preserveScrollPosition, scrollKey]);
-
-  // Effect 1: 更新高亮装饰（不滚动）
+  // Effect 1: 更新高亮装饰（包括错误行高亮）
   useEffect(() => {
     if (!editorRef.current) {
       pendingHighlightRef.current = { lines: highlightLines, trigger: highlightTrigger || 0 };
       return;
     }
     const monaco = monacoRef.current;
-    if (!monaco) return;
+    const editor = editorRef.current;
+    if (!monaco || !editor) return;
 
     let newDecorations: any[] = [];
+    
+    // 添加普通高亮行
     if (highlightLines.length > 0) {
-      newDecorations = highlightLines.map(line => ({
+      newDecorations = highlightLines.map((line: number) => ({
         range: new monaco.Range(line, 1, line, 1),
         options: {
           isWholeLine: true,
@@ -147,46 +192,80 @@ function MonacoEditor({
         }
       }));
     }
-
-    decorationsRef.current = editorRef.current.deltaDecorations(
-      decorationsRef.current,
-      newDecorations
-    );
-  }, [highlightLines]);
-
-  // Effect 2: 仅在 scrollTrigger 变化时滚动一次
-  useEffect(() => {
-    if (scrollTrigger === undefined || scrollTrigger === 0) return;
-    if (scrollTrigger === prevScrollTriggerRef.current) return;
     
-    prevScrollTriggerRef.current = scrollTrigger;
-    
-    // 使用 ref 获取最新的 highlightLines，避免将其加入依赖数组
-    if (highlightLinesRef.current.length === 0) return;
-
-    const firstLine = Math.min(...highlightLinesRef.current);
-    
-    if (!editorRef.current) {
-      // 编辑器未准备好，保存待滚动的数据
-      pendingScrollRef.current = { scrollTrigger, line: firstLine };
-      return;
+    // 添加错误行高亮
+    if (errorLines && errorLines.length > 0) {
+      const errorDecorations = errorLines.map((line: number) => ({
+        range: new monaco.Range(line, 1, line, 1),
+        options: {
+          isWholeLine: true,
+          className: 'error-line-highlight',
+          glyphMarginClassName: 'error-line-glyph'
+        }
+      }));
+      newDecorations = [...newDecorations, ...errorDecorations];
     }
     
-    editorRef.current.revealLineInCenter(firstLine);
-  }, [scrollTrigger]);
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+    pendingHighlightRef.current = null;
 
-  // Effect 3: 仅在 highlightTrigger 变化时强制更新高亮装饰
+    // Check if there is pending scroll data to apply
+    if (pendingScrollRef.current) {
+      editor.revealLineInCenter(pendingScrollRef.current.line);
+      pendingScrollRef.current = null;
+    }
+  }, [highlightLines, errorLines, highlightTrigger]);
+
+  // Effect 2: 处理滚动触发器
   useEffect(() => {
-    if (!editorRef.current) return;
-    if (highlightTrigger === undefined || highlightTrigger === 0) return;
-    if (highlightTrigger === prevHighlightTriggerRef.current) return;
-    
-    prevHighlightTriggerRef.current = highlightTrigger;
-    
-    const monaco = monacoRef.current;
-    if (!monaco || highlightLinesRef.current.length === 0) return;
+    if (!scrollTrigger || scrollTrigger === prevScrollTriggerRef.current) {
+      return;
+    }
+    prevScrollTriggerRef.current = scrollTrigger;
 
-    const newDecorations = highlightLinesRef.current.map(line => ({
+    if (!editorRef.current) {
+      pendingScrollRef.current = { scrollTrigger, line: 1 };
+      return;
+    }
+
+    const editor = editorRef.current;
+    
+    // 优先跳转到错误行，如果没有错误行则跳转到高亮行
+    let targetLine = 1;
+    if (errorLines && errorLines.length > 0) {
+      targetLine = errorLines[0];
+    } else if (highlightLinesRef.current && highlightLinesRef.current.length > 0) {
+      targetLine = highlightLinesRef.current[0];
+    } else {
+      // 如果没有错误行或高亮行，尝试从语法错误服务获取最新的错误行
+      const currentErrors = syntaxErrorService.getErrors();
+      if (currentErrors.length > 0) {
+        targetLine = currentErrors[0].line;
+      }
+    }
+    
+    editor.revealLineInCenter(targetLine);
+    editor.setPosition({ lineNumber: targetLine, column: 1 });
+    pendingScrollRef.current = null;
+  }, [scrollTrigger, errorLines]);
+
+  // Effect 3: 处理高亮触发器
+  useEffect(() => {
+    if (!highlightTrigger || highlightTrigger === prevHighlightTriggerRef.current) {
+      return;
+    }
+    prevHighlightTriggerRef.current = highlightTrigger;
+
+    if (!editorRef.current || !highlightLinesRef.current || highlightLinesRef.current.length === 0) {
+      pendingHighlightRef.current = { lines: highlightLinesRef.current, trigger: highlightTrigger };
+      return;
+    }
+
+    const monaco = monacoRef.current;
+    const editor = editorRef.current;
+    if (!monaco || !editor) return;
+
+    const newDecorations = highlightLinesRef.current.map((line: number) => ({
       range: new monaco.Range(line, 1, line, 1),
       options: {
         isWholeLine: true,
@@ -195,32 +274,143 @@ function MonacoEditor({
         glyphMarginClassName: 'highlight-line-glyph'
       }
     }));
-
-    decorationsRef.current = editorRef.current.deltaDecorations(
-      decorationsRef.current,
-      newDecorations
-    );
+    
+    decorationsRef.current = editor.deltaDecorations(decorationsRef.current, newDecorations);
+    pendingHighlightRef.current = null;
   }, [highlightTrigger]);
-  
+
+  // Effect 4: 注册 SolarWire 语言和设置
+  useEffect(() => {
+    if (!monacoRef.current) return;
+    
+    const monaco = monacoRef.current;
+    const editor = editorRef.current;
+    
+    if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'solarwire')) {
+      monaco.languages.register({ id: 'solarwire' });
+      
+      monaco.languages.setMonarchTokensProvider('solarwire', {
+        tokenizer: {
+          root: [
+            [/\/\/.*$/, 'comment'],
+            [/\("[^"]*"\)/, 'type'],
+            [/\('[^']*'\)/, 'type'],
+            [/\["[^"]*"\]/, 'type'],
+            [/\[[^\]]*\]/, 'type'],
+            [/"[^"]*"/, 'string'],
+            [/'[^']*'/, 'string'],
+            [/--/, 'keyword'],
+            [/##/, 'namespace'],
+            [/\[\?"[^"]*"\]/, 'type'],
+            [/<[^>]+>/, 'type'],
+            [/@\([^)]+\)/, 'number'],
+            [/->\([^)]+\)/, 'number'],
+            [/->\(\+\s*\d+\s*,\s*\+\s*\d+\)/, 'number'],
+            [/\b\w+\s*=\s*"[^"]*"/, 'attribute'],
+            [/\b\w+\s*=\s*'[^']*'/, 'attribute'],
+            [/\b\w+\s*=\s*[^\s]+/, 'attribute'],
+            [/\bbold\b/, 'attribute'],
+            [/\bitalic\b/, 'attribute'],
+            [/\bnote\b/, 'attribute'],
+            [/\b\d+\b/, 'number'],
+            [/#([0-9a-fA-F]{3,8})/, 'string'],
+            [/"""/, 'string.delimiter']
+          ]
+        }
+      });
+
+      monaco.languages.setLanguageConfiguration('solarwire', {
+        comments: {
+          lineComment: '//',
+        },
+        brackets: [
+          ['(', ')'],
+          ['[', ']'],
+          ['{', '}']
+        ],
+        autoClosingPairs: [
+          { open: '(', close: ')' },
+          { open: '[', close: ']' },
+          { open: '"', close: '"' },
+          { open: "'", close: "'" },
+          { open: '"""', close: '"""' }
+        ]
+      });
+    }
+
+    // 设置编辑器选项
+    if (editor) {
+      editor.updateOptions({
+        fontSize: 14,
+        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        lineNumbers: 'on',
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'off',
+        automaticLayout: true,
+        tabSize: 2,
+        insertSpaces: true,
+        renderWhitespace: 'selection',
+        renderLineHighlight: 'line',
+        cursorBlinking: 'blink',
+        cursorSmoothCaretAnimation: 'on',
+        smoothScrolling: true,
+        bracketPairColorization: { enabled: true }
+      });
+
+      // 如果已经有模型，立即设置语法错误服务
+      if (editor.getModel()) {
+        const model = editor.getModel();
+        syntaxErrorService.setMonacoRef(monaco);
+        
+        // 监听内容变化，只触发渲染器检测
+        model.onDidChangeContent(() => {
+          syntaxErrorService.runRendererCheck(model.getValue());
+        });
+        
+        // 初始运行渲染器检测
+        syntaxErrorService.runRendererCheck(model.getValue());
+      }
+    }
+  }, [language]);
+
+  // Effect 5: 更新编辑器模式状态
+  useEffect(() => {
+    const mode = language === 'solarwire' ? 'solarwire' : 'markdown';
+    // 这里可以调用状态更新
+  }, [language]);
+
+  // Effect 6: 更新内容引用
+  useEffect(() => {
+    lastContentRef.current = value;
+  }, [value]);
+
   return (
-    <div className="monaco-editor">
-      <Editor
-        height={height}
-        language={language}
-        value={value}
-        onChange={(val) => onChange(val || '')}
-        theme={theme === 'dark' ? 'vs-dark' : 'vs'}
-        onMount={handleEditorDidMount}
-        options={{
-          minimap: { enabled: false },
-          fontSize: 14,
-          lineNumbers: 'on',
-          scrollBeyondLastLine: false,
-          automaticLayout: true,
-          wordWrap: 'on',
-        }}
-      />
-    </div>
+    <Editor
+      height={height}
+      language={language}
+      value={value}
+      onChange={(value: string | undefined) => onChange(value || '')}
+      theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
+      onMount={handleEditorDidMount}
+      options={{
+        fontSize: 14,
+        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        lineNumbers: 'on',
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: language === 'markdown' ? 'on' : 'off',
+        automaticLayout: true,
+        tabSize: 2,
+        insertSpaces: true,
+        renderWhitespace: 'selection',
+        renderLineHighlight: 'line',
+        cursorBlinking: 'blink',
+        cursorSmoothCaretAnimation: 'on',
+        smoothScrolling: true,
+        bracketPairColorization: { enabled: true }
+      }}
+    />
   );
 }
 

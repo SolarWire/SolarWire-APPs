@@ -1,3 +1,27 @@
+/* ========================================
+   Markdown模式样式文件
+   ========================================
+   
+   功能说明：
+   1. 定义Markdown编辑和预览模式的布局和样式
+   2. 支持编辑器和预览面板的并排显示
+   3. 实现自动换行和内容自适应容器宽度
+   4. 提供完整的Markdown元素样式支持
+   5. 支持SolarWire代码块和Mermaid图表渲染
+   
+   布局结构：
+   - markdown-mode: 主容器
+     - markdown-tabs: 标签页切换
+     - markdown-content: 内容区域
+       - editor-panel: 编辑器面板
+       - preview-panel: 预览面板
+   
+   更新记录：
+   - 2026-04-28: 添加自动换行和自适应宽度支持
+   - 2026-04-28: 优化预览内容的响应式布局
+   ======================================== */
+
+/* Markdown模式主容器 */
 .markdown-mode {
   display: flex;
   flex-direction: column;
@@ -5,34 +29,55 @@
   background: var(--bg-primary);
 }
 
+/* ========================================
+   标签页和内容区域布局
+   ======================================== */
+
+/* Markdown标签页容器 */
 .markdown-tabs {
   display: flex;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-tertiary);
 }
 
-/* 使用统一 Tab 组件样式，见 src/app/components/ui/Tab.css */
+/* 注意：标签页样式使用统一的 Tab 组件样式 */
+/* 详细样式见：src/app/components/ui/Tab.css */
 
+/* Markdown内容区域 - 包含编辑器和预览面板 */
 .markdown-content {
   flex: 1;
   overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
 }
 
+/* ========================================
+   编辑器和预览面板布局
+   ======================================== */
+
+/* 编辑器面板 - 左侧面板 */
 .editor-panel {
   min-width: 0;
   background: var(--bg-secondary);
   overflow: hidden;
 }
 
+/* 预览面板 - 右侧面板 */
 .preview-panel {
   flex: 1;
   min-width: 0;
   background: var(--bg-primary);
   border-left: 1px solid var(--border-color);
-  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
+  overflow: visible; /* 改为 visible，确保 ResizableDivider 可见 */
   height: 100%;
 }
 
+/* ========================================
+   Markdown预览容器样式
+   ========================================
+   支持自动换行和内容自适应容器宽度
+   确保所有内容都能正确显示和响应式布局
+======================================== */
+
+/* Markdown预览主容器 */
 .markdown-preview {
   height: 100%;
   color: var(--text-primary);
@@ -40,8 +85,17 @@
   line-height: 1.6;
   padding: 0 24px;
   position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  word-wrap: break-word;      /* 启用自动换行 */
+  word-break: break-word;      /* 单词边界换行 */
 }
 
+/* ========================================
+   Markdown标题样式
+   ======================================== */
+
+/* 所有级别的标题通用样式 */
 .markdown-preview h1,
 .markdown-preview h2,
 .markdown-preview h3,
@@ -54,24 +108,35 @@
   font-weight: 600;
 }
 
+/* 一级标题 - 最大字号，带下划线 */
 .markdown-preview h1 {
   font-size: 24px;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 8px;
 }
 
+/* 二级标题 - 中等字号，带下划线 */
 .markdown-preview h2 {
   font-size: 20px;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 6px;
 }
 
+/* 三级标题 - 较小字号，无下划线 */
 .markdown-preview h3 {
   font-size: 16px;
 }
 
+/* ========================================
+   Markdown段落和文本样式
+   ======================================== */
+
+/* 段落样式 - 支持自动换行 */
 .markdown-preview p {
   margin-bottom: 15px;
+  word-wrap: break-word;      /* 启用自动换行 */
+  word-break: break-word;      /* 单词边界换行 */
+  overflow-wrap: break-word;  /* 现代浏览器换行支持 */
 }
 
 .markdown-preview a {
@@ -102,6 +167,11 @@
   font-size: 13px;
 }
 
+/* ========================================
+   Markdown代码块样式
+   ======================================== */
+
+/* 预格式化代码块 - 支持自动换行和水平滚动 */
 .markdown-preview pre {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
@@ -109,6 +179,9 @@
   padding: 15px;
   margin-bottom: 15px;
   overflow-x: auto;
+  white-space: pre-wrap;     /* 保持格式但允许换行 */
+  word-wrap: break-word;      /* 启用自动换行 */
+  word-break: break-word;      /* 单词边界换行 */
 }
 
 .markdown-preview pre code {
@@ -123,17 +196,32 @@
   color: var(--text-secondary);
 }
 
+/* ========================================
+   Markdown表格样式
+   ======================================== */
+
+/* 表格容器 - 支持自适应宽度和换行 */
 .markdown-preview table {
   border-collapse: collapse;
   width: 100%;
   margin-bottom: 15px;
+  table-layout: auto;        /* 自动布局以适应内容 */
+  max-width: 100%;          /* 最大宽度限制 */
+  overflow-x: auto;         /* 水平滚动支持 */
+  display: block;           /* 块级显示以支持滚动 */
+  white-space: nowrap;      /* 防止表格内容换行 */
 }
 
+/* 表格单元格 - 支持内容换行 */
 .markdown-preview th,
 .markdown-preview td {
   border: 1px solid var(--border-color);
   padding: 8px 12px;
   text-align: left;
+  word-wrap: break-word;      /* 启用自动换行 */
+  word-break: break-word;      /* 单词边界换行 */
+  white-space: normal;        /* 允许正常换行 */
+  min-width: 80px;           /* 最小宽度确保可读性 */
 }
 
 .markdown-preview th {
@@ -147,19 +235,35 @@
   margin-bottom: 15px;
 }
 
+/* ========================================
+   SolarWire代码块样式
+   ======================================== */
+
+/* SolarWire代码块容器 - 支持自适应缩放 */
 .solarwire-code-block {
   margin: 20px 0;
   padding: 20px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background: var(--bg-primary);
+  overflow-x: auto;          /* 水平滚动支持 */
+  overflow-y: hidden;        /* 隐藏垂直滚动 */
+  max-width: 100%;          /* 最大宽度限制 */
 }
 
+/* SolarWire SVG图表 - 自适应容器宽度 */
 .solarwire-code-block svg {
-  max-width: 100%;
-  height: auto;
+  max-width: 100%;          /* 最大宽度限制 */
+  height: auto;             /* 保持宽高比 */
+  display: block;           /* 块级显示 */
+  margin: 0 auto;           /* 居中对齐 */
 }
 
+/* ========================================
+   Mermaid图表样式
+   ======================================== */
+
+/* Mermaid图表容器 - 支持自适应缩放 */
 .markdown-preview .mermaid-container {
   margin: 15px 0;
   padding: 16px;
@@ -167,12 +271,17 @@
   border-radius: 4px;
   background: var(--bg-primary);
   text-align: center;
-  overflow-x: auto;
+  overflow-x: auto;          /* 水平滚动支持 */
+  overflow-y: hidden;        /* 隐藏垂直滚动 */
+  max-width: 100%;          /* 最大宽度限制 */
 }
 
+/* Mermaid SVG图表 - 自适应容器宽度 */
 .markdown-preview .mermaid-container svg {
-  max-width: 100%;
-  height: auto;
+  max-width: 100%;          /* 最大宽度限制 */
+  height: auto;             /* 保持宽高比 */
+  display: block;           /* 块级显示 */
+  margin: 0 auto;           /* 居中对齐 */
 }
 
 .markdown-preview .mermaid-error {
@@ -190,7 +299,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 9999;
+  z-index: var(--z-popover);
   width: 240px;
   height: 50px;
   background: var(--bg-secondary);

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 
 export interface SelectedItem {
-  view: 'file' | 'requirement' | 'solarwire';
+  view: 'file' | 'solarwire';
   path: string;
   snippetId?: string;
 }
@@ -9,11 +9,11 @@ export interface SelectedItem {
 export const useSelection = () => {
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
 
-  const setSelection = useCallback((view: 'file' | 'requirement' | 'solarwire', path: string, snippetId?: string) => {
+  const setSelection = useCallback((view: 'file' | 'solarwire', path: string, snippetId?: string) => {
     setSelectedItem({ view, path, snippetId });
   }, []);
 
-  const getSelectionForView = useCallback((view: 'file' | 'requirement' | 'solarwire') => {
+  const getSelectionForView = useCallback((view: 'file' | 'solarwire') => {
     return selectedItem && selectedItem.view === view ? selectedItem : null;
   }, [selectedItem]);
 

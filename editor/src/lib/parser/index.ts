@@ -1,6 +1,7 @@
 import type { Document, Element } from './types';
-// @ts-ignore
-import parser from './parser';
+// Peggy生成的解析器，类型在下面定义
+// @ts-ignore - 忽略 parser.js 的类型问题
+import parserJs from './parser';
 
 export type {
   Document,
@@ -8,7 +9,6 @@ export type {
   DocumentDeclaration,
   BaseElement,
   RectangleElement,
-  RoundedRectangleElement,
   CircleElement,
   TextElement,
   PlaceholderElement,
@@ -29,7 +29,15 @@ interface PeggyParser {
   parse(input: string, options?: { startRule?: string }): Document;
 }
 
-let parserInstance: PeggyParser | null = parser;
+// 类型断言：Peggy生成的parser.js导出符合PeggyParser接口
+let parserInstance: PeggyParser | null = null;
+
+try {
+  parserInstance = parserJs as unknown as PeggyParser;
+} catch (e) {
+  console.error('Failed to initialize parser:', e);
+  parserInstance = null;
+}
 
 function getContextAroundPosition(input: string, lineNum: number, columnNum: number, contextLines: number = 3): string {
   const lines = input.split(/\r?\n/);

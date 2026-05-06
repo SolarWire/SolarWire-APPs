@@ -2,32 +2,34 @@
 .scrollbar {
   height: 100%;
   overflow: auto;
+  position: relative;
+  z-index: var(--z-base);
 }
 
 .scrollbar::-webkit-scrollbar {
-  width: 14px;
-  height: 10px;
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-height);
 }
 
 .scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track);
 }
 
 .scrollbar::-webkit-scrollbar-thumb {
-  background: var(--border-color);
+  background: var(--scrollbar-thumb);
   border-radius: 0px;
 }
 
 .scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
+  background: var(--scrollbar-thumb-hover);
 }
 
 .scrollbar::-webkit-scrollbar-corner {
-  background: transparent;
+  background: var(--scrollbar-corner);
 }
 
 /* Firefox 滚动条支持 */
 .scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--border-color) transparent;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }

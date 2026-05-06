@@ -1,16 +1,19 @@
-import { RectangleElement, RoundedRectangleElement } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute } from '../context';
+import { RectangleElement } from '../../parser';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter } from '../context';
 
 export interface RenderResult {
   svg: string;
   bounds: ElementBounds;
+  shadowFilter?: string;
 }
 
 export function renderRectangle(
-  element: RectangleElement | RoundedRectangleElement,
+  element: RectangleElement,
   context: RenderContext
 ): RenderResult {
-  const isRounded = element.type === 'rounded-rectangle';
+  // 圆角通过 r 属性控制，r > 0 表示圆角矩形
+  const r = getNumberAttribute(element.attributes, context.globalDefaults, 'r', 0);
+  const isRounded = r > 0;
   
   let pos: AbsolutePosition;
   if (element.coordinates) {
@@ -25,24 +28,32 @@ export function renderRectangle(
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
   const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
   const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
-  const r = isRounded ? getNumberAttribute(element.attributes, context.globalDefaults, 'r', 6) : 0;
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const align = getAlignAttribute(element.attributes, 'start');
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
   
   let svgParts: string[] = [];
   
   svgParts.push(`<g>`);
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
-  
+  const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'rect'})"` : '';
+
+  // 边框往内渲染：调整rect的位置和尺寸
+  const strokeOffset = s / 2;
+  const rectX = pos.x + strokeOffset;
+  const rectY = pos.y + strokeOffset;
+  const rectW = Math.max(0, w - s);
+  const rectH = Math.max(0, h - s);
+
   if (isRounded) {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" rx="${r}" ry="${r}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}/>`);
+    svgParts.push(`<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" rx="${r}" ry="${r}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
   } else {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}/>`);
+    svgParts.push(`<rect x="${rectX}" y="${rectY}" width="${rectW}" height="${rectH}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
   }
   
   if (element.text) {
@@ -103,8 +114,11 @@ export function renderRectangle(
   
   svgParts.push(`</g>`);
   
+  const shadowFilter = shadow ? generateShadowFilter(shadow, element.location?.line?.toString() || 'rect') : undefined;
+  
   return {
     svg: svgParts.join(''),
     bounds,
+    shadowFilter,
   };
 }

@@ -320,7 +320,7 @@ Modern card design with visual hierarchy and icon support.
    - Click: Navigate to revenue detail page"
 
 // Icon background
-(()) @(40,40) w=40 h=40 bg=#EFF6FF radius=8
+() @(40,40) w=40 h=40 bg=#EFF6FF radius=8
 "💰" @(50,48) size=20
 
 // Label
@@ -336,7 +336,7 @@ Modern card design with visual hierarchy and icon support.
 // Statistics Card 2 - Orders
 [] @(220,20) w=180 h=160 bg=#FFFFFF radius=12
 
-(()) @(240,40) w=40 h=40 bg=#F0FDF4 radius=8
+() @(240,40) w=40 h=40 bg=#F0FDF4 radius=8
 "📦" @(250,48) size=20
 
 "本月订单" @(240,90) size=13 c=#8C8C8C
@@ -347,7 +347,7 @@ Modern card design with visual hierarchy and icon support.
 // Statistics Card 3 - Customers
 [] @(420,20) w=160 h=160 bg=#FFFFFF radius=12
 
-(()) @(440,40) w=40 h=40 bg=#FFFBEB radius=8
+() @(440,40) w=40 h=40 bg=#FFFBEB radius=8
 "👥" @(450,48) size=20
 
 "新增客户" @(440,90) size=13 c=#8C8C8C
@@ -703,7 +703,7 @@ Modern tag design with rounded corners and color coding.
 | Rule | Description |
 |------|-------------|
 | Line syntax | `-- @(x1,y1)->(x2,y2)` (no spaces around arrow) |
-| Circle | Use `(())` for circles, `()` for rounded rectangles |
+| Circle | Use `()` for circles |
 | Rectangle | Use `[]` for rectangles |
 | Anchor point | All elements use top-left corner as anchor |
 | Circle center | To center circle at (cx,cy), use anchor `(cx-r, cy-r)` where r = radius |
@@ -712,7 +712,7 @@ Modern tag design with rounded corners and color coding.
 
 ### Line Chart
 
-Use `--` (line) to connect data points, `(())` (circle) for data points.
+Use `--` (line) to connect data points, `()` (circle) for data points.
 
 ```solarwire
 !title="Sales Trend Chart"
@@ -777,12 +777,12 @@ Use `--` (line) to connect data points, `(())` (circle) for data points.
 
 // Data points (circles centered at line endpoints)
 // Anchor = center - radius = (80-4, 280-4) = (76, 276)
-(()) @(76,276) w=8 h=8 bg=#1890FF radius=4
-(()) @(156,246) w=8 h=8 bg=#1890FF radius=4
-(()) @(236,216) w=8 h=8 bg=#1890FF radius=4
-(()) @(316,176) w=8 h=8 bg=#1890FF radius=4
-(()) @(396,196) w=8 h=8 bg=#1890FF radius=4
-(()) @(476,146) w=8 h=8 bg=#1890FF radius=4
+() @(76,276) w=8 h=8 bg=#1890FF radius=4
+() @(156,246) w=8 h=8 bg=#1890FF radius=4
+() @(236,216) w=8 h=8 bg=#1890FF radius=4
+() @(316,176) w=8 h=8 bg=#1890FF radius=4
+() @(396,196) w=8 h=8 bg=#1890FF radius=4
+() @(476,146) w=8 h=8 bg=#1890FF radius=4
 
 // Line 2 (Target) - Orange dashed line
 -- @(80,260)->(160,240) c=#FA8C16 dash=5,5
@@ -884,7 +884,7 @@ Modern bar chart with card container and visual hierarchy.
 
 ### Pie Chart
 
-Use `(())` (circle) for pie/donut chart.
+Use `()` (circle) for pie/donut chart.
 
 ```solarwire
 !title="Revenue Distribution"
@@ -912,11 +912,11 @@ Use `(())` (circle) for pie/donut chart.
 // Pie chart - using concentric circles
 // Outer circle: center at (200,200), radius 100
 // Anchor = (200-100, 200-100) = (100,100)
-(()) @(100,100) w=200 h=200 bg=#1890FF
+() @(100,100) w=200 h=200 bg=#1890FF
 
 // Center circle (donut hole): radius 50
 // Anchor = (200-50, 200-50) = (150,150)
-(()) @(150,150) w=100 h=100 bg=#FFFFFF
+() @(150,150) w=100 h=100 bg=#FFFFFF
 
 // Center text
 "Total" @(185,185) size=14 bold center
@@ -1006,12 +1006,12 @@ Use `[]` (rectangle) for area fill, `--` (line) for border.
 -- @(380,140)->(460,100) c=#1890FF
 
 // Data points (circles)
-(()) @(77,277) w=6 h=6 bg=#1890FF
-(()) @(137,247) w=6 h=6 bg=#1890FF
-(()) @(217,217) w=6 h=6 bg=#1890FF
-(()) @(297,177) w=6 h=6 bg=#1890FF
-(()) @(377,137) w=6 h=6 bg=#1890FF
-(()) @(457,97) w=6 h=6 bg=#1890FF
+() @(77,277) w=6 h=6 bg=#1890FF
+() @(137,247) w=6 h=6 bg=#1890FF
+() @(217,217) w=6 h=6 bg=#1890FF
+() @(297,177) w=6 h=6 bg=#1890FF
+() @(377,137) w=6 h=6 bg=#1890FF
+() @(457,97) w=6 h=6 bg=#1890FF
 ```
 
 ---
@@ -1038,7 +1038,7 @@ For quick wireframes, use simple placeholder:
 
 ```solarwire
 "🥧 Revenue Distribution" @(100,50) size=14 bold
-(()) @(100,120) w=100 h=100 bg=#F5F5F5 note="Pie chart placeholder
+() @(100,120) w=100 h=100 bg=#F5F5F5 note="Pie chart placeholder
 1. Data source: Revenue by category
 2. Segments: Product A, B, C, Others"
 ```
@@ -1051,9 +1051,9 @@ For quick wireframes, use simple placeholder:
 |------------|-------------------|-------------|
 | Line Chart | `--` (line) | Connect data points: `-- @(x1,y1)->(x2,y2)` |
 | Bar Chart | `[]` (rectangle) | Use rectangles for bars |
-| Pie Chart | `(())` (circle) | Use circles for pie/donut |
+| Pie Chart | `()` (circle) | Use circles for pie/donut |
 | Area Chart | `[]` + `--` | Filled rectangles + border line |
-| Scatter Plot | `(())` (small circles) | Small circles for data points |
+| Scatter Plot | `()` (small circles) | Small circles for data points |
 
 ---
 
@@ -1074,7 +1074,7 @@ Top-left anchor: (cx - r, cy - r)
 // Want circle center at (80, 280) with diameter 8
 // Radius = 4
 // Anchor = (80-4, 280-4) = (76, 276)
-(()) @(76,276) w=8 h=8 bg=#1890FF
+() @(76,276) w=8 h=8 bg=#1890FF
 ```
 
 ---
@@ -1139,7 +1139,7 @@ Modern vertical timeline with status indicators and visual hierarchy.
 
 // Node 1 - Completed (Order Placed)
 // Green circle with checkmark
-(()) @(58,110) w=24 h=24 bg=#52C41A radius=12
+() @(58,110) w=24 h=24 bg=#52C41A radius=12
 "✓" @(64,115) size=14 c=#FFFFFF bold
 
 // Content card
@@ -1149,7 +1149,7 @@ Modern vertical timeline with status indicators and visual hierarchy.
 "Order created by user" @(200,132) size=12 c=#595959
 
 // Node 2 - Completed (Payment Received)
-(()) @(58,175) w=24 h=24 bg=#52C41A radius=12
+() @(58,175) w=24 h=24 bg=#52C41A radius=12
 "✓" @(64,180) size=14 c=#FFFFFF bold
 
 [] @(95,170) w=300 h=55 bg=#FFFFFF radius=8
@@ -1159,8 +1159,8 @@ Modern vertical timeline with status indicators and visual hierarchy.
 
 // Node 3 - Current (Processing) - highlighted
 // Blue circle with pulse effect (represented by light blue ring)
-(()) @(50,240) w=24 h=24 bg=#E6F7FF radius=12
-(()) @(54,244) w=16 h=16 bg=#1890FF radius=8
+() @(50,240) w=24 h=24 bg=#E6F7FF radius=12
+() @(54,244) w=16 h=16 bg=#1890FF radius=8
 "3" @(58,248) size=10 c=#FFFFFF bold
 
 // Content card - highlighted
@@ -1170,7 +1170,7 @@ Modern vertical timeline with status indicators and visual hierarchy.
 "Order is being prepared" @(110,282) size=12 c=#595959
 
 // Node 4 - Pending (Shipped)
-(()) @(58,315) w=24 h=24 bg=#F5F5F5 radius=12
+() @(58,315) w=24 h=24 bg=#F5F5F5 radius=12
 "4" @(64,320) size=10 c=#AAAAAA bold
 
 [] @(95,310) w=300 h=45 bg=#FFFFFF radius=8
@@ -1178,7 +1178,7 @@ Modern vertical timeline with status indicators and visual hierarchy.
 "Estimated: 2024-01-16" @(200,337) size=12 c=#AAAAAA
 
 // Node 5 - Pending (Delivered)
-(()) @(58,365) w=24 h=24 bg=#F5F5F5 radius=12
+() @(58,365) w=24 h=24 bg=#F5F5F5 radius=12
 "5" @(64,370) size=10 c=#AAAAAA bold
 
 [] @(95,360) w=300 h=45 bg=#FFFFFF radius=8
@@ -1218,7 +1218,7 @@ Modern card-based activity feed with clear visual hierarchy.
 3. Click: Navigate to item detail"
 
 // Icon circle with edit symbol
-(()) @(40,110) w=36 h=36 bg=#E6F7FF radius=18
+() @(40,110) w=36 h=36 bg=#E6F7FF radius=18
 "✏️" @(50,118) size=16
 
 // Content
@@ -1234,7 +1234,7 @@ Modern card-based activity feed with clear visual hierarchy.
 // Activity Card 2 - Create action
 [] @(20,170) w=560 h=72 bg=#FFFFFF radius=8
 
-(()) @(40,190) w=36 h=36 bg=#F6FFED radius=18
+() @(40,190) w=36 h=36 bg=#F6FFED radius=18
 "➕" @(50,198) size=16
 
 "Jane Smith" @(90,182) size=14 bold c=#1A1A1A
@@ -1248,7 +1248,7 @@ Modern card-based activity feed with clear visual hierarchy.
 // Activity Card 3 - Delete action
 [] @(20,250) w=560 h=72 bg=#FFFFFF radius=8
 
-(()) @(40,270) w=36 h=36 bg=#FFF7E6 radius=18
+() @(40,270) w=36 h=36 bg=#FFF7E6 radius=18
 "🗑️" @(50,278) size=16
 
 "Mike Johnson" @(90,262) size=14 bold c=#1A1A1A
@@ -1262,7 +1262,7 @@ Modern card-based activity feed with clear visual hierarchy.
 // Activity Card 4 - Export action
 [] @(20,330) w=560 h=72 bg=#FFFFFF radius=8
 
-(()) @(40,350) w=36 h=36 bg=#FAF5FF radius=18
+() @(40,350) w=36 h=36 bg=#FAF5FF radius=18
 "📤" @(50,358) size=16
 
 "Sarah Wilson" @(90,342) size=14 bold c=#1A1A1A
@@ -1307,10 +1307,10 @@ Modern notification panel with unread indicators and clear visual hierarchy.
 3. Click: Mark as read and navigate"
 
 // Unread indicator (blue dot)
-(()) @(15,90) w=8 h=8 bg=#1890FF radius=4
+() @(15,90) w=8 h=8 bg=#1890FF radius=4
 
 // Icon
-(()) @(35,80) w=40 h=40 bg=#F6FFED radius=20
+() @(35,80) w=40 h=40 bg=#F6FFED radius=20
 "✅" @(47,90) size=18
 
 // Content
@@ -1321,9 +1321,9 @@ Modern notification panel with unread indicators and clear visual hierarchy.
 // Notification 2 - Unread
 [] @(0,135) w=420 h=80 bg=#F6FAFF
 
-(()) @(15,170) w=8 h=8 bg=#1890FF radius=4
+() @(15,170) w=8 h=8 bg=#1890FF radius=4
 
-(()) @(35,160) w=40 h=40 bg=#FFF7E6 radius=20
+() @(35,160) w=40 h=40 bg=#FFF7E6 radius=20
 "⚠️" @(47,170) size=18
 
 "Low stock alert" @(90,150) size=14 bold c=#1A1A1A
@@ -1333,9 +1333,9 @@ Modern notification panel with unread indicators and clear visual hierarchy.
 // Notification 3 - Unread
 [] @(0,215) w=420 h=80 bg=#F6FAFF
 
-(()) @(15,250) w=8 h=8 bg=#1890FF radius=4
+() @(15,250) w=8 h=8 bg=#1890FF radius=4
 
-(()) @(35,240) w=40 h=40 bg=#F9F0FF radius=20
+() @(35,240) w=40 h=40 bg=#F9F0FF radius=20
 "💬" @(47,250) size=18
 
 "New comment on your post" @(90,230) size=14 bold c=#1A1A1A
@@ -1348,7 +1348,7 @@ Modern notification panel with unread indicators and clear visual hierarchy.
 // Notification 4 - Read (no blue indicator, white background)
 [] @(0,300) w=420 h=80 bg=#FFFFFF
 
-(()) @(35,325) w=40 h=40 bg=#F5F5F5 radius=20
+() @(35,325) w=40 h=40 bg=#F5F5F5 radius=20
 "📧" @(47,335) size=18
 
 "Weekly report ready" @(90,315) size=14 c=#595959
@@ -1358,7 +1358,7 @@ Modern notification panel with unread indicators and clear visual hierarchy.
 // Notification 5 - Read
 [] @(0,380) w=420 h=80 bg=#FFFFFF
 
-(()) @(35,405) w=40 h=40 bg=#F5F5F5 radius=20
+() @(35,405) w=40 h=40 bg=#F5F5F5 radius=20
 "👤" @(47,415) size=18
 
 "New team member joined" @(90,395) size=14 c=#595959
@@ -1410,7 +1410,7 @@ Modern comment design with nested replies and visual hierarchy.
 
 // Comment 1 - Main comment with avatar
 // Avatar circle
-(()) @(40,80) w=40 h=40 bg=#1890FF radius=20
+() @(40,80) w=40 h=40 bg=#1890FF radius=20
 "JD" @(50,90) size=14 c=#FFFFFF bold
 
 // Comment content
@@ -1429,7 +1429,7 @@ Modern comment design with nested replies and visual hierarchy.
 -- @(60,185)->(60,240) c=#E5E5E5
 
 // Avatar (smaller)
-(()) @(75,195) w=32 h=32 bg=#52C41A radius=16
+() @(75,195) w=32 h=32 bg=#52C41A radius=16
 "JS" @(83,203) size=12 c=#FFFFFF bold
 
 // Reply content
@@ -1445,7 +1445,7 @@ Modern comment design with nested replies and visual hierarchy.
 -- @(40,290)->(510,290) c=#F0F0F0
 
 // Comment 2 - Main comment
-(()) @(40,310) w=40 h=40 bg=#FA8C16 radius=20
+() @(40,310) w=40 h=40 bg=#FA8C16 radius=20
 "MK" @(50,320) size=14 c=#FFFFFF bold
 
 "Mike Kim" @(95,308) size=14 bold c=#1A1A1A
@@ -1466,10 +1466,10 @@ Modern comment design with nested replies and visual hierarchy.
 
 | Element | SolarWire Components | Description |
 |---------|---------------------|-------------|
-| Timeline | `--` (vertical line) + `(())` (nodes) | Vertical line with status nodes |
-| Activity Log | `(())` (icons) + text | List with icons, user, action, time |
-| Comment Thread | `(())` (avatars) + nested text | Threaded comments with replies |
-| Notification List | `(())` (icons) + badges | List with read/unread indicators |
+| Timeline | `--` (vertical line) + `()` (nodes) | Vertical line with status nodes |
+| Activity Log | `()` (icons) + text | List with icons, user, action, time |
+| Comment Thread | `()` (avatars) + nested text | Threaded comments with replies |
+| Notification List | `()` (icons) + badges | List with read/unread indicators |
 
 ---
 

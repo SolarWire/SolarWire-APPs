@@ -80,7 +80,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 10) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+("●") @(10, 10) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
 "In Progress" @(24, 10) c=#c6c8d0 size=12
 ```
 
@@ -108,7 +108,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=12
+("A") @(10, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=12
 ```
 
 ### 键盘快捷键
@@ -203,7 +203,7 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 ("") @(10, 10) w=36 h=20 bg=#5b6abf r=10
-(("●")) @(30, 12) w=16 h=16 bg=#ffffff size=8
+("●") @(30, 12) w=16 h=16 bg=#ffffff size=8
 ```
 
 ### 复选框
@@ -215,7 +215,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("✓")) @(10, 10) w=16 h=16 bg=#5b6abf c=#ffffff size=10
+("✓") @(10, 10) w=16 h=16 bg=#5b6abf c=#ffffff size=10
 "Done" @(32, 12) c=#c6c8d0 size=13
 ```
 
@@ -234,17 +234,17 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 12) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+("●") @(10, 12) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
 "LIN-123" @(24, 10) c=#8b8d97 size=12
 "Fix login page styling" @(75, 10) c=#c6c8d0 size=13
-(("A")) @(260, 8) w=20 h=20 bg=#5b6abf c=#ffffff size=9
+("A") @(260, 8) w=20 h=20 bg=#5b6abf c=#ffffff size=9
 -- @(10, 28)->(290, 28) b=#2c2e3a s=1
-(("●")) @(10, 40) w=8 h=8 bg=#5b6abf c=#5b6abf size=4
+("●") @(10, 40) w=8 h=8 bg=#5b6abf c=#5b6abf size=4
 "LIN-124" @(24, 38) c=#8b8d97 size=12
 "Update API endpoints" @(75, 38) c=#c6c8d0 size=13
-(("B")) @(260, 36) w=20 h=20 bg=#8b5cf6 c=#ffffff size=9
+("B") @(260, 36) w=20 h=20 bg=#8b5cf6 c=#ffffff size=9
 -- @(10, 56)->(290, 56) b=#2c2e3a s=1
-(("●")) @(10, 68) w=8 h=8 bg=#22c55e c=#22c55e size=4
+("●") @(10, 68) w=8 h=8 bg=#22c55e c=#22c55e size=4
 "LIN-125" @(24, 66) c=#8b8d97 size=12
 "Deploy to production" @(75, 66) c=#c6c8d0 size=13
 ```
@@ -278,7 +278,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=12
+("A") @(10, 10) w=28 h=28 bg=#5b6abf c=#ffffff size=12
 "Engineering" @(46, 14) c=#c6c8d0 size=13 bold=true
 "5 members" @(46, 30) c=#8b8d97 size=11
 ```
@@ -302,10 +302,10 @@ updatedAt: 2026-04-24T00:00:00Z
 "LIN-123" @(20, 20) c=#8b8d97 size=12
 "Fix login page styling" @(80, 20) c=#c6c8d0 size=13 bold=true
 -- @(20, 40)->(300, 40) b=#2c2e3a s=1
-(("●")) @(20, 52) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+("●") @(20, 52) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
 "In Progress" @(34, 50) c=#f2c944 size=11
 ("Urgent") @(110, 48) w=55 h=20 bg=#dc3545 opacity=0.2 c=#dc3545 size=10 r=4
-(("A")) @(20, 80) w=24 h=24 bg=#5b6abf c=#ffffff size=10
+("A") @(20, 80) w=24 h=24 bg=#5b6abf c=#ffffff size=10
 "Assigned to Alice" @(50, 84) c=#8b8d97 size=11
 "Due Apr 25" @(20, 115) c=#8b8d97 size=11
 ("Labels") @(100, 112) w=50 h=20 bg=#5b6abf opacity=0.2 c=#5b6abf size=10 r=4
@@ -367,9 +367,9 @@ updatedAt: 2026-04-24T00:00:00Z
 -- @(20, 60)->(95, 80) b=#5b6abf s=2
 -- @(95, 80)->(170, 100) b=#5b6abf s=2
 -- @(170, 100)->(245, 130) b=#5b6abf s=2
-(("●")) @(20, 60) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
-(("●")) @(95, 80) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
-(("●")) @(170, 100) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
+("●") @(20, 60) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
+("●") @(95, 80) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
+("●") @(170, 100) w=6 h=6 bg=#5b6abf c=#5b6abf size=3
 ```
 
 ### 活动图
@@ -665,7 +665,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 10) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+("●") @(10, 10) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
 "In Progress" @(24, 8) c=#f2c944 size=12
 ```
 
@@ -678,7 +678,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=36 h=36 bg=#5b6abf c=#ffffff size=14
+("A") @(10, 10) w=36 h=36 bg=#5b6abf c=#ffffff size=14
 ```
 
 ---
@@ -696,11 +696,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 12) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
+("●") @(10, 12) w=8 h=8 bg=#f2c944 c=#f2c944 size=4
 "LIN-123" @(24, 10) c=#8b8d97 size=12
 "Fix login page" @(75, 10) c=#c6c8d0 size=13
 -- @(10, 28)->(300, 28) b=#2c2e3a s=1
-(("●")) @(10, 40) w=8 h=8 bg=#5b6abf c=#5b6abf size=4
+("●") @(10, 40) w=8 h=8 bg=#5b6abf c=#5b6abf size=4
 "LIN-124" @(24, 38) c=#8b8d97 size=12
 "Update API" @(75, 38) c=#c6c8d0 size=13
 ```

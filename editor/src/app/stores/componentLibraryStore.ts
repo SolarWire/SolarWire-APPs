@@ -24,9 +24,6 @@ interface ComponentLibraryStore {
   showComponentLibrary: boolean;
   setShowComponentLibrary: (show: boolean) => void;
 
-  showComponentManager: boolean;
-  setShowComponentManager: (show: boolean) => void;
-
   isInitialized: boolean;
 
   libraries: ComponentLibrary[];
@@ -38,7 +35,7 @@ interface ComponentLibraryStore {
   selectedComponentId: string | null;
   selectedCategoryId: string | null;
 
-  expandedNodes: Set<string>;
+  expandedNodes: string[];
 
   searchQuery: string;
   activeCategoryId: string | null;
@@ -73,6 +70,10 @@ interface ComponentLibraryStore {
   moveComponent: (sourceLibraryId: string, componentInternalId: string, targetLibraryId: string, targetCategoryId: string | null, targetComponentInternalId: string, position: 'before' | 'after') => void;
   moveLibrary: (sourceLibraryId: string, targetLibraryId: string, position: 'before' | 'after') => void;
 
+  reorderLibrary: (libraryId: string, direction: 'top' | 'up' | 'down' | 'bottom') => void;
+  reorderCategory: (libraryId: string, categoryId: string, direction: 'top' | 'up' | 'down' | 'bottom') => void;
+  reorderComponent: (libraryId: string, componentId: string, direction: 'top' | 'up' | 'down' | 'bottom') => void;
+
   getComponentThumbnail: (libraryId: string, componentInternalId: string) => string | null;
   setComponentThumbnail: (libraryId: string, componentInternalId: string, thumbnail: string) => void;
 
@@ -81,7 +82,6 @@ interface ComponentLibraryStore {
 
 export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get) => ({
   showComponentLibrary: false,
-  showComponentManager: false,
   isInitialized: false,
   libraries: [],
   activeLibraryId: null,
@@ -90,25 +90,13 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   selectedLibraryId: null,
   selectedComponentId: null,
   selectedCategoryId: null,
-  expandedNodes: new Set(),
+  expandedNodes: [],
   searchQuery: '',
   activeCategoryId: null,
   isLibraryLoading: false,
 
-  setShowComponentLibrary: (show) => set({ showComponentLibrary: show }),
-
-  setShowComponentManager: async (show) => {
-    if (show && !get().isInitialized) {
-      await componentLibraryManager.initialize();
-      set({
-        libraries: componentLibraryManager.getLibraries(),
-        activeLibraryId: componentLibraryManager.getLibraries()[0]?.metadata.id || null,
-        isInitialized: true,
-        showComponentManager: show,
-      });
-    } else {
-      set({ showComponentManager: show });
-    }
+  setShowComponentLibrary: async (show) => {
+    set({ showComponentLibrary: show });
   },
 
   initialize: async () => {
@@ -146,15 +134,17 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     });
   },
 
-  toggleNode: (nodeId) => set((state) => {
-    const newExpanded = new Set(state.expandedNodes);
-    if (newExpanded.has(nodeId)) {
-      newExpanded.delete(nodeId);
+  toggleNode: (nodeId) => {
+    const currentState = get();
+    const newExpanded = [...currentState.expandedNodes];
+    const index = newExpanded.indexOf(nodeId);
+    if (index > -1) {
+      newExpanded.splice(index, 1);
     } else {
-      newExpanded.add(nodeId);
+      newExpanded.push(nodeId);
     }
-    return { expandedNodes: newExpanded };
-  }),
+    set({ ...currentState, expandedNodes: newExpanded });
+  },
 
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setActiveCategoryId: (activeCategoryId) => set({ activeCategoryId }),
@@ -270,6 +260,86 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     set({ libraries: componentLibraryManager.getLibraries() });
   },
 
+  reorderLibrary: (libraryId, direction) => {
+    const state = get();
+    const libraries = [...state.libraries];
+    const index = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    if (index === -1) return;
+
+    const newIndex = (() => {
+      switch (direction) {
+        case 'top': return 0;
+        case 'up': return Math.max(0, index - 1);
+        case 'down': return Math.min(libraries.length - 1, index + 1);
+        case 'bottom': return libraries.length - 1;
+      }
+    })();
+
+    if (newIndex === index) return;
+
+    const [removed] = libraries.splice(index, 1);
+    libraries.splice(newIndex, 0, removed);
+    set({ libraries });
+  },
+
+  reorderCategory: (libraryId, categoryId, direction) => {
+    const state = get();
+    const libraries = [...state.libraries];
+    const libraryIndex = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    if (libraryIndex === -1) return;
+
+    const library = { ...libraries[libraryIndex] };
+    const categories = [...library.categories];
+    const index = categories.findIndex(cat => cat.id === categoryId);
+    if (index === -1) return;
+
+    const newIndex = (() => {
+      switch (direction) {
+        case 'top': return 0;
+        case 'up': return Math.max(0, index - 1);
+        case 'down': return Math.min(categories.length - 1, index + 1);
+        case 'bottom': return categories.length - 1;
+      }
+    })();
+
+    if (newIndex === index) return;
+
+    const [removed] = categories.splice(index, 1);
+    categories.splice(newIndex, 0, removed);
+    library.categories = categories;
+    libraries[libraryIndex] = library;
+    set({ libraries });
+  },
+
+  reorderComponent: (libraryId, componentId, direction) => {
+    const state = get();
+    const libraries = [...state.libraries];
+    const libraryIndex = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    if (libraryIndex === -1) return;
+
+    const library = { ...libraries[libraryIndex] };
+    const components = [...library.components];
+    const index = components.findIndex(comp => comp.internalId === componentId);
+    if (index === -1) return;
+
+    const newIndex = (() => {
+      switch (direction) {
+        case 'top': return 0;
+        case 'up': return Math.max(0, index - 1);
+        case 'down': return Math.min(components.length - 1, index + 1);
+        case 'bottom': return components.length - 1;
+      }
+    })();
+
+    if (newIndex === index) return;
+
+    const [removed] = components.splice(index, 1);
+    components.splice(newIndex, 0, removed);
+    library.components = components;
+    libraries[libraryIndex] = library;
+    set({ libraries });
+  },
+
   getComponentThumbnail: (libraryId, componentId) => {
     return componentLibraryManager.getComponentThumbnail(libraryId, componentId);
   },
@@ -279,13 +349,29 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   },
 
   openManagerAtComponent: (libraryId, componentInternalId) => {
+    const state = get();
+    const library = state.libraries.find(lib => lib.metadata.id === libraryId);
+    const component = library?.components.find(comp => comp.internalId === componentInternalId);
+    
+    // 构建需要展开的节点列表
+    const nodesToExpand = new Set<string>();
+    
+    // 始终展开库节点
+    nodesToExpand.add(libraryId);
+    
+    // 如果组件有分类，展开分类节点
+    if (component?.categoryId) {
+      nodesToExpand.add(component.categoryId);
+    }
+    
+    // 更新状态，包括展开的节点
     set({
       selectedLibraryId: libraryId,
       selectedComponentId: componentInternalId,
       selectedNodeId: makeNodeId('component', componentInternalId, libraryId),
       selectedNodeType: 'component',
-      selectedCategoryId: null,
-      showComponentManager: true,
+      selectedCategoryId: component?.categoryId || null,
+      expandedNodes: Array.from(new Set([...state.expandedNodes, ...nodesToExpand])),
     });
   },
 }));

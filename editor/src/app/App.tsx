@@ -1,20 +1,23 @@
 import React, { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
-import { ToastContainer } from './components/ui/Toast';
 import { useAppStore } from './stores/appStore';
 import { useFileStore } from './stores/fileStore';
 import { useSettingsStore } from './stores/settingsStore';
+import { useI18nStore } from './stores/i18nStore';
+import { EditorProvider } from './context/EditorContext';
+import { systemMonitorService } from './services/system-monitor-service';
 import './styles/global.css';
-import './components/ui/Toast.css';
 
 function App(): React.ReactElement {
   const { setTheme } = useAppStore();
   const { openDirectoryAtPath, currentPath } = useFileStore();
   const { loadSettings } = useSettingsStore();
+  const { loadLanguage } = useI18nStore();
 
   useEffect(() => {
     loadSettings();
-  }, [loadSettings]);
+    loadLanguage();
+  }, [loadSettings, loadLanguage]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('solarwire-theme') as 'light' | 'dark' | null;
@@ -38,13 +41,19 @@ function App(): React.ReactElement {
     }
   }, [currentPath]);
 
+  // 清理系统监控服务
+  useEffect(() => {
+    return () => {
+      systemMonitorService.destroy();
+    };
+  }, []);
+
   return (
-    <>
+    <EditorProvider>
       <div className="app">
         <AppLayout />
       </div>
-      <ToastContainer />
-    </>
+    </EditorProvider>
   );
 }
 

@@ -12,6 +12,7 @@ editor/releases/
 editor/dist/
 editor/node_modules/
 .worktrees/
+swc-backup/
 
 
 # 敏感信息和配置文件

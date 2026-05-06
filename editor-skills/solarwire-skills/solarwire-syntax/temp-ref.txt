@@ -1,8 +1,0 @@
-!title="页面名称"
-!platform="mobile"
-!theme="light"
-!width=375 !height=812
-
-["页面标题"] @(100, 20) w=200 h=40 size=18
-
-["内容区域"] @(20, 80) w=335 h=600 bg=#FFFFFF r=8

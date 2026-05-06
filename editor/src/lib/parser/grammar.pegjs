@@ -50,7 +50,7 @@ ContainerElement
   = TableElement / TableRowElement
 
 SimpleElement
-  = CircleElement / RectangleElement / RoundedRectangleElement / TextElement / PlaceholderElement / ImageElement / LineElement
+  = CircleElement / RectangleElement / TextElement / PlaceholderElement / ImageElement / LineElement
 
 RectangleElement
   = "[" text:QuotedString? "]" rest:ElementRest?
@@ -63,19 +63,8 @@ RectangleElement
     };
   }
 
-RoundedRectangleElement
-  = "(" text:QuotedString? ")" rest:ElementRest?
-  {
-    return {
-      type: 'rounded-rectangle',
-      text: text,
-      attributes: rest ? rest.attributes || {} : {},
-      coordinates: rest ? rest.coordinates : null
-    };
-  }
-
 CircleElement
-  = "((" text:QuotedString? "))" rest:ElementRest?
+  = "(" text:QuotedString? ")" rest:ElementRest?
   {
     return {
       type: 'circle',
@@ -250,6 +239,10 @@ QuotedString
   / "\"" content:DoubleQuotedContent "\""
   {
     return content;
+  }
+  / "([^"]*)" 
+  {
+    return text();
   }
 
 DoubleQuotedContent

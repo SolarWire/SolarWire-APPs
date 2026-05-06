@@ -10,26 +10,19 @@ import {
   updateLineEndAbsolute,
   getLineCoordinates
 } from '../../../shared/utils/coordinate-converter';
-
-function createRafContentUpdater(setContent: (content: string) => void) {
-  let rafId: number | null = null;
-  let pendingContent: string | null = null;
-
-  const flush = () => {
-    rafId = null;
-    if (pendingContent !== null) {
-      setContent(pendingContent);
-      pendingContent = null;
-    }
-  };
-
-  return (newContent: string) => {
-    pendingContent = newContent;
-    if (rafId === null) {
-      rafId = requestAnimationFrame(flush);
-    }
-  };
-}
+import {
+  createRafContentUpdater,
+  isValidFileDir,
+  getProjectDir,
+  getElementDataFromContent,
+  snapToGridValue,
+  hexToRgba,
+  calculateImageSize
+} from '../../../shared/utils/preview-utils';
+import {
+  MAX_IMAGE_DIMENSION,
+  DEFAULT_IMAGE_WIDTH
+} from '../../../shared/utils/constants';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
@@ -47,8 +40,8 @@ import type {
 } from '../../stores/previewStore';
 import { parse } from '../../../lib/parser';
 import { render, RenderResultWithMeta } from '../../../lib/renderer';
-import { updateLineAttribute, getElementRelatedLines } from '../../../shared/utils/solarwire-utils';
-import { useImageDrop, getFileDir, saveImageToAssetsDir, getImageSizeFromBlob } from '../../hooks/useImageDrop';
+import { updateLineAttribute, getElementRelatedLines, detectElementBounds, isInsideMultilineNoteContent } from '../../../shared/utils/solarwire-utils';
+import { useImageDrop, getFileDir, saveImageToAssetsDir, getImageSizeFromBlob, validateImagePath } from '../../hooks/useImageDrop';
 import type { Document, Element as SolarWireElement } from '../../../lib/parser/types';
 import { copyElements, pasteElements, copyToSystemClipboard } from '../../services/clipboard';
 import { showToast } from '../ui/Toast';
@@ -56,59 +49,42 @@ import './SolarWirePreview.css';
 
 import type { SelectionTool } from '../../stores/solarWireStore';
 
-const isValidFileDir = (fileDir: string, currentPath: string): boolean => {
-  if (!fileDir || !currentPath) return false;
-  const normalizedFileDir = fileDir.replace(/\\/g, '/').toLowerCase();
-  const normalizedCurrentPath = currentPath.replace(/\\/g, '/').toLowerCase();
-  return normalizedFileDir.startsWith(normalizedCurrentPath);
-};
-
-const getProjectDir = (currentPath: string, selectedFilePath: string | undefined): string | null => {
-  if (selectedFilePath) {
-    const fileDir = selectedFilePath.replace(/[\\/][^\\/]*$/, '');
-    return fileDir;
+/**
+ * 验证拖放的内容是否安全
+ * @param content 拖放的内容
+ * @returns 是否安全
+ */
+function validateDropContent(content: string): boolean {
+  if (!content || typeof content !== 'string') {
+    return false;
   }
-  if (currentPath) return currentPath;
-  return null;
-};
-
-// 获取元素数据，包括线段元素的终点坐标
-const getElementDataFromContent = (content: string, lineNum: number) => {
-  const lines = content.split(/\r?\n/);
-  if (lineNum < 1 || lineNum > lines.length) return null;
-  const line = lines[lineNum - 1];
-  let x = 0;
-  let y = 0;
-  let x2 = 0;
-  let y2 = 0;
-
-  const coordPattern = /@\((\d+),\s*(\d+)\)/;
-  const match = line.match(coordPattern);
-  if (match) {
-    x = parseInt(match[1]);
-    y = parseInt(match[2]);
-  } else {
-    const xMatch = line.match(/x=([\d]+)/);
-    const yMatch = line.match(/y=([\d]+)/);
-    if (xMatch) x = parseInt(xMatch[1]);
-    if (yMatch) y = parseInt(yMatch[1]);
+  
+  // 检查长度限制（100KB）
+  if (content.length > 100000) {
+    return false;
   }
-
-  // 检查是否是线段元素，获取终点坐标
-  const lineEndPattern = /->\((\d+),\s*(\d+)\)/;
-  const lineEndMatch = line.match(lineEndPattern);
-  if (lineEndMatch) {
-    x2 = parseInt(lineEndMatch[1]);
-    y2 = parseInt(lineEndMatch[2]);
-  } else {
-    const x2Match = line.match(/x2=([\d]+)/);
-    const y2Match = line.match(/y2=([\d]+)/);
-    if (x2Match) x2 = parseInt(x2Match[1]);
-    if (y2Match) y2 = parseInt(y2Match[1]);
+  
+  // 检查是否包含潜在的恶意代码模式
+  const dangerousPatterns = [
+    /javascript:/i,
+    /data:text\/html/i,
+    /<script/i,
+    /on\w+\s*=/i,
+    /eval\s*\(/i,
+    /document\./i,
+    /window\./i,
+    /\.innerHTML/i,
+    /\.outerHTML/i,
+  ];
+  
+  for (const pattern of dangerousPatterns) {
+    if (pattern.test(content)) {
+      return false;
+    }
   }
-
-  return { x, y, x2, y2 };
-};
+  
+  return true;
+}
 
 /**
  * 处理线段拖动
@@ -122,6 +98,7 @@ const getElementDataFromContent = (content: string, lineNum: number) => {
  * @param dy Y 轴偏移量
  * @param setContentFn 内容更新函数
  * @param isRelative 是否使用相对坐标模式
+ * @param maxBounds 画布边界（可选）
  * @returns 更新后的文档内容
  */
 const handleLineDrag = (
@@ -134,47 +111,63 @@ const handleLineDrag = (
   dx: number,
   dy: number,
   setContentFn: (content: string) => void,
-  isRelative: boolean = false
+  isRelative: boolean = false,
+  maxBounds?: { width: number; height: number }
 ): string => {
   let newContent = content;
+  
+  // 获取元素边界信息，确定正确的属性行
+  const bounds = detectElementBounds(content, lineNum);
+  const attributeLine = bounds.attributeLine;
   
   if (isRelative && elementX2 !== undefined && elementY2 !== undefined) {
     // 相对模式：保持相对偏移不变
     const originalDx = elementX2 - elementX;
     const originalDy = elementY2 - elementY;
     
-    const newX = Math.max(0, Math.round(elementX + dx));
-    const newY = Math.max(0, Math.round(elementY + dy));
+    let newX = Math.max(0, Math.round(elementX + dx));
+    let newY = Math.max(0, Math.round(elementY + dy));
+    
+    // 边界检查：确保线段不超出画布边界
+    if (maxBounds) {
+      newX = Math.min(newX, maxBounds.width);
+      newY = Math.min(newY, maxBounds.height);
+    }
+    
     const newX2 = newX + originalDx;
     const newY2 = newY + originalDy;
     
-    newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
-    newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-    newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
-    newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+    newContent = updateLineAttribute(newContent, attributeLine, 'x', newX);
+    newContent = updateLineAttribute(newContent, attributeLine, 'y', newY);
+    newContent = updateLineAttribute(newContent, attributeLine, 'x2', newX2);
+    newContent = updateLineAttribute(newContent, attributeLine, 'y2', newY2);
   } else {
     // 绝对模式：直接更新所有坐标
-    const newX = Math.max(0, Math.round(elementX + dx));
-    const newY = Math.max(0, Math.round(elementY + dy));
+    let newX = Math.max(0, Math.round(elementX + dx));
+    let newY = Math.max(0, Math.round(elementY + dy));
+    let newX2 = elementX2 !== undefined ? Math.max(0, Math.round(elementX2 + dx)) : undefined;
+    let newY2 = elementY2 !== undefined ? Math.max(0, Math.round(elementY2 + dy)) : undefined;
     
-    newContent = updateLineAttribute(newContent, lineNum, 'x', newX);
-    newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+    // 边界检查：确保线段不超出画布边界
+    if (maxBounds) {
+      newX = Math.min(newX, maxBounds.width);
+      newY = Math.min(newY, maxBounds.height);
+      if (newX2 !== undefined) newX2 = Math.min(newX2, maxBounds.width);
+      if (newY2 !== undefined) newY2 = Math.min(newY2, maxBounds.height);
+    }
+    
+    newContent = updateLineAttribute(newContent, attributeLine, 'x', newX);
+    newContent = updateLineAttribute(newContent, attributeLine, 'y', newY);
     
     // 如果有终点坐标，同时更新终点
-    if (elementX2 !== undefined && elementY2 !== undefined) {
-      const newX2 = Math.max(0, Math.round(elementX2 + dx));
-      const newY2 = Math.max(0, Math.round(elementY2 + dy));
-      newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
-      newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+    if (newX2 !== undefined && newY2 !== undefined) {
+      newContent = updateLineAttribute(newContent, attributeLine, 'x2', newX2);
+      newContent = updateLineAttribute(newContent, attributeLine, 'y2', newY2);
     }
   }
   
   setContentFn(newContent);
   return newContent;
-};
-
-const snapToGridValue = (value: number, gridSize: number): number => {
-  return Math.round(value / gridSize) * gridSize;
 };
 
 /**
@@ -197,150 +190,162 @@ const handleElementDrag = (
   dy: number,
   setContentFn: (content: string) => void,
   snapToGrid: boolean = false,
-  gridSize: number = 20
+  gridSize: number = 20,
+  maxBounds?: { width: number; height: number }
 ): string => {
   let newX = Math.max(0, Math.round(elementX + dx));
   let newY = Math.max(0, Math.round(elementY + dy));
+  
+  // 边界检查：确保元素不超出画布边界
+  if (maxBounds) {
+    newX = Math.min(newX, maxBounds.width);
+    newY = Math.min(newY, maxBounds.height);
+  }
   
   if (snapToGrid && gridSize > 0) {
     newX = Math.round(newX / gridSize) * gridSize;
     newY = Math.round(newY / gridSize) * gridSize;
   }
   
-  let newContent = updateLineAttribute(content, lineNum, 'x', newX);
-  newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
+  // 获取元素边界信息，确定正确的属性行
+  const bounds = detectElementBounds(content, lineNum);
+  const attributeLine = bounds.attributeLine;
+  
+  let newContent = updateLineAttribute(content, attributeLine, 'x', newX);
+  newContent = updateLineAttribute(newContent, attributeLine, 'y', newY);
   
   setContentFn(newContent);
   return newContent;
 };
 
+/**
+ * SolarWire 预览组件的属性接口
+ */
 interface SolarWirePreviewProps {
+  /** 缩放级别（0-200） */
   zoomLevel: number;
+  /** 当前选择的工具 */
   selectionTool: SelectionTool;
+  /** 是否显示备注 */
   showNotes?: boolean;
+  /** 缩放变化回调 */
   onZoomChange?: (zoom: number) => void;
+  /** 是否处于平移模式 */
   isPanMode?: boolean;
+  /** 空格键是否按下 */
   isSpacePressed?: boolean;
+  /** 是否启用智能吸附（对齐辅助线） */
+  snapToGuides?: boolean;
+  /** 是否显示网格（外部属性） */
   showGridProp?: boolean;
+  /** 是否启用网格吸附（外部属性） */
   snapToGridProp?: boolean;
+  /** 网格大小（外部属性） */
   gridSizeProp?: number;
+  /** 外部内容（用于组件编辑模式） */
   externalContent?: string;
+  /** 外部内容变化回调 */
   onExternalContentChange?: (code: string) => void;
+  /** 右键菜单回调 */
   onContextMenu?: (e: React.MouseEvent) => void;
+  /** 是否允许图片元素 */
   allowImageElements?: boolean;
+  /** 请求导出 SVG 的回调 */
   onRequestExportSvg?: (getSvgContent: () => string | null) => void;
+  /** 是否有语法错误 */
+  hasSyntaxErrors?: boolean;
 }
 
-function isInsideMultilineNote(lines: string[], lineIndex: number): boolean {
-  let inMultilineNote = false;
-  let noteStartLine = -1;
-  let noteQuoteChar = '';
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-
-    if (!inMultilineNote) {
-      const noteMatch = line.match(/note=(["'`])([^"'`]*)$/);
-      if (noteMatch) {
-        const quote = noteMatch[1];
-        if (noteMatch[2].includes(quote + quote + quote)) {
-          continue;
-        }
-        if (line.includes(quote + quote + quote)) {
-          continue;
-        }
-        inMultilineNote = true;
-        noteStartLine = i;
-        noteQuoteChar = quote;
-        continue;
-      }
-    } else {
-      if (line.includes(noteQuoteChar + noteQuoteChar + noteQuoteChar)) {
-        inMultilineNote = false;
-        noteQuoteChar = '';
-      }
-    }
-  }
-
-  if (!inMultilineNote) return false;
-
-  let checkLine = lineIndex - 1;
-  while (checkLine >= noteStartLine) {
-    if (lines[checkLine].includes(noteQuoteChar + noteQuoteChar + noteQuoteChar)) {
-      return false;
-    }
-    if (!lines[checkLine].includes(noteQuoteChar)) {
-      return true;
-    }
-    checkLine--;
-  }
-
-  return lineIndex >= noteStartLine;
-}
-
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
-
-function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg }: SolarWirePreviewProps): React.ReactElement {
+/**
+ * SolarWire 预览组件
+ * 提供可视化编辑功能，包括元素拖拽、缩放、选择等交互
+ */
+function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomChange, isPanMode = false, isSpacePressed = false, snapToGuides = true, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false }: SolarWirePreviewProps): React.ReactElement {
+  // 实例唯一标识，用于区分多个预览实例
   const instanceId = useRef(Math.random().toString(36).substr(2, 9)).current;
+  // 选中的元素 ID 列表
   const selectedElements = useSolarWireStore(s => s.selectedElements);
+  // 选择元素的方法
   const selectElements = useSolarWireStore(s => s.selectElements);
+  // 编辑器内容和设置内容的方法
   const { content, setContent } = useEditorStore();
+  // 当前路径和选中的文件
   const { currentPath, selectedFile } = useFileStore();
+  // 文件目录
   const fileDir = getFileDir(selectedFile?.path, currentPath);
-  const { primaryColor, showGrid, gridSize, snapToGrid, setShowGrid, setSnapToGrid } = useSettingsStore();
+  // 设置相关的状态
+  const { primaryColor } = useSettingsStore();
 
+  // 预览交互状态
   const {
-    scale, setScale,
-    position, setPosition,
-    isDraggingCanvas, startCanvasDrag, endCanvasDrag,
-    dragStart,
-    isInitialized, setIsInitialized,
-    boxSelection, setBoxSelection,
-    dragElementState, setDragElementState,
-    multiDragElements, setMultiDragElements,
-    resizeHandleState, setResizeHandleState,
-    dragPreviewElement, setDragPreviewElement,
-    hoveredElement, setHoveredElement,
-    dropOverlay, setDropOverlay,
-    error: storeError, setError: setStoreError,
-    alignmentGuides, setAlignmentGuides,
-    edgeGaps, setEdgeGaps,
-    resetInteractionStates,
+    scale, setScale,                    // 缩放比例和设置方法
+    position, setPosition,              // 画布位置和设置方法
+    isDraggingCanvas, startCanvasDrag, endCanvasDrag,  // 画布拖拽状态
+    dragStart,                          // 拖拽起始位置
+    isInitialized, setIsInitialized,    // 初始化状态
+    boxSelection, setBoxSelection,      // 框选状态
+    dragElementState, setDragElementState,  // 元素拖拽状态
+    multiDragElements, setMultiDragElements,  // 多元素拖拽
+    resizeHandleState, setResizeHandleState,  // 调整大小句柄状态
+    dragPreviewElement, setDragPreviewElement,  // 拖拽预览元素
+    hoveredElement, setHoveredElement,  // 悬停元素
+    dropOverlay, setDropOverlay,        // 拖放覆盖层
+    error: storeError, setError: setStoreError,  // 错误状态
+    alignmentGuides, setAlignmentGuides,  // 对齐辅助线
+    edgeGaps, setEdgeGaps,              // 边缘间距
+    resetInteractionStates,            // 重置交互状态
   } = usePreviewStore();
 
+  // 解析错误状态
   const [parseError, setParseError] = useState<string | null>(null);
+  // 上次鼠标位置
   const [lastMousePosition, setLastMousePosition] = useState({ x: 200, y: 200 });
 
+  // 判断是否为外部模式（组件编辑模式）
   const isExternalMode = externalContent !== undefined;
+  // 有效内容（外部模式使用外部内容，否则使用编辑器内容）
   const effectiveContent = isExternalMode ? externalContent : content;
+  // 有效内容设置方法
   const effectiveSetContent = isExternalMode ? (onExternalContentChange || (() => {})) : setContent;
-  
-  const effectiveShowGrid = showGrid || showGridProp;
-  const effectiveSnapToGrid = snapToGrid || snapToGridProp;
-  const effectiveGridSize = gridSize || gridSizeProp;
-  
+
+  // 有效网格设置（网格功能已禁用）
+  const effectiveShowGrid = false;
+  const effectiveSnapToGrid = false;
+  const effectiveGridSize = 20;
+
+  // 创建 RAF 内容更新器，用于优化性能
   const rafUpdater = useMemo(() => createRafContentUpdater(effectiveSetContent), [effectiveSetContent]);
 
+  // 同步缩放级别到 scale
   useEffect(() => {
     setScale(zoomLevel / 100);
   }, [zoomLevel]);
-  
+
+  // 坐标系统 hook
   const { getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
     position,
     scale
   });
 
+  // SVG 容器引用
   const svgContainerRef = useRef<HTMLDivElement>(null);
+  // 图片缓存，避免重复加载
   const imageCacheRef = useRef<Record<string, string>>({});
+  // 正在加载的 URL 集合，避免重复加载
   const loadingUrlsRef = useRef<Set<string>>(new Set());
+  // 图片缓存版本号，用于触发重新渲染
   const [imageCacheTick, setImageCacheTick] = useState(0);
+  // 上次错误引用，用于避免重复显示相同错误
   const prevErrorRef = useRef<string | null>(null);
+  // 元素边界缓存，提高性能
+  const elementsBoundsCacheRef = useRef<Map<string, { x: number; y: number; w: number; h: number; r: number }>>(new Map());
+  // 元素边界缓存版本号
+  const elementsBoundsCacheVersionRef = useRef<string>('');
 
+  /**
+   * 解析图片 URL
+   * 将相对路径转换为绝对路径或使用缓存
+   */
   const resolveImageUrl = useCallback((url: string): string => {
     if (url && !url.startsWith('http') && !url.startsWith('data:') && fileDir) {
       return imageCacheRef.current[url] || '';
@@ -348,62 +353,85 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return url;
   }, [fileDir, imageCacheTick]);
 
+  /**
+   * 处理图片添加
+   * @param assetPath 图片资源路径
+   * @param x X 坐标
+   * @param y Y 坐标
+   * @param size 图片尺寸（可选）
+   */
   const handleImageAdded = useCallback((assetPath: string, x: number, y: number, size?: { width: number; height: number }) => {
+    // 验证图片路径是否安全
+    if (!validateImagePath(assetPath)) {
+      showToast('Invalid image path', 'error');
+      return;
+    }
+
     const svgCoords = getSvgCoords(x, y);
     const imagePath = assetPath;
     const safeX = Math.max(0, Math.round(svgCoords.x));
     const safeY = Math.max(0, Math.round(svgCoords.y));
-    const MAX_DIM = 400;
-    let w: number;
-    let h: number | undefined;
-    if (size) {
-      if (size.width > MAX_DIM || size.height > MAX_DIM) {
-        const ratio = Math.min(MAX_DIM / size.width, MAX_DIM / size.height);
-        w = Math.round(size.width * ratio);
-        h = Math.round(size.height * ratio);
-      } else {
-        w = Math.round(size.width);
-        h = Math.round(size.height);
-      }
-    } else {
-      w = 200;
-    }
+    const { w, h } = calculateImageSize(size);
     const attrStr = h ? `w=${w} h=${h}` : `w=${w}`;
     const imageElement = `<${imagePath}> @(${safeX}, ${safeY}) ${attrStr}`;
     const newContent = effectiveContent ? `${effectiveContent}\n${imageElement}` : imageElement;
     effectiveSetContent(newContent);
   }, [effectiveContent, effectiveSetContent, getSvgCoords]);
 
+  // 图片拖放处理
   const { handleDragOver: handleImageDragOver, handleDrop: handleImageDrop } = useImageDrop({
     onImageAdded: handleImageAdded,
     fileDir: fileDir || '',
     enablePaste: true,
   });
 
-  const { svg, ast, viewBox } = useMemo(() => {
+  /**
+   * 解析和渲染 SolarWire 内容
+   * 使用 useMemo 缓存结果，避免不必要的重新渲染
+   */
+  const { svg, ast, viewBox, renderParseError } = useMemo(() => {
     try {
       const safeContent = effectiveContent || '';
       if (!safeContent.trim()) {
-        return { svg: '', ast: null, viewBox: null };
+        return { svg: '', ast: null, viewBox: null, renderParseError: null };
       }
+      // 解析内容为 AST
       const parsedAST = parse(safeContent);
+      // 渲染 AST 为 SVG
       const renderedResult = render(parsedAST, {
-        disableNotes: !showNotes,
-        selectedElementIds: selectedElements,
-        primaryColor,
-        sourceInput: safeContent,
-        imageUrlResolver: resolveImageUrl,
+        disableNotes: !showNotes,       // 是否禁用备注
+        selectedElementIds: selectedElements,  // 选中的元素 ID
+        primaryColor,                    // 主色调
+        sourceInput: safeContent,         // 源输入
+        imageUrlResolver: resolveImageUrl,  // 图片 URL 解析器
       }, true) as RenderResultWithMeta;
-      return { svg: renderedResult.svg, ast: parsedAST, viewBox: renderedResult.viewBox };
+      return { svg: renderedResult.svg, ast: parsedAST, viewBox: renderedResult.viewBox, renderParseError: null };
     } catch (e: any) {
-      console.error('[SolarWirePreview] Parse/Render error:', e);
-      return { svg: '', ast: null, viewBox: null, parseError: e.message || String(e) };
+      // 不在useMemo中调用console.error，避免渲染期间状态更新
+      return { svg: '', ast: null, viewBox: null, renderParseError: e.message || String(e) };
     }
   }, [effectiveContent, selectedElements, primaryColor, showNotes, currentPath, resolveImageUrl]);
 
+  // 在useEffect中处理错误，避免渲染期间状态更新
+  useEffect(() => {
+    if (renderParseError) {
+      // 延迟console.error调用，避免在渲染期间触发语法错误服务
+      setTimeout(() => {
+        console.error('[SolarWirePreview] Parse/Render error:', renderParseError);
+      }, 0);
+    }
+  }, [renderParseError]);
+
+  // viewBox 偏移量
   const viewBoxOffsetX = viewBox?.x || 0;
   const viewBoxOffsetY = viewBox?.y || 0;
 
+  /**
+   * 将客户端坐标转换为 SVG 坐标
+   * @param clientX 客户端 X 坐标
+   * @param clientY 客户端 Y 坐标
+   * @returns SVG 坐标
+   */
   const toSvgCoord = useCallback((clientX: number, clientY: number) => {
     const world = getSvgCoords(clientX, clientY);
     return {
@@ -412,6 +440,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     };
   }, [getSvgCoords, viewBoxOffsetX, viewBoxOffsetY]);
 
+  // 监听解析错误变化
   useEffect(() => {
     const errorFromAst = (ast as any)?.parseError || null;
     if (prevErrorRef.current !== errorFromAst) {
@@ -420,6 +449,10 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
   }, [ast]);
 
+  /**
+   * 加载图片资源
+   * 从 AST 中提取图片 URL 并加载为 base64 格式
+   */
   useEffect(() => {
     if (!ast || !fileDir) {
       imageCacheRef.current = {};
@@ -428,6 +461,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
 
     const currentImageUrls = new Set<string>();
+    // 提取所有图片 URL
     ast.elements.forEach(el => {
       if (el.type === 'image' && (el as any).url) {
         const url = (el as any).url;
@@ -437,12 +471,14 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       }
     });
 
+    // 清理不再使用的图片缓存
     Object.keys(imageCacheRef.current).forEach(cachedUrl => {
       if (!currentImageUrls.has(cachedUrl)) {
         delete imageCacheRef.current[cachedUrl];
       }
     });
 
+    // 找出需要加载的图片
     const imageUrls: string[] = [];
     currentImageUrls.forEach(url => {
       if (!imageCacheRef.current[url] && !loadingUrlsRef.current.has(url)) {
@@ -452,6 +488,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     if (imageUrls.length === 0) return;
 
+    // 异步加载图片
     const loadImages = async () => {
       const api = (window as any).api;
       if (!api || !api.readImageAsBase64 || !fileDir) return;
@@ -473,26 +510,31 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         }
       }
 
+      // 触发重新渲染
       setImageCacheTick(t => t + 1);
     };
 
     loadImages();
   }, [ast, fileDir]);
 
+  // 初始化缩放
   useEffect(() => {
     if (!isInitialized) {
       setScale(zoomLevel / 100);
     }
   }, [zoomLevel, isInitialized]);
 
+  // 提供 SVG 导出函数
   useEffect(() => {
     if (onRequestExportSvg) {
       onRequestExportSvg(() => svg);
     }
   }, [onRequestExportSvg, svg]);
 
-
-
+  /**
+   * 适应屏幕
+   * 重置缩放和位置到默认值
+   */
   const fitToScreen = useCallback(() => {
     if (containerRef.current) {
       // 对于无限画布，我们只需要设置一个默认的缩放比例
@@ -502,6 +544,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     }
   }, []);
 
+  // 初始化时适应屏幕
   useEffect(() => {
     if (svg && containerRef.current && !isInitialized) {
       setTimeout(fitToScreen, 50);
@@ -531,9 +574,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     const container = containerRef.current;
     if (!container) return;
 
+    /**
+     * 处理滚轮缩放
+     * 以鼠标位置为中心进行缩放
+     */
     const handleWheelEvent = (e: WheelEvent) => {
       e.preventDefault();
-      
+
       const rect = container.getBoundingClientRect();
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
@@ -548,7 +595,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       setScale(newScale);
       setPosition({ x: newX, y: newY });
       setIsInitialized(true);
-      
+
       if (onZoomChange) {
         onZoomChange(Math.round(newScale * 100));
       }
@@ -561,9 +608,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     };
   }, [scale, position, onZoomChange]);
 
+  /**
+   * 处理 React 滚轮事件
+   * 以鼠标位置为中心进行缩放
+   */
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
-    
+
     if (!containerRef.current) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -580,12 +631,16 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     setScale(newScale);
     setPosition({ x: newX, y: newY });
     setIsInitialized(true);
-    
+
     if (onZoomChange) {
       onZoomChange(Math.round(newScale * 100));
     }
   }, [scale, position, onZoomChange]);
 
+  /**
+   * 从 SVG 元素获取元素 ID
+   * 向上遍历 DOM 树查找 data-element-id 或 data-line 属性
+   */
   const getElementIdFromSVGElement = (element: SVGElement | HTMLElement): string | null => {
     let el: SVGElement | HTMLElement | null = element;
     while (el) {
@@ -600,6 +655,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return null;
   };
 
+  /**
+   * 获取元素数据
+   * @param elementId 元素 ID（可以是行号或自定义 ID）
+   * @returns 元素数据或 null
+   */
   const getElementData = useCallback((elementId: string): SolarWireElement | null => {
     if (!ast) return null;
     const lineNum = parseInt(elementId);
@@ -611,6 +671,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
   /**
    * 计算点到线段的最短距离
+   * @param px 点 X 坐标
+   * @param py 点 Y 坐标
+   * @param x1 线段起点 X
+   * @param y1 线段起点 Y
+   * @param x2 线段终点 X
+   * @param y2 线段终点 Y
+   * @returns 最短距离
    */
   const pointToLineDistance = (
     px: number,
@@ -674,10 +741,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     return distance <= tolerance;
   }, [pointToLineDistance]);
 
+  /**
+   * 获取元素边界
+   * @param elementId 元素 ID
+   * @returns 元素边界 { x, y, w, h, r }
+   */
   const getElementBounds = useCallback((elementId: string) => {
     const elementData = getElementData(elementId);
     if (!elementData) return { x: 0, y: 0, w: 0, h: 0, r: 0 };
-    
+
     // 线段元素使用特殊的边界框计算
     if (elementData.type === 'line') {
       try {
@@ -840,14 +912,27 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   const getAllElementsBoundsMap = useCallback((
     elements: SolarWireElement[]
   ): Map<string, { x: number; y: number; w: number; h: number; r: number }> => {
+    // 生成内容版本号，用于缓存失效
+    const contentVersion = `${effectiveContent.length}-${effectiveContent.slice(0, 100)}`;
+    
+    // 如果内容没有变化，返回缓存
+    if (elementsBoundsCacheVersionRef.current === contentVersion && elementsBoundsCacheRef.current.size > 0) {
+      return elementsBoundsCacheRef.current;
+    }
+    
+    // 内容变化，重新计算并缓存
     const boundsMap = new Map<string, { x: number; y: number; w: number; h: number; r: number }>();
     elements.forEach((el, idx) => {
       const id = el.location?.line?.toString() || (idx + 1).toString();
       const bounds = getElementBoundsFromData(el);
       boundsMap.set(id, bounds);
     });
+    
+    elementsBoundsCacheRef.current = boundsMap;
+    elementsBoundsCacheVersionRef.current = contentVersion;
+    
     return boundsMap;
-  }, [getElementBoundsFromData]);
+  }, [effectiveContent, getElementBoundsFromData]);
 
   /**
    * 吸附阈值（px）- 元素边缘与引导线距离小于此值时触发吸附
@@ -1294,7 +1379,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
     bottom: handle.includes('s'),
   });
 
-  const snapToGuides = useCallback((
+  const snapToGuidesInternal = useCallback((
     guides: AlignmentGuide[],
     currentX: number,
     currentY: number,
@@ -2021,10 +2106,14 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           setAlignmentGuides([]);
           setEdgeGaps([]);
 
-          let newContent = updateLineAttribute(effectiveContent, lineNum, 'x', newX);
-          newContent = updateLineAttribute(newContent, lineNum, 'y', newY);
-          newContent = updateLineAttribute(newContent, lineNum, 'w', newW);
-          newContent = updateLineAttribute(newContent, lineNum, 'h', newH);
+          // 获取元素边界信息，确定正确的属性行
+          const bounds = detectElementBounds(effectiveContent, lineNum);
+          const attributeLine = bounds.attributeLine;
+
+          let newContent = updateLineAttribute(effectiveContent, attributeLine, 'x', newX);
+          newContent = updateLineAttribute(newContent, attributeLine, 'y', newY);
+          newContent = updateLineAttribute(newContent, attributeLine, 'w', newW);
+          newContent = updateLineAttribute(newContent, attributeLine, 'h', newH);
           rafUpdater(newContent);
         }
       }
@@ -2048,7 +2137,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
       if (dragElementState.isLine) {
         setAlignmentGuides([]);
-      } else if (effectiveSnapToGrid) {
+      } else if (snapToGuides) {
         const newX = dragElementState.elementX + dx;
         const newY = dragElementState.elementY + dy;
         const currentBounds = { x: newX, y: newY, w: elementW, h: elementH };
@@ -2069,7 +2158,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const allGuides = [...elementGuides, ...canvasGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuides(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD);
+        const snapped = snapToGuidesInternal(allGuides, newX, newY, elementW, elementH, activeEdges, ALIGN_THRESHOLD);
 
         if (snapped.snapped) {
           dx = snapped.x - dragElementState.elementX;
@@ -2087,6 +2176,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
           const lines = effectiveContent.split(/\r?\n/);
           const line = lines[lineNum - 1];
           const isEndRelative = line.includes('->(') && !line.includes('x2=') && !line.includes('y2=');
+          const canvasBounds = getCanvasBounds();
           
           handleLineDrag(
             effectiveContent,
@@ -2098,10 +2188,12 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dx,
             dy,
             rafUpdater,
-            isEndRelative
+            isEndRelative,
+            canvasBounds
           );
         } else {
           const gridSnapSize = useGridSnap ? 10 : 0;
+          const canvasBounds = getCanvasBounds();
           
           handleElementDrag(
             effectiveContent,
@@ -2112,7 +2204,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             dy,
             rafUpdater,
             useGridSnap,
-            gridSnapSize
+            gridSnapSize,
+            canvasBounds
           );
         }
       }
@@ -2121,7 +2214,11 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
 
     if (multiDragElements.length > 0) {
       const currentCoords = getSvgCoords(e.clientX, e.clientY);
-      const startCoords = getSvgCoords(multiDragElements[0].startX, multiDragElements[0].startY);
+      
+      // 使用所有元素的平均起始位置作为参考点，而不是第一个元素
+      const avgStartX = multiDragElements.reduce((sum, el) => sum + el.startX, 0) / multiDragElements.length;
+      const avgStartY = multiDragElements.reduce((sum, el) => sum + el.startY, 0) / multiDragElements.length;
+      const startCoords = getSvgCoords(avgStartX, avgStartY);
       
       let dx = currentCoords.x - startCoords.x;
       let dy = currentCoords.y - startCoords.y;
@@ -2132,9 +2229,31 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         return;
       }
 
-      const useGridSnap = effectiveShowGrid && effectiveSnapToGrid;
+      // 计算边界限制，确保所有元素都不会超出边界
+      const canvasBounds = getCanvasBounds();
+      let minDx = -Infinity;
+      let maxDx = Infinity;
+      let minDy = -Infinity;
+      let maxDy = Infinity;
+      
+      multiDragElements.forEach((el) => {
+        const minX = -el.elementX; // 不能小于0
+        const maxX = canvasBounds.width - el.elementX;
+        const minY = -el.elementY;
+        const maxY = canvasBounds.height - el.elementY;
+        
+        minDx = Math.max(minDx, minX);
+        maxDx = Math.min(maxDx, maxX);
+        minDy = Math.max(minDy, minY);
+        maxDy = Math.min(maxDy, maxY);
+      });
+      
+      // 限制dx和dy，确保所有元素都在边界内
+      dx = Math.max(minDx, Math.min(maxDx, dx));
+      dy = Math.max(minDy, Math.min(maxDy, dy));
 
-      if (effectiveSnapToGrid) {
+      // 多选元素智能吸附
+      if (snapToGuides) {
         // 多选元素对齐吸附：不按 Alt 时始终执行（与网格吸附不互斥）
         const newX = groupBounds.x + dx;
         const newY = groupBounds.y + dy;
@@ -2161,12 +2280,19 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const allGuides = [...elementGuides, ...canvasGuides, ...userGuides, ...spacingGuides, ...distributeGuides];
 
         const activeEdges = getActiveEdgesForMove();
-        const snapped = snapToGuides(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD);
+        const snapped = snapToGuidesInternal(allGuides, newX, newY, groupBounds.w, groupBounds.h, activeEdges, ALIGN_THRESHOLD);
 
         dx += snapped.snapped ? snapped.x - newX : 0;
         dy += snapped.snapped ? snapped.y - newY : 0;
 
         setAlignmentGuides([...snapped.snappedGuides, ...snapped.nearbyGuides]);
+
+        // 应用网格吸附到整个组，而不是每个元素单独应用
+        const gridSnapSize = 10;
+        const snappedDx = Math.round(dx / gridSnapSize) * gridSnapSize;
+        const snappedDy = Math.round(dy / gridSnapSize) * gridSnapSize;
+        dx = snappedDx;
+        dy = snappedDy;
       } else {
         setAlignmentGuides([]);
       }
@@ -2177,8 +2303,13 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const lineNum = parseInt(el.elementId);
         if (isNaN(lineNum)) return;
         
-        let finalX = Math.max(0, Math.round(el.elementX + dx));
-        let finalY = Math.max(0, Math.round(el.elementY + dy));
+        // 获取元素边界信息，确定正确的属性行
+        const bounds = detectElementBounds(effectiveContent, lineNum);
+        const attributeLine = bounds.attributeLine;
+        
+        // dx和dy已经在前面统一限制，确保所有元素都在边界内
+        let finalX = Math.round(el.elementX + dx);
+        let finalY = Math.round(el.elementY + dy);
         
         if (el.isLine) {
           if (el.elementX2 !== undefined && el.elementY2 !== undefined) {
@@ -2187,20 +2318,15 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             let newX2 = finalX + originalDx;
             let newY2 = finalY + originalDy;
             
-            newContent = updateLineAttribute(newContent, lineNum, 'x', finalX);
-            newContent = updateLineAttribute(newContent, lineNum, 'y', finalY);
-            newContent = updateLineAttribute(newContent, lineNum, 'x2', newX2);
-            newContent = updateLineAttribute(newContent, lineNum, 'y2', newY2);
+            newContent = updateLineAttribute(newContent, attributeLine, 'x', finalX);
+            newContent = updateLineAttribute(newContent, attributeLine, 'y', finalY);
+            newContent = updateLineAttribute(newContent, attributeLine, 'x2', newX2);
+            newContent = updateLineAttribute(newContent, attributeLine, 'y2', newY2);
           }
         } else {
-          if (useGridSnap && effectiveSnapToGrid) {
-            const gridSnapSize = 10;
-            finalX = Math.round(finalX / gridSnapSize) * gridSnapSize;
-            finalY = Math.round(finalY / gridSnapSize) * gridSnapSize;
-          }
-          
-          newContent = updateLineAttribute(newContent, lineNum, 'x', finalX);
-          newContent = updateLineAttribute(newContent, lineNum, 'y', finalY);
+          // dx和dy已经统一应用了网格吸附，这里直接使用
+          newContent = updateLineAttribute(newContent, attributeLine, 'x', finalX);
+          newContent = updateLineAttribute(newContent, attributeLine, 'y', finalY);
         }
       });
       
@@ -2317,12 +2443,31 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
       const imageFiles = files.filter((f) => f.type.startsWith('image/'));
       
       if (imageFiles.length > 0) {
-        handleImageDrop(e);
+        // 不需要再次调用 handleImageDrop，因为它的实现已经在 useImageDrop hook 中处理了 preventDefault
+        // 直接调用 onImageAdded 回调
+        const svgCoords = toSvgCoord(e.clientX, e.clientY);
+        for (let i = 0; i < imageFiles.length; i++) {
+          const file = imageFiles[i];
+          try {
+            const relativePath = await saveImageToAssetsDir(file, fileDir || '');
+            const size = await getImageSizeFromBlob(file);
+            handleImageAdded(relativePath, e.clientX + i * 20, e.clientY + i * 20, size);
+          } catch (error) {
+            console.error('Failed to save image:', error);
+            showToast(`Failed to save image: ${error instanceof Error ? error.message : String(error)}`, 'error');
+          }
+        }
         return;
       }
 
       const plainText = e.dataTransfer.getData('text/plain');
       if (plainText) {
+        // 验证拖放内容是否安全
+        if (!validateDropContent(plainText)) {
+          showToast('Invalid or unsafe content', 'error');
+          return;
+        }
+        
         const svgCoords = toSvgCoord(e.clientX, e.clientY);
         const x = Math.round(svgCoords.x);
         const y = Math.round(svgCoords.y);
@@ -2330,7 +2475,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         const originalLines = plainText.split(/\r?\n/);
         const noteLineIndices = new Set<number>();
         for (let i = 0; i < originalLines.length; i++) {
-          if (isInsideMultilineNote(originalLines, i)) {
+          if (isInsideMultilineNoteContent(originalLines, i)) {
             noteLineIndices.add(i);
           }
         }
@@ -2392,11 +2537,8 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
         case 'rectangle':
           newLine = `["Rectangle"] @(${x},${y}) w=100 h=50`;
           break;
-        case 'rounded-rectangle':
-          newLine = `("Rounded") @(${x},${y}) w=100 h=50 r=6`;
-          break;
         case 'circle':
-          newLine = `(("Circle")) @(${x},${y})`;
+          newLine = `("Circle") @(${x},${y})`;
           break;
         case 'text':
           newLine = `"Text" @(${x},${y})`;
@@ -2822,48 +2964,68 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
             />
           );
         });
-      } else if (elementData && elementData.type !== 'text') {
-        const isCircle = elementData.type === 'circle';
-        const corners = isCircle
-          ? [
-              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const }
-            ]
-          : [
-              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-              { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
-              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-              { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
-              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
-              { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
-              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-              { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
-            ];
-
-        const cursorMap: Record<string, string> = isCircle
-          ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
-          : { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
-              se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' };
-
-        corners.forEach((corner) => {
+      } else if (elementData) {
+        // 文本元素和其他元素（非线段）渲染选择边框
+        if (elementData.type === 'text') {
+          // 文本元素：只渲染边框，不渲染缩放句柄
           handles.push(
             <rect
-              key={`${elementId}-handle-${corner.handle}`}
+              key={`${elementId}-selection-border`}
               data-element-id={elementId}
-              data-handle={corner.handle}
-              x={corner.x - handleSize / 2}
-              y={corner.y - handleSize / 2}
-              width={handleSize}
-              height={handleSize}
-              fill="white"
+              x={bounds.x}
+              y={bounds.y}
+              width={bounds.w}
+              height={bounds.h}
+              fill="none"
               stroke={primaryColor}
               strokeWidth={2 / scale}
-              style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
+              style={{ pointerEvents: 'none' }}
             />
           );
-        });
+        } else {
+          // 其他元素：渲染边框和缩放句柄
+          const isCircle = elementData.type === 'circle';
+          const corners = isCircle
+            ? [
+                { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+                { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+                { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+                { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const }
+              ]
+            : [
+                { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+                { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
+                { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+                { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
+                { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
+                { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
+                { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+                { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const }
+              ];
+
+          const cursorMap: Record<string, string> = isCircle
+            ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
+            : { nw: 'nw-resize', n: 'n-resize', ne: 'ne-resize', e: 'e-resize',
+                se: 'se-resize', s: 's-resize', sw: 'sw-resize', w: 'w-resize' };
+
+          corners.forEach((corner) => {
+            handles.push(
+              <rect
+                key={`${elementId}-handle-${corner.handle}`}
+                data-element-id={elementId}
+                data-handle={corner.handle}
+                x={corner.x - handleSize / 2}
+                y={corner.y - handleSize / 2}
+                width={handleSize}
+                height={handleSize}
+                fill="white"
+                stroke={primaryColor}
+                strokeWidth={2 / scale}
+                style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
+              />
+            );
+          });
+        }
       }
     });
 
@@ -3128,7 +3290,7 @@ function SolarWirePreview({ zoomLevel, selectionTool, showNotes = true, onZoomCh
   };
 
   const renderEmpty = () => {
-    if (parseError || svg) return null;
+    if (parseError || svg || hasSyntaxErrors) return null;
     
     return (
       <div className="empty-overlay">

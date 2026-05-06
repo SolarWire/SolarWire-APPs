@@ -622,7 +622,10 @@ sequenceDiagram
 2. Write attributes directly without brackets: w=100 h=40 (not [w=100 h=40])
 3. Text content MUST use double quotes: "Login" (not Login)
 4. Attribute order: Content → Coordinates → Size → Other attributes → note
-5. **NOTE ATTRIBUTE MUST USE TRIPLE QUOTES `"""`: note="""Note content""" (never use single or double quotes)
+5. **NOTE ATTRIBUTE MUST USE TRIPLE QUOTES `"""`: note="""Note content""" (never use single or double quotes)**
+6. **MULTILINE TEXT**: Use triple quotes `"""` for text elements with multiple lines: """Line 1
+   Line 2
+   Line 3"""
 ```
 
 **⚠️ CRITICAL: Always use triple quotes `"""` for notes**
@@ -630,11 +633,19 @@ sequenceDiagram
 - No need to escape anything inside triple quotes
 - DO NOT use single quotes `'` or double quotes `"` for notes
 
+**⚠️ IMPORTANT: Multiline Text Support**
+- Use triple quotes `"""` for text elements that need multiple lines
+- Example: `"""Address Line 1
+   Address Line 2
+   City, State"""
+- Each line will be rendered on a new line
+- Use for addresses, descriptions, or any multi-line content
+
 **Correct Example:**
 ```solarwire
 ["Login"] @(100,50) w=100 h=40 bg=#3B82F6 c=#FFFFFF note="""Submit login form"""
 "Username" @(100,100)
-(("Avatar")) @(100,150) w=40  // Circle with text - MUST use double quotes
+("Avatar") @(100,150) w=40  // Circle with text - MUST use double quotes
 ```
 
 **Incorrect Examples:**
@@ -642,8 +653,8 @@ sequenceDiagram
 ["Login"]                    // ❌ No coordinates
 ["Login"] [w=100 h=40]       // ❌ Attributes in brackets
 ["Login"] @(100,50) w=100    // ❌ Missing height
-((Avatar)) @(100,50) w=40    // ❌ Text without double quotes - WRONG!
-(("Avatar")) @(100,50) w=40  // ✅ Correct - text in double quotes
+(Avatar) @(100,50) w=40    // ❌ Text without double quotes - WRONG!
+("Avatar") @(100,50) w=40  // ✅ Correct - text in double quotes
 ```
 
 **⚠️ IMPORTANT: All text content MUST be wrapped in double quotes `""`**
@@ -651,8 +662,8 @@ sequenceDiagram
 | Element | Correct | Incorrect |
 |---------|---------|-----------|
 | Rectangle | `["Button"]` | `[Button]` |
-| Circle | `(("Avatar"))` | `((Avatar))` |
-| Rounded | `("Card")` | `(Card)` |
+| Circle | `("Avatar")` | `(Avatar)` |
+| Rounded Rectangle | `["Card"] r=8` | `[Card]` |
 | Plain Text | `"Label"` | `Label` |
 
 #### 2. Element Selection Principles
@@ -663,9 +674,9 @@ sequenceDiagram
 |----------|---------------------|---------|
 | Primary Buttons | Rectangle `[]` with background color | `["Login"] @(100,50) w=100 h=40 bg=#3B82F6 c=#FFFFFF` |
 | Secondary Buttons | Rectangle `[]` with border | `["Cancel"] @(220,50) w=80 h=40 bg=#FFFFFF b=#E5E7EB` |
-| Cards/Containers | Rounded Rectangle `()` | `("User Info Card") @(100,50) w=300 h=200` |
-| Avatars | Circle with placeholder | `(("A")) @(100,50) w=40 bg=#E5E7EB c=#6B7280` |
-| Icon Buttons | Circle with icon text | `(("?")) @(100,50) w=32 h=32 bg=#E5E7EB` |
+| Cards/Containers | Rectangle with `r` attribute | `["User Info Card"] @(100,50) w=300 h=200 r=8` |
+| Avatars | Circle with placeholder | `("A") @(100,50) w=40 bg=#E5E7EB c=#6B7280` |
+| Icon Buttons | Circle with icon text | `("?") @(100,50) w=32 h=32 bg=#E5E7EB` |
 | Labels/Text | Plain Text `""` | `"Username" @(100,50)` |
 | Input Fields | Rectangle with placeholder | `["Enter username..."] @(100,50) w=280 h=40 bg=#FFFFFF b=#E5E7EB c=#9CA3AF` |
 | Dividers | Line `--` | `-- @(0,100)->(400,100) b=#E5E7EB` |
@@ -676,12 +687,12 @@ sequenceDiagram
 | Element | Correct Syntax | Wrong Syntax |
 |---------|---------------|--------------|
 | Rectangle | `["Button Text"]` | `[Button Text]` ❌ |
-| Rounded | `("Card Title")` | `(Card Title)` ❌ |
-| Circle | `(("Avatar"))` | `((Avatar))` ❌ |
+| Rounded Rectangle | `["Card Title"] r=8` | `[Card Title]` ❌ |
+| Circle | `("Avatar")` | `(Avatar)` ❌ |
 | Plain Text | `"Label"` | `Label` ❌ |
 
 **Common Mistakes to Avoid:**
-- ❌ `((Avatar))` - Text without double quotes
+- ❌ `(Avatar)` - Text without double quotes
 - ❌ `[Login]` - Text without double quotes
 - ❌ Using placeholder `[?]` for buttons (use `["Button Text"]` instead)
 - ❌ Using rectangle `[]` for plain labels (use `"Label"` instead)
@@ -1402,8 +1413,8 @@ Each page/tab/modal needs to generate two SVG files:
 
 3. **Appropriate Element Types**
    - Buttons → Rectangle `[]` with text
-   - Cards → Rounded rectangle `()`
-   - Avatars → Circle with letter `(("A"))`
+   - Cards → Rectangle with `r` attribute for rounded corners
+   - Avatars → Circle with letter `("A")`
    - Labels → Plain text `""`
    - Inputs → Rectangle with placeholder
 

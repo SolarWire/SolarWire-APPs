@@ -7,6 +7,7 @@ interface FileNode {
   path: string;
   type: 'file' | 'directory';
   children?: FileNode[];
+  modifiedTime?: number;
 }
 
 interface SolarWireSnippet {
@@ -119,11 +120,13 @@ export async function getFileTree(dirPath: string, depth = 3): Promise<FileNode[
 
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
+      const stats = await fs.stat(fullPath);
       const node: FileNode = {
         name: entry.name,
         path: fullPath,
         type: entry.isDirectory() ? 'directory' : 'file',
         children: [],
+        modifiedTime: stats.mtimeMs,
       };
 
       if (entry.isDirectory() && depth > 0) {
@@ -274,5 +277,77 @@ export async function readImageAsBase64(imagePath: string): Promise<string> {
       throw error;
     }
     throw new Error(`Failed to read image: ${imagePath}`);
+  }
+}
+
+export async function rename(oldPath: string, newPath: string): Promise<void> {
+  try {
+    validatePath(oldPath);
+    validatePath(newPath);
+    await fs.rename(oldPath, newPath);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to rename: ${oldPath} -> ${newPath}`);
+  }
+}
+
+export async function deleteFile(filePath: string): Promise<void> {
+  try {
+    validatePath(filePath);
+    await fs.unlink(filePath);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to delete file: ${filePath}`);
+  }
+}
+
+export async function deleteDirectory(dirPath: string): Promise<void> {
+  try {
+    validatePath(dirPath);
+    await fs.rm(dirPath, { recursive: true, force: true });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to delete directory: ${dirPath}`);
+  }
+}
+
+export async function mkdir(dirPath: string): Promise<void> {
+  try {
+    validatePath(dirPath);
+    await fs.mkdir(dirPath, { recursive: true });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to create directory: ${dirPath}`);
+  }
+}
+
+export async function exists(filePath: string): Promise<boolean> {
+  try {
+    validatePath(filePath);
+    await fs.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function showItemInFolder(filePath: string): Promise<void> {
+  try {
+    validatePath(filePath);
+    const { shell } = require('electron');
+    shell.showItemInFolder(filePath);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to show item in folder: ${filePath}`);
   }
 }

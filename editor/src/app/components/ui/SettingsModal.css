@@ -8,7 +8,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
 }
 
 .settings-modal {
@@ -188,4 +188,38 @@
   background: var(--hover-bg);
   color: var(--text-primary);
   border-color: var(--accent-color);
+}
+
+.language-selector {
+  width: 100%;
+}
+
+.language-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.language-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.language-select:hover {
+  border-color: var(--text-secondary);
+}
+
+.color-input-error {
+  border-color: #ff4d4f !important;
+}
+
+.color-error-message {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 4px;
 }

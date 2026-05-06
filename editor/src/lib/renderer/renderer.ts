@@ -4,6 +4,13 @@ import { renderRectangle, RenderResult } from './elements/rectangle';
 import { renderCircle, renderText, renderPlaceholder, renderImage, renderTable } from './elements/otherElements';
 import { renderLine } from './elements/lineAndContainer';
 
+/**
+ * 文本换行函数
+ * @param text 文本内容
+ * @param maxWidth 最大宽度
+ * @param fontSize 字体大小
+ * @returns 换行后的文本行数组
+ */
 function wrapText(text: string, maxWidth: number, fontSize: number = 12): string[] {
   const lines: string[] = [];
   const avgCharWidth = fontSize * 0.65;
@@ -101,27 +108,49 @@ function wrapText(text: string, maxWidth: number, fontSize: number = 12): string
   return lines;
 }
 
+/**
+ * 备注信息接口
+ */
 interface NoteInfo {
+  /** 备注编号 */
   number: number;
+  /** 备注内容 */
   note: string;
+  /** 元素边界 */
   bounds: ElementBounds;
+  /** 元素索引 */
   elementIndex: number;
 }
 
+/**
+ * 内部渲染选项接口
+ */
 interface InternalRenderOptions {
+  /** 是否禁用备注 */
   disableNotes?: boolean;
+  /** 源输入 */
   sourceInput?: string;
+  /** 备注列表 */
   notes?: NoteInfo[];
+  /** 备注编号引用 */
   noteNumberRef?: { current: number };
+  /** 元素索引 */
   elementIndex?: number;
+  /** 图片 URL 解析器 */
   imageUrlResolver?: (relativePath: string) => string;
 }
 
+/**
+ * 渲染元素
+ * @param element 元素
+ * @param context 渲染上下文
+ * @param options 渲染选项
+ * @returns 渲染结果
+ */
 export function renderElement(element: Element, context: RenderContext, options?: InternalRenderOptions): RenderResult {
   const result = (() => {
     switch (element.type) {
       case 'rectangle':
-      case 'rounded-rectangle':
         return renderRectangle(element, context);
       case 'circle':
         return renderCircle(element, context);
@@ -163,15 +192,25 @@ export function renderElement(element: Element, context: RenderContext, options?
 }
 
 export interface RenderOptions {
+  /** 是否禁用备注 */
   disableNotes?: boolean;
+  /** 源输入 */
   sourceInput?: string;
+  /** 选中的元素 ID 列表 */
   selectedElementIds?: string[];
+  /** 主色调 */
   primaryColor?: string;
+  /** 图片 URL 解析器 */
   imageUrlResolver?: (relativePath: string) => string;
 }
 
+/**
+ * 带元数据的渲染结果接口
+ */
 export interface RenderResultWithMeta {
+  /** SVG 内容 */
   svg: string;
+  /** 视口 */
   viewBox: {
     x: number;
     y: number;
@@ -183,6 +222,13 @@ export interface RenderResultWithMeta {
 export function render(ast: Document, options?: RenderOptions): string;
 export function render(ast: Document, options?: RenderOptions, returnMeta?: false): string;
 export function render(ast: Document, options?: RenderOptions, returnMeta?: true): RenderResultWithMeta;
+/**
+ * 渲染文档为 SVG
+ * @param ast 文档 AST
+ * @param options 渲染选项
+ * @param returnMeta 是否返回元数据
+ * @returns SVG 字符串或带元数据的渲染结果
+ */
 export function render(ast: Document, options?: RenderOptions, returnMeta?: boolean): string | RenderResultWithMeta {
   const context = createRenderContext(ast.declarations, options?.sourceInput);
   const svgParts: string[] = [];
@@ -206,6 +252,7 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
     imageUrlResolver
   };
   
+  // 渲染所有元素
   ast.elements.forEach((element, index) => {
     const result = renderElement(element, context, { ...renderOptions, elementIndex: index });
     const id = (element as any).id || element.location?.line?.toString() || (index + 1).toString();
@@ -215,6 +262,12 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
     maxX = Math.max(maxX, result.bounds.x + result.bounds.width);
     maxY = Math.max(maxY, result.bounds.y + result.bounds.height);
   });
+
+  // 收集所有阴影 filters
+  const shadowFilters = elementResults
+    .filter(({ result }) => result.shadowFilter)
+    .map(({ result }) => result.shadowFilter)
+    .filter((filter): filter is string => filter !== undefined);
   
   const margin = 20;
   const minViewBoxWidth = 400;
@@ -257,6 +310,10 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   svgParts.push(`  <filter id="card-badge-shadow" x="-50%" y="-50%" width="200%" height="200%">`);
   svgParts.push(`    <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="black" flood-opacity="0.7"/>`);
   svgParts.push(`  </filter>`);
+  // 添加所有元素的阴影 filters
+  shadowFilters.forEach(filter => {
+    svgParts.push(filter);
+  });
   svgParts.push(`</defs>`);
   svgParts.push(`<style>`);
   svgParts.push(`  text { font-family: Arial, sans-serif; }`);
@@ -276,31 +333,42 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
     const element = ast.elements[index];
     const lineNum = element.location?.line?.toString();
     let svg = result.svg;
-    
-    // 只替换第一个以换行符或开始的<g>标签，避免替换表格内部子元素的<g>
-    // 使用更通用的正则匹配带或不带属性的 <g> 标签
-    const firstGMatch = svg.match(/^(\s*)<g(\s[^>]*)?>/);
-    if (firstGMatch) {
-      const indent = firstGMatch[1];
-      const isSelected = selectedElementIds.includes(id) || (lineNum && selectedElementIds.includes(lineNum));
-      
-      // 对于表格元素，不使用selected-glow类，避免子元素模糊
-      const isTableElement = element.type === 'table';
-      const gRegex = /^(\s*)<g(\s[^>]*)?>/;
-      
-      if (isSelected) {
-        if (isTableElement) {
-          // 表格元素不使用drop-shadow滤镜，只添加data属性
-          svg = svg.replace(gRegex, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`);
+
+    // 改进的SVG替换逻辑：只替换最外层的<g>标签
+    // 通过查找第一个<g>和对应的</g>来确定最外层
+    const gStartIndex = svg.indexOf('<g');
+    if (gStartIndex !== -1) {
+      const gEndIndex = svg.indexOf('>', gStartIndex);
+      if (gEndIndex !== -1) {
+        const beforeG = svg.substring(0, gStartIndex);
+        const gTag = svg.substring(gStartIndex, gEndIndex + 1);
+        const afterG = svg.substring(gEndIndex + 1);
+
+        const isSelected = selectedElementIds.includes(id) || (lineNum && selectedElementIds.includes(lineNum));
+        const isTableElement = element.type === 'table';
+
+        // 提取缩进
+        const indentMatch = beforeG.match(/(\s*)$/);
+        const indent = indentMatch ? indentMatch[1] : '';
+
+        // 构建新的<g>标签
+        let newGTag: string;
+        if (isSelected) {
+          if (isTableElement) {
+            // 表格元素不使用drop-shadow滤镜，只添加data属性
+            newGTag = `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`;
+          } else {
+            // 其他元素正常使用selected-glow
+            newGTag = `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}" class="selected-glow">`;
+          }
         } else {
-          // 其他元素正常使用selected-glow
-          svg = svg.replace(gRegex, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}" class="selected-glow">`);
+          newGTag = `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`;
         }
-      } else {
-        svg = svg.replace(gRegex, `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`);
+
+        svg = beforeG + newGTag + afterG;
       }
     }
-    
+
     svgParts.push(svg);
   });
   
@@ -357,7 +425,7 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         const badgeRadius = 10;
         
         svgParts.push(`  <g data-note-element-id="${elementId}" pointer-events="all">`);
-        svgParts.push(`    <path d="M${badgeX} ${badgeY - badgeRadius} C${badgeX + badgeRadius} ${badgeY - badgeRadius} ${badgeX + badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX} ${badgeY + badgeRadius * 1.5} C${badgeX - badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX - badgeRadius} ${badgeY - badgeRadius} ${badgeX} ${badgeY - badgeRadius} Z" fill="#70B603" stroke="white" stroke-width="1" filter="url(#badge-shadow-${note.number})"/>`);
+        svgParts.push(`    <path d="M${badgeX} ${badgeY - badgeRadius} C${badgeX + badgeRadius} ${badgeY - badgeRadius} ${badgeX + badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX} ${badgeY + badgeRadius * 1.5} C${badgeX - badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX - badgeRadius} ${badgeY - badgeRadius} ${badgeX} ${badgeY - badgeRadius} Z" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow)"/>`);
         svgParts.push(`    <text x="${badgeX}" y="${badgeY + 2}" text-anchor="middle" class="note-badge-text">${note.number}</text>`);
         svgParts.push(`  </g>`);
         

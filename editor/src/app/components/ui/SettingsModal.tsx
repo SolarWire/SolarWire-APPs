@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useI18nStore } from '../../stores/i18nStore';
+import { useTranslation } from '../../hooks/useTranslation';
+import { Language } from '../../i18n';
+import { showToast } from '../../services/toast-service';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -9,15 +13,43 @@ interface SettingsModalProps {
 
 function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElement | null {
   const { primaryColor, setPrimaryColor } = useSettingsStore();
+  const { language, setLanguage } = useI18nStore();
+  const t = useTranslation();
   const [tempPrimaryColor, setTempPrimaryColor] = useState(primaryColor);
+  const [tempLanguage, setTempLanguage] = useState(language);
+  const [colorError, setColorError] = useState('');
   const DEFAULT_PRIMARY_COLOR = '#FCA506';
 
   useEffect(() => {
     setTempPrimaryColor(primaryColor);
-  }, [primaryColor, isOpen]);
+    setTempLanguage(language);
+    setColorError('');
+  }, [primaryColor, language, isOpen]);
+
+  // ESC键关闭模态窗
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  const isValidColor = (color: string): boolean => {
+    const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+    return hexColorRegex.test(color);
+  };
 
   const handleSave = () => {
+    if (!isValidColor(tempPrimaryColor)) {
+      setColorError('Invalid color format. Use hex format like #FCA506');
+      showToast('Invalid color format', 'error');
+      return;
+    }
     setPrimaryColor(tempPrimaryColor);
+    setLanguage(tempLanguage);
     onClose();
   };
 
@@ -37,7 +69,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
     <div className="settings-modal-overlay" onClick={handleOverlayClick}>
       <div className="settings-modal">
         <div className="settings-modal-header">
-          <h2>Settings</h2>
+          <h2>{t.settings.title}</h2>
           <button className="settings-close-button" onClick={onClose}>
             ✕
           </button>
@@ -45,9 +77,26 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
 
         <div className="settings-modal-content">
           <div className="settings-section">
-            <h3>Appearance</h3>
+            <h3>{t.settings.general}</h3>
             <div className="settings-field">
-              <label>Color</label>
+              <label>{t.settings.language}</label>
+              <div className="language-selector">
+                <select
+                  value={tempLanguage}
+                  onChange={(e) => setTempLanguage(e.target.value as Language)}
+                  className="language-select"
+                >
+                  <option value="zh">{t.languages.zh}</option>
+                  <option value="en">{t.languages.en}</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="settings-section">
+            <h3>{t.settings.appearance}</h3>
+            <div className="settings-field">
+              <label>{t.settings.accentColor}</label>
               <div className="color-picker-row">
                 <input
                   type="color"
@@ -58,17 +107,23 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
                   <input
                     type="text"
                     value={tempPrimaryColor}
-                    onChange={(e) => setTempPrimaryColor(e.target.value)}
-                    className="color-input"
+                    onChange={(e) => {
+                      setTempPrimaryColor(e.target.value);
+                      if (isValidColor(e.target.value)) {
+                        setColorError('');
+                      }
+                    }}
+                    className={`color-input ${colorError ? 'color-input-error' : ''}`}
                   />
                   <button
                     className="color-reset-button"
                     onClick={handleResetColor}
-                    title="Reset to default"
+                    title={t.common.reset}
                   >
-                    Reset
+                    {t.common.reset}
                   </button>
                 </div>
+                {colorError && <div className="color-error-message">{colorError}</div>}
               </div>
             </div>
           </div>
@@ -76,10 +131,10 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
 
         <div className="settings-modal-footer">
           <button className="settings-cancel-button" onClick={onClose}>
-            Cancel
+            {t.common.cancel}
           </button>
           <button className="settings-save-button" onClick={handleSave}>
-            Save
+            {t.common.save}
           </button>
         </div>
       </div>

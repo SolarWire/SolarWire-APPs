@@ -135,7 +135,7 @@
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
-  z-index: 50;
+  z-index: var(--z-layer-panel);
 }
 
 .component-library-panel-fixed {
@@ -147,7 +147,7 @@
   background: var(--bg-secondary);
   border-right: 1px solid var(--border-color);
   overflow-y: auto;
-  z-index: 50;
+  z-index: var(--z-layer-panel);
 }
 
 .context-menu {
@@ -158,7 +158,7 @@
   padding: 4px;
   min-width: 150px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  z-index: var(--z-context-menu);
 }
 
 .context-menu-item {
@@ -191,7 +191,7 @@
   font-size: 14px;
   font-weight: 500;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  z-index: 10000;
+  z-index: var(--z-notification);
   animation: slideIn 0.3s ease;
   max-width: 400px;
 }

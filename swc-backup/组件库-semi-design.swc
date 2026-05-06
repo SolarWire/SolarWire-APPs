@@ -118,7 +118,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=40 h=40 bg=#0091ff c=#ffffff size=16
+("张") @(10, 10) w=40 h=40 bg=#0091ff c=#ffffff size=16
 ```
 
 ### 头像组
@@ -130,7 +130,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=36 h=36 bg=#0091ff c=#ffffff size=14
+("张") @(10, 10) w=36 h=36 bg=#0091ff c=#ffffff size=14
 (("李")) @(28, 10) w=36 h=36 bg=#00d68f c=#ffffff size=14
 (("王")) @(46, 10) w=36 h=36 bg=#ff9300 c=#ffffff size=14
 (("+2")) @(64, 10) w=36 h=36 bg=#e8e8e8 c=#666666 size=12
@@ -663,7 +663,7 @@ updatedAt: 2026-04-24T00:00:00Z
 "首页" @(90, 16) c=#1c1f23 size=13
 "产品" @(140, 16) c=#1c1f23 size=13
 "关于" @(190, 16) c=#1c1f23 size=13
-(("张")) @(270, 8) w=32 h=32 bg=#0091ff c=#ffffff size=12
+("张") @(270, 8) w=32 h=32 bg=#0091ff c=#ffffff size=12
 ```
 
 ### 侧边导航
@@ -1046,7 +1046,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("张")) @(10, 10) w=48 h=48 bg=#0091ff c=#ffffff size=18
+("张") @(10, 10) w=48 h=48 bg=#0091ff c=#ffffff size=18
 ```
 
 ### 标签

@@ -3,17 +3,24 @@ import { useEditorStore } from '../../stores/editorStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { parse } from '../../../lib/parser';
 import type { Element as SolarWireElement } from '../../../lib/parser/types';
-import { detectNoteBounds, detectTableBounds } from '../../../shared/utils/solarwire-utils';
+import { detectElementBounds } from '../../../shared/utils/solarwire-utils';
 import './LayerPanel.css';
 
+/**
+ * 图层面板组件属性接口
+ */
 interface LayerPanelProps {
+  /** 选择元素回调 */
   onSelectElement: (elementId: string) => void;
+  /** 重新排序元素回调 */
   onReorderElements?: (reorderedIds: string[]) => void;
+  /** 外部内容（用于组件编辑模式） */
+  externalContent?: string;
 }
 
+// 元素类型图标映射
 const ELEMENT_ICONS: Record<string, string> = {
   rectangle: '▭',
-  'rounded-rectangle': '▢',
   circle: '○',
   text: 'T',
   line: '╱',
@@ -22,9 +29,9 @@ const ELEMENT_ICONS: Record<string, string> = {
   table: '⊞',
 };
 
+// 元素类型名称映射
 const ELEMENT_NAMES: Record<string, string> = {
   rectangle: 'Rectangle',
-  'rounded-rectangle': 'Rounded',
   circle: 'Circle',
   text: 'Text',
   line: 'Line',
@@ -33,32 +40,62 @@ const ELEMENT_NAMES: Record<string, string> = {
   table: 'Table',
 };
 
+/**
+ * 备注信息接口
+ */
 interface NoteInfo {
+  /** 备注编号 */
   number: number;
+  /** 备注内容 */
   content: string;
+  /** 备注颜色 */
   color: string;
 }
 
-function LayerPanel({ onSelectElement, onReorderElements }: LayerPanelProps): React.ReactElement {
+/**
+ * 图层面板组件
+ * 用于显示和管理文档中的元素层级
+ */
+function LayerPanel({ onSelectElement, onReorderElements, externalContent }: LayerPanelProps): React.ReactElement {
+  // 编辑器内容
   const { content } = useEditorStore();
+  // 选中的元素 ID 列表
   const selectedElements = useSolarWireStore(s => s.selectedElements);
+  // 选择元素的方法
   const selectElements = useSolarWireStore(s => s.selectElements);
+
+  // 判断是否为外部模式（组件编辑模式）
+  const isExternalMode = externalContent !== undefined;
+  // 有效内容（外部模式使用外部内容，否则使用编辑器内容）
+  const effectiveContent = isExternalMode ? externalContent : content;
+  // 工具提示位置
   const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number } | null>(null);
+  // 悬停的备注信息
   const [hoveredNote, setHoveredNote] = useState<NoteInfo | null>(null);
+  // 列表项引用
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  // 工具提示引用
   const tooltipRef = useRef<HTMLDivElement | null>(null);
+  // 悬停定时器
   const hoverTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 离开定时器
   const leaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // 工具提示是否被悬停
   const isTooltipHoveredRef = useRef(false);
   const isLayerHoveredRef = useRef(false);
+  // 拖拽的元素 ID
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  // 拖拽悬停的元素 ID
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
+  /**
+   * 解析内容并生成图层列表
+   */
   const layers = useMemo(() => {
-    if (!content?.trim()) return [];
+    if (!effectiveContent?.trim()) return [];
 
     try {
-      const ast = parse(content);
+      const ast = parse(effectiveContent);
       let noteCounter = 0;
       
       return ast.elements.map((el: SolarWireElement, index: number) => {
@@ -109,7 +146,7 @@ function LayerPanel({ onSelectElement, onReorderElements }: LayerPanelProps): Re
     } catch {
       return [];
     }
-  }, [content, selectedElements]);
+  }, [effectiveContent, selectedElements]);
 
   const handleLayerClick = (id: string, e: React.MouseEvent) => {
     if (e.ctrlKey || e.metaKey) {

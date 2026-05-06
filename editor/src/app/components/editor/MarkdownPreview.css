@@ -1,0 +1,312 @@
+/* ========================================
+   Markdown预览组件样式文件
+   ========================================
+   
+   功能说明：
+   1. 提供Markdown内容的预览样式
+   2. 支持自动换行和内容自适应容器宽度
+   3. 统一使用CSS变量确保主题一致性
+   4. 支持SolarWire代码块和图表渲染
+   5. 提供完整的Markdown元素样式支持
+   
+   与MarkdownMode.css的关系：
+   - 此文件为独立组件的样式
+   - MarkdownMode.css为模式容器的样式
+   - 两者配合使用确保完整的Markdown功能
+   
+   更新记录：
+   - 2026-04-28: 添加自动换行和自适应宽度支持
+   - 2026-04-28: 统一使用CSS变量替换硬编码颜色
+   ======================================== */
+
+/* Markdown预览容器 */
+.markdown-preview-container {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Markdown预览主容器 */
+.markdown-preview {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  word-wrap: break-word;      /* 启用自动换行 */
+  overflow-wrap: break-word;  /* 现代浏览器换行支持 */
+  white-space: pre-wrap;      /* 保持格式但允许换行 */
+}
+
+.markdown-preview img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ========================================
+   Markdown代码块样式
+   ======================================== */
+
+/* 预格式化代码块 - 支持自动换行 */
+.markdown-preview pre {
+  background-color: var(--bg-tertiary);
+  padding: 16px;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;     /* 保持格式但允许换行 */
+  word-wrap: break-word;      /* 启用自动换行 */
+  word-break: break-word;      /* 单词边界换行 */
+}
+
+/* 内联代码样式 */
+.markdown-preview code {
+  background-color: var(--bg-tertiary);
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.markdown-preview pre code {
+  background-color: transparent;
+  padding: 0;
+}
+
+.markdown-preview table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+  table-layout: auto;
+  max-width: 100%;
+  overflow-x: auto;
+  display: block;
+  white-space: nowrap;
+}
+
+.markdown-preview th,
+.markdown-preview td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  text-align: left;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  min-width: 80px;
+}
+
+.markdown-preview th {
+  background-color: var(--bg-tertiary);
+}
+
+.markdown-preview blockquote {
+  border-left: 4px solid var(--accent-color);
+  padding-left: 16px;
+  margin: 16px 0;
+  color: var(--text-secondary);
+}
+
+.markdown-preview h1,
+.markdown-preview h2,
+.markdown-preview h3,
+.markdown-preview h4,
+.markdown-preview h5,
+.markdown-preview h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.markdown-preview h1 {
+  font-size: 2em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.markdown-preview h2 {
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.markdown-preview ul,
+.markdown-preview ol {
+  padding-left: 24px;
+  margin: 16px 0;
+}
+
+.markdown-preview li {
+  margin: 8px 0;
+}
+
+.markdown-preview a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+
+.markdown-preview a:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+/* SolarWire code block styling */
+.solarwire-code-block {
+  position: relative;
+  display: block;
+  margin: 16px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+.solarwire-code-block svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.solarwire-edit-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  z-index: var(--z-dropdown);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.solarwire-edit-button:hover {
+  background-color: color-mix(in srgb, var(--accent-color) 85%, black);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.solarwire-edit-button:active {
+  background-color: color-mix(in srgb, var(--accent-color) 70%, black);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* SolarWire错误状态样式 */
+.solarwire-error-block {
+  border: 1px solid var(--warning-border);
+  background-color: var(--warning-bg);
+  border-radius: 4px;
+}
+
+.solarwire-error-message {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid var(--warning-border);
+}
+
+.solarwire-error-block pre {
+  margin: 0;
+  background-color: transparent;
+  border: none;
+  padding: 12px;
+}
+
+.solarwire-error-block code {
+  background-color: transparent;
+  color: var(--text-primary);
+}
+
+/* Markdown整体错误样式 */
+.markdown-error {
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+  padding: 16px;
+  border-radius: 4px;
+  margin: 16px 0;
+  font-weight: 500;
+}
+
+/* Mermaid container styling */
+.mermaid-container {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+.mermaid-container svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.mermaid-error {
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+  padding: 12px;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+/* Graphviz container styling */
+.graphviz-container {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+}
+
+.graphviz-container svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.graphviz-error {
+  background-color: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning-text);
+  padding: 12px;
+  border-radius: 4px;
+  margin: 16px 0;
+}
+
+/* Markdown渲染进度条 */
+.markdown-render-progress {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-popover);
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+}
+
+.progress-bar-container {
+  width: 100%;
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--accent-color);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}

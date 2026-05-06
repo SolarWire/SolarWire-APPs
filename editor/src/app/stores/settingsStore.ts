@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
+import { showToast } from '../services/toast-service';
 
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
 
@@ -16,18 +18,12 @@ const defaultFavoriteColors = [
 export interface SettingsState {
   primaryColor: string;
   favoriteColors: string[];
-  showGrid: boolean;
-  gridSize: number;
-  snapToGrid: boolean;
   selectionTool: SelectionTool;
   noteTextareaHeight: number;
   setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
   resetFavoriteColors: () => void;
-  setShowGrid: (show: boolean) => void;
-  setGridSize: (size: number) => void;
-  setSnapToGrid: (snap: boolean) => void;
   setSelectionTool: (tool: SelectionTool) => void;
   setNoteTextareaHeight: (height: number) => void;
   loadSettings: () => void;
@@ -37,9 +33,6 @@ export interface SettingsState {
 const defaultSettings = {
   primaryColor: '#FCA506',
   favoriteColors: defaultFavoriteColors,
-  showGrid: false,
-  gridSize: 20,
-  snapToGrid: false,
   selectionTool: 'select' as SelectionTool,
   noteTextareaHeight: 120,
 };
@@ -51,6 +44,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ primaryColor: color });
     get().saveSettings();
     document.documentElement.style.setProperty('--accent-color', color);
+  },
+
+  setSelectionTool: (tool: SelectionTool) => {
+    set({ selectionTool: tool });
+    get().saveSettings();
   },
 
   addFavoriteColor: (color: string) => {
@@ -76,26 +74,6 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     get().saveSettings();
   },
 
-  setShowGrid: (show: boolean) => {
-    set({ showGrid: show });
-    get().saveSettings();
-  },
-
-  setGridSize: (size: number) => {
-    set({ gridSize: size });
-    get().saveSettings();
-  },
-
-  setSnapToGrid: (snap: boolean) => {
-    set({ snapToGrid: snap });
-    get().saveSettings();
-  },
-
-  setSelectionTool: (tool: SelectionTool) => {
-    set({ selectionTool: tool });
-    get().saveSettings();
-  },
-
   setNoteTextareaHeight: (height: number) => {
     set({ noteTextareaHeight: height });
     get().saveSettings();
@@ -109,31 +87,35 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         set({
           primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
           favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
-          showGrid: parsed.showGrid ?? defaultSettings.showGrid,
-          gridSize: parsed.gridSize || defaultSettings.gridSize,
-          snapToGrid: parsed.snapToGrid ?? defaultSettings.snapToGrid,
           selectionTool: parsed.selectionTool || defaultSettings.selectionTool,
         });
         document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
       }
+      
+      // 监听来自 solarWireStore 的 selectionTool 变化
+      eventBus.on(EditorEvents.SETTINGS_CHANGED, (data: { selectionTool?: SelectionTool }) => {
+        if (data.selectionTool !== undefined) {
+          set({ selectionTool: data.selectionTool });
+          get().saveSettings();
+        }
+      });
     } catch (error) {
       console.error('Failed to load settings:', error);
+      showToast('Failed to load settings', 'error');
     }
   },
 
   saveSettings: () => {
     try {
-      const { primaryColor, favoriteColors, showGrid, gridSize, snapToGrid, selectionTool } = get();
+      const { primaryColor, favoriteColors, selectionTool } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
         primaryColor,
         favoriteColors,
-        showGrid,
-        gridSize,
-        snapToGrid,
         selectionTool,
       }));
     } catch (error) {
       console.error('Failed to save settings:', error);
+      showToast('Failed to save settings', 'error');
     }
   }
 }));

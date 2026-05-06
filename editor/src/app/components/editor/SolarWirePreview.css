@@ -49,7 +49,7 @@
 
 .interaction-layer {
   pointer-events: none;
-  z-index: 10;
+  z-index: var(--z-dropdown);
 }
 
 .interaction-layer g {
@@ -92,7 +92,7 @@
   justify-content: flex-start;
   padding: 20px;
   background: rgba(0, 0, 0, 0.05);
-  z-index: 20;
+  z-index: var(--z-error-panel);
   overflow: auto;
 }
 
@@ -137,7 +137,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  z-index: var(--z-drag-area);
 }
 
 .empty-content {

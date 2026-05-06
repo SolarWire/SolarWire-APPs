@@ -1,10 +1,11 @@
 import { ComponentLibrary } from '../../shared/types/component';
+import { IComponentLibraryStorage } from './IComponentLibraryStorage';
 
 const DB_NAME = 'solarwire-components';
 const DB_VERSION = 1;
 const STORE_NAME = 'libraries';
 
-class IndexedDBService {
+class IndexedDBService implements IComponentLibraryStorage {
   private db: IDBDatabase | null = null;
 
   async init(): Promise<void> {
@@ -79,6 +80,11 @@ class IndexedDBService {
       request.onsuccess = () => resolve(request.result || null);
       request.onerror = () => reject(request.error);
     });
+  }
+
+  async hasLibrary(libraryId: string): Promise<boolean> {
+    const library = await this.getLibrary(libraryId);
+    return library !== null;
   }
 }
 

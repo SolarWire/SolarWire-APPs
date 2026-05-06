@@ -1,99 +1,64 @@
 /**
- * 状态栏组件
+ * 精简状态栏组件 - 左侧显示当前模式，右侧显示当前文件信息
  */
 
 import React from 'react';
-import { useStatusStore, getOperationIcon } from '../../stores/statusStore';
+import { useStatusStore } from '../../stores/statusStore';
 import './StatusBar.css';
 
-function Spinner() {
-  return (
-    <svg className="spinner" viewBox="0 0 50 50">
-      <circle
-        className="spinner-circle"
-        cx="25"
-        cy="25"
-        r="20"
-        fill="none"
-        strokeWidth="5"
-      />
-    </svg>
-  );
-}
-
-function OperationStatusDisplay() {
-  const { currentOperation } = useStatusStore();
-
-  if (!currentOperation) return null;
-
-  const { type, status, message, errorDetail } = currentOperation;
-  const icon = getOperationIcon(type);
-
-  if (status === 'running') {
-    return (
-      <div className="status-bar-item operation-status running">
-        <Spinner />
-        <span className="progress-bar-container">
-          <span className="progress-bar-virtual"></span>
-        </span>
-        <span className="operation-message">{message}</span>
-      </div>
-    );
-  }
-
-  if (status === 'success') {
-    return (
-      <div className="status-bar-item operation-status success">
-        <span className="status-icon">✅</span>
-        <span className="operation-message">{message}</span>
-      </div>
-    );
-  }
-
-  if (status === 'error') {
-    return (
-      <div className="status-bar-item operation-status error">
-        <span className="status-icon">❌</span>
-        <span 
-          className="operation-message error-message" 
-          title={errorDetail || message}
-        >
-          {message}
-        </span>
-      </div>
-    );
-  }
-
-  return null;
-}
-
-function FilePathDisplay() {
-  const { filePath } = useStatusStore();
-
-  if (!filePath) {
-    return (
-      <div className="status-bar-item file-path">
-        <span className="no-file-text">No file opened</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="status-bar-item file-path" title={filePath} data-full-path={filePath}>
-      <span className="file-icon">📁</span>
-      <span className="file-path-text">{filePath}</span>
-    </div>
-  );
-}
-
+// 主状态栏组件
 export function StatusBar(): React.ReactElement {
+  const { editorStatus, filePath, fileStatus, currentOperation } = useStatusStore();
+
+  // 获取文件名
+  const fileName = filePath ? filePath.split(/[\\/]/).pop() || filePath : '未打开文件';
+  const modifiedIndicator = fileStatus.isModified ? ' ●' : '';
+
+  // 获取操作状态显示
+  const getOperationDisplay = () => {
+    if (!currentOperation) return null;
+    
+    const icons: Record<string, string> = {
+      'save': '💾',
+      'open': '📂',
+      'load': '🔄',
+      'version': '📋',
+      'parse': '🔍',
+      'render': '🎨',
+      'compile': '⚙️',
+      'export': '📤',
+      'import': '📥',
+      'sync': '🔄',
+      'refresh': '🔄',
+    };
+    
+    const icon = icons[currentOperation.type] || '⚙️';
+    const statusColor = currentOperation.status === 'error' ? '#ff6b6b' : 
+                       currentOperation.status === 'success' ? '#51cf66' : '#74c0fc';
+    
+    return (
+      <span className="status-bar-item" style={{ color: statusColor }}>
+        {icon} {currentOperation.message}
+      </span>
+    );
+  };
+
   return (
     <div className="status-bar">
       <div className="status-bar-left">
-        <FilePathDisplay />
+        {/* 左侧：当前模式 */}
+        <span className="status-bar-item">
+          {editorStatus.mode === 'markdown' ? '📝 Markdown' : '🎨 SolarWire'}
+        </span>
+        {/* 显示当前操作状态 */}
+        {getOperationDisplay()}
       </div>
+      
       <div className="status-bar-right">
-        <OperationStatusDisplay />
+        {/* 右侧：当前文件信息 */}
+        <span className="status-bar-item">
+          📄 {fileName}{modifiedIndicator}
+        </span>
       </div>
     </div>
   );
