@@ -1,5 +1,5 @@
 .property-tooltip-trigger {
-  display: contents;
+  display: inline-flex;
   cursor: default;
 }
 
@@ -21,9 +21,15 @@
   to { opacity: 1; }
 }
 
-.tooltip-code-attr {
+.tooltip-title {
   font-weight: 700;
   font-size: 13px;
+  color: var(--text-tooltip, #d4d4d4);
+  margin-bottom: 2px;
+}
+
+.tooltip-code-attr {
+  font-size: 11px;
   font-family: monospace;
   color: var(--accent-color, #fca506);
   margin-bottom: 6px;

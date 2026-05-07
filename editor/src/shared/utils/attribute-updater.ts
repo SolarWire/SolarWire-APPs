@@ -235,22 +235,22 @@ export function updateLineAttribute(
       
       // "text"元素（文本）
       const textMatch = line.match(/^(\s*)"([^"]*)"(.*)$/);
-      
+
+      // ##元素（表格）
+      const tableMatch = line.match(/^(\s*)##(.*)$/);
+
       if (rectMatch || rectEmptyMatch) {
-        // []元素，在元素定义后添加坐标
         line = line.trimEnd() + ` @(${attributeValue}, 0)`;
       } else if (roundedRectMatch || roundedRectEmptyMatch) {
-        // ()元素，在元素定义后添加坐标
         line = line.trimEnd() + ` @(${attributeValue}, 0)`;
       } else if (circleMatch || circleEmptyMatch) {
-        // (())元素，在元素定义后添加坐标
         line = line.trimEnd() + ` @(${attributeValue}, 0)`;
       } else if (placeholderMatch || placeholderEmptyMatch) {
-        // [?]元素，在元素定义后添加坐标
         line = line.trimEnd() + ` @(${attributeValue}, 0)`;
       } else if (textMatch) {
-        // "text"元素，在文本定义后添加坐标
         line = line.trimEnd() + ` @(${attributeValue}, 0)`;
+      } else if (tableMatch) {
+        line = `${tableMatch[1]}## @(${attributeValue}, 0)${tableMatch[2]}`;
       } else if (isSameLine) {
         // 首行和属性行为同一行，在第二个"""后添加坐标
         const quotes = line.match(/"""/g);

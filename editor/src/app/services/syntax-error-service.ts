@@ -19,10 +19,7 @@ class SyntaxErrorService {
   private renderCheckTimeout: NodeJS.Timeout | null = null;
   private monitoringRefCount = 0;
   private currentSourceId: string | null = null;
-
-  constructor() {
-    this.startRendererErrorMonitoring();
-  }
+  private isMonitoringStarted = false;
 
   addListener(listener: SyntaxErrorListener): void {
     this.listeners.push(listener);

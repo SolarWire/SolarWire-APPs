@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useEditorStore } from '../../stores/editorStore';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { parse } from '../../../lib/parser';
@@ -364,7 +365,7 @@ function LayerPanel({ onSelectElement, onReorderElements, externalContent }: Lay
         ))}
       </div>
 
-      {hoveredNote && tooltipPosition && (
+      {hoveredNote && tooltipPosition && createPortal(
         <div
           ref={tooltipRef}
           className="layer-tooltip"
@@ -384,7 +385,8 @@ function LayerPanel({ onSelectElement, onReorderElements, externalContent }: Lay
           <div className="layer-tooltip-content scrollbar">
             {hoveredNote.content}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

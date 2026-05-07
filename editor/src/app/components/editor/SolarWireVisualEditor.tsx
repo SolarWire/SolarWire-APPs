@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import SolarWirePreview from './SolarWirePreview';
 import PropertyPanel from './PropertyPanel';
+import TableEditorModal from './TableEditorModal';
 import ComponentLibrary from './ComponentLibrary';
 import LayerPanel from './LayerPanel';
 import SolarWireToolbar from '../toolbar/SolarWireToolbar';
@@ -52,6 +53,8 @@ function SolarWireVisualEditor({
   const [internalShowComponentLibrary, setInternalShowComponentLibrary] = useState(false);
   const [snapToGuides, setSnapToGuides] = useState(true);
   const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number } | null>(null);
+  const [tableEditorOpen, setTableEditorOpen] = useState(false);
+  const [tableEditorLine, setTableEditorLine] = useState<number | null>(null);
   const getSvgContentRef = useRef<(() => string | null) | null>(null);
 
   const showLayerPanel = externalShowLayerPanel !== undefined ? externalShowLayerPanel : internalShowLayerPanel;
@@ -204,7 +207,14 @@ function SolarWireVisualEditor({
 
         {selectedElements.length > 0 && (
           <div className="property-panel-fixed">
-            <PropertyPanel externalContent={externalContent} onExternalContentChange={onExternalContentChange} />
+            <PropertyPanel
+              externalContent={externalContent}
+              onExternalContentChange={onExternalContentChange}
+              onOpenTableEditor={(line) => {
+                setTableEditorLine(line);
+                setTableEditorOpen(true);
+              }}
+            />
           </div>
         )}
 
@@ -231,6 +241,23 @@ function SolarWireVisualEditor({
           onDelete={handleDeleteSelected}
           onContentChange={handleContentChange}
         />
+
+        {tableEditorOpen && tableEditorLine !== null && (
+          <TableEditorModal
+            isOpen={tableEditorOpen}
+            content={externalContent || content}
+            tableLine={tableEditorLine}
+            onSave={(newContent) => {
+              if (onExternalContentChange) {
+                onExternalContentChange(newContent);
+              } else {
+                onContentChange(newContent);
+              }
+              setTableEditorOpen(false);
+            }}
+            onClose={() => setTableEditorOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

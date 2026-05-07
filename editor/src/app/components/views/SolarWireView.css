@@ -1,13 +1,16 @@
 .solarwire-view {
   height: 100%;
+  width: 100%;
   padding: 10px;
   background: var(--bg-secondary);
   color: var(--text-primary);
-  overflow: visible;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .solarwire-view-scrollbar {
   height: 100%;
+  overflow-x: hidden;
 }
 
 .search-input {
@@ -40,6 +43,7 @@
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-sizing: border-box;
 }
 
 .page-card:hover {
@@ -50,6 +54,7 @@
 .page-card-selected {
   border-color: var(--accent-color);
   border-width: 2px;
+  margin: -1px;
 }
 
 .page-title {

@@ -47,7 +47,7 @@
 
 .color-picker-popup {
   position: fixed;
-  z-index: var(--z-popover);
+  z-index: 10001;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
@@ -296,7 +296,7 @@
 
 .color-picker-context-menu {
   position: fixed;
-  z-index: var(--z-modal);
+  z-index: 10002;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 6px;

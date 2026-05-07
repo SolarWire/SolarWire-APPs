@@ -645,3 +645,4 @@ REQUIRED SUB-SKILL: solarwire-prd
 8. **Generate Wireframes** - Create SolarWire for every page/component
 9. **Add Notes** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for note writing rules
 10. **Output to .solarwire** - Save PRD to `.solarwire/[project-name]/solarwire-prd.md`
+11. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors

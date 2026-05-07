@@ -170,6 +170,7 @@ description: "Use when generating or validating SolarWire wireframe code, when s
 | 元素缺少坐标 | 添加 `@(x,y)` | 每个元素应有坐标 |
 | Tab缩进 | 空格缩进 | 必须使用空格 |
 | `(("头像"))` | `("头像")` | 圆形用单括号 `()`，不是双括号 `(())` |
+| `note="内容"` | `note="""内容"""` | note必须用三引号`"""`，不能用单/双引号 |
 
 ## Forbidden Attributes
 

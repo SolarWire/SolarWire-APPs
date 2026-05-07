@@ -656,6 +656,7 @@ Which approach would you like to choose?
 16. **i18n Only When Confirmed** - Add multi-language support ONLY when user explicitly confirms; if not confirmed, absolutely NO i18n information; if confirmed, ALL meaningful elements MUST include i18n translations using full language names (English, 中文, 日本語)
 17. **Incremental Feature Uses Base+Delta** - Modified pages use Base+Delta mode with color-coded change markers
 18. **PRD Includes Changelog** - All PRDs must have version tracking via Change Log table
+19. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
 
 ---
 

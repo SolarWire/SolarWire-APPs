@@ -385,7 +385,7 @@ export interface PaddingValues {
 export function getPaddingValues(
   attributes: Record<string, string>,
   globalDefaults: GlobalDefaults,
-  defaultValue: number = 8
+  defaultValue: number = 0
 ): PaddingValues {
   return {
     top: getNumberAttribute(attributes, globalDefaults, 'padding-top', defaultValue),

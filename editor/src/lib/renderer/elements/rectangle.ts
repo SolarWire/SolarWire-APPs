@@ -36,7 +36,7 @@ export function renderRectangle(
   const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
   const verticalAlign = getVerticalAlignAttribute(element.attributes, 'top');
   const textDecoration = getTextDecorationAttribute(element.attributes);
-  const padding = getPaddingValues(element.attributes, context.globalDefaults, 8);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0);
   const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
   
   let svgParts: string[] = [];
@@ -82,17 +82,18 @@ export function renderRectangle(
     }
     
     const totalTextHeight = (lines.length - 1) * lineHeight + fontSize;
+    const baselineOffset = fontSize * 0.82;
     let textY: number;
     switch (verticalAlign) {
       case 'middle':
-        textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + fontSize;
+        textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + baselineOffset;
         break;
       case 'bottom':
-        textY = pos.y + h - padding.bottom - totalTextHeight + fontSize;
+        textY = pos.y + h - padding.bottom - totalTextHeight + baselineOffset;
         break;
       case 'top':
       default:
-        textY = pos.y + padding.top + fontSize;
+        textY = pos.y + padding.top + baselineOffset;
         break;
     }
     

@@ -75,32 +75,66 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
   const [imageCacheTick, setImageCacheTick] = useState(0);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  const resolveImageUrl = useCallback((url: string): string => {
+  const imageUrlResolver = useCallback((url: string): string => {
     if (url && !url.startsWith('http') && !url.startsWith('data:') && fileDir) {
       return imageCacheRef.current[url] || '';
     }
     return url;
   }, [fileDir, imageCacheTick]);
 
-  const { svg, ast, viewBox, renderParseError } = useMemo(() => {
+  const ast = useMemo(() => {
     try {
       const safeContent = effectiveContent || '';
       if (!safeContent.trim()) {
-        return { svg: '', ast: null, viewBox: null, renderParseError: null };
+        return null;
       }
-      const parsedAST = parse(safeContent);
-      const renderedResult = render(parsedAST, {
+      return parse(safeContent);
+    } catch {
+      return null;
+    }
+  }, [effectiveContent]);
+
+  const svg = useMemo(() => {
+    if (!ast) return '';
+    try {
+      const renderedResult = render(ast, {
         disableNotes: !showNotes,
         selectedElementIds: selectedElements,
         primaryColor,
-        sourceInput: safeContent,
-        imageUrlResolver: resolveImageUrl,
+        sourceInput: effectiveContent || '',
+        imageUrlResolver,
       }, true) as RenderResultWithMeta;
-      return { svg: renderedResult.svg, ast: parsedAST, viewBox: renderedResult.viewBox, renderParseError: null };
-    } catch (e: any) {
-      return { svg: '', ast: null, viewBox: null, renderParseError: e.message || String(e) };
+      return renderedResult.svg;
+    } catch {
+      return '';
     }
-  }, [effectiveContent, selectedElements, primaryColor, showNotes, currentPath, resolveImageUrl]);
+  }, [ast, showNotes, selectedElements, primaryColor, effectiveContent, imageUrlResolver]);
+
+  const viewBox = useMemo(() => {
+    if (!ast) return null;
+    try {
+      const renderedResult = render(ast, {
+        disableNotes: !showNotes,
+        selectedElementIds: selectedElements,
+        primaryColor,
+        sourceInput: effectiveContent || '',
+        imageUrlResolver,
+      }, true) as RenderResultWithMeta;
+      return renderedResult.viewBox;
+    } catch {
+      return null;
+    }
+  }, [ast, showNotes, selectedElements, primaryColor, effectiveContent, imageUrlResolver]);
+
+  const renderParseError = useMemo(() => {
+    if (!effectiveContent?.trim()) return null;
+    try {
+      parse(effectiveContent);
+      return null;
+    } catch (e: any) {
+      return e.message || String(e);
+    }
+  }, [effectiveContent]);
 
   const { viewport, getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
     position,

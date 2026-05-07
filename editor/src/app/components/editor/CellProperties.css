@@ -1,0 +1,122 @@
+.cell-properties {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cell-properties.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.empty-hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+  margin: 0;
+}
+
+.properties-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.property-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.property-row-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.prop-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 40px;
+  flex-shrink: 0;
+}
+
+.align-btns {
+  display: flex;
+  gap: 2px;
+}
+
+.align-btn {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.align-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.align-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.toggle-section {
+  display: flex;
+  gap: 4px;
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 4px 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+}
+
+.toggle-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.toggle-btn.active {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: white;
+}
+
+.reset-cell-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+}
+
+.reset-cell-btn:hover {
+  border-color: var(--error-color, #e53e3e);
+  color: var(--error-color, #e53e3e);
+}

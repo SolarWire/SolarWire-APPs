@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { HexColorPicker, HexColorInput, RgbColorPicker } from 'react-colorful';
+import PropertyTooltip from '../editor/property/PropertyTooltip';
+import { PROPERTY_META } from '../editor/property/propertyMeta';
 import './ColorPicker.css';
 
 const STORAGE_KEY = 'solarwire-color-presets';
@@ -92,9 +94,10 @@ interface ColorPickerProps {
   label: string;
   value: string;
   onChange: (color: string) => void;
+  codeAttr?: string;
 }
 
-const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange }) => {
+const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeAttr }) => {
   const [presets, setPresets] = useState<string[]>(loadPresets);
   const [showPopup, setShowPopup] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
@@ -119,7 +122,8 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange }) => 
       const target = e.target as Node;
       if (
         containerRef.current?.contains(target) ||
-        popupRef.current?.contains(target)
+        popupRef.current?.contains(target) ||
+        (target as HTMLElement).closest('.color-picker-context-menu')
       ) {
         return;
       }
@@ -133,12 +137,14 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange }) => 
   useEffect(() => {
     if (!contextMenu.visible) return;
 
-    const handleClick = () => setContextMenu(INITIAL_CONTEXT_MENU);
-    document.addEventListener('click', handleClick);
-    document.addEventListener('contextmenu', handleClick);
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target.closest('.color-picker-context-menu')) return;
+      setContextMenu(INITIAL_CONTEXT_MENU);
+    };
+    document.addEventListener('mousedown', handleMouseDown);
     return () => {
-      document.removeEventListener('click', handleClick);
-      document.removeEventListener('contextmenu', handleClick);
+      document.removeEventListener('mousedown', handleMouseDown);
     };
   }, [contextMenu.visible]);
 
@@ -340,7 +346,13 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange }) => 
 
   return (
     <div className="color-picker" ref={containerRef}>
-      <span className="color-picker-label">{label}</span>
+      {codeAttr && PROPERTY_META[codeAttr] ? (
+        <PropertyTooltip meta={PROPERTY_META[codeAttr]}>
+          <span className="color-picker-label">{label}</span>
+        </PropertyTooltip>
+      ) : (
+        <span className="color-picker-label">{label}</span>
+      )}
       <button
         className="color-picker-swatch"
         style={{ backgroundColor: value }}

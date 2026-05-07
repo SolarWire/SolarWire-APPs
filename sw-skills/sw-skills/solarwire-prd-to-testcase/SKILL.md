@@ -1096,3 +1096,4 @@ REQUIRED SUB-SKILL: solarwire-syntax
 7. **Page-Based Modules** - Use `!title` as module name
 8. **Chinese Output** - Use Chinese for field names and test case content (unless PRD is in another language)
 9. **Markdown Output** - Output format is .md, not .xlsx
+10. **NOTE MUST USE TRIPLE QUOTES** - When referencing SolarWire code in test cases, always use `note="""..."""`, NEVER use `note="..."` or `note='...'`

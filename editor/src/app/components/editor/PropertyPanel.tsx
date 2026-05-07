@@ -1,7 +1,6 @@
 import React, { useMemo, useCallback, useState, useRef, useEffect } from 'react';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { useAppStore } from '../../stores/appStore';
 import { parse } from '../../../lib/parser';
 import { updateLineAttribute, deleteLineAttribute } from '../../../shared/utils/solarwire-utils';
@@ -10,6 +9,7 @@ import ColorPicker from '../ui/ColorPicker';
 import PropertyRow, { PropertyPair, DraggableNumberInput } from './property/PropertyRow';
 import PropertyGroupTitle from './property/PropertyGroupTitle';
 import ShadowEditor from './property/ShadowEditor';
+import PaddingEditor from './property/PaddingEditor';
 import { fileDialogService, IFileDialogService } from '../../services/file-dialog-service';
 import { feedback } from '../../stores/feedbackStore';
 import { useElementProps } from './hooks/useElementProps';
@@ -21,9 +21,10 @@ interface PropertyPanelProps {
   onExternalContentChange?: (content: string) => void;
   fileDialogService?: IFileDialogService;
   onErrorLineClick?: (line: number) => void;
+  onOpenTableEditor?: (tableLine: number) => void;
 }
 
-function PropertyPanel({ externalContent, onExternalContentChange, fileDialogService: dialogService = fileDialogService, onErrorLineClick }: PropertyPanelProps): React.JSX.Element {
+function PropertyPanel({ externalContent, onExternalContentChange, fileDialogService: dialogService = fileDialogService, onErrorLineClick, onOpenTableEditor }: PropertyPanelProps): React.JSX.Element {
   const selectedElements = useSolarWireStore(s => s.selectedElements);
   const { content, setContent } = useEditorStore();
   const { theme } = useAppStore();
@@ -36,6 +37,11 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   }, [isExternalMode, externalContent, content]);
   const effectiveContent = isExternalMode ? externalContent : content;
   const effectiveSetContent = isExternalMode ? (c: string) => onExternalContentChange?.(c) : setContent;
+
+  const latestContentRef = useRef(safeContent);
+  useEffect(() => {
+    latestContentRef.current = safeContent;
+  }, [safeContent]);
 
   const [parseError, setParseError] = React.useState<string | null>(null);
 
@@ -62,20 +68,24 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     if (!element) return;
     const lineNum = element.location?.line;
     if (!lineNum) return;
+    const currentContent = latestContentRef.current;
     if (value === undefined) {
-      const newContent = deleteLineAttribute(safeContent, lineNum, property);
+      const newContent = deleteLineAttribute(currentContent, lineNum, property);
+      latestContentRef.current = newContent;
       effectiveSetContent(newContent);
     } else {
-      const newContent = updateLineAttribute(safeContent, lineNum, property, value);
+      const newContent = updateLineAttribute(currentContent, lineNum, property, value);
+      latestContentRef.current = newContent;
       effectiveSetContent(newContent);
     }
-  }, [element, safeContent, effectiveSetContent]);
+  }, [element, effectiveSetContent]);
 
   const [noteValue, setNoteValue] = useState('');
   const [textValue, setTextValue] = useState('');
+  const [noteTextareaHeight, setNoteTextareaHeight] = useState(60);
+  const [textTextareaHeight, setTextTextareaHeight] = useState(60);
   const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
   const textTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const { noteTextareaHeight, setNoteTextareaHeight, textTextareaHeight, setTextTextareaHeight } = useSettingsStore();
 
   const handleGoToError = useCallback(() => {
     if (parseError) {
@@ -135,14 +145,14 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
       setNoteValue(elementProps.note);
       setNoteTextareaHeight(60);
     }
-  }, [elementProps?.note]);
+  }, [elementProps?.note, noteValue]);
 
   useEffect(() => {
     if (elementProps?.textContent !== undefined && elementProps.textContent !== textValue) {
       setTextValue(elementProps.textContent);
       setTextTextareaHeight(60);
     }
-  }, [elementProps?.textContent]);
+  }, [elementProps?.textContent, textValue]);
 
   const lineMatch = parseError ? parseError.match(/line (\d+)/) : null;
   const errorLine = lineMatch ? parseInt(lineMatch[1]) : null;
@@ -179,8 +189,10 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   if (selectedElements.length > 1) {
     return (
       <div className="property-panel">
-        <h3>Multiple Elements</h3>
-        <p>{selectedElements.length} elements selected</p>
+        <div className="property-panel-header">
+          <span className="property-panel-type">{selectedElements.length} Elements Selected</span>
+        </div>
+        <p className="multi-select-hint">Select a single element to edit its properties.</p>
       </div>
     );
   }
@@ -193,9 +205,18 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     );
   }
 
-  const { type, x, y, w, h, r, bg, borderColor, borderSize, textColor, fontSize, align, verticalAlign, paddingTop, paddingRight, paddingBottom, paddingLeft, textDecoration, opacity,
+  const {
+    type, x, y, w, h, r, bg, borderColor, borderSize, textColor, fontSize,
+    align, verticalAlign, paddingTop, paddingRight, paddingBottom, paddingLeft,
+    textDecoration, opacity, bold, italic, note,
     showSizeControls, showRadiusControl, showTextControls, showBorderControls,
-    showLineControls, showAlignControl, isMultilineText, attrs, text, end, label, url } = elementProps;
+    showLineControls, showAlignControl, showShadow, showOpacity,
+    isTable, isMultilineText, attrs, text, end, label, url,
+    lineLabelColor, lineStyle,
+    tableBorder, tableCellspacing, tableRows, tableCols,
+  } = elementProps;
+
+  const showPaddingControls = showSizeControls && showTextControls && type !== 'table';
 
   return (
     <div className="property-panel">
@@ -205,10 +226,10 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
       <PropertyGroupTitle title="Position">
         <PropertyPair
-          label1="X"
+          label1="X" codeAttr1="x"
           value1={x}
           onChange1={(v) => handleChange('x', v)}
-          label2="Y"
+          label2="Y" codeAttr2="y"
           value2={y}
           onChange2={(v) => handleChange('y', v)}
         />
@@ -217,15 +238,15 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
       {showSizeControls && (
         <PropertyGroupTitle title="Size">
           <PropertyPair
-            label1="W"
+            label1="W" codeAttr1="w"
             value1={w}
             onChange1={(v) => handleChange('w', v)}
-            label2="H"
+            label2="H" codeAttr2="h"
             value2={h}
             onChange2={(v) => handleChange('h', v)}
           />
           {showRadiusControl && (
-            <PropertyRow label="R">
+            <PropertyRow label="R" codeAttr="r">
               <DraggableNumberInput
                 label=""
                 value={r}
@@ -233,41 +254,14 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
               />
             </PropertyRow>
           )}
-          {showSizeControls && showTextControls && (
-            <PropertyRow label="P-T">
-              <DraggableNumberInput
-                label=""
-                value={paddingTop}
-                onChange={(v) => handleChange('padding-top', v)}
-              />
-            </PropertyRow>
-          )}
-          {showSizeControls && showTextControls && (
-            <PropertyRow label="P-R">
-              <DraggableNumberInput
-                label=""
-                value={paddingRight}
-                onChange={(v) => handleChange('padding-right', v)}
-              />
-            </PropertyRow>
-          )}
-          {showSizeControls && showTextControls && (
-            <PropertyRow label="P-B">
-              <DraggableNumberInput
-                label=""
-                value={paddingBottom}
-                onChange={(v) => handleChange('padding-bottom', v)}
-              />
-            </PropertyRow>
-          )}
-          {showSizeControls && showTextControls && (
-            <PropertyRow label="P-L">
-              <DraggableNumberInput
-                label=""
-                value={paddingLeft}
-                onChange={(v) => handleChange('padding-left', v)}
-              />
-            </PropertyRow>
+          {showPaddingControls && (
+            <PaddingEditor
+              paddingTop={paddingTop}
+              paddingRight={paddingRight}
+              paddingBottom={paddingBottom}
+              paddingLeft={paddingLeft}
+              onChange={handleChange}
+            />
           )}
         </PropertyGroupTitle>
       )}
@@ -282,9 +276,9 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
             value2={end?.type === 'relative' ? (end?.dy ?? '') : (end?.y?.type === 'absolute' ? end.y.value : '')}
             onChange2={(v) => handleChange('y2', v)}
           />
-          <PropertyRow label="Style">
+          <PropertyRow label="Style" codeAttr="style">
             <select
-              value={attrs.style || 'solid'}
+              value={lineStyle}
               onChange={(e) => handleChange('style', e.target.value)}
             >
               <option value="solid">Solid</option>
@@ -293,7 +287,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
             </select>
           </PropertyRow>
           {label !== undefined && (
-            <PropertyRow label="Label">
+            <PropertyRow label="Label" codeAttr="label">
               <input
                 type="text"
                 value={label || ''}
@@ -304,58 +298,90 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
         </PropertyGroupTitle>
       )}
 
-      <PropertyGroupTitle title="Appearance">
-        <div className="property-row">
-          <ColorPicker
-            label="Fill"
-            value={bg}
-            onChange={(color) => handleChange('bg', color)}
-          />
-          {showBorderControls && (
+      {showLineControls ? (
+        <PropertyGroupTitle title="Appearance">
+          <PropertyRow label="Color" codeAttr="c">
             <ColorPicker
-              label="Border"
-              value={borderColor}
-              onChange={(color) => handleChange('b', color)}
+              label=""
+              value={textColor}
+              onChange={(color) => handleChange('c', color)}
             />
-          )}
-        </div>
-        {showBorderControls && (
-          <PropertyRow label="Width">
+          </PropertyRow>
+          <PropertyRow label="Width" codeAttr="s">
             <DraggableNumberInput
               label=""
               value={borderSize}
               onChange={(v) => handleChange('s', v)}
             />
           </PropertyRow>
-        )}
-        {!showLineControls && (
-          <PropertyRow label="Opacity">
-            <div className="opacity-control">
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={opacity}
-                onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
+          {label !== undefined && (
+            <PropertyRow label="Label Color" codeAttr="text-color">
+              <ColorPicker
+                label=""
+                value={lineLabelColor}
+                onChange={(color) => handleChange('text-color', color)}
               />
-              <input
-                type="number"
-                className="opacity-number"
-                min="0"
-                max="1"
-                step="0.1"
-                value={opacity}
-                onChange={(e) => handleChange('opacity', parseFloat(e.target.value) || 0)}
+            </PropertyRow>
+          )}
+        </PropertyGroupTitle>
+      ) : !isTable ? (
+        <PropertyGroupTitle title="Appearance">
+          <div className="property-row">
+            <ColorPicker
+              label={type === 'image' ? 'Placeholder BG' : 'Fill'}
+              codeAttr="bg"
+              value={bg}
+              onChange={(color) => handleChange('bg', color)}
+            />
+            {showBorderControls && (
+              <ColorPicker
+                label="Border"
+                codeAttr="b"
+                value={borderColor}
+                onChange={(color) => handleChange('b', color)}
               />
-            </div>
-          </PropertyRow>
-        )}
-      </PropertyGroupTitle>
+            )}
+          </div>
+          {showBorderControls && (
+            <PropertyRow label="Width" codeAttr="s">
+              <DraggableNumberInput
+                label=""
+                value={borderSize}
+                onChange={(v) => handleChange('s', v)}
+              />
+            </PropertyRow>
+          )}
+          {showOpacity && (
+            <PropertyRow label="Opacity" codeAttr="opacity">
+              <div className="opacity-control">
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={opacity}
+                  onChange={(e) => handleChange('opacity', parseFloat(e.target.value))}
+                />
+                <input
+                  type="number"
+                  className="opacity-number"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={opacity}
+                  onChange={(e) => handleChange('opacity', parseFloat(e.target.value) || 0)}
+                />
+              </div>
+            </PropertyRow>
+          )}
+        </PropertyGroupTitle>
+      ) : null}
 
-      <PropertyGroupTitle title="Shadow" defaultCollapsed={true}>
-        <ShadowEditor attrs={attrs} onChange={handleChange} />
-      </PropertyGroupTitle>
+      {showShadow && (
+        <PropertyGroupTitle title="Shadow" defaultCollapsed={true}>
+          <ShadowEditor attrs={attrs} onChange={handleChange} />
+        </PropertyGroupTitle>
+      )}
 
       {showTextControls && (
         <PropertyGroupTitle title="Text">
@@ -395,39 +421,19 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
           <div className="property-row">
             <ColorPicker
               label="Color"
+              codeAttr="c"
               value={textColor}
               onChange={(color) => handleChange('c', color)}
             />
-            <div className="property-drag-input">
-              <span className="property-drag-label" onMouseDown={(e) => {
-                e.preventDefault();
-                const startX = e.clientX;
-                const startVal = parseInt(fontSize) || 12;
-                const onMove = (me: MouseEvent) => {
-                  const delta = me.clientX - startX;
-                  const sens = me.shiftKey ? 10 : 1;
-                  handleChange('size', Math.max(1, Math.round(startVal + delta * sens)));
-                };
-                const onUp = () => {
-                  document.removeEventListener('mousemove', onMove);
-                  document.removeEventListener('mouseup', onUp);
-                  document.body.style.cursor = '';
-                  document.body.style.userSelect = '';
-                };
-                document.body.style.cursor = 'ew-resize';
-                document.body.style.userSelect = 'none';
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('mouseup', onUp);
-              }}>Size</span>
-              <input
-                type="number"
-                value={fontSize}
-                onChange={(e) => handleChange('size', parseInt(e.target.value) || 12)}
-              />
-            </div>
+            <DraggableNumberInput
+              label="Size"
+              value={fontSize}
+              onChange={(v) => handleChange('size', v)}
+              codeAttr="size"
+            />
           </div>
           {showAlignControl && (
-            <PropertyRow label="Align">
+            <PropertyRow label="Align" codeAttr="align">
               <div className="align-buttons">
                 <button
                   className={`align-btn${align === 'l' ? ' active' : ''}`}
@@ -447,15 +453,15 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
               </div>
             </PropertyRow>
           )}
-          {showAlignControl && (
-            <PropertyRow label="V-Align">
+          {showAlignControl && type !== 'text' && (
+            <PropertyRow label="V-Align" codeAttr="vertical-align">
               <div className="align-buttons">
                 <button
                   className={`align-btn${verticalAlign === 't' ? ' active' : ''}`}
                   onClick={() => handleChange('vertical-align', 't')}
                   title="Top"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/>
                     <rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/>
                     <line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/>
@@ -466,7 +472,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
                   onClick={() => handleChange('vertical-align', 'm')}
                   title="Middle"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/>
                     <rect x="4" y="5.5" width="6" height="3" fill="currentColor" opacity="0.3"/>
                     <line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/>
@@ -477,7 +483,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
                   onClick={() => handleChange('vertical-align', 'b')}
                   title="Bottom"
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
                     <line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/>
                     <rect x="4" y="8" width="6" height="3" fill="currentColor" opacity="0.3"/>
                     <line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/>
@@ -488,53 +494,102 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
           )}
           <div className="property-row toggle-row">
             <button
-              className={`toggle-btn${String(attrs.bold) === 'true' ? ' active' : ''}`}
-              onClick={() => handleChange('bold', String(attrs.bold) === 'true' ? false : true)}
+              className={`toggle-btn${bold ? ' active' : ''}`}
+              onClick={() => handleChange('bold', bold ? undefined : true)}
               title="Bold"
             ><b>B</b></button>
             <button
-              className={`toggle-btn${String(attrs.italic) === 'true' ? ' active' : ''}`}
-              onClick={() => handleChange('italic', String(attrs.italic) === 'true' ? false : true)}
+              className={`toggle-btn${italic ? ' active' : ''}`}
+              onClick={() => handleChange('italic', italic ? undefined : true)}
               title="Italic"
             ><i>I</i></button>
-          </div>
-          <div className="property-row toggle-row">
             <button
               className={`toggle-btn${textDecoration === 'underline' ? ' active' : ''}`}
-              onClick={() => handleChange('text-decoration', textDecoration === 'underline' ? '' : 'underline')}
+              onClick={() => handleChange('text-decoration', textDecoration === 'underline' ? undefined : 'underline')}
               title="Underline"
             ><u>U</u></button>
             <button
               className={`toggle-btn${textDecoration === 'line-through' ? ' active' : ''}`}
-              onClick={() => handleChange('text-decoration', textDecoration === 'line-through' ? '' : 'line-through')}
+              onClick={() => handleChange('text-decoration', textDecoration === 'line-through' ? undefined : 'line-through')}
               title="Strikethrough"
             ><s>S</s></button>
           </div>
+          <PropertyRow label="Line Height" codeAttr="line-height">
+            <DraggableNumberInput
+              label=""
+              value={attrs['line-height'] || '22'}
+              onChange={(v) => handleChange('line-height', v)}
+            />
+          </PropertyRow>
+          <PropertyRow label="Letter Spacing" codeAttr="letter-spacing">
+            <DraggableNumberInput
+              label=""
+              value={attrs['letter-spacing'] || '0'}
+              onChange={(v) => handleChange('letter-spacing', v)}
+            />
+          </PropertyRow>
         </PropertyGroupTitle>
       )}
 
-      {showTextControls && (
-        <PropertyRow label="Line Height">
-          <DraggableNumberInput
-            label=""
-            value={attrs['line-height'] || '22'}
-            onChange={(v) => handleChange('line-height', v)}
-          />
-        </PropertyRow>
-      )}
-      {showTextControls && (
-        <PropertyRow label="Letter Spacing">
-          <DraggableNumberInput
-            label=""
-            value={attrs['letter-spacing'] || '0'}
-            onChange={(v) => handleChange('letter-spacing', v)}
-          />
-        </PropertyRow>
+      {isTable && (
+        <>
+          <PropertyGroupTitle title="Table">
+            <PropertyRow label="Border" codeAttr="border">
+              <DraggableNumberInput
+                label=""
+                value={tableBorder}
+                onChange={(v) => handleChange('border', v)}
+              />
+            </PropertyRow>
+            <PropertyRow label="Spacing" codeAttr="cellspacing">
+              <DraggableNumberInput
+                label=""
+                value={tableCellspacing}
+                onChange={(v) => handleChange('cellspacing', v)}
+              />
+            </PropertyRow>
+          </PropertyGroupTitle>
+
+          <PropertyGroupTitle title="Structure">
+            <div className="table-structure-info">
+              <span className="structure-text">
+                {tableRows} rows × {tableCols} cols
+              </span>
+              <button
+                className="edit-table-btn"
+                onClick={() => {
+                  if (element.location?.line) {
+                    onOpenTableEditor?.(element.location.line);
+                  }
+                }}
+              >
+                编辑表格
+              </button>
+            </div>
+          </PropertyGroupTitle>
+
+          <PropertyGroupTitle title="Appearance">
+            <div className="property-row">
+              <ColorPicker
+                label="Fill"
+                codeAttr="bg"
+                value={bg}
+                onChange={(color) => handleChange('bg', color)}
+              />
+              <ColorPicker
+                label="Border"
+                codeAttr="b"
+                value={borderColor}
+                onChange={(color) => handleChange('b', color)}
+              />
+            </div>
+          </PropertyGroupTitle>
+        </>
       )}
 
       {type === 'image' && (
         <PropertyGroupTitle title="Image">
-          <PropertyRow label="URL">
+          <PropertyRow label="URL" codeAttr="url">
             <div className="image-url-row">
               <input
                 type="text"
@@ -569,7 +624,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
         </PropertyGroupTitle>
       )}
 
-      <PropertyGroupTitle title="Note" defaultCollapsed={true}>
+      <PropertyGroupTitle title="Note" defaultCollapsed={false}>
         <div className="note-textarea-wrapper">
           <textarea
             ref={noteTextareaRef}

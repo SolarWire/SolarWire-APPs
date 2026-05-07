@@ -46,7 +46,8 @@ const PropertyTooltip: React.FC<PropertyTooltipProps> = ({ meta, children }) => 
 
   const tooltipContent = visible && createPortal(
     <div className="property-tooltip" style={{ left: position.x, top: position.y }}>
-      <div className="tooltip-code-attr">{meta.codeAttr}</div>
+      <div className="tooltip-title">{meta.friendlyName}</div>
+      <div className="tooltip-code-attr">属性: {meta.codeAttr}</div>
       <div className="tooltip-section">
         <div className="tooltip-label">SolarWire 语法:</div>
         <div className="tooltip-code">{meta.syntax}</div>

@@ -64,7 +64,7 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
   const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
   const align = getAlignAttribute(element.attributes, 'middle');
-  const padding = getPaddingValues(element.attributes, context.globalDefaults, 4);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0);
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'circle'})"` : '';
@@ -260,7 +260,7 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
   const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
   const textDecoration = getTextDecorationAttribute(element.attributes);
-  const padding = getPaddingValues(element.attributes, context.globalDefaults, 8);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0);
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   
@@ -629,9 +629,9 @@ function renderTableCells(
     const cellLetterSpacing = getLetterSpacingAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 0);
     const cellVerticalAlign = getVerticalAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'top');
     const cellTextDecoration = getTextDecorationAttribute({ ...rowAttributes, ...data.cell.attributes });
-    const cellPadding = getPaddingValues({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 8);
+    const cellPadding = getPaddingValues({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 0);
 
-    svgParts.push(`<rect x="${cellX}" y="${cellY}" width="${cellWidth}" height="${cellHeight}" fill="${cellBg}" stroke="${cellBorder}" stroke-width="${cellStrokeWidth}"/>`);
+    svgParts.push(`<rect x="${cellX}" y="${cellY}" width="${cellWidth}" height="${cellHeight}" fill="${cellBg}" stroke="${cellBorder}" stroke-width="${cellStrokeWidth}" data-cell-row="${data.row}" data-cell-col="${data.col}" data-cell-key="${data.row}-${data.col}"/>`);
 
     const cellContext = createChildContext(context, cellX, cellY);
     const modifiedCell = { ...data.cell };
@@ -669,11 +669,12 @@ function renderTableElement(
   const border = getNumberAttribute(element.attributes, context.globalDefaults, 'border', 1);
   const cellspacing = getNumberAttribute(element.attributes, context.globalDefaults, 'cellspacing', 0);
   const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent');
   const note = element.attributes['note'];
 
   const svgParts: string[] = [];
 
-  svgParts.push(`<g>`);
+  svgParts.push(`<g data-table-id="${element.location?.line || 'table'}">`);
   svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="0" height="0" fill="transparent" stroke="none" pointer-events="fill"/>`);
 
   const rows = element.children || [];
@@ -743,13 +744,24 @@ function renderTableElement(
 
   renderTableCells(cellData, rows, pos, colWidth, rowHeight, context, renderChild, svgParts);
 
+  if (bg !== 'transparent') {
+    const bgRectIndex = svgParts.findIndex(part => part.includes('fill="transparent"'));
+    if (bgRectIndex !== -1) {
+      svgParts[bgRectIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="${bg}" stroke="none" pointer-events="all"/>`;
+    } else {
+      svgParts.splice(1, 0, `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="${bg}" stroke="none"/>`);
+    }
+  }
+
   if (border > 0) {
     svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="none" stroke="${b}" stroke-width="${border}"/>`);
   }
 
-  const transparentRectIndex = svgParts.findIndex(part => part.includes('fill="transparent"'));
-  if (transparentRectIndex !== -1) {
-    svgParts[transparentRectIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="transparent" stroke="none" pointer-events="all"/>`;
+  if (bg === 'transparent') {
+    const transparentRectIndex = svgParts.findIndex(part => part.includes('fill="transparent"'));
+    if (transparentRectIndex !== -1) {
+      svgParts[transparentRectIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="transparent" stroke="none" pointer-events="all"/>`;
+    }
   }
 
   const bounds: ElementBounds = {

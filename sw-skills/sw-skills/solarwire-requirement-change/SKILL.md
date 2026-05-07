@@ -380,6 +380,7 @@ After downstream artifacts are updated, the following steps are typically manual
 6. **Changelog Must Be Updated** - Every change must have a Changelog entry
 7. **Downstream Sync** - All affected artifacts must be updated, not just the PRD
 8. **No Silent Changes** - Every change must be visible through markers or Changelog
+9. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
 
 ---
 
