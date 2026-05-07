@@ -72,7 +72,7 @@ export function replaceSolarWireSnippetInMarkdown(
 }
 
 async function getFileTree(dirPath: string): Promise<FileNode[]> {
-  const api = (window as any).api;
+  const api = window.api;
   if (api && typeof api.getFileTree === 'function') {
     return await api.getFileTree(dirPath);
   }
@@ -259,7 +259,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
     try {
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'start', filePath: dirPath });
 
-      const api = (window as any).api;
+      const api = window.api;
       if (api?.setAllowedRoot) {
         await api.setAllowedRoot(dirPath);
       }
@@ -358,7 +358,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
         set({ fileTree: tree, refreshKey: Date.now() });
         feedback.toast.success('文件视图已刷新');
       } else {
-        const api = (window as any).api;
+        const api = window.api;
         if (api && typeof api.getDefaultDirectory === 'function') {
           const defaultDir = await api.getDefaultDirectory();
           const tree = await getFileTree(defaultDir);

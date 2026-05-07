@@ -5,6 +5,7 @@
   background: var(--bg-secondary);
   border-radius: 0;
   overflow: hidden;
+  user-select: none;
 }
 
 .layer-panel-header {

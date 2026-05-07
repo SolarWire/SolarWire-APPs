@@ -112,14 +112,53 @@ function wrapText(text: string, maxWidth: number, fontSize: number = 12): string
  * 备注信息接口
  */
 interface NoteInfo {
-  /** 备注编号 */
   number: number;
-  /** 备注内容 */
   note: string;
-  /** 元素边界 */
   bounds: ElementBounds;
-  /** 元素索引 */
   elementIndex: number;
+}
+
+interface NoteLayoutResult {
+  notesAreaHeight: number;
+  cardHeights: number[];
+  rowMaxHeights: number[];
+  rowStartYs: number[];
+}
+
+function calculateNoteLayout(
+  notes: NoteInfo[],
+  viewBoxWidth: number,
+  margin: number
+): NoteLayoutResult {
+  const cardMargin = 10;
+  const cardsPerRow = 2;
+  const lineHeight = 22;
+  const cardPadding = 12;
+  const extraNoteSpacing = 20;
+  const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
+
+  const cardHeights = notes.map(note => {
+    const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
+    const contentHeight = lines.length * lineHeight;
+    return Math.max(60, contentHeight + cardPadding * 2);
+  });
+
+  const rowMaxHeights: number[] = [];
+  notes.forEach((_, index) => {
+    const row = Math.floor(index / cardsPerRow);
+    if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
+    rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
+  });
+
+  const rowStartYs: number[] = [0];
+  for (let row = 1; row < rowMaxHeights.length; row++) {
+    rowStartYs[row] = rowStartYs[row - 1] + rowMaxHeights[row - 1] + cardMargin;
+  }
+
+  const totalRowHeight = rowMaxHeights.reduce((sum, height) => sum + height, 0);
+  const notesAreaHeight = totalRowHeight + (rowMaxHeights.length + 1) * cardMargin + extraNoteSpacing;
+
+  return { notesAreaHeight, cardHeights, rowMaxHeights, rowStartYs };
 }
 
 /**
@@ -276,30 +315,10 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   const viewBoxWidth = Math.max(minViewBoxWidth, maxX - minX + margin * 2);
   
   let notesAreaHeight = 0;
-  const extraNoteSpacing = 20;
+  let noteLayout: NoteLayoutResult | null = null;
   if (!disableNotes && notes.length > 0) {
-    const cardMargin = 10;
-    const cardsPerRow = 2;
-    const lineHeight = 22;
-    const cardPadding = 12;
-    const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
-    
-    const cardHeights = notes.map(note => {
-      const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
-      const contentHeight = lines.length * lineHeight;
-      return Math.max(60, contentHeight + cardPadding * 2);
-    });
-    
-    const rowMaxHeights: number[] = [];
-    notes.forEach((_, index) => {
-      const row = Math.floor(index / cardsPerRow);
-      if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
-      rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
-    });
-    
-    const totalRowHeight = rowMaxHeights.reduce((sum, height) => sum + height, 0);
-    const rows = rowMaxHeights.length;
-    notesAreaHeight = totalRowHeight + (rows + 1) * cardMargin + extraNoteSpacing;
+    noteLayout = calculateNoteLayout(notes, viewBoxWidth, margin);
+    notesAreaHeight = noteLayout.notesAreaHeight;
   }
   
   const viewBoxHeight = maxY - minY + margin * 2 + notesAreaHeight;
@@ -372,35 +391,16 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
     svgParts.push(svg);
   });
   
-  if (!disableNotes) {
-    
-    if (notes.length > 0) {
-      const notesY = maxY + margin + extraNoteSpacing;
-      const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
-      const cardMargin = 10;
-      const cardsPerRow = 2;
-      const lineHeight = 22;
-      const cardPadding = 12;
+  if (!disableNotes && noteLayout && notes.length > 0) {
+    const extraNoteSpacing = 20;
+    const cardMargin = 10;
+    const cardsPerRow = 2;
+    const cardPadding = 12;
+    const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
+    const notesY = maxY + margin + extraNoteSpacing;
+    const { cardHeights, rowStartYs } = noteLayout;
       
-      const cardHeights = notes.map(note => {
-        const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
-        const contentHeight = lines.length * lineHeight;
-        return Math.max(60, contentHeight + cardPadding * 2);
-      });
-      
-      const rowMaxHeights: number[] = [];
-      notes.forEach((_, index) => {
-        const row = Math.floor(index / cardsPerRow);
-        if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
-        rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
-      });
-      
-      const rowStartYs: number[] = [0];
-      for (let row = 1; row < rowMaxHeights.length; row++) {
-        rowStartYs[row] = rowStartYs[row - 1] + rowMaxHeights[row - 1] + cardMargin;
-      }
-      
-      notes.forEach((note, index) => {
+    notes.forEach((note, index) => {
         const col = index % cardsPerRow;
         const row = Math.floor(index / cardsPerRow);
         const cardX = viewBoxX + margin + col * (cardWidth + cardMargin);
@@ -456,7 +456,6 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         svgParts.push(`  </text>`);
         svgParts.push(`  </g>`);
       });
-    }
   }
   
   svgParts.push('</svg>');

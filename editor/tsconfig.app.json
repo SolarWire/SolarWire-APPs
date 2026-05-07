@@ -13,6 +13,6 @@
     "isolatedModules": true,
     "outDir": "./dist/app"
   },
-  "include": ["src/app/**/*", "src/shared/**/*"],
+  "include": ["src/app/**/*", "src/shared/**/*", "src/types/**/*"],
   "exclude": ["node_modules", "dist", "**/__tests__/**/*", "**/*.test.ts", "src/app/components/editor/SolarWireCanvas.tsx"]
 }

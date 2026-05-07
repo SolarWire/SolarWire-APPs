@@ -1,10 +1,16 @@
-/**
- * 拖动坐标处理 Hook
- * 处理拖动时的相对坐标保持逻辑
- */
-
 import { useState, useCallback, useRef } from 'react';
-import { absoluteToRelative, relativeToAbsolute } from '../utils/line-coordinate-utils';
+import { absoluteToRelative } from '../utils/line-coordinate-utils';
+import type { CoordinateType } from '../utils/line-coordinate-utils';
+
+const COORDINATE_MODE = {
+  ABSOLUTE: 'absolute',
+  RELATIVE: 'relative',
+} as const;
+
+const HANDLE_TYPE = {
+  START: 'start',
+  END: 'end',
+} as const;
 
 export interface ElementBounds {
   x: number;
@@ -14,12 +20,12 @@ export interface ElementBounds {
 }
 
 interface UseDragCoordinateOptions {
-  initialMode: 'absolute' | 'relative';
+  initialMode: CoordinateType;
   referenceBounds?: ElementBounds;
 }
 
 interface DragCoordinateState {
-  mode: 'absolute' | 'relative';
+  mode: CoordinateType;
   initialAbsolute: { x: number; y: number };
   initialRelative?: { dx: number; dy: number };
   referenceBounds?: ElementBounds;
@@ -40,20 +46,19 @@ interface UseDragCoordinateReturn {
   ) => void;
   updateDrag: (newX: number, newY: number) => DragCoordinateResult;
   endDrag: () => void;
-  setMode: (mode: 'absolute' | 'relative') => void;
-  mode: 'absolute' | 'relative';
+  setMode: (mode: CoordinateType) => void;
+  mode: CoordinateType;
 }
 
-/**
- * 拖动坐标处理 Hook
- * @param options 初始配置
- * @returns 拖动坐标处理接口
- */
+function absoluteFallback(x: number, y: number): DragCoordinateResult {
+  return { x, y, isRelative: false };
+}
+
 export function useDragCoordinate(
   options: UseDragCoordinateOptions
 ): UseDragCoordinateReturn {
   const [state, setState] = useState<DragCoordinateState | null>(null);
-  const modeRef = useRef<'absolute' | 'relative'>(options.initialMode);
+  const modeRef = useRef<CoordinateType>(options.initialMode);
 
   const startDrag = useCallback((
     x: number,
@@ -73,39 +78,22 @@ export function useDragCoordinate(
   }, []);
 
   const updateDrag = useCallback((newX: number, newY: number): DragCoordinateResult => {
-    if (!state) {
-      return { x: newX, y: newY, isRelative: false };
-    }
+    if (!state) return absoluteFallback(newX, newY);
+    if (state.mode === COORDINATE_MODE.ABSOLUTE) return absoluteFallback(newX, newY);
+    if (!state.referenceBounds) return absoluteFallback(newX, newY);
 
-    if (state.mode === 'absolute') {
-      // 绝对模式：直接返回新坐标
-      return { x: newX, y: newY, isRelative: false };
-    } else {
-      // 相对模式：计算相对于参考点的偏移
-      if (state.referenceBounds) {
-        const newRelative = absoluteToRelative({ x: newX, y: newY }, state.referenceBounds);
-        return {
-          x: newRelative.dx,
-          y: newRelative.dy,
-          isRelative: true
-        };
-      }
-      // 没有参考点时，回退到绝对模式
-      return { x: newX, y: newY, isRelative: false };
-    }
+    const newRelative = absoluteToRelative({ x: newX, y: newY }, state.referenceBounds);
+    return { x: newRelative.dx, y: newRelative.dy, isRelative: true };
   }, [state]);
 
   const endDrag = useCallback(() => {
     setState(null);
   }, []);
 
-  const setMode = useCallback((mode: 'absolute' | 'relative') => {
+  const setMode = useCallback((mode: CoordinateType) => {
     modeRef.current = mode;
     if (state) {
-      setState({
-        ...state,
-        mode
-      });
+      setState({ ...state, mode });
     }
   }, [state]);
 
@@ -119,19 +107,56 @@ export function useDragCoordinate(
   };
 }
 
-/**
- * 线段拖动处理 Hook
- * 处理线段起点和终点的独立拖动逻辑
- */
+interface Point {
+  x: number;
+  y: number;
+}
+
+interface HandleDragResult {
+  start: Point;
+  end: Point;
+}
+
+function computeStartDragResult(
+  newX: number,
+  newY: number,
+  initialStart: Point,
+  initialEnd: Point,
+  endMode: CoordinateType
+): HandleDragResult {
+  const newStart = { x: newX, y: newY };
+  if (endMode !== COORDINATE_MODE.RELATIVE) {
+    return { start: newStart, end: { ...initialEnd } };
+  }
+  const dx = initialEnd.x - initialStart.x;
+  const dy = initialEnd.y - initialStart.y;
+  return { start: newStart, end: { x: newX + dx, y: newY + dy } };
+}
+
+function computeEndDragResult(
+  newX: number,
+  newY: number,
+  startCoords: Point,
+  endMode: CoordinateType
+): HandleDragResult {
+  if (endMode === COORDINATE_MODE.RELATIVE) {
+    return {
+      start: { ...startCoords },
+      end: { x: newX - startCoords.x, y: newY - startCoords.y }
+    };
+  }
+  return { start: { ...startCoords }, end: { x: newX, y: newY } };
+}
+
 interface UseLineDragOptions {
-  startMode: 'absolute' | 'relative';
-  endMode: 'absolute' | 'relative';
-  startCoords: { x: number; y: number };
+  startMode: CoordinateType;
+  endMode: CoordinateType;
+  startCoords: Point;
 }
 
 interface LineDragResult {
-  start: { x: number; y: number };
-  end: { x: number; y: number };
+  start: Point;
+  end: Point;
   startIsRelative: boolean;
   endIsRelative: boolean;
 }
@@ -150,22 +175,17 @@ interface UseLineDragReturn {
     newY: number
   ) => LineDragResult;
   endDrag: () => void;
-  setStartMode: (mode: 'absolute' | 'relative') => void;
-  setEndMode: (mode: 'absolute' | 'relative') => void;
+  setStartMode: (mode: CoordinateType) => void;
+  setEndMode: (mode: CoordinateType) => void;
 }
 
-/**
- * 线段拖动处理 Hook
- * @param options 初始配置
- * @returns 线段拖动处理接口
- */
 export function useLineDrag(
   options: UseLineDragOptions
 ): UseLineDragReturn {
-  const startModeRef = useRef<'absolute' | 'relative'>(options.startMode);
-  const endModeRef = useRef<'absolute' | 'relative'>(options.endMode);
+  const startModeRef = useRef<CoordinateType>(options.startMode);
+  const endModeRef = useRef<CoordinateType>(options.endMode);
   const initialStartRef = useRef(options.startCoords);
-  const initialEndRef = useRef({ x: 0, y: 0 });
+  const initialEndRef = useRef<Point>({ x: 0, y: 0 });
   const [draggingHandle, setDraggingHandle] = useState<'start' | 'end' | null>(null);
 
   const startDrag = useCallback((
@@ -185,41 +205,15 @@ export function useLineDrag(
     newX: number,
     newY: number
   ): LineDragResult => {
-    let newStart = { ...initialStartRef.current };
-    let newEnd = { ...initialEndRef.current };
-
-    if (handle === 'start') {
-      // 拖动起点
-      newStart = { x: newX, y: newY };
-      
-      // 如果终点是相对坐标，保持相对偏移不变
-      if (endModeRef.current === 'relative') {
-        const dx = initialEndRef.current.x - initialStartRef.current.x;
-        const dy = initialEndRef.current.y - initialStartRef.current.y;
-        newEnd = {
-          x: newX + dx,
-          y: newY + dy
-        };
-      }
-    } else if (handle === 'end') {
-      // 拖动终点
-      if (endModeRef.current === 'relative') {
-        // 相对模式：计算相对于起点的偏移
-        newEnd = {
-          x: newX - newStart.x,
-          y: newY - newStart.y
-        };
-      } else {
-        // 绝对模式：直接设置终点坐标
-        newEnd = { x: newX, y: newY };
-      }
-    }
+    const endMode = endModeRef.current;
+    const result = handle === HANDLE_TYPE.START
+      ? computeStartDragResult(newX, newY, initialStartRef.current, initialEndRef.current, endMode)
+      : computeEndDragResult(newX, newY, initialStartRef.current, endMode);
 
     return {
-      start: newStart,
-      end: newEnd,
-      startIsRelative: startModeRef.current === 'relative',
-      endIsRelative: endModeRef.current === 'relative'
+      ...result,
+      startIsRelative: startModeRef.current === COORDINATE_MODE.RELATIVE,
+      endIsRelative: endMode === COORDINATE_MODE.RELATIVE
     };
   }, []);
 
@@ -227,11 +221,11 @@ export function useLineDrag(
     setDraggingHandle(null);
   }, []);
 
-  const setStartMode = useCallback((mode: 'absolute' | 'relative') => {
+  const setStartMode = useCallback((mode: CoordinateType) => {
     startModeRef.current = mode;
   }, []);
 
-  const setEndMode = useCallback((mode: 'absolute' | 'relative') => {
+  const setEndMode = useCallback((mode: CoordinateType) => {
     endModeRef.current = mode;
   }, []);
 

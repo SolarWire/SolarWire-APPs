@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useAppStore } from '../../stores/appStore';
 import { feedback } from '../../stores/feedbackStore';
-import SettingsModal from '../ui/SettingsModal';
+import { getNextTheme, THEME_LIST } from '../../../shared/types/app';
 import './LeftPanelHeader.css';
 
 const LeftPanelHeader: React.FC = () => {
   const { saveFile, openDirectoryAtPath } = useFileStore();
   const { isModified } = useEditorStore();
-  const { theme, setTheme } = useAppStore();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { theme, setTheme, openSettings } = useAppStore();
 
   const handleOpen = async () => {
     try {
@@ -33,52 +32,48 @@ const LeftPanelHeader: React.FC = () => {
   };
 
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
+    setTheme(getNextTheme(theme));
   };
 
+  const currentThemeItem = THEME_LIST.find(t => t.id === theme);
+
   return (
-    <>
-      <div className="left-panel-header">
-        <div className="left-panel-header-left">
-          <img className="left-panel-logo" src="/logo.svg" alt="SolarWire" />
-          <button
-            className="left-panel-action-btn"
-            onClick={handleOpen}
-            title="打开目录"
-          >
-            📂
-          </button>
-          <button
-            className={`left-panel-action-btn ${isModified ? 'modified' : ''}`}
-            onClick={handleSave}
-            disabled={!isModified}
-            title="保存"
-          >
-            💾
-          </button>
-        </div>
-        <div className="left-panel-header-right">
-          <button
-            className="left-panel-action-btn"
-            onClick={toggleTheme}
-            title={theme === 'dark' ? '切换亮色主题' : '切换暗色主题'}
-          >
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <button
-            className="left-panel-action-btn"
-            onClick={() => setIsSettingsOpen(true)}
-            title="设置"
-          >
-            ⚙️
-          </button>
-        </div>
+    <div className="left-panel-header">
+      <div className="left-panel-header-left">
+        <img className="left-panel-logo" src="/logo.svg" alt="SolarWire" />
+        <button
+          className="left-panel-action-btn"
+          onClick={handleOpen}
+          title="打开目录"
+        >
+          📂
+        </button>
+        <button
+          className={`left-panel-action-btn ${isModified ? 'modified' : ''}`}
+          onClick={handleSave}
+          disabled={!isModified}
+          title="保存"
+        >
+          💾
+        </button>
       </div>
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
-    </>
+      <div className="left-panel-header-right">
+        <button
+          className="left-panel-action-btn"
+          onClick={toggleTheme}
+          title={currentThemeItem?.label ?? '切换主题'}
+        >
+          {currentThemeItem?.icon ?? '🎨'}
+        </button>
+        <button
+          className="left-panel-action-btn"
+          onClick={openSettings}
+          title="设置"
+        >
+          ⚙️
+        </button>
+      </div>
+    </div>
   );
 };
 

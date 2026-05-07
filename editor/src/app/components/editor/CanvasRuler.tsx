@@ -13,6 +13,20 @@ interface CanvasRulerProps {
 const RULER_SIZE = 24;
 const TICK_SIZES = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000];
 
+function getRulerColors(): {
+  bgColor: string;
+  textColor: string;
+  tickColor: string;
+  borderColor: string;
+} {
+  const style = getComputedStyle(document.documentElement);
+  const bg = style.getPropertyValue('--ruler-bg').trim() || '#1e1e1e';
+  const text = style.getPropertyValue('--ruler-text').trim() || '#999';
+  const tick = style.getPropertyValue('--ruler-tick').trim() || '#555';
+  const border = style.getPropertyValue('--ruler-border').trim() || '#333';
+  return { bgColor: bg, textColor: text, tickColor: tick, borderColor: border };
+}
+
 function getNiceStep(pixelsPerUnit: number): { step: number; minorStep: number } {
   const minPixelsBetweenTicks = 50;
   const minPixelsBetweenMinorTicks = 10;
@@ -47,11 +61,7 @@ const HorizontalRuler: React.FC<{
     canvas.height = rulerSize * dpr;
     ctx.scale(dpr, dpr);
 
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const bgColor = isDark ? '#1e1e1e' : '#f0f0f0';
-    const textColor = isDark ? '#999' : '#666';
-    const tickColor = isDark ? '#555' : '#bbb';
-    const borderColor = isDark ? '#333' : '#ddd';
+    const { bgColor, textColor, tickColor, borderColor } = getRulerColors();
 
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, width, rulerSize);
@@ -151,11 +161,7 @@ const VerticalRuler: React.FC<{
     canvas.height = height * dpr;
     ctx.scale(dpr, dpr);
 
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const bgColor = isDark ? '#1e1e1e' : '#f0f0f0';
-    const textColor = isDark ? '#999' : '#666';
-    const tickColor = isDark ? '#555' : '#bbb';
-    const borderColor = isDark ? '#333' : '#ddd';
+    const { bgColor, textColor, tickColor, borderColor } = getRulerColors();
 
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, rulerSize, height);
@@ -258,9 +264,7 @@ const RulerCorner: React.FC<{
     canvas.height = rulerSize * dpr;
     ctx.scale(dpr, dpr);
 
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const bgColor = isDark ? '#1e1e1e' : '#f0f0f0';
-    const borderColor = isDark ? '#333' : '#ddd';
+    const { bgColor, borderColor } = getRulerColors();
 
     ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, rulerSize, rulerSize);

@@ -93,56 +93,6 @@ export function formatRenderError(
   return result;
 }
 
-export function formatErrorWithContext(
-  message: string,
-  sourceInput: string | undefined,
-  location: SourceLocation | undefined,
-  contextLines: number = 3
-): string {
-  let result = message;
-  
-  if (!sourceInput || !location) {
-    return result;
-  }
-  
-  const lines = sourceInput.split(/\r?\n/);
-  const lineNum = location.line;
-  const columnNum = location.column || 1;
-  
-  const startLine = Math.max(0, lineNum - contextLines - 1);
-  const endLine = Math.min(lines.length, lineNum + contextLines);
-  
-  const maxLineNumWidth = Math.max(
-    String(startLine + 1).length,
-    String(endLine).length,
-    4
-  );
-  
-  result += '\n\n' + '─'.repeat(60) + '\n';
-  result += '  Context:\n';
-  result += '─'.repeat(60) + '\n';
-  
-  for (let i = startLine; i < endLine; i++) {
-    const currentLineNum = i + 1;
-    const isErrorLine = i === lineNum - 1;
-    const lineContent = lines[i] || '';
-    
-    if (isErrorLine) {
-      result += `>>> ${currentLineNum.toString().padStart(maxLineNumWidth, ' ')} | ${lineContent}\n`;
-      const pointerOffset = columnNum > 0 ? columnNum - 1 : 0;
-      const spaces = ' '.repeat(5 + maxLineNumWidth + 3 + pointerOffset);
-      result += `${spaces}^\n`;
-      result += `${spaces}| HERE\n`;
-    } else {
-      result += `    ${currentLineNum.toString().padStart(maxLineNumWidth, ' ')} | ${lineContent}\n`;
-    }
-  }
-  
-  result += '─'.repeat(60) + '\n';
-  
-  return result;
-}
-
 export function getElementLocationInfo(element: Element): string {
   if (element.location) {
     return `line ${element.location.line}`;
@@ -392,6 +342,57 @@ export function getLetterSpacingAttribute(
   defaultValue: number = 0
 ): number {
   return getNumberAttribute(attributes, globalDefaults, 'letter-spacing', defaultValue);
+}
+
+export function getVerticalAlignAttribute(
+  attributes: Record<string, string>,
+  defaultValue: 'top' | 'middle' | 'bottom' = 'top'
+): 'top' | 'middle' | 'bottom' {
+  const val = attributes['vertical-align'];
+  switch (val) {
+    case 't':
+      return 'top';
+    case 'm':
+      return 'middle';
+    case 'b':
+      return 'bottom';
+    default:
+      return defaultValue;
+  }
+}
+
+export function getTextDecorationAttribute(
+  attributes: Record<string, string>
+): 'none' | 'underline' | 'line-through' {
+  const val = attributes['text-decoration'];
+  switch (val) {
+    case 'underline':
+      return 'underline';
+    case 'line-through':
+      return 'line-through';
+    default:
+      return 'none';
+  }
+}
+
+export interface PaddingValues {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export function getPaddingValues(
+  attributes: Record<string, string>,
+  globalDefaults: GlobalDefaults,
+  defaultValue: number = 8
+): PaddingValues {
+  return {
+    top: getNumberAttribute(attributes, globalDefaults, 'padding-top', defaultValue),
+    right: getNumberAttribute(attributes, globalDefaults, 'padding-right', defaultValue),
+    bottom: getNumberAttribute(attributes, globalDefaults, 'padding-bottom', defaultValue),
+    left: getNumberAttribute(attributes, globalDefaults, 'padding-left', defaultValue),
+  };
 }
 
 export interface ShadowConfig {

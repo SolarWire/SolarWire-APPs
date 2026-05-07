@@ -1,0 +1,70 @@
+.padding-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.padding-editor.expanded {
+  position: relative;
+  padding-right: 24px;
+}
+
+.padding-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.padding-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+}
+
+.padding-label:hover {
+  color: var(--text-primary);
+}
+
+.padding-label-text {
+  white-space: nowrap;
+}
+
+.padding-code-attr {
+  font-size: 8px;
+  opacity: 0.5;
+  font-family: monospace;
+}
+
+.padding-toggle-btn,
+.padding-collapse-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  padding: 0;
+}
+
+.padding-toggle-btn:hover,
+.padding-collapse-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent-color);
+}
+
+.padding-collapse-btn {
+  position: absolute;
+  right: 0;
+  top: 0;
+}

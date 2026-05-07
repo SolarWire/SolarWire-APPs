@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import AppLayout from './components/layout/AppLayout';
+import SettingsModal from './components/ui/SettingsModal';
 import { useAppStore } from './stores/appStore';
 import { useFileStore } from './stores/fileStore';
 import { useSettingsStore } from './stores/settingsStore';
@@ -8,7 +9,7 @@ import { FeedbackProvider } from './components/feedback/FeedbackProvider';
 import './styles/global.css';
 
 function App(): React.ReactElement {
-  const { setTheme } = useAppStore();
+  const { settingsModalOpen, closeSettings } = useAppStore();
   const { openDirectoryAtPath, openFileAtPath, currentPath } = useFileStore();
   const { loadSettings } = useSettingsStore();
   const { loadLanguage } = useI18nStore();
@@ -17,13 +18,6 @@ function App(): React.ReactElement {
     loadSettings();
     loadLanguage();
   }, [loadSettings, loadLanguage]);
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('solarwire-theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, [setTheme]);
 
   useEffect(() => {
     if (!currentPath) {
@@ -59,6 +53,7 @@ function App(): React.ReactElement {
     <div className="app">
       <AppLayout />
       <FeedbackProvider />
+      <SettingsModal isOpen={settingsModalOpen} onClose={closeSettings} />
     </div>
   );
 }

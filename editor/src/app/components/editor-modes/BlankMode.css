@@ -8,28 +8,111 @@
 .blank-mode-content {
   text-align: center;
   padding: 40px;
+  max-width: 420px;
 }
 
 .blank-mode-icon {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   display: flex;
   justify-content: center;
 }
 
 .blank-mode-logo {
-  width: 64px;
-  height: 64px;
-  opacity: 0.6;
+  width: 56px;
+  height: 56px;
+  opacity: 0.5;
 }
 
 .blank-mode-title {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--white);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .blank-mode-text {
-  font-size: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+.blank-mode-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 32px;
+}
+
+.blank-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.blank-mode-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent-color);
+}
+
+.blank-mode-btn.primary {
+  background: var(--accent-color);
+  border-color: var(--accent-color);
+  color: #fff;
+}
+
+.blank-mode-btn.primary:hover {
+  opacity: 0.9;
+}
+
+.blank-mode-shortcuts {
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+}
+
+.blank-mode-shortcuts-title {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.blank-mode-shortcuts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  text-align: left;
+}
+
+.blank-mode-shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.blank-mode-kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-family: Menlo, Consolas, monospace;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  min-width: 60px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.blank-mode-shortcut-desc {
+  font-size: 12px;
   color: var(--text-muted);
 }

@@ -111,4 +111,14 @@ export const zh = {
     en: 'English',
     zh: '简体中文',
   },
+
+  themes: {
+    'solid-dark': '深色',
+    'solid-light': '浅色',
+    'glass-dark': '毛玻璃深色',
+    'glass-light': '毛玻璃浅色',
+    'cyberpunk': '赛博朋克',
+    'paper': '纸质',
+    'minimal': '极简',
+  },
 };

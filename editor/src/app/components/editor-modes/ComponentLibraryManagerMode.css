@@ -73,6 +73,7 @@
   border-radius: 4px 4px 0 0;
   transition: all 0.2s;
   position: relative;
+  user-select: none;
 }
 
 .clm-tab:hover {
@@ -161,6 +162,8 @@
   color: var(--text-muted);
   font-size: 14px;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .clm-visual-editor {
@@ -213,9 +216,4 @@
 
 .clm-empty-text {
   font-size: 13px;
-}
-
-.clm-tree-node.selected > .clm-node-content {
-  background: var(--accent-opacity-20);
-  color: var(--accent-color);
 }

@@ -12,6 +12,8 @@ import PropertyGroupTitle from './property/PropertyGroupTitle';
 import ShadowEditor from './property/ShadowEditor';
 import { fileDialogService, IFileDialogService } from '../../services/file-dialog-service';
 import { feedback } from '../../stores/feedbackStore';
+import { useElementProps } from './hooks/useElementProps';
+import type { ElementProps } from './hooks/useElementProps';
 import './PropertyPanel.css';
 
 interface PropertyPanelProps {
@@ -126,90 +128,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   const handleNoteResizeStart = createResizeHandler(noteTextareaRef, handleNoteResize);
   const handleTextResizeStart = createResizeHandler(textTextareaRef, handleTextResize);
 
-  const elementProps = useMemo(() => {
-    if (!element) return null;
-
-    const el = element as Element & {
-      type: string;
-      attributes?: Record<string, unknown>;
-      coordinates?: { x: { type: string; value: number }; y: { type: string; value: number } };
-      start?: { x: { type: string; value: number }; y: { type: string; value: number } };
-      end?: { type: string; x?: { type: string; value: number }; y?: { type: string; value: number }; dx?: number; dy?: number };
-      label?: string;
-      url?: string;
-      text?: string;
-    };
-    const type = el.type;
-    const attrs = (el.attributes || {}) as Record<string, string>;
-
-    let x = 0;
-    let y = 0;
-
-    if (type === 'line') {
-      if (el.start && el.start.x && el.start.y) {
-        if (el.start.x.type === 'absolute') {
-          x = el.start.x.value;
-        } else {
-          x = parseInt(attrs.x || '0');
-        }
-        if (el.start.y.type === 'absolute') {
-          y = el.start.y.value;
-        } else {
-          y = parseInt(attrs.y || '0');
-        }
-      } else {
-        x = parseInt(attrs.x || '0');
-        y = parseInt(attrs.y || '0');
-      }
-    } else {
-      const coords = el.coordinates;
-      if (coords && coords.x.type === 'absolute' && coords.y.type === 'absolute') {
-        x = coords.x.value;
-        y = coords.y.value;
-      } else {
-        x = parseInt(attrs.x || '0');
-        y = parseInt(attrs.y || '0');
-      }
-    }
-
-    const text = el.text || '';
-    const w = attrs.w || '';
-    const h = attrs.h || '';
-    const r = attrs.r || '';
-    const bg = attrs.bg || '#ffffff';
-    const borderColor = attrs.b || '#333333';
-    const borderSize = attrs.s || '1';
-    const textColor = attrs.c || '#000000';
-    const fontSize = attrs.size || attrs['text-size'] || '12';
-    const align = attrs.align || 'c';
-    const opacity = attrs.opacity || '1';
-    let note = attrs.note || '';
-    if (typeof note === 'string') {
-      note = note.replace(/^"""|"""$/g, '');
-    }
-
-    const showSizeControls = type !== 'text' && type !== 'line';
-    const showRadiusControl = type === 'rectangle';
-    const showTextControls = 'text' in element || type === 'text';
-    const showBorderControls = type !== 'line' && type !== 'text';
-    const showLineControls = type === 'line';
-    const showAlignControl = type === 'text' || 'text' in element;
-
-    const isTable = type === 'table';
-    const isMultilineText = text.startsWith('"""') && text.endsWith('"""');
-    let textContent = text;
-    if (isMultilineText) {
-      textContent = text.replace(/^"""|"""$/g, '');
-    }
-
-    return {
-      type, attrs, x, y, text, w, h, r, bg, borderColor, borderSize,
-      textColor, fontSize, align, opacity, note, showSizeControls,
-      showRadiusControl, showTextControls, showBorderControls,
-      showLineControls, showAlignControl, isTable, isMultilineText, textContent,
-      end: el.end, label: el.label, url: el.url
-    };
-  }, [element]);
+  const elementProps = useElementProps({ element });
 
   useEffect(() => {
     if (elementProps?.note !== undefined && elementProps.note !== noteValue) {
@@ -274,7 +193,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     );
   }
 
-  const { type, x, y, w, h, r, bg, borderColor, borderSize, textColor, fontSize, align, opacity,
+  const { type, x, y, w, h, r, bg, borderColor, borderSize, textColor, fontSize, align, verticalAlign, paddingTop, paddingRight, paddingBottom, paddingLeft, textDecoration, opacity,
     showSizeControls, showRadiusControl, showTextControls, showBorderControls,
     showLineControls, showAlignControl, isMultilineText, attrs, text, end, label, url } = elementProps;
 
@@ -311,6 +230,42 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
                 label=""
                 value={r}
                 onChange={(v) => handleChange('r', v)}
+              />
+            </PropertyRow>
+          )}
+          {showSizeControls && showTextControls && (
+            <PropertyRow label="P-T">
+              <DraggableNumberInput
+                label=""
+                value={paddingTop}
+                onChange={(v) => handleChange('padding-top', v)}
+              />
+            </PropertyRow>
+          )}
+          {showSizeControls && showTextControls && (
+            <PropertyRow label="P-R">
+              <DraggableNumberInput
+                label=""
+                value={paddingRight}
+                onChange={(v) => handleChange('padding-right', v)}
+              />
+            </PropertyRow>
+          )}
+          {showSizeControls && showTextControls && (
+            <PropertyRow label="P-B">
+              <DraggableNumberInput
+                label=""
+                value={paddingBottom}
+                onChange={(v) => handleChange('padding-bottom', v)}
+              />
+            </PropertyRow>
+          )}
+          {showSizeControls && showTextControls && (
+            <PropertyRow label="P-L">
+              <DraggableNumberInput
+                label=""
+                value={paddingLeft}
+                onChange={(v) => handleChange('padding-left', v)}
               />
             </PropertyRow>
           )}
@@ -478,17 +433,56 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
                   className={`align-btn${align === 'l' ? ' active' : ''}`}
                   onClick={() => handleChange('align', 'l')}
                   title="Left"
-                >≡</button>
+                ><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="7" x2="9" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg></button>
                 <button
                   className={`align-btn${align === 'c' ? ' active' : ''}`}
                   onClick={() => handleChange('align', 'c')}
                   title="Center"
-                >≡</button>
+                ><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="3.5" y1="7" x2="10.5" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg></button>
                 <button
                   className={`align-btn${align === 'r' ? ' active' : ''}`}
                   onClick={() => handleChange('align', 'r')}
                   title="Right"
-                >≡</button>
+                ><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="5" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg></button>
+              </div>
+            </PropertyRow>
+          )}
+          {showAlignControl && (
+            <PropertyRow label="V-Align">
+              <div className="align-buttons">
+                <button
+                  className={`align-btn${verticalAlign === 't' ? ' active' : ''}`}
+                  onClick={() => handleChange('vertical-align', 't')}
+                  title="Top"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/>
+                    <rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/>
+                    <line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                </button>
+                <button
+                  className={`align-btn${verticalAlign === 'm' ? ' active' : ''}`}
+                  onClick={() => handleChange('vertical-align', 'm')}
+                  title="Middle"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/>
+                    <rect x="4" y="5.5" width="6" height="3" fill="currentColor" opacity="0.3"/>
+                    <line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                </button>
+                <button
+                  className={`align-btn${verticalAlign === 'b' ? ' active' : ''}`}
+                  onClick={() => handleChange('vertical-align', 'b')}
+                  title="Bottom"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/>
+                    <rect x="4" y="8" width="6" height="3" fill="currentColor" opacity="0.3"/>
+                    <line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                </button>
               </div>
             </PropertyRow>
           )}
@@ -504,15 +498,36 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
               title="Italic"
             ><i>I</i></button>
           </div>
+          <div className="property-row toggle-row">
+            <button
+              className={`toggle-btn${textDecoration === 'underline' ? ' active' : ''}`}
+              onClick={() => handleChange('text-decoration', textDecoration === 'underline' ? '' : 'underline')}
+              title="Underline"
+            ><u>U</u></button>
+            <button
+              className={`toggle-btn${textDecoration === 'line-through' ? ' active' : ''}`}
+              onClick={() => handleChange('text-decoration', textDecoration === 'line-through' ? '' : 'line-through')}
+              title="Strikethrough"
+            ><s>S</s></button>
+          </div>
         </PropertyGroupTitle>
       )}
 
-      {type === 'text' && (
+      {showTextControls && (
         <PropertyRow label="Line Height">
           <DraggableNumberInput
             label=""
             value={attrs['line-height'] || '22'}
             onChange={(v) => handleChange('line-height', v)}
+          />
+        </PropertyRow>
+      )}
+      {showTextControls && (
+        <PropertyRow label="Letter Spacing">
+          <DraggableNumberInput
+            label=""
+            value={attrs['letter-spacing'] || '0'}
+            onChange={(v) => handleChange('letter-spacing', v)}
           />
         </PropertyRow>
       )}

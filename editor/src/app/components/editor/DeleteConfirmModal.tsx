@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateFileModal.css';
 
 interface DeleteConfirmModalProps {
@@ -68,7 +69,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
   const typeText = isDirectory ? '文件夹' : '文件';
 
   return (
-    <div className="create-file-modal-overlay">
+    <ModalPortal><div className="create-file-modal-overlay">
       <div className="create-file-modal">
         <div className="create-file-modal-header">
           <h3>确认删除</h3>
@@ -91,7 +92,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
           <button type="button" className="btn-danger" onClick={handleDelete}>确认删除</button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

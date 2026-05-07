@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 
 interface PropertyGroupTitleProps {
   title: string;
@@ -8,6 +8,14 @@ interface PropertyGroupTitleProps {
 
 const PropertyGroupTitle: React.FC<PropertyGroupTitleProps> = ({ title, defaultCollapsed = false, children }) => {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [contentHeight, setContentHeight] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setContentHeight(contentRef.current.scrollHeight);
+    }
+  }, [children, collapsed]);
 
   const handleToggle = useCallback(() => {
     setCollapsed(prev => !prev);
@@ -19,11 +27,15 @@ const PropertyGroupTitle: React.FC<PropertyGroupTitleProps> = ({ title, defaultC
         <span className={`property-group-arrow${collapsed ? ' collapsed' : ''}`}>▶</span>
         {title}
       </div>
-      {!collapsed && children && (
-        <div className="property-group-content">
+      <div
+        className={`property-group-content${collapsed ? ' collapsed' : ''}`}
+        style={collapsed ? { maxHeight: 0 } : { maxHeight: contentHeight ?? 500 }}
+        ref={contentRef}
+      >
+        <div className="property-group-content-inner">
           {children}
         </div>
-      )}
+      </div>
     </div>
   );
 };

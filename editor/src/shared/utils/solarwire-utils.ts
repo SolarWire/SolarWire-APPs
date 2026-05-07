@@ -3,8 +3,6 @@
  * 重新导出各个模块的函数，保持向后兼容
  */
 
-import { monacoService } from '../../app/services/monaco-service';
-
 // 从 element-bounds.ts 重新导出
 export {
   isInsideMultilineNoteContent,
@@ -29,7 +27,7 @@ export {
   deleteLineAttribute
 } from './attribute-updater';
 
-// 从 element-operations.ts 重新导出
+// 从 element-operations/ 重新导出
 export {
   bringElementsToFront,
   alignElements
@@ -53,43 +51,6 @@ export {
   DEFAULT_GRID_SIZE,
   DEFAULT_ZOOM_LEVEL
 } from './constants';
-
-// 本地函数 - Monaco语言注册
-export function registerSolarWireLanguage(): void {
-  const monaco = monacoService.getMonaco();
-  if (!monaco) return;
-
-  monaco.languages.register({ id: 'solarwire' });
-
-  monaco.languages.setMonarchTokensProvider('solarwire', {
-    tokenizer: {
-      root: [
-        [/\[.*?\]/, 'element'],
-        [/".*?"/, 'string'],
-        [/".*?'/, 'string'],
-        [/#.*$/, 'comment'],
-        [/@\w+/, 'attribute'],
-        [/=\s*[^"]\s+/, 'value'],
-      ]
-    }
-  });
-
-  monaco.languages.setLanguageConfiguration('solarwire', {
-    comments: {
-      lineComment: '#'
-    },
-    brackets: [
-      ['[', ']'],
-      ['"', '"'],
-      ["'", "'"]
-    ],
-    autoClosingPairs: [
-      { open: '[', close: ']' },
-      { open: '"', close: '"' },
-      { open: "'", close: "'" }
-    ]
-  });
-}
 
 /**
  * 转义note值中的特殊字符

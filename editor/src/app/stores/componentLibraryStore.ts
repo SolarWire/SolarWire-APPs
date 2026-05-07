@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { ComponentLibrary, Component, ComponentCategory, makeNodeId, parseNodeId, makeUncategorizedKey, isPresetLibrary } from '../../shared/types/component';
 import { componentLibraryManager, LibraryLoadProgress, DropTarget, LibraryConflictError } from '../services/ComponentLibraryManager';
+import { createLibraryRefreshHelper, reorderArray } from './helpers/library-crud';
 
 export interface FailedComponentInfo {
   libraryId: string;
@@ -80,7 +81,10 @@ interface ComponentLibraryStore {
   openManagerAtComponent: (libraryId: string, componentInternalId: string) => void;
 }
 
-export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get) => ({
+export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get) => {
+  const withRefresh = createLibraryRefreshHelper(set);
+
+  return {
   showComponentLibrary: false,
   isInitialized: false,
   libraries: [],
@@ -149,47 +153,29 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
   setSearchQuery: (searchQuery) => set({ searchQuery }),
   setActiveCategoryId: (activeCategoryId) => set({ activeCategoryId }),
 
-  addComponent: async (libraryId, component) => {
-    await componentLibraryManager.addComponent(libraryId, component);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  addComponent: (libraryId, component) =>
+    withRefresh(() => componentLibraryManager.addComponent(libraryId, component)),
 
-  updateComponent: async (libraryId, componentInternalId, updates) => {
-    await componentLibraryManager.updateComponent(libraryId, componentInternalId, updates);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  updateComponent: (libraryId, componentInternalId, updates) =>
+    withRefresh(() => componentLibraryManager.updateComponent(libraryId, componentInternalId, updates)),
 
-  deleteComponent: async (libraryId, componentInternalId) => {
-    await componentLibraryManager.deleteComponent(libraryId, componentInternalId);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  deleteComponent: (libraryId, componentInternalId) =>
+    withRefresh(() => componentLibraryManager.deleteComponent(libraryId, componentInternalId)),
 
-  createComponent: async (libraryId, categoryId, component) => {
-    const newComponent = await componentLibraryManager.createComponent(libraryId, categoryId, component);
-    set({ libraries: componentLibraryManager.getLibraries() });
-    return newComponent;
-  },
+  createComponent: (libraryId, categoryId, component) =>
+    withRefresh(() => componentLibraryManager.createComponent(libraryId, categoryId, component)),
 
-  addLibrary: async (library) => {
-    await componentLibraryManager.addLibrary(library);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  addLibrary: (library) =>
+    withRefresh(() => componentLibraryManager.addLibrary(library)),
 
-  removeLibrary: async (libraryId) => {
-    await componentLibraryManager.removeLibrary(libraryId);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  removeLibrary: (libraryId) =>
+    withRefresh(() => componentLibraryManager.removeLibrary(libraryId)),
 
-  updateLibrary: async (libraryId, updates) => {
-    await componentLibraryManager.updateLibrary(libraryId, updates);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  updateLibrary: (libraryId, updates) =>
+    withRefresh(() => componentLibraryManager.updateLibrary(libraryId, updates)),
 
-  createLibrary: async (metadata) => {
-    const library = await componentLibraryManager.createLibrary(metadata);
-    set({ libraries: componentLibraryManager.getLibraries() });
-    return library;
-  },
+  createLibrary: (metadata) =>
+    withRefresh(() => componentLibraryManager.createLibrary(metadata)),
 
   exportLibrary: (libraryId) => {
     componentLibraryManager.exportLibrary(libraryId);
@@ -209,24 +195,17 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     }
   },
 
-  createCategory: async (libraryId, category) => {
-    const newCategory = await componentLibraryManager.createCategory(libraryId, category);
-    set({ libraries: componentLibraryManager.getLibraries() });
-    return newCategory;
-  },
+  createCategory: (libraryId, category) =>
+    withRefresh(() => componentLibraryManager.createCategory(libraryId, category)),
 
-  updateCategory: async (libraryId, categoryId, updates) => {
-    await componentLibraryManager.updateCategory(libraryId, categoryId, updates);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  updateCategory: (libraryId, categoryId, updates) =>
+    withRefresh(() => componentLibraryManager.updateCategory(libraryId, categoryId, updates)),
 
-  deleteCategory: async (libraryId, categoryId) => {
-    await componentLibraryManager.deleteCategory(libraryId, categoryId);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  deleteCategory: (libraryId, categoryId) =>
+    withRefresh(() => componentLibraryManager.deleteCategory(libraryId, categoryId)),
 
-  moveCategory: async (sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position) => {
-    try {
+  moveCategory: (sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position) =>
+    withRefresh(async () => {
       if (sourceLibraryId === targetLibraryId) {
         if (targetCategoryId) {
           await componentLibraryManager.moveCategoryInList(sourceLibraryId, categoryId, targetCategoryId, position as 'before' | 'after');
@@ -236,50 +215,27 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
       } else {
         await componentLibraryManager.moveCategoryToLibrary(sourceLibraryId, categoryId, targetLibraryId, targetCategoryId, position);
       }
-      set({ libraries: componentLibraryManager.getLibraries() });
-    } catch (error) {
-      throw error;
-    }
-  },
+    }),
 
-  moveComponent: async (sourceLibraryId, componentInternalId, targetLibraryId, targetCategoryId, targetComponentInternalId, position) => {
-    try {
+  moveComponent: (sourceLibraryId, componentInternalId, targetLibraryId, targetCategoryId, targetComponentInternalId, position) =>
+    withRefresh(async () => {
       if (sourceLibraryId === targetLibraryId) {
         await componentLibraryManager.moveComponentInCategory(sourceLibraryId, componentInternalId, targetCategoryId, targetComponentInternalId, position);
       } else {
         await componentLibraryManager.moveComponentToCategory(sourceLibraryId, componentInternalId, targetLibraryId, targetCategoryId, targetComponentInternalId, position);
       }
-      set({ libraries: componentLibraryManager.getLibraries() });
-    } catch (error) {
-      throw error;
-    }
-  },
+    }),
 
-  moveLibrary: async (sourceLibraryId, targetLibraryId, position) => {
-    await componentLibraryManager.moveLibraryInList(sourceLibraryId, targetLibraryId, position);
-    set({ libraries: componentLibraryManager.getLibraries() });
-  },
+  moveLibrary: (sourceLibraryId, targetLibraryId, position) =>
+    withRefresh(() => componentLibraryManager.moveLibraryInList(sourceLibraryId, targetLibraryId, position)),
 
   reorderLibrary: (libraryId, direction) => {
     const state = get();
-    const libraries = [...state.libraries];
-    const index = libraries.findIndex(lib => lib.metadata.id === libraryId);
+    const index = state.libraries.findIndex(lib => lib.metadata.id === libraryId);
     if (index === -1) return;
-
-    const newIndex = (() => {
-      switch (direction) {
-        case 'top': return 0;
-        case 'up': return Math.max(0, index - 1);
-        case 'down': return Math.min(libraries.length - 1, index + 1);
-        case 'bottom': return libraries.length - 1;
-      }
-    })();
-
-    if (newIndex === index) return;
-
-    const [removed] = libraries.splice(index, 1);
-    libraries.splice(newIndex, 0, removed);
-    set({ libraries });
+    const reordered = reorderArray(state.libraries, index, direction);
+    if (!reordered) return;
+    set({ libraries: reordered });
   },
 
   reorderCategory: (libraryId, categoryId, direction) => {
@@ -289,24 +245,13 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     if (libraryIndex === -1) return;
 
     const library = { ...libraries[libraryIndex] };
-    const categories = [...library.categories];
-    const index = categories.findIndex(cat => cat.id === categoryId);
+    const index = library.categories.findIndex(cat => cat.id === categoryId);
     if (index === -1) return;
 
-    const newIndex = (() => {
-      switch (direction) {
-        case 'top': return 0;
-        case 'up': return Math.max(0, index - 1);
-        case 'down': return Math.min(categories.length - 1, index + 1);
-        case 'bottom': return categories.length - 1;
-      }
-    })();
+    const reordered = reorderArray(library.categories, index, direction);
+    if (!reordered) return;
 
-    if (newIndex === index) return;
-
-    const [removed] = categories.splice(index, 1);
-    categories.splice(newIndex, 0, removed);
-    library.categories = categories;
+    library.categories = reordered;
     libraries[libraryIndex] = library;
     set({ libraries });
   },
@@ -318,24 +263,13 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     if (libraryIndex === -1) return;
 
     const library = { ...libraries[libraryIndex] };
-    const components = [...library.components];
-    const index = components.findIndex(comp => comp.internalId === componentId);
+    const index = library.components.findIndex(comp => comp.internalId === componentId);
     if (index === -1) return;
 
-    const newIndex = (() => {
-      switch (direction) {
-        case 'top': return 0;
-        case 'up': return Math.max(0, index - 1);
-        case 'down': return Math.min(components.length - 1, index + 1);
-        case 'bottom': return components.length - 1;
-      }
-    })();
+    const reordered = reorderArray(library.components, index, direction);
+    if (!reordered) return;
 
-    if (newIndex === index) return;
-
-    const [removed] = components.splice(index, 1);
-    components.splice(newIndex, 0, removed);
-    library.components = components;
+    library.components = reordered;
     libraries[libraryIndex] = library;
     set({ libraries });
   },
@@ -352,19 +286,15 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
     const state = get();
     const library = state.libraries.find(lib => lib.metadata.id === libraryId);
     const component = library?.components.find(comp => comp.internalId === componentInternalId);
-    
-    // 构建需要展开的节点列表
+
     const nodesToExpand = new Set<string>();
-    
-    // 始终展开库节点
+
     nodesToExpand.add(libraryId);
-    
-    // 如果组件有分类，展开分类节点
+
     if (component?.categoryId) {
       nodesToExpand.add(component.categoryId);
     }
-    
-    // 更新状态，包括展开的节点
+
     set({
       selectedLibraryId: libraryId,
       selectedComponentId: componentInternalId,
@@ -374,4 +304,5 @@ export const useComponentLibraryStore = create<ComponentLibraryStore>((set, get)
       expandedNodes: Array.from(new Set([...state.expandedNodes, ...nodesToExpand])),
     });
   },
-}));
+  };
+});

@@ -1,0 +1,415 @@
+{
+  "project": {
+    "name": "SolarWire Editor UI 重设计",
+    "version": "1.0.0",
+    "description": "基于Figma设计规范和shadcn UI的SolarWire Editor UI重设计实施方案",
+    "start_date": "2026-04-14",
+    "end_date": "2026-05-14",
+    "status": "planning"
+  },
+  "ui_design_specs": {
+    "color_system": {
+      "primary": "hsl(var(--primary))",
+      "primary_foreground": "hsl(var(--primary-foreground))",
+      "secondary": "hsl(var(--secondary))",
+      "secondary_foreground": "hsl(var(--secondary-foreground))",
+      "destructive": "hsl(var(--destructive))",
+      "destructive_foreground": "hsl(var(--destructive-foreground))",
+      "muted": "hsl(var(--muted))",
+      "muted_foreground": "hsl(var(--muted-foreground))",
+      "accent": "hsl(var(--accent))",
+      "accent_foreground": "hsl(var(--accent-foreground))",
+      "popover": "hsl(var(--popover))",
+      "popover_foreground": "hsl(var(--popover-foreground))",
+      "card": "hsl(var(--card))",
+      "card_foreground": "hsl(var(--card-foreground))",
+      "border": "hsl(var(--border))",
+      "input": "hsl(var(--input))",
+      "ring": "hsl(var(--ring))",
+      "background": "hsl(var(--background))",
+      "foreground": "hsl(var(--foreground))"
+    },
+    "typography": {
+      "font_family": {
+        "sans": "Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+        "mono": "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
+      },
+      "font_sizes": {
+        "title": "16px",
+        "subtitle": "14px",
+        "body": "12px",
+        "code": "12px"
+      },
+      "font_weights": {
+        "title": "bold",
+        "subtitle": "semibold",
+        "body": "normal",
+        "code": "normal"
+      }
+    },
+    "spacing": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "2rem"
+    },
+    "border_radius": {
+      "sm": "0.125rem",
+      "md": "0.375rem",
+      "lg": "0.5rem",
+      "xl": "0.75rem"
+    },
+    "shadow": {
+      "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+      "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+      "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
+    },
+    "components": {
+      "button": {
+        "variants": ["primary", "secondary", "ghost", "destructive"],
+        "sizes": ["sm", "md", "lg"]
+      },
+      "card": {
+        "parts": ["header", "content", "footer"]
+      },
+      "input": {
+        "states": ["default", "focused", "disabled", "error"]
+      },
+      "tabs": {
+        "variants": ["default", "underline"]
+      },
+      "dialog": {
+        "parts": ["header", "content", "footer"]
+      },
+      "alert": {
+        "variants": ["default", "destructive"]
+      }
+    },
+    "icon_system": {
+      "library": "Radix Icons",
+      "sizes": [16, 20, 24],
+      "color_mapping": {
+        "default": "neutral-500",
+        "primary": "primary",
+        "success": "success-500",
+        "warning": "warning-500",
+        "error": "destructive-500"
+      }
+    }
+  },
+  "tech_stack": {
+    "frontend": {
+      "framework": "React 18",
+      "language": "TypeScript 5.2",
+      "build_tool": "Vite 5.0",
+      "css_framework": "Tailwind CSS 3",
+      "ui_library": "shadcn/ui",
+      "icon_library": "@radix-ui/react-icons",
+      "editor": "Monaco Editor",
+      "markdown_renderer": "marked",
+      "mermaid": "mermaid"
+    },
+    "desktop": {
+      "framework": "Electron 27.0",
+      "builder": "electron-builder"
+    },
+    "state_management": {
+      "library": "Zustand 4.4",
+      "persistence": "localStorage"
+    },
+    "git_integration": {
+      "library": "simple-git 3.22"
+    },
+    "testing": {
+      "framework": "Vitest",
+      "e2e": "Playwright",
+      "coverage": "@vitest/coverage-v8"
+    }
+  },
+  "development_process": {
+    "branch_strategy": {
+      "main": "production branch",
+      "develop": "development branch",
+      "feature": "feature/{feature-name}",
+      "bugfix": "bugfix/{bug-name}",
+      "hotfix": "hotfix/{hotfix-name}"
+    },
+    "commit_convention": {
+      "format": "<type>(<scope>): <description>",
+      "types": ["feat", "fix", "docs", "style", "refactor", "test", "chore"]
+    },
+    "code_review": {
+      "required_reviewers": 2,
+      "checks": ["lint", "typecheck", "tests"]
+    },
+    "ci_cd": {
+      "steps": ["install", "lint", "typecheck", "test", "build"]
+    }
+  },
+  "quality_assurance": {
+    "unit_test_coverage": {
+      "threshold": 80,
+      "exclude": ["node_modules", "dist", "build"]
+    },
+    "ui_consistency": {
+      "checks": ["color_system", "typography", "spacing", "components"]
+    },
+    "performance_metrics": {
+      "load_time": {
+        "threshold": 2000
+      },
+      "render_time": {
+        "threshold": 16
+      },
+      "memory_usage": {
+        "threshold": 200
+      }
+    },
+    "accessibility": {
+      "standards": ["WCAG 2.1 AA"]
+    }
+  },
+  "project_plan": {
+    "phases": [
+      {
+        "id": "phase-1",
+        "name": "需求分析",
+        "start_date": "2026-04-14",
+        "end_date": "2026-04-16",
+        "tasks": [
+          {
+            "id": "task-1.1",
+            "name": "分析UI重设计文档",
+            "description": "详细分析2026-04-14-solarwire-editor-ui-redesign.md文档中的所有要求",
+            "dependencies": [],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\plan\\analysis\\ui-redesign-analysis.md",
+            "status": "pending",
+            "assignee": "UI Team"
+          },
+          {
+            "id": "task-1.2",
+            "name": "技术可行性评估",
+            "description": "评估shadcn UI集成和Radix Icons的技术可行性",
+            "dependencies": ["task-1.1"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\plan\\analysis\\technical-feasibility.md",
+            "status": "pending",
+            "assignee": "Development Team"
+          },
+          {
+            "id": "task-1.3",
+            "name": "制定详细实施计划",
+            "description": "基于分析结果制定详细的实施计划",
+            "dependencies": ["task-1.2"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\plan\\implementation\\2026-04-14-solarwire-editor-ui-implementation-plan.json",
+            "status": "pending",
+            "assignee": "Project Manager"
+          }
+        ]
+      },
+      {
+        "id": "phase-2",
+        "name": "设计开发",
+        "start_date": "2026-04-17",
+        "end_date": "2026-05-05",
+        "tasks": [
+          {
+            "id": "task-2.1",
+            "name": "shadcn UI集成",
+            "description": "安装并配置shadcn UI和必要的依赖",
+            "dependencies": ["task-1.3"],
+            "deliverable": "commit:shadcn-integration",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          },
+          {
+            "id": "task-2.2",
+            "name": "图标系统实现",
+            "description": "安装Radix Icons并创建图标组件",
+            "dependencies": ["task-2.1"],
+            "deliverable": "commit:icon-system",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          },
+          {
+            "id": "task-2.3",
+            "name": "布局重构",
+            "description": "实现三栏布局和响应式设计",
+            "dependencies": ["task-2.2"],
+            "deliverable": "commit:layout-refactor",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          },
+          {
+            "id": "task-2.4",
+            "name": "左侧栏重构",
+            "description": "实现文件、需求、SolarWire和Git视图",
+            "dependencies": ["task-2.3"],
+            "deliverable": "commit:left-panel-refactor",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          },
+          {
+            "id": "task-2.5",
+            "name": "中间栏增强",
+            "description": "集成Monaco Editor和编辑工具栏",
+            "dependencies": ["task-2.3"],
+            "deliverable": "commit:main-content-enhancement",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          },
+          {
+            "id": "task-2.6",
+            "name": "右侧栏实现",
+            "description": "实现MD预览和SolarWire可视化编辑模式",
+            "dependencies": ["task-2.3"],
+            "deliverable": "commit:right-panel-implementation",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          },
+          {
+            "id": "task-2.7",
+            "name": "主题与交互优化",
+            "description": "实现主题切换和交互反馈",
+            "dependencies": ["task-2.4", "task-2.5", "task-2.6"],
+            "deliverable": "commit:theme-interaction-optimization",
+            "status": "pending",
+            "assignee": "Frontend Developer"
+          }
+        ]
+      },
+      {
+        "id": "phase-3",
+        "name": "测试验证",
+        "start_date": "2026-05-06",
+        "end_date": "2026-05-10",
+        "tasks": [
+          {
+            "id": "task-3.1",
+            "name": "功能测试",
+            "description": "测试所有shadcn UI组件和功能",
+            "dependencies": ["task-2.7"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\test-results\\functional-tests.json",
+            "status": "pending",
+            "assignee": "QA Team"
+          },
+          {
+            "id": "task-3.2",
+            "name": "响应式测试",
+            "description": "测试不同屏幕尺寸的布局适配",
+            "dependencies": ["task-2.7"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\test-results\\responsive-tests.json",
+            "status": "pending",
+            "assignee": "QA Team"
+          },
+          {
+            "id": "task-3.3",
+            "name": "主题测试",
+            "description": "测试明暗主题切换和图标颜色适配",
+            "dependencies": ["task-2.7"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\test-results\\theme-tests.json",
+            "status": "pending",
+            "assignee": "QA Team"
+          },
+          {
+            "id": "task-3.4",
+            "name": "性能测试",
+            "description": "测试应用性能指标",
+            "dependencies": ["task-2.7"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\test-results\\performance-tests.json",
+            "status": "pending",
+            "assignee": "QA Team"
+          },
+          {
+            "id": "task-3.5",
+            "name": "可访问性测试",
+            "description": "测试WCAG合规性",
+            "dependencies": ["task-2.7"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\test-results\\accessibility-tests.json",
+            "status": "pending",
+            "assignee": "QA Team"
+          }
+        ]
+      },
+      {
+        "id": "phase-4",
+        "name": "部署上线",
+        "start_date": "2026-05-11",
+        "end_date": "2026-05-14",
+        "tasks": [
+          {
+            "id": "task-4.1",
+            "name": "构建生产版本",
+            "description": "构建生产版本的安装包",
+            "dependencies": ["task-3.1", "task-3.2", "task-3.3", "task-3.4", "task-3.5"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\editor\\releases",
+            "status": "pending",
+            "assignee": "DevOps"
+          },
+          {
+            "id": "task-4.2",
+            "name": "发布文档更新",
+            "description": "更新发布说明和文档",
+            "dependencies": ["task-4.1"],
+            "deliverable": "c:\\Users\\Mayn\\Desktop\\Trae_Project\\Solarwire\\SolarWire-APP\\RELEASE.md",
+            "status": "pending",
+            "assignee": "Technical Writer"
+          },
+          {
+            "id": "task-4.3",
+            "name": "上线部署",
+            "description": "部署应用到发布渠道",
+            "dependencies": ["task-4.1", "task-4.2"],
+            "deliverable": "deployment:production",
+            "status": "pending",
+            "assignee": "DevOps"
+          }
+        ]
+      }
+    ],
+    "milestones": [
+      {
+        "id": "milestone-1",
+        "name": "需求分析完成",
+        "date": "2026-04-16",
+        "tasks": ["task-1.1", "task-1.2", "task-1.3"]
+      },
+      {
+        "id": "milestone-2",
+        "name": "核心功能开发完成",
+        "date": "2026-05-05",
+        "tasks": ["task-2.1", "task-2.2", "task-2.3", "task-2.4", "task-2.5", "task-2.6", "task-2.7"]
+      },
+      {
+        "id": "milestone-3",
+        "name": "测试验证完成",
+        "date": "2026-05-10",
+        "tasks": ["task-3.1", "task-3.2", "task-3.3", "task-3.4", "task-3.5"]
+      },
+      {
+        "id": "milestone-4",
+        "name": "部署上线完成",
+        "date": "2026-05-14",
+        "tasks": ["task-4.1", "task-4.2", "task-4.3"]
+      }
+    ],
+    "triggers": {
+      "phase_1_start": "文档分析完成",
+      "phase_2_start": "技术可行性评估通过",
+      "phase_3_start": "所有开发任务完成",
+      "phase_4_start": "所有测试通过"
+    },
+    "metrics": {
+      "progress_tracking": {
+        "method": "burndown chart",
+        "frequency": "daily"
+      },
+      "automated_evaluation": {
+        "lint": "npm run lint",
+        "typecheck": "npx tsc --noEmit",
+        "tests": "npm run test",
+        "coverage": "npm run test:coverage"
+      }
+    }
+  }
+}

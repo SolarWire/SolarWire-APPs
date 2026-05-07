@@ -4,6 +4,9 @@ import { useI18nStore } from '../../stores/i18nStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../i18n';
 import { feedback } from '../../stores/feedbackStore';
+import { useAppStore } from '../../stores/appStore';
+import { THEME_LIST, Theme } from '../../../shared/types/app';
+import ModalPortal from './ModalPortal';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -14,6 +17,7 @@ interface SettingsModalProps {
 function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElement | null {
   const { primaryColor, setPrimaryColor } = useSettingsStore();
   const { language, setLanguage } = useI18nStore();
+  const { theme, setTheme } = useAppStore();
   const t = useTranslation();
   const [tempPrimaryColor, setTempPrimaryColor] = useState(primaryColor);
   const [tempLanguage, setTempLanguage] = useState(language);
@@ -66,7 +70,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
   if (!isOpen) return null;
 
   return (
-    <div className="settings-modal-overlay" onClick={handleOverlayClick}>
+    <ModalPortal><div className="settings-modal-overlay" onClick={handleOverlayClick}>
       <div className="settings-modal">
         <div className="settings-modal-header">
           <h2>{t.settings.title}</h2>
@@ -95,6 +99,22 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
 
           <div className="settings-section">
             <h3>{t.settings.appearance}</h3>
+            <div className="settings-field">
+              <label>{t.settings.theme}</label>
+              <div className="theme-selector">
+                {THEME_LIST.map((item) => (
+                  <button
+                    key={item.id}
+                    className={`theme-option ${theme === item.id ? 'theme-option-active' : ''}`}
+                    onClick={() => setTheme(item.id)}
+                    title={t.themes[item.id]}
+                  >
+                    <span className="theme-option-icon">{item.icon}</span>
+                    <span className="theme-option-label">{t.themes[item.id]}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="settings-field">
               <label>{t.settings.accentColor}</label>
               <div className="color-picker-row">
@@ -138,7 +158,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 }
 

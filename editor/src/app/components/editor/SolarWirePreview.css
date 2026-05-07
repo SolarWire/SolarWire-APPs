@@ -125,7 +125,9 @@
   padding: 12px;
   border-radius: 4px;
   max-height: 400px;
-  overflow: visible; /* 移除 auto，让错误信息完整显示 */
+  overflow: visible;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .empty-overlay {

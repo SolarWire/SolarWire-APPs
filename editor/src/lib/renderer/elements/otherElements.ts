@@ -1,10 +1,30 @@
 import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues } from '../context';
 import { RenderResult } from './rectangle';
 
-/**
- * 表格行元素类型（带 children）
- */
+function calculateTextWidth(text: string, fontSize: number): number {
+  if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.font = `${fontSize}px Arial, sans-serif`;
+        return ctx.measureText(text).width;
+      }
+    } catch (_) {}
+  }
+  let width = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char.match(/[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/)) {
+      width += fontSize * 1.0;
+    } else {
+      width += fontSize * 0.6;
+    }
+  }
+  return width;
+}
+
 export type TableRowWithChildren = TableRowElement & {
   children?: Element[];
 };
@@ -39,6 +59,12 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
   const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle');
+  const textDecoration = getTextDecorationAttribute(element.attributes);
+  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
+  const align = getAlignAttribute(element.attributes, 'middle');
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 4);
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'circle'})"` : '';
@@ -48,10 +74,61 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}${shadowFilterAttr}/>`);
   
   if (element.text) {
+    const lines = element.text.split('\n');
+    const totalTextHeight = lines.length * lineHeight;
+    const textAreaW = w * 0.7;
+    const textAreaH = h * 0.7;
+
     let fontStyle = '';
     if (bold) fontStyle += 'font-weight="bold" ';
     if (italic) fontStyle += 'font-style="italic" ';
-    svgParts.push(`<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${fontSize}" ${fontStyle}>${escapeHtml(element.text)}</text>`);
+    if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
+    if (textDecoration !== 'none') fontStyle += `text-decoration="${textDecoration}" `;
+
+    let textX: number;
+    let textAnchor: string;
+    if (align === 'start') {
+      textX = cx - textAreaW / 2 + padding.left;
+      textAnchor = 'start';
+    } else if (align === 'end') {
+      textX = cx + textAreaW / 2 - padding.right;
+      textAnchor = 'end';
+    } else {
+      textX = cx;
+      textAnchor = 'middle';
+    }
+
+    let textY: number;
+    let dominantBaseline: string;
+    if (verticalAlign === 'top') {
+      textY = cy - textAreaH / 2 + padding.top + fontSize;
+      dominantBaseline = 'auto';
+    } else if (verticalAlign === 'bottom') {
+      textY = cy + textAreaH / 2 - padding.bottom - totalTextHeight + fontSize;
+      dominantBaseline = 'auto';
+    } else {
+      if (lines.length > 1) {
+        textY = cy - (totalTextHeight + padding.top + padding.bottom) / 2 + padding.top + fontSize;
+        dominantBaseline = 'auto';
+      } else {
+        textY = cy + (padding.top - padding.bottom) / 2;
+        dominantBaseline = 'middle';
+      }
+    }
+
+    if (lines.length === 1) {
+      svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" dominant-baseline="${dominantBaseline}" fill="${c}" font-size="${fontSize}" ${fontStyle}>${escapeHtml(lines[0])}</text>`);
+    } else {
+      svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" dominant-baseline="${dominantBaseline}" fill="${c}" font-size="${fontSize}" ${fontStyle}>`);
+      lines.forEach((line, i) => {
+        if (i === 0) {
+          svgParts.push(escapeHtml(line));
+        } else {
+          svgParts.push(`<tspan x="${textX}" dy="${lineHeight}">${escapeHtml(line)}</tspan>`);
+        }
+      });
+      svgParts.push('</text>');
+    }
   }
   
   const bounds: ElementBounds = {
@@ -100,11 +177,13 @@ export function renderText(element: TextElement, context: RenderContext): Render
 
   // 字间距属性
   const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults);
+  const textDecoration = getTextDecorationAttribute(element.attributes);
 
   let fontStyle = '';
   if (bold) fontStyle += 'font-weight="bold" ';
   if (italic) fontStyle += 'font-style="italic" ';
   if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
+  if (textDecoration !== 'none') fontStyle += `text-decoration="${textDecoration}" `;
 
   const textAnchor = align;
   let textX = pos.x;
@@ -133,36 +212,6 @@ export function renderText(element: TextElement, context: RenderContext): Render
 
   svgParts.push('</text>');
 
-  // 使用Canvas API准确计算文本宽度
-  const calculateTextWidth = (text: string, fontSize: number): number => {
-    // 在浏览器环境中使用Canvas API
-    if (typeof document !== 'undefined' && typeof window !== 'undefined') {
-      try {
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d');
-        if (context) {
-          context.font = `${fontSize}px Arial, sans-serif`;
-          return context.measureText(text).width;
-        }
-      } catch (e) {
-        // Canvas创建失败时回退到估算方法
-      }
-    }
-
-    // 回退到估算方法 - 对汉字特殊处理
-    let width = 0;
-    for (let i = 0; i < text.length; i++) {
-      const char = text[i];
-      // 判断是否为汉字、日文、韩文等宽字符
-      if (char.match(/[\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\uFF00-\uFFEF\u4E00-\u9FAF]/)) {
-        width += fontSize * 1.0; // 汉字宽度约等于字体大小
-      } else {
-        width += fontSize * 0.6; // 英文/数字宽度约为字体大小的0.6倍
-      }
-    }
-    return width;
-  };
-
   const estimatedWidth = w || (lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100);
   const estimatedHeight = lines.length > 0 ? lines.length * lineHeight : fontSize;
   
@@ -190,8 +239,6 @@ export function renderText(element: TextElement, context: RenderContext): Render
   };
 }
 
-
-
 export function renderPlaceholder(element: PlaceholderElement, context: RenderContext): RenderResult {
   let pos: AbsolutePosition;
   if (element.coordinates) {
@@ -208,6 +255,14 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const note = element.attributes['note'];
+  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle');
+  const align = getAlignAttribute(element.attributes, 'middle');
+  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
+  const textDecoration = getTextDecorationAttribute(element.attributes);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 8);
+  const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
+  const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   
   const svgParts: string[] = [];
   svgParts.push(`<g>`);
@@ -229,7 +284,59 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   svgParts.push(`<line x1="${centerX}" y1="${centerY}" x2="${pos.x + w}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
   
   const text = element.text || 'Placeholder';
-  svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${fontSize}">${escapeHtml(text)}</text>`);
+  const lines = text.split('\n');
+  const totalTextHeight = lines.length * lineHeight;
+
+  let fontStyle = '';
+  if (bold) fontStyle += 'font-weight="bold" ';
+  if (italic) fontStyle += 'font-style="italic" ';
+  if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
+  if (textDecoration !== 'none') fontStyle += `text-decoration="${textDecoration}" `;
+
+  let textX: number;
+  let textAnchor: string;
+  if (align === 'start') {
+    textX = pos.x + padding.left;
+    textAnchor = 'start';
+  } else if (align === 'end') {
+    textX = pos.x + w - padding.right;
+    textAnchor = 'end';
+  } else {
+    textX = pos.x + w / 2;
+    textAnchor = 'middle';
+  }
+
+  let textY: number;
+  let dominantBaseline: string;
+  if (verticalAlign === 'top') {
+    textY = pos.y + padding.top + fontSize;
+    dominantBaseline = 'auto';
+  } else if (verticalAlign === 'bottom') {
+    textY = pos.y + h - padding.bottom - totalTextHeight + fontSize;
+    dominantBaseline = 'auto';
+  } else {
+    if (lines.length > 1) {
+      textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + fontSize;
+      dominantBaseline = 'auto';
+    } else {
+      textY = pos.y + h / 2;
+      dominantBaseline = 'middle';
+    }
+  }
+
+  if (lines.length === 1) {
+    svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" dominant-baseline="${dominantBaseline}" fill="${c}" font-size="${fontSize}" ${fontStyle}>${escapeHtml(lines[0])}</text>`);
+  } else {
+    svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" dominant-baseline="${dominantBaseline}" fill="${c}" font-size="${fontSize}" ${fontStyle}>`);
+    lines.forEach((line, i) => {
+      if (i === 0) {
+        svgParts.push(escapeHtml(line));
+      } else {
+        svgParts.push(`<tspan x="${textX}" dy="${lineHeight}">${escapeHtml(line)}</tspan>`);
+      }
+    });
+    svgParts.push('</text>');
+  }
   
   const bounds: ElementBounds = {
     x: pos.x,
@@ -518,6 +625,11 @@ function renderTableCells(
     const cellBold = getBooleanAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'bold');
     const cellItalic = getBooleanAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'italic');
     const cellAlign = getAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'start');
+    const cellLineHeight = getNumberAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'line-height', 22);
+    const cellLetterSpacing = getLetterSpacingAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 0);
+    const cellVerticalAlign = getVerticalAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'top');
+    const cellTextDecoration = getTextDecorationAttribute({ ...rowAttributes, ...data.cell.attributes });
+    const cellPadding = getPaddingValues({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 8);
 
     svgParts.push(`<rect x="${cellX}" y="${cellY}" width="${cellWidth}" height="${cellHeight}" fill="${cellBg}" stroke="${cellBorder}" stroke-width="${cellStrokeWidth}"/>`);
 
@@ -534,6 +646,14 @@ function renderTableCells(
     if (cellBold) modifiedCell.attributes['bold'] = 'true';
     if (cellItalic) modifiedCell.attributes['italic'] = 'true';
     modifiedCell.attributes['align'] = cellAlign === 'start' ? 'l' : cellAlign === 'middle' ? 'c' : 'r';
+    modifiedCell.attributes['line-height'] = cellLineHeight.toString();
+    modifiedCell.attributes['letter-spacing'] = cellLetterSpacing.toString();
+    modifiedCell.attributes['vertical-align'] = cellVerticalAlign === 'top' ? 't' : cellVerticalAlign === 'middle' ? 'm' : 'b';
+    modifiedCell.attributes['text-decoration'] = cellTextDecoration;
+    modifiedCell.attributes['padding-top'] = cellPadding.top.toString();
+    modifiedCell.attributes['padding-right'] = cellPadding.right.toString();
+    modifiedCell.attributes['padding-bottom'] = cellPadding.bottom.toString();
+    modifiedCell.attributes['padding-left'] = cellPadding.left.toString();
 
     const result = renderChild(modifiedCell as any, cellContext);
     svgParts.push(result.svg);
@@ -674,7 +794,7 @@ function renderTableRow(
   const rowAttributes = element.attributes;
   const rowDefaults: Record<string, string> = {};
   
-  const inheritableAttrs = ['c', 'bg', 'b', 's', 'size', 'bold', 'italic', 'align'];
+  const inheritableAttrs = ['c', 'bg', 'b', 's', 'size', 'bold', 'italic', 'align', 'line-height', 'letter-spacing', 'vertical-align', 'text-decoration', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
   inheritableAttrs.forEach(attr => {
     if (rowAttributes[attr] !== undefined) {
       rowDefaults[attr] = rowAttributes[attr];

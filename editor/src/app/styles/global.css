@@ -26,7 +26,7 @@
   box-sizing: border-box;
 }
 
-:root {
+body.theme-solid-dark {
   /* ========================================
      暗色主题 (Dark Theme) CSS变量定义
      ======================================== */
@@ -94,6 +94,11 @@
   /* 辅助颜色 - 装饰和背景 */
   --grid-color: rgba(128, 128, 128, 0.1);  /* 网格线颜色 - 浅灰色透明 */
   
+  /* 毛玻璃效果变量 - 默认不启用 */
+  --glass-blur: 0px;
+  --glass-border: transparent;
+  --glass-saturate: 100%;
+  
   /* ========================================
      滚动条样式标准化变量
      ========================================
@@ -131,7 +136,12 @@
   --z-toast: 90;                  /* 提示消息 */
   --z-notification: 95;           /* 通知（导出通知等） */
   --z-color-picker-popup: 60;     /* 颜色选择器弹出（= popover） */
-  
+
+  --ruler-bg: #1e1e1e;
+  --ruler-text: #999;
+  --ruler-tick: #555;
+  --ruler-border: #333;
+
   /* ========================================
      字体大小标准化体系
      ========================================
@@ -148,89 +158,401 @@
   --font-size-3xl: 20px;  /* 3倍大字体 - 大标题 */
 }
 
-body.theme-light {
-  /* 背景色系统 - 从浅到深的层级（与暗色主题相反） */
-  --bg-primary: #ffffff;     /* 主要背景色 - 纯白色 */
-  --bg-secondary: #f5f5f5;   /* 次要背景色 - 浅灰色 */
-  --bg-tertiary: #eeeeee;     /* 第三级背景色 - 更浅灰色 */
-  --bg-light: #f5f5f5;       /* 浅色背景 - 保持一致 */
-  --bg-hover: #e0e0e0;       /* 悬停状态背景色 - 中灰色 */
-  --bg-selected: #0e639c;    /* 选中状态背景色 - 保持蓝色 */
-  
-  /* 文本色系统 - 从深到浅的对比度（与暗色主题相反） */
-  --text-primary: #333333;   /* 主要文本色 - 深灰色 */
-  --text-secondary: #666666; /* 次要文本色 - 中灰色 */
-  --text-muted: #999999;     /* 弱化文本色 - 浅灰色 */
-  --text-dark: #333333;     /* 深色文本 - 保持一致 */
-  --text-info: #007acc;     /* 信息文本色 - 蓝色 */
-  
-  /* 边框色系统 - 适配亮色主题的边框 */
-  --border-color: #ddd;      /* 标准边框色 - 浅灰色 */
-  --border-light: #ddd;      /* 浅色边框 - 保持一致 */
-  --border-lighter: #ddd;    /* 更浅边框 - 保持一致 */
-  --border-dark: #ccc;       /* 深色边框 - 中灰色 */
-  
-  /* 强调色系统 - 保持品牌一致性 */
-  --accent-color: #FCA506;   /* 主强调色 - SolarWire品牌橙 */
-  --accent-hover: #e89700;   /* 强调色悬停状态 */
-  --primary-color: #007bff;  /* 主色调 - 蓝色系 */
-  --status-bar-bg: #007acc;  /* 状态栏背景色 */
-  
-  /* 主色派生变量 - 统一透明度体系 */
+body.theme-solid-light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f5f5;
+  --bg-tertiary: #eeeeee;
+  --bg-light: #f5f5f5;
+  --bg-hover: #e0e0e0;
+  --bg-selected: #0e639c;
+
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-dark: #333333;
+  --text-info: #007acc;
+
+  --border-color: #ddd;
+  --border-light: #ddd;
+  --border-lighter: #ddd;
+  --border-dark: #ccc;
+
+  --accent-color: #FCA506;
+  --accent-hover: #e89700;
+  --primary-color: #007bff;
+  --status-bar-bg: #007acc;
+
   --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
   --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
   --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
   --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
   --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
-  
-  /* 基础色 - 保持纯色定义 */
-  --white: #ffffff;          /* 纯白色 */
-  --black: #000000;          /* 纯黑色 */
-  
-  /* 语义化颜色 - 适配亮色主题的状态色彩 */
-  --error-bg: rgba(211, 47, 47, 0.1);        /* 错误背景色 - 透明红 */
-  --error-border: rgba(211, 47, 47, 0.5);     /* 错误边框色 - 半透明红 */
-  --error-text: #d32f2f;                     /* 错误文本色 - 深红色 */
-  --error-bg-solid: #d32f2f;                 /* 错误实色背景 - 深红色 */
-  --warning-bg: rgba(255, 152, 0, 0.1);        /* 警告背景色 - 透明橙 */
-  --warning-border: rgba(255, 152, 0, 0.5);     /* 警告边框色 - 半透明橙 */
-  --warning-text: #f57c00;                     /* 警告文本色 - 深橙色 */
-  --success-bg: rgba(76, 175, 80, 0.1);        /* 成功背景色 - 透明绿 */
-  --success-border: rgba(76, 175, 80, 0.5);     /* 成功边框色 - 半透明绿 */
-  --success-text: #388e3c;                     /* 成功文本色 - 深绿色 */
-  
-  /* 状态指示颜色 - 保持与暗色主题一致 */
-  --status-blue: #2196f3;   /* 信息状态 - 蓝色 */
-  --status-gray: #9e9e9e;   /* 中性状态 - 灰色 */
-  --status-orange: #ffb347; /* 警告状态 - 橙色 */
-  --status-green: #4caf50;  /* 成功状态 - 绿色 */
-  
-  /* 功能性颜色 - 保持一致性 */
-  --divider-bg: #666;               /* 分隔线背景色 */
-  --divider-horizontal: var(--accent-color); /* 水平分隔线色 - 使用强调色 */
-  
-  /* 辅助颜色 - 保持一致性 */
-  --grid-color: rgba(128, 128, 128, 0.1);  /* 网格线颜色 - 浅灰色透明 */
-  
-  /* 滚动条样式 - 继承全局标准化变量 */
-  --scrollbar-width: 14px;
-  --scrollbar-height: 10px;
-  --scrollbar-track: transparent;
-  --scrollbar-thumb: var(--border-color);
-  --scrollbar-thumb-hover: var(--text-muted);
-  --scrollbar-corner: transparent;
-  
-  /* z-index 层级管理 - 继承 :root 标准化体系，不覆盖 */
-  
-  /* 字体大小标准化 - 继承全局标准化体系 */
-  --font-size-xs: 10px;
-  --font-size-sm: 11px;
-  --font-size-base: 12px;
-  --font-size-md: 13px;
-  --font-size-lg: 14px;
-  --font-size-xl: 16px;
-  --font-size-2xl: 18px;
-  --font-size-3xl: 20px;
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --error-bg: rgba(211, 47, 47, 0.1);
+  --error-border: rgba(211, 47, 47, 0.5);
+  --error-text: #d32f2f;
+  --error-bg-solid: #d32f2f;
+  --warning-bg: rgba(255, 152, 0, 0.1);
+  --warning-border: rgba(255, 152, 0, 0.5);
+  --warning-text: #f57c00;
+  --success-bg: rgba(76, 175, 80, 0.1);
+  --success-border: rgba(76, 175, 80, 0.5);
+  --success-text: #388e3c;
+
+  --status-blue: #2196f3;
+  --status-gray: #9e9e9e;
+  --status-orange: #ffb347;
+  --status-green: #4caf50;
+
+  --divider-bg: #666;
+  --divider-horizontal: var(--accent-color);
+
+  --grid-color: rgba(128, 128, 128, 0.1);
+
+  --glass-blur: 0px;
+  --glass-border: transparent;
+  --glass-saturate: 100%;
+
+  --ruler-bg: #f0f0f0;
+  --ruler-text: #666;
+  --ruler-tick: #bbb;
+  --ruler-border: #ddd;
+}
+
+body.theme-glass-dark {
+  --bg-primary: rgba(18, 18, 18, 0.82);
+  --bg-secondary: rgba(30, 30, 30, 0.75);
+  --bg-tertiary: rgba(40, 40, 40, 0.68);
+  --bg-light: #f5f5f5;
+  --bg-hover: rgba(60, 60, 60, 0.7);
+  --bg-selected: rgba(14, 99, 156, 0.7);
+
+  --text-primary: #ffffff;
+  --text-secondary: #cccccc;
+  --text-muted: #999999;
+  --text-dark: #333333;
+  --text-info: #9cdcfe;
+
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-light: rgba(255, 255, 255, 0.12);
+  --border-lighter: rgba(255, 255, 255, 0.06);
+  --border-dark: rgba(255, 255, 255, 0.15);
+
+  --accent-color: #FCA506;
+  --accent-hover: #e89700;
+  --primary-color: #007bff;
+  --status-bar-bg: rgba(0, 122, 204, 0.7);
+
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --error-bg: rgba(211, 47, 47, 0.15);
+  --error-border: rgba(211, 47, 47, 0.5);
+  --error-text: #ff6b6b;
+  --error-bg-solid: #d32f2f;
+  --warning-bg: rgba(255, 152, 0, 0.15);
+  --warning-border: rgba(255, 152, 0, 0.5);
+  --warning-text: #ff9800;
+  --success-bg: rgba(76, 175, 80, 0.15);
+  --success-border: rgba(76, 175, 80, 0.5);
+  --success-text: #4caf50;
+
+  --status-blue: #2196f3;
+  --status-gray: #9e9e9e;
+  --status-orange: #ffb347;
+  --status-green: #4caf50;
+
+  --divider-bg: rgba(102, 102, 102, 0.5);
+  --divider-horizontal: var(--accent-color);
+
+  --grid-color: rgba(128, 128, 128, 0.1);
+
+  --glass-blur: 20px;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-saturate: 120%;
+
+  --ruler-bg: #1e1e1e;
+  --ruler-text: #999;
+  --ruler-tick: #555;
+  --ruler-border: #333;
+}
+
+body.theme-glass-light {
+  --bg-primary: rgba(255, 255, 255, 0.82);
+  --bg-secondary: rgba(245, 245, 245, 0.75);
+  --bg-tertiary: rgba(235, 235, 235, 0.68);
+  --bg-light: #f5f5f5;
+  --bg-hover: rgba(220, 220, 220, 0.7);
+  --bg-selected: rgba(14, 99, 156, 0.7);
+
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-dark: #333333;
+  --text-info: #007acc;
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-light: rgba(0, 0, 0, 0.12);
+  --border-lighter: rgba(0, 0, 0, 0.05);
+  --border-dark: rgba(0, 0, 0, 0.15);
+
+  --accent-color: #FCA506;
+  --accent-hover: #e89700;
+  --primary-color: #007bff;
+  --status-bar-bg: rgba(0, 122, 204, 0.7);
+
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --error-bg: rgba(211, 47, 47, 0.1);
+  --error-border: rgba(211, 47, 47, 0.5);
+  --error-text: #d32f2f;
+  --error-bg-solid: #d32f2f;
+  --warning-bg: rgba(255, 152, 0, 0.1);
+  --warning-border: rgba(255, 152, 0, 0.5);
+  --warning-text: #f57c00;
+  --success-bg: rgba(76, 175, 80, 0.1);
+  --success-border: rgba(76, 175, 80, 0.5);
+  --success-text: #388e3c;
+
+  --status-blue: #2196f3;
+  --status-gray: #9e9e9e;
+  --status-orange: #ffb347;
+  --status-green: #4caf50;
+
+  --divider-bg: rgba(102, 102, 102, 0.3);
+  --divider-horizontal: var(--accent-color);
+
+  --grid-color: rgba(128, 128, 128, 0.1);
+
+  --glass-blur: 20px;
+  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-saturate: 110%;
+
+  --ruler-bg: #f0f0f0;
+  --ruler-text: #666;
+  --ruler-tick: #bbb;
+  --ruler-border: #ddd;
+}
+
+body.theme-cyberpunk {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #0f0f1a;
+  --bg-tertiary: #141425;
+  --bg-light: #f5f5f5;
+  --bg-hover: #1a1a30;
+  --bg-selected: rgba(0, 240, 255, 0.15);
+
+  --text-primary: #e0e0ff;
+  --text-secondary: #8888cc;
+  --text-muted: #555588;
+  --text-dark: #333333;
+  --text-info: #00f0ff;
+
+  --border-color: rgba(0, 240, 255, 0.15);
+  --border-light: rgba(255, 0, 255, 0.15);
+  --border-lighter: rgba(0, 240, 255, 0.08);
+  --border-dark: rgba(0, 240, 255, 0.25);
+
+  --accent-color: #00f0ff;
+  --accent-hover: #00c8d4;
+  --primary-color: #ff00ff;
+  --status-bar-bg: rgba(0, 240, 255, 0.3);
+
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --error-bg: rgba(255, 0, 80, 0.15);
+  --error-border: rgba(255, 0, 80, 0.5);
+  --error-text: #ff0050;
+  --error-bg-solid: #ff0050;
+  --warning-bg: rgba(240, 255, 0, 0.1);
+  --warning-border: rgba(240, 255, 0, 0.4);
+  --warning-text: #f0ff00;
+  --success-bg: rgba(0, 255, 128, 0.1);
+  --success-border: rgba(0, 255, 128, 0.4);
+  --success-text: #00ff80;
+
+  --status-blue: #00f0ff;
+  --status-gray: #555588;
+  --status-orange: #f0ff00;
+  --status-green: #00ff80;
+
+  --divider-bg: rgba(0, 240, 255, 0.2);
+  --divider-horizontal: var(--accent-color);
+
+  --grid-color: rgba(0, 240, 255, 0.05);
+
+  --neon-cyan: #00f0ff;
+  --neon-magenta: #ff00ff;
+  --neon-yellow: #f0ff00;
+  --neon-glow: 0 0 8px;
+  --neon-glow-strong: 0 0 16px;
+
+  --glass-blur: 0px;
+  --glass-border: transparent;
+  --glass-saturate: 100%;
+
+  --ruler-bg: #0a0a0f;
+  --ruler-text: #8888cc;
+  --ruler-tick: rgba(0, 240, 255, 0.3);
+  --ruler-border: rgba(0, 240, 255, 0.15);
+}
+
+body.theme-paper {
+  --bg-primary: #f5f0e8;
+  --bg-secondary: #ece6da;
+  --bg-tertiary: #e2dcd0;
+  --bg-light: #f5f5f5;
+  --bg-hover: #d8d2c6;
+  --bg-selected: rgba(139, 105, 20, 0.15);
+
+  --text-primary: #2c2416;
+  --text-secondary: #5c4f3a;
+  --text-muted: #8a7d68;
+  --text-dark: #2c2416;
+  --text-info: #6b5a3a;
+
+  --border-color: rgba(44, 36, 22, 0.12);
+  --border-light: rgba(44, 36, 22, 0.08);
+  --border-lighter: rgba(44, 36, 22, 0.05);
+  --border-dark: rgba(44, 36, 22, 0.2);
+
+  --accent-color: #8b6914;
+  --accent-hover: #7a5c10;
+  --primary-color: #5c4f3a;
+  --status-bar-bg: #8b6914;
+
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --error-bg: rgba(180, 40, 40, 0.08);
+  --error-border: rgba(180, 40, 40, 0.3);
+  --error-text: #8b2020;
+  --error-bg-solid: #8b2020;
+  --warning-bg: rgba(180, 120, 0, 0.08);
+  --warning-border: rgba(180, 120, 0, 0.3);
+  --warning-text: #8b5c00;
+  --success-bg: rgba(60, 120, 40, 0.08);
+  --success-border: rgba(60, 120, 40, 0.3);
+  --success-text: #3c7828;
+
+  --status-blue: #4a6a8a;
+  --status-gray: #8a7d68;
+  --status-orange: #b8860b;
+  --status-green: #3c7828;
+
+  --divider-bg: rgba(44, 36, 22, 0.15);
+  --divider-horizontal: var(--accent-color);
+
+  --grid-color: rgba(44, 36, 22, 0.06);
+
+  --paper-shadow: 0 1px 3px rgba(44, 36, 22, 0.1);
+  --paper-shadow-elevated: 0 4px 12px rgba(44, 36, 22, 0.15);
+
+  --glass-blur: 0px;
+  --glass-border: transparent;
+  --glass-saturate: 100%;
+
+  --ruler-bg: #f5f0e8;
+  --ruler-text: #8a7d68;
+  --ruler-tick: #c4b8a4;
+  --ruler-border: rgba(44, 36, 22, 0.2);
+}
+
+body.theme-minimal {
+  --bg-primary: #ffffff;
+  --bg-secondary: #fafafa;
+  --bg-tertiary: #f5f5f5;
+  --bg-light: #f5f5f5;
+  --bg-hover: #f0f0f0;
+  --bg-selected: #000000;
+
+  --text-primary: #000000;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --text-dark: #000000;
+  --text-info: #333333;
+
+  --border-color: #e0e0e0;
+  --border-light: #f0f0f0;
+  --border-lighter: #f5f5f5;
+  --border-dark: #cccccc;
+
+  --accent-color: #000000;
+  --accent-hover: #333333;
+  --primary-color: #000000;
+  --status-bar-bg: #000000;
+
+  --accent-opacity-10: color-mix(in srgb, var(--accent-color) 10%, transparent);
+  --accent-opacity-15: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  --accent-opacity-35: color-mix(in srgb, var(--accent-color) 35%, transparent);
+  --accent-opacity-50: color-mix(in srgb, var(--accent-color) 50%, transparent);
+  --accent-light: color-mix(in srgb, var(--accent-color) 15%, white);
+
+  --white: #ffffff;
+  --black: #000000;
+
+  --error-bg: rgba(0, 0, 0, 0.04);
+  --error-border: rgba(0, 0, 0, 0.2);
+  --error-text: #cc0000;
+  --error-bg-solid: #cc0000;
+  --warning-bg: rgba(0, 0, 0, 0.04);
+  --warning-border: rgba(0, 0, 0, 0.2);
+  --warning-text: #996600;
+  --success-bg: rgba(0, 0, 0, 0.04);
+  --success-border: rgba(0, 0, 0, 0.2);
+  --success-text: #006600;
+
+  --status-blue: #333333;
+  --status-gray: #999999;
+  --status-orange: #666666;
+  --status-green: #006600;
+
+  --divider-bg: #e0e0e0;
+  --divider-horizontal: var(--accent-color);
+
+  --grid-color: rgba(0, 0, 0, 0.05);
+
+  --minimal-border-width: 0.5px;
+  --minimal-radius: 2px;
+  --minimal-spacing: 1.5;
+
+  --glass-blur: 0px;
+  --glass-border: transparent;
+  --glass-saturate: 100%;
+
+  --ruler-bg: #ffffff;
+  --ruler-text: #666666;
+  --ruler-tick: #cccccc;
+  --ruler-border: #e0e0e0;
 }
 
 /* ========================================
@@ -359,7 +681,7 @@ body {
 /* Toast 通知 - 信息类使用主色 */
 .toast-info {
   border-left: 3px solid var(--accent-color);
-  background: var(--accent-opacity-10);
+  background: var(--bg-secondary);
 }
 
 /* 图标强调色 */
@@ -389,4 +711,51 @@ body {
 
 .border-accent-light {
   border-color: var(--accent-opacity-50);
+}
+
+.glass-panel {
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(var(--glass-saturate, 100%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(var(--glass-saturate, 100%));
+  border: 1px solid var(--glass-border, transparent);
+}
+
+.solarwire-toolbar,
+.left-panel,
+.property-panel-fixed,
+.layer-panel-fixed,
+.component-library-panel-fixed,
+.toast-item,
+.context-menu,
+.error-card,
+.tab-bar {
+  backdrop-filter: blur(var(--glass-blur, 0px)) saturate(var(--glass-saturate, 100%));
+  -webkit-backdrop-filter: blur(var(--glass-blur, 0px)) saturate(var(--glass-saturate, 100%));
+}
+
+.theme-cyberpunk .panel-border-glow {
+  box-shadow: var(--neon-glow) var(--neon-cyan);
+}
+
+.theme-cyberpunk .neon-text {
+  text-shadow: 0 0 4px currentColor;
+}
+
+.theme-paper .paper-shadow {
+  box-shadow: var(--paper-shadow);
+  border: none;
+}
+
+.theme-paper .paper-shadow-elevated {
+  box-shadow: var(--paper-shadow-elevated);
+  border: none;
+}
+
+.theme-minimal .minimal-border {
+  border-width: var(--minimal-border-width);
+  border-radius: var(--minimal-radius);
+}
+
+.theme-minimal .minimal-spacing {
+  padding: calc(8px * var(--minimal-spacing));
+  gap: calc(8px * var(--minimal-spacing));
 }

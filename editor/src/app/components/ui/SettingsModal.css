@@ -223,3 +223,45 @@
   font-size: 12px;
   margin-top: 4px;
 }
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.theme-option:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
+.theme-option-active {
+  border-color: var(--accent-color);
+  background: var(--accent-opacity-10);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.theme-option-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.theme-option-label {
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}

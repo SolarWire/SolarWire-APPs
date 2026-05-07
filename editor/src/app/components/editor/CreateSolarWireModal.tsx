@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { FileNode } from '../../../shared/types/file';
 import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateFileModal.css';
 
 interface CreateSolarWireModalProps {
@@ -131,7 +132,7 @@ const CreateSolarWireModal: React.FC<CreateSolarWireModalProps> = ({ isOpen, onC
   if (!isOpen) return null;
 
   return (
-    <div className="create-file-modal-overlay">
+    <ModalPortal><div className="create-file-modal-overlay">
       <div className="create-file-modal">
         <div className="create-file-modal-header">
           <h3>新建SolarWire文件</h3>
@@ -184,7 +185,7 @@ const CreateSolarWireModal: React.FC<CreateSolarWireModalProps> = ({ isOpen, onC
           </div>
         </form>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

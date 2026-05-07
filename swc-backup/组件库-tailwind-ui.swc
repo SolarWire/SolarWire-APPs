@@ -20,7 +20,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Get Started") @(10, 10) w=140 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
+["Get Started"] @(10, 10) w=140 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
 ```
 
 ### CTA 按钮
@@ -32,7 +32,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Start Free Trial") @(10, 10) w=180 h=48 bg=#4f46e5 c=#ffffff size=16 r=8
+["Start Free Trial"] @(10, 10) w=180 h=48 bg=#4f46e5 c=#ffffff size=16 r=8
 ```
 
 ### 次要按钮
@@ -44,7 +44,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Learn More") @(10, 10) w=130 h=42 bg=#ffffff c=#4f46e5 size=14 s=1 r=8
+["Learn More"] @(10, 10) w=130 h=42 bg=#ffffff c=#4f46e5 size=14 s=1 r=8
 ```
 
 ### 幽灵按钮
@@ -56,7 +56,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Sign In") @(10, 10) w=100 h=42 bg=transparent c=#4f46e5 size=14 r=8
+["Sign In"] @(10, 10) w=100 h=42 bg=transparent c=#4f46e5 size=14 r=8
 ```
 
 ### 危险按钮
@@ -68,7 +68,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Delete") @(10, 10) w=100 h=42 bg=#dc2626 c=#ffffff size=14 r=8
+["Delete"] @(10, 10) w=100 h=42 bg=#dc2626 c=#ffffff size=14 r=8
 ```
 
 ### 图标按钮
@@ -80,7 +80,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("☰")) @(10, 10) w=40 h=40 bg=transparent c=#6b7280 size=18 r=8
+("☰") @(10, 10) w=40 h=40 bg=transparent c=#6b7280 size=18 r=8
 ```
 
 ### 徽标
@@ -92,7 +92,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("New") @(10, 10) w=50 h=24 bg=#dbeafe c=#1d4ed8 size=11 r=12
+["New"] @(10, 10) w=50 h=24 bg=#dbeafe c=#1d4ed8 size=11 r=12
 ```
 
 ### 头像
@@ -104,7 +104,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=40 h=40 bg=#4f46e5 c=#ffffff size=16
+("A") @(10, 10) w=40 h=40 bg=#4f46e5 c=#ffffff size=16
 ```
 
 ### 头像组
@@ -116,10 +116,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=36 h=36 bg=#4f46e5 c=#ffffff size=14
-(("B")) @(28, 10) w=36 h=36 bg=#7c3aed c=#ffffff size=14
-(("C")) @(46, 10) w=36 h=36 bg=#2563eb c=#ffffff size=14
-(("+3")) @(64, 10) w=36 h=36 bg=#e5e7eb c=#6b7280 size=12
+("A") @(10, 10) w=36 h=36 bg=#4f46e5 c=#ffffff size=14
+("B") @(28, 10) w=36 h=36 bg=#7c3aed c=#ffffff size=14
+("C") @(46, 10) w=36 h=36 bg=#2563eb c=#ffffff size=14
+("+3") @(64, 10) w=36 h=36 bg=#e5e7eb c=#6b7280 size=12
 ```
 
 ### 分割线
@@ -149,7 +149,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Enter your email...") @(10, 10) w=280 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Enter your email..."] @(10, 10) w=280 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 ```
 
 ### 带按钮输入框
@@ -161,8 +161,8 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Enter your email...") @(10, 10) w=200 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
-("Subscribe") @(220, 10) w=100 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
+["Enter your email..."] @(10, 10) w=200 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Subscribe"] @(220, 10) w=100 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
 ```
 
 ### 多行文本
@@ -174,7 +174,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Your message...") @(10, 10) w=300 h=100 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Your message..."] @(10, 10) w=300 h=100 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 ```
 
 ### 下拉选择
@@ -186,7 +186,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Select option...") @(10, 10) w=240 h=42 bg=#ffffff c=#374151 size=14 s=1 r=8
+["Select option..."] @(10, 10) w=240 h=42 bg=#ffffff c=#374151 size=14 s=1 r=8
 "▼" @(220, 22) c=#9ca3af size=12
 ```
 
@@ -199,7 +199,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("✓")) @(10, 10) w=18 h=18 bg=#4f46e5 c=#ffffff size=12
+("✓") @(10, 10) w=18 h=18 bg=#4f46e5 c=#ffffff size=12
 "I agree to the terms" @(36, 12) c=#374151 size=14
 ```
 
@@ -212,8 +212,8 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=44 h=24 bg=#4f46e5 r=12
-(("●")) @(36, 14) w=16 h=16 bg=#ffffff size=8
+[""] @(10, 10) w=44 h=24 bg=#4f46e5 r=12
+("●") @(36, 14) w=16 h=16 bg=#ffffff size=8
 ```
 
 ### 单选框
@@ -225,9 +225,9 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("●")) @(10, 10) w=18 h=18 bg=#4f46e5 c=#ffffff size=8
+("●") @(10, 10) w=18 h=18 bg=#4f46e5 c=#ffffff size=8
 "Option A" @(34, 12) c=#374151 size=14
-(("○")) @(120, 10) w=18 h=18 bg=#ffffff c=#d1d5db size=8 s=1
+("○") @(120, 10) w=18 h=18 bg=#ffffff c=#d1d5db size=8 s=1
 "Option B" @(144, 12) c=#374151 size=14
 ```
 
@@ -296,10 +296,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=40 h=40 bg=#4f46e5 c=#ffffff size=14
+("A") @(10, 10) w=40 h=40 bg=#4f46e5 c=#ffffff size=14
 "Alice Johnson" @(60, 12) c=#111827 size=14 bold=true
 "alice@example.com" @(60, 30) c=#6b7280 size=12
-("View") @(240, 15) w=60 h=28 bg=#ffffff c=#4f46e5 size=12 s=1 r=6
+["View"] @(240, 15) w=60 h=28 bg=#ffffff c=#4f46e5 size=12 s=1 r=6
 ```
 
 ---
@@ -317,7 +317,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=320 h=160 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=320 h=160 bg=#ffffff s=1 r=8
 "Card Title" @(20, 20) c=#111827 size=16 bold=true
 "Card description with some content." @(20, 45) c=#6b7280 size=13
 ```
@@ -331,8 +331,8 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=200 h=180 bg=#ffffff s=1 r=8
-(("⚡")) @(20, 20) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
+[""] @(10, 10) w=200 h=180 bg=#ffffff s=1 r=8
+("⚡") @(20, 20) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
 "Fast Performance" @(20, 70) c=#111827 size=14 bold=true
 "Our solution delivers lightning-fast results." @(20, 95) c=#6b7280 size=12
 ```
@@ -346,7 +346,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=240 h=300 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=240 h=300 bg=#ffffff s=1 r=8
 "Professional" @(20, 20) c=#111827 size=16 bold=true
 "$49" @(20, 45) c=#4f46e5 size=32 bold=true
 "/month" @(60, 60) c=#6b7280 size=14
@@ -354,7 +354,7 @@ updatedAt: 2026-04-24T00:00:00Z
 "✓ Priority support" @(20, 110) c=#374151 size=12
 "✓ Advanced analytics" @(20, 130) c=#374151 size=12
 "✓ Custom integrations" @(20, 150) c=#374151 size=12
-("Get Started") @(20, 180) w=200 h=40 bg=#4f46e5 c=#ffffff size=14 r=8
+["Get Started"] @(20, 180) w=200 h=40 bg=#4f46e5 c=#ffffff size=14 r=8
 ```
 
 ### 推荐定价卡片
@@ -366,8 +366,8 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=240 h=320 bg=#4f46e5 s=1 r=8
-("Most Popular") @(70, 15) w=100 h=22 bg=#ffffff c=#4f46e5 size=10 r=12
+[""] @(10, 10) w=240 h=320 bg=#4f46e5 s=1 r=8
+["Most Popular"] @(70, 15) w=100 h=22 bg=#ffffff c=#4f46e5 size=10 r=12
 "Enterprise" @(20, 45) c=#ffffff size=16 bold=true
 "$99" @(20, 70) c=#ffffff size=32 bold=true
 "/month" @(60, 85) c=#c7d2fe size=14
@@ -375,7 +375,7 @@ updatedAt: 2026-04-24T00:00:00Z
 "✓ 24/7 Phone support" @(20, 135) c=#e0e7ff size=12
 "✓ Custom contracts" @(20, 155) c=#e0e7ff size=12
 "✓ SSO & SAML" @(20, 175) c=#e0e7ff size=12
-("Get Started") @(20, 210) w=200 h=40 bg=#ffffff c=#4f46e5 size=14 r=8
+["Get Started"] @(20, 210) w=200 h=40 bg=#ffffff c=#4f46e5 size=14 r=8
 ```
 
 ### 推荐卡片
@@ -387,10 +387,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=140 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=300 h=140 bg=#ffffff s=1 r=8
 "★★★★★" @(20, 20) c=#f59e0b size=16
 "This product has completely transformed our workflow. Highly recommended!" @(20, 45) c=#374151 size=13
-(("A")) @(20, 95) w=32 h=32 bg=#4f46e5 c=#ffffff size=12
+("A") @(20, 95) w=32 h=32 bg=#4f46e5 c=#ffffff size=12
 "Alice Johnson" @(60, 98) c=#111827 size=13 bold=true
 "CEO, TechCorp" @(60, 115) c=#6b7280 size=11
 ```
@@ -404,7 +404,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=200 h=100 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=200 h=100 bg=#ffffff s=1 r=8
 "Total Revenue" @(20, 20) c=#6b7280 size=12
 "$45,231" @(20, 42) c=#111827 size=24 bold=true
 "+20.1% from last month" @(20, 72) c=#10b981 size=12
@@ -425,7 +425,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
 "Revenue" @(20, 20) c=#111827 size=14 bold=true
 -- @(20, 150)->(280, 150) b=#f3f4f6 s=1
 -- @(20, 50)->(20, 150) b=#f3f4f6 s=1
@@ -433,10 +433,10 @@ updatedAt: 2026-04-24T00:00:00Z
 -- @(20, 120)->(95, 70) b=#4f46e5 s=2
 -- @(95, 70)->(170, 90) b=#4f46e5 s=2
 -- @(170, 90)->(245, 50) b=#4f46e5 s=2
-(("●")) @(20, 120) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
-(("●")) @(95, 70) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
-(("●")) @(170, 90) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
-(("●")) @(245, 50) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
+("●") @(20, 120) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
+("●") @(95, 70) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
+("●") @(170, 90) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
+("●") @(245, 50) w=6 h=6 bg=#4f46e5 c=#4f46e5 size=3
 ```
 
 ### 柱状图
@@ -448,14 +448,14 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=300 h=180 bg=#ffffff s=1 r=8
 "Monthly Sales" @(20, 20) c=#111827 size=14 bold=true
 -- @(20, 150)->(280, 150) b=#f3f4f6 s=1
-("") @(40, 100) w=30 h=50 bg=#4f46e5 r=4
-("") @(90, 80) w=30 h=70 bg=#4f46e5 r=4
-("") @(140, 60) w=30 h=90 bg=#4f46e5 r=4
-("") @(190, 90) w=30 h=60 bg=#818cf8 r=4
-("") @(240, 70) w=30 h=80 bg=#818cf8 r=4
+[""] @(40, 100) w=30 h=50 bg=#4f46e5 r=4
+[""] @(90, 80) w=30 h=70 bg=#4f46e5 r=4
+[""] @(140, 60) w=30 h=90 bg=#4f46e5 r=4
+[""] @(190, 90) w=30 h=60 bg=#818cf8 r=4
+[""] @(240, 70) w=30 h=80 bg=#818cf8 r=4
 ```
 
 ---
@@ -473,7 +473,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Search...") @(10, 10) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Search..."] @(10, 10) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 "🔍" @(15, 20) c=#9ca3af size=14
 ```
 
@@ -486,9 +486,9 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Search...") @(10, 10) w=220 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Search..."] @(10, 10) w=220 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 "🔍" @(15, 20) c=#9ca3af size=14
-("Search") @(240, 10) w=80 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
+["Search"] @(240, 10) w=80 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
 ```
 
 ---
@@ -506,13 +506,13 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=320 h=16 bg=#ffffff s=1
+[""] @(0, 0) w=320 h=16 bg=#ffffff s=1
 "Logo" @(15, 4) c=#4f46e5 size=12 bold=true
 "Features" @(80, 5) c=#374151 size=10
 "Pricing" @(130, 5) c=#374151 size=10
 "About" @(180, 5) c=#374151 size=10
-("Sign In") @(220, 2) w=40 h=12 bg=transparent c=#4f46e5 size=8 r=4
-("Sign Up") @(265, 2) w=45 h=12 bg=#4f46e5 c=#ffffff size=8 r=4
+["Sign In"] @(220, 2) w=40 h=12 bg=transparent c=#4f46e5 size=8 r=4
+["Sign Up"] @(265, 2) w=45 h=12 bg=#4f46e5 c=#ffffff size=8 r=4
 ```
 
 ### 面包屑
@@ -540,11 +540,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("<") @(10, 10) w=32 h=32 bg=#ffffff c=#6b7280 size=12 s=1 r=8
-("1") @(48, 10) w=32 h=32 bg=#4f46e5 c=#ffffff size=12 r=8
-("2") @(86, 10) w=32 h=32 bg=#ffffff c=#374151 size=12 s=1 r=8
-("3") @(124, 10) w=32 h=32 bg=#ffffff c=#374151 size=12 s=1 r=8
-(">") @(162, 10) w=32 h=32 bg=#ffffff c=#6b7280 size=12 s=1 r=8
+["<"] @(10, 10) w=32 h=32 bg=#ffffff c=#6b7280 size=12 s=1 r=8
+["1"] @(48, 10) w=32 h=32 bg=#4f46e5 c=#ffffff size=12 r=8
+["2"] @(86, 10) w=32 h=32 bg=#ffffff c=#374151 size=12 s=1 r=8
+["3"] @(124, 10) w=32 h=32 bg=#ffffff c=#374151 size=12 s=1 r=8
+[">"] @(162, 10) w=32 h=32 bg=#ffffff c=#6b7280 size=12 s=1 r=8
 ```
 
 ### Tab 切换
@@ -573,10 +573,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=200 h=400 bg=#ffffff s=1
+[""] @(0, 0) w=200 h=400 bg=#ffffff s=1
 "Dashboard" @(15, 20) c=#111827 size=14 bold=true
 -- @(0, 45)->(200, 45) b=#e5e7eb s=1
-("🏠 Overview") @(10, 55) w=180 h=36 bg=#eef2ff c=#4f46e5 size=13 r=6
+["🏠 Overview"] @(10, 55) w=180 h=36 bg=#eef2ff c=#4f46e5 size=13 r=6
 "📊 Analytics" @(20, 100) c=#6b7280 size=13
 "👥 Customers" @(20, 135) c=#6b7280 size=13
 "⚙ Settings" @(20, 170) c=#6b7280 size=13
@@ -591,7 +591,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=180 h=140 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=180 h=140 bg=#ffffff s=1 r=8
 "Your Profile" @(20, 20) c=#111827 size=13
 "Settings" @(20, 45) c=#111827 size=13
 -- @(10, 65)->(180, 65) b=#e5e7eb s=1
@@ -615,17 +615,17 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=400 h=600 bg=#ffffff
+[""] @(0, 0) w=400 h=600 bg=#ffffff
 "Sign in to your account" @(80, 80) c=#111827 size=24 bold=true
 "Email address" @(50, 150) c=#374151 size=13
-("you@example.com") @(50, 175) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["you@example.com"] @(50, 175) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 "Password" @(50, 240) c=#374151 size=13
-("Enter password") @(50, 265) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
-("Sign In") @(50, 330) w=300 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
+["Enter password"] @(50, 265) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Sign In"] @(50, 330) w=300 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
 "Or continue with" @(140, 390) c=#6b7280 size=12
-(("G")) @(100, 420) w=60 h=42 bg=#ffffff c=#374151 size=18 s=1
-(("🐙")) @(180, 420) w=60 h=42 bg=#ffffff c=#374151 size=18 s=1
-(("🍎")) @(260, 420) w=60 h=42 bg=#ffffff c=#374151 size=18 s=1
+("G") @(100, 420) w=60 h=42 bg=#ffffff c=#374151 size=18 s=1
+("🐙") @(180, 420) w=60 h=42 bg=#ffffff c=#374151 size=18 s=1
+("🍎") @(260, 420) w=60 h=42 bg=#ffffff c=#374151 size=18 s=1
 ```
 
 ### 注册页
@@ -637,15 +637,15 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=400 h=600 bg=#ffffff
+[""] @(0, 0) w=400 h=600 bg=#ffffff
 "Create your account" @(90, 60) c=#111827 size=24 bold=true
 "Full Name" @(50, 120) c=#374151 size=13
-("Your name") @(50, 145) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Your name"] @(50, 145) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 "Email" @(50, 210) c=#374151 size=13
-("you@example.com") @(50, 235) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["you@example.com"] @(50, 235) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 "Password" @(50, 300) c=#374151 size=13
-("Create password") @(50, 325) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
-("Create Account") @(50, 390) w=300 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
+["Create password"] @(50, 325) w=300 h=42 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Create Account"] @(50, 390) w=300 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
 ```
 
 ---
@@ -663,13 +663,13 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=400 h=300 bg=#ffffff
-("New") @(150, 20) w=60 h=22 bg=#eef2ff c=#4f46e5 size=10 r=12
+[""] @(0, 0) w=400 h=300 bg=#ffffff
+["New"] @(150, 20) w=60 h=22 bg=#eef2ff c=#4f46e5 size=10 r=12
 "Data to enrich your" @(60, 60) c=#111827 size=28 bold=true
 "online business" @(120, 95) c=#4f46e5 size=28 bold=true
 "Anim aute id magna aliqua ad ad non deserunt sunt." @(55, 140) c=#6b7280 size=14
-("Get Started") @(100, 180) w=120 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
-("Learn More →") @(230, 190) c=#4f46e5 size=14
+["Get Started"] @(100, 180) w=120 h=42 bg=#4f46e5 c=#ffffff size=14 r=8
+["Learn More →"] @(230, 190) c=#4f46e5 size=14
 ```
 
 ### CTA Section
@@ -681,10 +681,10 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=400 h=160 bg=#4f46e5
+[""] @(0, 0) w=400 h=160 bg=#4f46e5
 "Start your free trial today" @(70, 30) c=#ffffff size=24 bold=true
 "It takes 30 seconds. No credit card required." @(65, 65) c=#c7d2fe size=14
-("Get Started →") @(130, 100) w=140 h=42 bg=#ffffff c=#4f46e5 size=14 r=8
+["Get Started →"] @(130, 100) w=140 h=42 bg=#ffffff c=#4f46e5 size=14 r=8
 ```
 
 ### 特性网格
@@ -696,16 +696,16 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("⚡")) @(20, 20) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
+("⚡") @(20, 20) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
 "Fast" @(20, 70) c=#111827 size=14 bold=true
 "Lightning-fast performance" @(20, 90) c=#6b7280 size=12
-(("🔒")) @(220, 20) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
+("🔒") @(220, 20) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
 "Secure" @(220, 70) c=#111827 size=14 bold=true
 "Enterprise-grade security" @(220, 90) c=#6b7280 size=12
-(("📊")) @(20, 130) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
+("📊") @(20, 130) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
 "Analytics" @(20, 180) c=#111827 size=14 bold=true
 "Real-time data insights" @(20, 200) c=#6b7280 size=12
-(("🔗")) @(220, 130) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
+("🔗") @(220, 130) w=40 h=40 bg=#eef2ff c=#4f46e5 size=18
 "Integrations" @(220, 180) c=#111827 size=14 bold=true
 "Connect with 100+ tools" @(220, 200) c=#6b7280 size=12
 ```
@@ -725,7 +725,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("✓ Successfully saved!") @(10, 10) w=280 h=40 bg=#f0fdf4 c=#16a34a size=13 r=8
+["✓ Successfully saved!"] @(10, 10) w=280 h=40 bg=#f0fdf4 c=#16a34a size=13 r=8
 ```
 
 ### 错误提示
@@ -737,7 +737,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("✕ There was an error processing your request.") @(10, 10) w=320 h=40 bg=#fef2f2 c=#dc2626 size=13 r=8
+["✕ There was an error processing your request."] @(10, 10) w=320 h=40 bg=#fef2f2 c=#dc2626 size=13 r=8
 ```
 
 ### 警告提示
@@ -749,7 +749,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("⚠ Please review your changes.") @(10, 10) w=280 h=40 bg=#fffbeb c=#d97706 size=13 r=8
+["⚠ Please review your changes."] @(10, 10) w=280 h=40 bg=#fffbeb c=#d97706 size=13 r=8
 ```
 
 ### 对话框
@@ -761,11 +761,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=320 h=180 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=320 h=180 bg=#ffffff s=1 r=8
 "Deactivate account" @(20, 25) c=#111827 size=16 bold=true
 "Are you sure you want to deactivate your account? All of your data will be permanently removed." @(20, 55) c=#6b7280 size=13
-("Cancel") @(130, 130) w=80 h=36 bg=#ffffff c=#374151 size=13 s=1 r=8
-("Deactivate") @(220, 130) w=100 h=36 bg=#dc2626 c=#ffffff size=13 r=8
+["Cancel"] @(130, 130) w=80 h=36 bg=#ffffff c=#374151 size=13 s=1 r=8
+["Deactivate"] @(220, 130) w=100 h=36 bg=#dc2626 c=#ffffff size=13 r=8
 ```
 
 ### 加载状态
@@ -777,7 +777,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("⟳")) @(100, 100) w=32 h=32 bg=transparent c=#4f46e5 size=24
+("⟳") @(100, 100) w=32 h=32 bg=transparent c=#4f46e5 size=24
 "Loading..." @(80, 140) c=#6b7280 size=12
 ```
 
@@ -790,11 +790,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=150 bg=#ffffff s=1 r=8
-("") @(20, 20) w=120 h=16 bg=#f3f4f6 r=4
-("") @(20, 50) w=280 h=12 bg=#f3f4f6 r=3
-("") @(20, 70) w=260 h=12 bg=#f3f4f6 r=3
-("") @(20, 90) w=200 h=12 bg=#f3f4f6 r=3
+[""] @(10, 10) w=300 h=150 bg=#ffffff s=1 r=8
+[""] @(20, 20) w=120 h=16 bg=#f3f4f6 r=4
+[""] @(20, 50) w=280 h=12 bg=#f3f4f6 r=3
+[""] @(20, 70) w=260 h=12 bg=#f3f4f6 r=3
+[""] @(20, 90) w=200 h=12 bg=#f3f4f6 r=3
 ```
 
 ### 空状态
@@ -808,7 +808,7 @@ updatedAt: 2026-04-24T00:00:00Z
 ```solarwire
 "No projects" @(110, 80) c=#111827 size=14
 "Get started by creating a new project." @(60, 100) c=#6b7280 size=12
-("New Project") @(100, 130) w=120 h=36 bg=#4f46e5 c=#ffffff size=13 r=8
+["New Project"] @(100, 130) w=120 h=36 bg=#4f46e5 c=#ffffff size=13 r=8
 ```
 
 ---
@@ -826,7 +826,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=200 h=150 bg=#f3f4f6 r=8
+[""] @(10, 10) w=200 h=150 bg=#f3f4f6 r=8
 "Image" @(85, 70) c=#9ca3af size=14
 ```
 
@@ -840,10 +840,10 @@ updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
 "Trusted by" @(120, 10) c=#6b7280 size=12
-(("A")) @(30, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
-(("B")) @(110, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
-(("C")) @(190, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
-(("D")) @(270, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
+("A") @(30, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
+("B") @(110, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
+("C") @(190, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
+("D") @(270, 40) w=60 h=30 bg=#f3f4f6 c=#6b7280 size=14
 ```
 
 ---
@@ -861,12 +861,12 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=200 h=260 bg=#ffffff s=1 r=8
-("") @(10, 10) w=200 h=150 bg=#f3f4f6 r=8
+[""] @(10, 10) w=200 h=260 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=200 h=150 bg=#f3f4f6 r=8
 "Product" @(85, 75) c=#9ca3af size=12
 "Product Title" @(20, 170) c=#111827 size=13 bold=true
 "$299.00" @(20, 190) c=#4f46e5 size=16 bold=true
-("Add to Cart") @(20, 220) w=160 h=36 bg=#4f46e5 c=#ffffff size=12 r=8
+["Add to Cart"] @(20, 220) w=160 h=36 bg=#4f46e5 c=#ffffff size=12 r=8
 ```
 
 ### 购物车
@@ -878,14 +878,14 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=80 bg=#ffffff s=1 r=8
-(("✓")) @(20, 30) w=20 h=20 bg=#4f46e5 c=#ffffff size=12
-("") @(50, 15) w=60 h=60 bg=#f3f4f6 r=6
+[""] @(10, 10) w=300 h=80 bg=#ffffff s=1 r=8
+("✓") @(20, 30) w=20 h=20 bg=#4f46e5 c=#ffffff size=12
+[""] @(50, 15) w=60 h=60 bg=#f3f4f6 r=6
 "Product Name" @(120, 25) c=#111827 size=13 bold=true
 "$199.00" @(120, 48) c=#4f46e5 size=14
-("-") @(230, 30) w=24 h=24 bg=#f3f4f6 c=#374151 size=14 r=6
+["-"] @(230, 30) w=24 h=24 bg=#f3f4f6 c=#374151 size=14 r=6
 "1" @(244, 35) c=#374151 size=12
-("+") @(268, 30) w=24 h=24 bg=#f3f4f6 c=#374151 size=14 r=6
+["+"] @(268, 30) w=24 h=24 bg=#f3f4f6 c=#374151 size=14 r=6
 ```
 
 ---
@@ -903,12 +903,12 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=320 h=48 bg=#ffffff s=1
+[""] @(0, 0) w=320 h=48 bg=#ffffff s=1
 "Logo" @(10, 14) c=#4f46e5 size=16 bold=true
-("") @(0, 48) w=80 h=352 bg=#f9fafb s=1
-("Overview") @(5, 58) w=70 h=32 bg=#eef2ff c=#4f46e5 size=11 r=6
+[""] @(0, 48) w=80 h=352 bg=#f9fafb s=1
+["Overview"] @(5, 58) w=70 h=32 bg=#eef2ff c=#4f46e5 size=11 r=6
 "Analytics" @(15, 100) c=#6b7280 size=11
-("Content") @(90, 58) w=230 h=352 bg=#ffffff c=#9ca3af size=12 r=4
+["Content"] @(90, 58) w=230 h=352 bg=#ffffff c=#9ca3af size=12 r=4
 ```
 
 ### 仪表盘布局
@@ -920,11 +920,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=180 h=100 bg=#ffffff s=1 r=8
+[""] @(10, 10) w=180 h=100 bg=#ffffff s=1 r=8
 "Stat 1" @(70, 50) c=#9ca3af size=12
-("") @(200, 10) w=180 h=100 bg=#ffffff s=1 r=8
+[""] @(200, 10) w=180 h=100 bg=#ffffff s=1 r=8
 "Stat 2" @(260, 50) c=#9ca3af size=12
-("") @(10, 120) w=370 h=180 bg=#ffffff s=1 r=8
+[""] @(10, 120) w=370 h=180 bg=#ffffff s=1 r=8
 "Chart" @(170, 200) c=#9ca3af size=12
 ```
 
@@ -937,14 +937,14 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=400 h=40 bg=#ffffff s=1
+[""] @(0, 0) w=400 h=40 bg=#ffffff s=1
 "Logo" @(15, 12) c=#4f46e5 size=14 bold=true
-("Sign Up") @(320, 8) w=60 h=24 bg=#4f46e5 c=#ffffff size=10 r=4
-("") @(0, 40) w=400 h=200 bg=#f9fafb
+["Sign Up"] @(320, 8) w=60 h=24 bg=#4f46e5 c=#ffffff size=10 r=4
+[""] @(0, 40) w=400 h=200 bg=#f9fafb
 "Hero Section" @(150, 130) c=#9ca3af size=14
-("") @(0, 240) w=400 h=120 bg=#ffffff
+[""] @(0, 240) w=400 h=120 bg=#ffffff
 "Features" @(170, 290) c=#9ca3af size=14
-("") @(0, 360) w=400 h=80 bg=#4f46e5
+[""] @(0, 360) w=400 h=80 bg=#4f46e5
 "CTA Section" @(155, 390) c=#ffffff size=14
 ```
 
@@ -963,7 +963,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Get Started") @(10, 10) w=300 h=48 bg=#4f46e5 c=#ffffff size=16 r=8
+["Get Started"] @(10, 10) w=300 h=48 bg=#4f46e5 c=#ffffff size=16 r=8
 ```
 
 ### 次要按钮
@@ -975,7 +975,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Learn More") @(10, 10) w=300 h=48 bg=#ffffff c=#4f46e5 size=16 s=1 r=8
+["Learn More"] @(10, 10) w=300 h=48 bg=#ffffff c=#4f46e5 size=16 s=1 r=8
 ```
 
 ### 徽标
@@ -987,7 +987,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("New") @(10, 10) w=50 h=24 bg=#dbeafe c=#1d4ed8 size=11 r=12
+["New"] @(10, 10) w=50 h=24 bg=#dbeafe c=#1d4ed8 size=11 r=12
 ```
 
 ### 头像
@@ -999,7 +999,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("A")) @(10, 10) w=48 h=48 bg=#4f46e5 c=#ffffff size=18
+("A") @(10, 10) w=48 h=48 bg=#4f46e5 c=#ffffff size=18
 ```
 
 ---
@@ -1017,7 +1017,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("Enter your email...") @(10, 10) w=300 h=44 bg=#ffffff c=#9ca3af size=14 s=1 r=8
+["Enter your email..."] @(10, 10) w=300 h=44 bg=#ffffff c=#9ca3af size=14 s=1 r=8
 ```
 
 ### 开关
@@ -1029,8 +1029,8 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=48 h=28 bg=#4f46e5 r=14
-(("●")) @(38, 14) w=20 h=20 bg=#ffffff size=10
+[""] @(10, 10) w=48 h=28 bg=#4f46e5 r=14
+("●") @(38, 14) w=20 h=20 bg=#ffffff size=10
 ```
 
 ---
@@ -1048,7 +1048,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("List item") @(10, 10) w=300 h=48 bg=#ffffff c=#374151 size=14 r=0
+["List item"] @(10, 10) w=300 h=48 bg=#ffffff c=#374151 size=14 r=0
 ">" @(280, 22) c=#d1d5db size=14
 ```
 
@@ -1067,7 +1067,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=120 bg=#ffffff s=1 r=12
+[""] @(10, 10) w=300 h=120 bg=#ffffff s=1 r=12
 "Card Title" @(20, 20) c=#111827 size=14 bold=true
 "Card description" @(20, 45) c=#6b7280 size=13
 ```
@@ -1081,8 +1081,8 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=160 h=220 bg=#ffffff s=1 r=12
-("") @(10, 10) w=160 h=120 bg=#f3f4f6 r=12
+[""] @(10, 10) w=160 h=220 bg=#ffffff s=1 r=12
+[""] @(10, 10) w=160 h=120 bg=#f3f4f6 r=12
 "$199" @(20, 135) c=#4f46e5 size=15 bold=true
 "Product" @(20, 160) c=#374151 size=12
 ```
@@ -1102,7 +1102,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=320 h=56 bg=#ffffff s=1
+[""] @(0, 0) w=320 h=56 bg=#ffffff s=1
 "🏠" @(40, 10) c=#4f46e5 size=18
 "Home" @(35, 32) c=#4f46e5 size=10
 "📋" @(130, 10) c=#6b7280 size=18
@@ -1122,7 +1122,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=320 h=44 bg=#ffffff s=1
+[""] @(0, 0) w=320 h=44 bg=#ffffff s=1
 "<" @(10, 12) c=#4f46e5 size=16
 "Page Title" @(120, 12) c=#111827 size=16 bold=true
 ```
@@ -1142,7 +1142,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("✓ Success") @(80, 200) w=160 h=40 bg=#10b981 c=#ffffff size=14 r=8
+["✓ Success"] @(80, 200) w=160 h=40 bg=#10b981 c=#ffffff size=14 r=8
 ```
 
 ### 加载状态
@@ -1154,7 +1154,7 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-(("⟳")) @(120, 200) w=32 h=32 bg=#4f46e5 opacity=0.8 c=#ffffff size=20
+("⟳") @(120, 200) w=32 h=32 bg=#4f46e5 opacity=0.8 c=#ffffff size=20
 ```
 
 ---
@@ -1172,13 +1172,13 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(10, 10) w=300 h=200 bg=#f3f4f6 r=12
+[""] @(10, 10) w=300 h=200 bg=#f3f4f6 r=12
 "Product Image" @(105, 100) c=#9ca3af size=14
-("") @(10, 220) w=300 h=80 bg=#ffffff s=1 r=12
+[""] @(10, 220) w=300 h=80 bg=#ffffff s=1 r=12
 "Product Title" @(20, 230) c=#111827 size=15 bold=true
 "$299.00" @(20, 255) c=#4f46e5 size=18 bold=true
-("Buy Now") @(20, 310) w=130 h=44 bg=#4f46e5 c=#ffffff size=14 r=8
-("Add to Cart") @(160, 310) w=130 h=44 bg=#ffffff c=#4f46e5 size=14 s=1 r=8
+["Buy Now"] @(20, 310) w=130 h=44 bg=#4f46e5 c=#ffffff size=14 r=8
+["Add to Cart"] @(160, 310) w=130 h=44 bg=#ffffff c=#4f46e5 size=14 s=1 r=8
 ```
 
 ---
@@ -1196,11 +1196,11 @@ createdAt: 2026-04-24T00:00:00Z
 updatedAt: 2026-04-24T00:00:00Z
 
 ```solarwire
-("") @(0, 0) w=320 h=44 bg=#ffffff s=1
+[""] @(0, 0) w=320 h=44 bg=#ffffff s=1
 "Page Title" @(110, 12) c=#111827 size=16 bold=true
-("") @(0, 44) w=320 h=560 bg=#f9fafb
+[""] @(0, 44) w=320 h=560 bg=#f9fafb
 "Content Area" @(110, 320) c=#9ca3af size=14
-("") @(0, 604) w=320 h=56 bg=#ffffff s=1
+[""] @(0, 604) w=320 h=56 bg=#ffffff s=1
 "🏠" @(40, 612) c=#4f46e5 size=18
 "📋" @(130, 612) c=#6b7280 size=18
 "👤" @(220, 612) c=#6b7280 size=18

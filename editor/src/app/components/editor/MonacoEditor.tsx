@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { useAppStore } from '../../stores/appStore';
+import { isDarkTheme } from '../../../shared/types/app';
 import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
 import { useStatusStore } from '../../stores/statusStore';
 import './MonacoEditor.css';
@@ -393,7 +394,7 @@ function MonacoEditor({
       language={language}
       value={value}
       onChange={(value: string | undefined) => onChange(value || '')}
-      theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
+      theme={isDarkTheme(theme) ? 'vs-dark' : 'vs-light'}
       onMount={handleEditorDidMount}
       options={{
         fontSize: 14,

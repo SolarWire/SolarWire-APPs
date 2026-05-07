@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './ChangeCategoryParentModal.css';
 
 interface ChangeCategoryParentModalProps {
@@ -65,7 +66,7 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
   }
 
   return (
-    <div className="change-category-parent-modal-overlay">
+    <ModalPortal><div className="change-category-parent-modal-overlay">
       <div className="change-category-parent-modal">
         <div className="change-category-parent-header">
           <h2>🔄 改变分类归属</h2>
@@ -109,7 +110,7 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

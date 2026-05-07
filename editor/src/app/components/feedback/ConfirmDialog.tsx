@@ -1,5 +1,6 @@
 import React, { useEffect, useCallback } from 'react';
 import { useFeedbackStore } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './ConfirmDialog.css';
 
 function ConfirmDialog(): React.ReactElement | null {
@@ -44,7 +45,7 @@ function ConfirmDialog(): React.ReactElement | null {
   };
 
   return (
-    <div className="confirm-overlay" onClick={handleOverlayClick}>
+    <ModalPortal><div className="confirm-overlay" onClick={handleOverlayClick}>
       <div className={`confirm-dialog confirm-dialog-${type}`}>
         <div className="confirm-header">
           <h3>{title}</h3>
@@ -66,7 +67,7 @@ function ConfirmDialog(): React.ReactElement | null {
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 }
 

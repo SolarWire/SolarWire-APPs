@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary } from '../../../shared/types/component';
 import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateCategoryModal.css';
 
 interface CreateCategoryModalProps {
@@ -91,7 +92,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
   }
 
   return (
-    <div className="create-category-modal-overlay">
+    <ModalPortal><div className="create-category-modal-overlay">
       <div className="create-category-modal">
         <div className="create-category-header">
           <h2>📁 新建分类</h2>
@@ -137,7 +138,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
           <button className="btn-primary" onClick={handleCreate}>创建</button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

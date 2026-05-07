@@ -1,5 +1,5 @@
 import { RectangleElement } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues, getLetterSpacingAttribute } from '../context';
 
 export interface RenderResult {
   svg: string;
@@ -11,7 +11,6 @@ export function renderRectangle(
   element: RectangleElement,
   context: RenderContext
 ): RenderResult {
-  // 圆角通过 r 属性控制，r > 0 表示圆角矩形
   const r = getNumberAttribute(element.attributes, context.globalDefaults, 'r', 0);
   const isRounded = r > 0;
   
@@ -35,6 +34,10 @@ export function renderRectangle(
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
   const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'top');
+  const textDecoration = getTextDecorationAttribute(element.attributes);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 8);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
   
   let svgParts: string[] = [];
   
@@ -43,7 +46,6 @@ export function renderRectangle(
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'rect'})"` : '';
 
-  // 边框往内渲染：调整rect的位置和尺寸
   const strokeOffset = s / 2;
   const rectX = pos.x + strokeOffset;
   const rectY = pos.y + strokeOffset;
@@ -59,18 +61,17 @@ export function renderRectangle(
   if (element.text) {
     const lines = element.text.split('\n');
     const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
-    const padding = 8;
     
     let textX: number;
     let textAnchor: string;
     
     switch (align) {
       case 'start':
-        textX = pos.x + padding;
+        textX = pos.x + padding.left;
         textAnchor = 'start';
         break;
       case 'end':
-        textX = pos.x + w - padding;
+        textX = pos.x + w - padding.right;
         textAnchor = 'end';
         break;
       case 'middle':
@@ -80,11 +81,26 @@ export function renderRectangle(
         break;
     }
     
-    const textY = pos.y + padding + fontSize;
+    const totalTextHeight = (lines.length - 1) * lineHeight + fontSize;
+    let textY: number;
+    switch (verticalAlign) {
+      case 'middle':
+        textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + fontSize;
+        break;
+      case 'bottom':
+        textY = pos.y + h - padding.bottom - totalTextHeight + fontSize;
+        break;
+      case 'top':
+      default:
+        textY = pos.y + padding.top + fontSize;
+        break;
+    }
     
     let fontStyle = '';
     if (bold) fontStyle += 'font-weight="bold" ';
     if (italic) fontStyle += 'font-style="italic" ';
+    if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
+    if (textDecoration !== 'none') fontStyle += `text-decoration="${textDecoration}" `;
     
     svgParts.push(`<text x="${textX}" y="${textY}" text-anchor="${textAnchor}" fill="${c}" font-size="${fontSize}" ${fontStyle}>`);
     

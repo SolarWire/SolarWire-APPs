@@ -111,4 +111,14 @@ export const en = {
     en: 'English',
     zh: '简体中文',
   },
+
+  themes: {
+    'solid-dark': 'Dark',
+    'solid-light': 'Light',
+    'glass-dark': 'Glass Dark',
+    'glass-light': 'Glass Light',
+    'cyberpunk': 'Cyberpunk',
+    'paper': 'Paper',
+    'minimal': 'Minimal',
+  },
 };

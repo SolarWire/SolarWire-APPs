@@ -55,6 +55,7 @@
   font-weight: 600;
   color: var(--text-primary);
   text-transform: capitalize;
+  user-select: none;
 }
 
 .property-group-wrapper {
@@ -90,9 +91,20 @@
 }
 
 .property-group-content {
+  overflow: hidden;
+  transition: max-height 0.2s ease-out, opacity 0.2s ease-out;
+  opacity: 1;
+}
+
+.property-group-content.collapsed {
+  opacity: 0;
+}
+
+.property-group-content-inner {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  padding-top: 2px;
 }
 
 .property-row {
@@ -105,7 +117,28 @@
   font-size: 11px;
   color: var(--text-muted);
   flex-shrink: 0;
-  width: 50px;
+  width: 70px;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: default;
+}
+
+.property-label:hover {
+  color: var(--text-primary);
+}
+
+.property-label-text {
+  white-space: nowrap;
+}
+
+.property-code-attr {
+  font-size: 9px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  font-family: monospace;
+  white-space: nowrap;
 }
 
 .property-input {
@@ -127,12 +160,21 @@
   font-size: 11px;
   color: var(--text-muted);
   flex-shrink: 0;
-  width: 18px;
+  min-width: 18px;
   text-align: center;
   cursor: ew-resize;
   user-select: none;
   padding: 2px 0;
   border-radius: 2px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.drag-code-attr {
+  font-size: 8px;
+  opacity: 0.5;
+  font-family: monospace;
 }
 
 .property-drag-label:hover {
@@ -366,6 +408,8 @@
   line-height: 1.4;
   color: var(--error-text);
   white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .error-button {

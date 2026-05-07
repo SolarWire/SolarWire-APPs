@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateLibraryModal.css';
 
 interface CreateLibraryModalProps {
@@ -83,7 +84,7 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
   }
 
   return (
-    <div className="create-library-modal-overlay">
+    <ModalPortal><div className="create-library-modal-overlay">
       <div className="create-library-modal">
         <div className="create-library-header">
           <h2>📦 新建组件库</h2>
@@ -150,7 +151,7 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

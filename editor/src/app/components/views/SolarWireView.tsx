@@ -472,7 +472,7 @@ function SolarWireView(): React.ReactElement {
         onClose={() => setContextMenuVisible(false)}
       />
 
-      {renaming && (
+      {renaming && createPortal(
         <div className="rename-overlay" onClick={() => setRenaming(false)}>
           <div className="rename-dialog" onClick={(e) => e.stopPropagation()}>
             <h3 className="rename-title">重命名标题</h3>
@@ -492,7 +492,8 @@ function SolarWireView(): React.ReactElement {
               <button className="rename-btn rename-btn-confirm" onClick={handleRenameConfirm}>确认</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </Scrollbar>
   );
