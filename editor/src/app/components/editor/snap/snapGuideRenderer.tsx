@@ -8,11 +8,24 @@ function getVisibleBounds(viewBox: RenderContext['viewBox']) {
     : { width: 100000, height: 100000 };
 }
 
+const SNAP_GUIDE_STYLE = {
+  strokeOpacity: 0.85,
+  strokeWidth: 1.5,
+};
+
+const CANVAS_GUIDE_STYLE = {
+  strokeOpacity: 0.35,
+  strokeWidth: 1,
+  dashArray: [4, 4],
+};
+
 function renderSnappedGuide(
   guide: AlignmentGuide,
   index: number,
   ctx: RenderContext
-): React.ReactElement {
+): React.ReactElement | null {
+  if (!guide.isSnapped) return null;
+
   const pos = guide.position;
   const isH = isHorizontalGuide(guide.type);
   const { viewBox, scale, primaryColor } = ctx;
@@ -26,11 +39,11 @@ function renderSnappedGuide(
         x2={isH ? visibleBounds.width : pos}
         y2={isH ? pos : visibleBounds.height}
         stroke={primaryColor}
-        strokeWidth={2 / scale}
+        strokeWidth={SNAP_GUIDE_STYLE.strokeWidth / scale}
         strokeDasharray="none"
-        opacity={0.9}
+        opacity={SNAP_GUIDE_STYLE.strokeOpacity}
       />
-      {guide.distance != null && (
+      {guide.distance != null && guide.distance > 0 && (
         <>
           <rect
             x={isH ? (viewBox?.x || 0) + (viewBox?.width || 0) / 2 - 18 / scale : pos + 4 / scale}
@@ -77,9 +90,9 @@ function renderCanvasGuide(
       x2={isH ? visibleBounds.width : pos}
       y2={isH ? pos : visibleBounds.height}
       stroke={primaryColor}
-      strokeWidth={1 / scale}
-      strokeDasharray={`${6 / scale},${6 / scale}`}
-      opacity={0.5}
+      strokeWidth={CANVAS_GUIDE_STYLE.strokeWidth / scale}
+      strokeDasharray={`${CANVAS_GUIDE_STYLE.dashArray[0] / scale},${CANVAS_GUIDE_STYLE.dashArray[1] / scale}`}
+      opacity={CANVAS_GUIDE_STYLE.strokeOpacity}
       pointerEvents="none"
     />
   );
@@ -91,14 +104,22 @@ export function renderAlignmentGuides(
 ): React.ReactElement | null {
   if (guides.length === 0) return null;
 
+  const elements: React.ReactElement[] = [];
+
+  guides.forEach((guide, index) => {
+    if (guide.type.startsWith('canvas')) {
+      elements.push(renderCanvasGuide(guide, index, ctx));
+    } else if (guide.isSnapped) {
+      const el = renderSnappedGuide(guide, index, ctx);
+      if (el) elements.push(el);
+    }
+  });
+
+  if (elements.length === 0) return null;
+
   return (
     <g className="alignment-guides">
-      {guides.map((guide, index) => {
-        if (guide.type.startsWith('canvas')) {
-          return renderCanvasGuide(guide, index, ctx);
-        }
-        return renderSnappedGuide(guide, index, ctx);
-      })}
+      {elements}
     </g>
   );
 }
@@ -112,9 +133,15 @@ export function renderDistanceLines(
   const { viewBox, scale, primaryColor } = ctx;
   const lineOffset = 12 / scale;
 
+  const sortedDistances = [...distances]
+    .filter(d => d.distance > 0)
+    .sort((a, b) => a.distance - b.distance);
+
+  const topDistances = sortedDistances.slice(0, 3);
+
   return (
     <g className="distance-lines">
-      {distances.map((dist, index) => {
+      {topDistances.map((dist, index) => {
         const isH = dist.axis === 'y';
 
         let lineX1: number, lineY1: number, lineX2: number, lineY2: number;
@@ -148,7 +175,7 @@ export function renderDistanceLines(
               stroke={primaryColor}
               strokeWidth={1 / scale}
               strokeDasharray={`${3 / scale},${3 / scale}`}
-              opacity={0.7}
+              opacity={0.5}
             />
             <rect
               x={labelX - 16 / scale}

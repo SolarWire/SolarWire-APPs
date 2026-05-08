@@ -32,17 +32,60 @@ const TableGrid: React.FC<TableGridProps> = ({
   scale = 1,
 }) => {
   const numCols = tableData.rows[0]?.cells.length || 0;
+  const numRows = tableData.rows.length;
+
+  const isRowFullySelected = (rowIdx: number) => {
+    return Array.from({ length: numCols }).every((_, colIdx) =>
+      selectedCells.has(`${rowIdx}-${colIdx}`)
+    );
+  };
+
+  const isColumnFullySelected = (colIdx: number) => {
+    return tableData.rows.every((_, rowIdx) =>
+      selectedCells.has(`${rowIdx}-${colIdx}`)
+    );
+  };
+
+  const handleRowLabelClick = (rowIdx: number) => {
+    const isCurrentlySelected = isRowFullySelected(rowIdx);
+    if (isCurrentlySelected) {
+      onSelectCell(`${rowIdx}-0`, false);
+    } else {
+      onSelectCell(`${rowIdx}-0`, false);
+      for (let col = 1; col < numCols; col++) {
+        onSelectCell(`${rowIdx}-${col}`, true);
+      }
+    }
+  };
+
+  const handleColLabelClick = (colIdx: number) => {
+    const isCurrentlySelected = isColumnFullySelected(colIdx);
+    if (isCurrentlySelected) {
+      onSelectCell(`0-${colIdx}`, false);
+    } else {
+      onSelectCell(`0-${colIdx}`, false);
+      for (let row = 1; row < numRows; row++) {
+        onSelectCell(`${row}-${colIdx}`, true);
+      }
+    }
+  };
 
   return (
     <div className="table-grid-container">
-      <div className="table-grid-scroll" style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+      <div className="table-grid-scroll" style={{ zoom: scale }}>
         <div className="table-grid-header">
           <div className="grid-corner">
             <button className="grid-add-btn" onClick={() => onAddColumn(0)} title="在最左侧添加列">+</button>
           </div>
           {Array.from({ length: numCols }).map((_, colIdx) => (
             <div key={colIdx} className="grid-col-header">
-              <span className="col-label">{String.fromCharCode(65 + colIdx)}</span>
+              <span
+                className={`col-label ${isColumnFullySelected(colIdx) ? 'col-selected' : ''}`}
+                onClick={() => handleColLabelClick(colIdx)}
+                style={{ cursor: 'pointer' }}
+              >
+                {String.fromCharCode(65 + colIdx)}
+              </span>
               <div className="col-actions">
                 <button className="col-action-btn" onClick={() => onAddColumn(colIdx + 1)} title="在右侧添加列">+</button>
                 <button className="col-action-btn delete" onClick={() => onDeleteColumn(colIdx)} disabled={numCols <= 1} title="删除此列">×</button>
@@ -54,7 +97,13 @@ const TableGrid: React.FC<TableGridProps> = ({
         {tableData.rows.map((row, rowIdx) => (
           <div key={rowIdx} className="grid-row">
             <div className="grid-row-header">
-              <span className="row-label">{rowIdx + 1}</span>
+              <span
+                className={`row-label ${isRowFullySelected(rowIdx) ? 'row-selected' : ''}`}
+                onClick={() => handleRowLabelClick(rowIdx)}
+                style={{ cursor: 'pointer' }}
+              >
+                {rowIdx + 1}
+              </span>
               <div className="row-actions">
                 <button className="row-action-btn" onClick={() => onAddRow(rowIdx + 1)} title="在下方添加行">+</button>
                 <button className="row-action-btn delete" onClick={() => onDeleteRow(rowIdx)} disabled={tableData.rows.length <= 1} title="删除此行">×</button>
@@ -70,19 +119,37 @@ const TableGrid: React.FC<TableGridProps> = ({
               const cellBold = cell.attrs.bold || row.attrs.bold;
               const cellItalic = cell.attrs.italic || row.attrs.italic;
               const cellSize = cell.attrs.size || row.attrs.size;
+              const cellAlign = cell.attrs.align || row.attrs.align;
+              const cellVAlign = cell.attrs['vertical-align'] || row.attrs['vertical-align'];
+              const cellTextDecoration = cell.attrs['text-decoration'] || row.attrs['text-decoration'];
+              const cellPt = cell.attrs.pt || row.attrs.pt;
+              const cellPr = cell.attrs.pr || row.attrs.pr;
+              const cellPb = cell.attrs.pb || row.attrs.pb;
+              const cellPl = cell.attrs.pl || row.attrs.pl;
 
               const textStyle: React.CSSProperties = {
                 color: cellColor,
                 fontWeight: cellBold ? 'bold' : undefined,
                 fontStyle: cellItalic ? 'italic' : undefined,
                 fontSize: cellSize ? `${cellSize}px` : undefined,
+                textAlign: cellAlign === 'l' ? 'left' : cellAlign === 'c' ? 'center' : cellAlign === 'r' ? 'right' : undefined,
+                textDecoration: cellTextDecoration === 'underline' ? 'underline' : cellTextDecoration === 'line-through' ? 'line-through' : undefined,
+                paddingTop: cellPt ? `${cellPt}px` : undefined,
+                paddingRight: cellPr ? `${cellPr}px` : undefined,
+                paddingBottom: cellPb ? `${cellPb}px` : undefined,
+                paddingLeft: cellPl ? `${cellPl}px` : undefined,
+              };
+
+              const cellContainerStyle: React.CSSProperties = {
+                backgroundColor: cellBg,
+                alignItems: cellVAlign === 't' ? 'flex-start' : cellVAlign === 'm' ? 'center' : cellVAlign === 'b' ? 'flex-end' : undefined,
               };
 
               return (
                 <div
                   key={colIdx}
                   className={`grid-cell ${isSelected ? 'selected' : ''} ${isEditing ? 'editing' : ''}`}
-                  style={{ backgroundColor: cellBg }}
+                  style={cellContainerStyle}
                   onClick={(e) => {
                     if (!isEditing) {
                       onSelectCell(cellKey, e.shiftKey || e.ctrlKey || e.metaKey);

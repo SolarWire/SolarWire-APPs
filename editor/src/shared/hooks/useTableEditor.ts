@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { parse } from '../../lib/parser';
 import {
   parseTableFromSource,
@@ -28,6 +28,9 @@ export function useTableEditor(
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
+  const tableDataRef = useRef(tableData);
+  tableDataRef.current = tableData;
+
   const updateCell = useCallback((row: number, col: number, updates: Partial<TableCell>) => {
     setTableData(prev => {
       if (!prev) return prev;
@@ -53,6 +56,34 @@ export function useTableEditor(
       const newRows = prev.rows.map((r, i) => {
         if (i !== rowIndex) return r;
         return { ...r, attrs: { ...r.attrs, ...updates } };
+      });
+      return { ...prev, rows: newRows };
+    });
+    setIsDirty(true);
+  }, []);
+
+  const resetRowAttrs = useCallback((rowIndex: number) => {
+    setTableData(prev => {
+      if (!prev) return prev;
+      const newRows = prev.rows.map((r, i) => {
+        if (i !== rowIndex) return r;
+        return { ...r, attrs: {} };
+      });
+      return { ...prev, rows: newRows };
+    });
+    setIsDirty(true);
+  }, []);
+
+  const resetCellAttrs = useCallback((row: number, col: number) => {
+    setTableData(prev => {
+      if (!prev) return prev;
+      const newRows = prev.rows.map((r, i) => {
+        if (i !== row) return r;
+        const newCells = r.cells.map((c, j) => {
+          if (j !== col) return c;
+          return { ...c, attrs: {} };
+        });
+        return { ...r, cells: newCells };
       });
       return { ...prev, rows: newRows };
     });
@@ -151,11 +182,12 @@ export function useTableEditor(
   }, []);
 
   const save = useCallback(() => {
-    if (!tableData) return;
-    const newContent = serializeTableToSource(tableData, content);
+    const currentData = tableDataRef.current;
+    if (!currentData) return;
+    const newContent = serializeTableToSource(currentData, content);
     onSave(newContent);
     setIsDirty(false);
-  }, [tableData, content, onSave]);
+  }, [content, onSave]);
 
   const reset = useCallback(() => {
     try {
@@ -180,6 +212,8 @@ export function useTableEditor(
     isDirty,
     updateCell,
     updateRow,
+    resetRowAttrs,
+    resetCellAttrs,
     updateTableAttrs,
     addRow,
     deleteRow,

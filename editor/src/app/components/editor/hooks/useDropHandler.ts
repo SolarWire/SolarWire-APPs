@@ -326,7 +326,7 @@ export function useDropHandler(options: UseDropHandlerOptions): UseDropHandlerRe
           newLine = `[?"Placeholder"] @(${x},${y}) w=100 h=50`;
           break;
         case 'table':
-          newLine = `## @(${x},${y}) w=200 h=100`;
+          newLine = `## @(${x},${y}) w=200 h=100\n  #\n    ""\n    ""\n    ""\n  #\n    ""\n    ""\n    ""\n  #\n    ""\n    ""\n    ""`;
           break;
         default:
           return;

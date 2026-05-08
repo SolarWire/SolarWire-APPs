@@ -58,6 +58,7 @@
 .tab-panel {
   flex: 1;
   height: 100%;
+  min-width: 0;
   overflow: hidden;
   animation: tabPanelFadeIn 0.2s ease-out;
 }

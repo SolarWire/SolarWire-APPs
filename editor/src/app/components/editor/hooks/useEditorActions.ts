@@ -1,6 +1,7 @@
 import { useCallback, useRef } from 'react';
 import { useSolarWireStore } from '../../../stores/solarWireStore';
 import { bringElementsToFront, alignElements, detectElementBounds, validateDropContent } from '../../../../shared/utils/solarwire-utils';
+import { ensureTableHasRows } from '../../../../shared/utils/table-source-utils';
 import { parse } from '../../../../lib/parser';
 import { renderElement, createRenderContext } from '../../../../lib/renderer';
 import type { Element as SolarWireElement } from '../../../../lib/parser/types';
@@ -175,7 +176,8 @@ export function useEditorActions({
         });
         return resultLine;
       }).join('\n');
-      const newContent = content.trimEnd() + '\n\n' + adjustedCode;
+      const adjustedCodeWithRows = ensureTableHasRows(adjustedCode);
+      const newContent = content.trimEnd() + '\n\n' + adjustedCodeWithRows;
       handleContentChange?.(newContent);
       setShowComponentLibrary(false);
       const existingLineCount = content.trimEnd().split(/\r?\n/).length;

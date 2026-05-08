@@ -87,6 +87,19 @@
   font-weight: 600;
   font-size: 12px;
   color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+}
+
+.col-label:hover {
+  background: var(--bg-hover);
+}
+
+.col-selected {
+  background: var(--accent-color) !important;
+  color: white !important;
+  font-weight: 600;
 }
 
 .col-actions, .row-actions {
@@ -164,6 +177,19 @@
   font-weight: 600;
   font-size: 12px;
   color: var(--text-primary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+}
+
+.row-label:hover {
+  background: var(--bg-hover);
+}
+
+.row-selected {
+  background: var(--accent-color) !important;
+  color: white !important;
+  font-weight: 600;
 }
 
 .grid-cell {

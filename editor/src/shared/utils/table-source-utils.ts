@@ -12,6 +12,11 @@ export interface TableCell {
     italic?: boolean;
     align?: 'l' | 'c' | 'r';
     'vertical-align'?: 't' | 'm' | 'b';
+    'text-decoration'?: 'underline' | 'line-through';
+    pt?: string;
+    pr?: string;
+    pb?: string;
+    pl?: string;
   };
 }
 
@@ -24,6 +29,13 @@ export interface TableRow {
     italic?: boolean;
     'line-height'?: string;
     'letter-spacing'?: string;
+    align?: 'l' | 'c' | 'r';
+    'vertical-align'?: 't' | 'm' | 'b';
+    'text-decoration'?: 'underline' | 'line-through';
+    pt?: string;
+    pr?: string;
+    pb?: string;
+    pl?: string;
   };
   cells: TableCell[];
 }
@@ -69,6 +81,11 @@ export function parseTableFromSource(
             italic: !!attrs.italic,
             align: attrs.align as 'l' | 'c' | 'r' | undefined,
             'vertical-align': attrs['vertical-align'] as 't' | 'm' | 'b' | undefined,
+            'text-decoration': attrs['text-decoration'] as 'underline' | 'line-through' | undefined,
+            pt: attrs.pt,
+            pr: attrs.pr,
+            pb: attrs.pb,
+            pl: attrs.pl,
           },
         });
       });
@@ -173,6 +190,11 @@ export function serializeTableToSource(
       if (cell.attrs.italic && cell.attrs.italic !== rowAttrs.italic) cellAttrParts.push(`italic`);
       if (cell.attrs.align && cell.attrs.align !== 'l') cellAttrParts.push(`align=${cell.attrs.align}`);
       if (cell.attrs['vertical-align'] && cell.attrs['vertical-align'] !== 't') cellAttrParts.push(`vertical-align=${cell.attrs['vertical-align']}`);
+      if (cell.attrs['text-decoration']) cellAttrParts.push(`text-decoration=${cell.attrs['text-decoration']}`);
+      if (cell.attrs.pt) cellAttrParts.push(`pt=${cell.attrs.pt}`);
+      if (cell.attrs.pr) cellAttrParts.push(`pr=${cell.attrs.pr}`);
+      if (cell.attrs.pb) cellAttrParts.push(`pb=${cell.attrs.pb}`);
+      if (cell.attrs.pl) cellAttrParts.push(`pl=${cell.attrs.pl}`);
 
       const text = cell.text || '';
       const quotedText = text.includes('\n') || text.includes('"""')
@@ -194,4 +216,49 @@ export function serializeTableToSource(
   lines.splice(tableLineIdx + 1, tableEndIdx - tableLineIdx - 1, ...newTableLines);
 
   return lines.join('\n');
+}
+
+export function createDefaultTableSource(): string {
+  const tableDecl = `## @(0, 0) w=600 h=120`;
+  const rows: string[] = [];
+
+  for (let i = 0; i < 3; i++) {
+    rows.push(`  #`);
+    rows.push(`    ""`);
+    rows.push(`    ""`);
+    rows.push(`    ""`);
+  }
+
+  return `${tableDecl}\n${rows.join('\n')}`;
+}
+
+export function ensureTableHasRows(code: string): string {
+  const lines = code.split(/\r?\n/);
+  const result: string[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    result.push(lines[i]);
+
+    if (/^\s*##\s/.test(lines[i]) || /^\s*##$/.test(lines[i])) {
+      let hasRow = false;
+      for (let j = i + 1; j < lines.length; j++) {
+        if (/^\s*#/.test(lines[j]) && !/^\s*##/.test(lines[j])) {
+          hasRow = true;
+          break;
+        }
+        if (lines[j].trim() === '' || !lines[j].startsWith(' ')) break;
+      }
+
+      if (!hasRow) {
+        for (let r = 0; r < 3; r++) {
+          result.push(`  #`);
+          result.push(`    ""`);
+          result.push(`    ""`);
+          result.push(`    ""`);
+        }
+      }
+    }
+  }
+
+  return result.join('\n');
 }

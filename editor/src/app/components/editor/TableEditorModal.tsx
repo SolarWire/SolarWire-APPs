@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import TableGrid from './TableGrid';
 import CellProperties from './CellProperties';
 import { DraggableNumberInput } from './property/PropertyRow';
@@ -22,6 +22,7 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
   onClose,
 }) => {
   const [scale, setScale] = useState(1);
+  const modalContainerRef = useRef<HTMLDivElement>(null);
 
   const {
     tableData,
@@ -30,6 +31,8 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
     isDirty,
     updateCell,
     updateRow,
+    resetRowAttrs,
+    resetCellAttrs,
     updateTableAttrs,
     addRow,
     deleteRow,
@@ -90,10 +93,11 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
       }
     };
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('wheel', handleWheel, { passive: false });
+    const container = modalContainerRef.current;
+    container?.addEventListener('wheel', handleWheel, { passive: false });
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('wheel', handleWheel);
+      container?.removeEventListener('wheel', handleWheel);
     };
   }, [isOpen, handleOverlayClick, handleSave]);
 
@@ -116,88 +120,75 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
         </div>
 
         <div className="modal-body">
-          <div className="modal-main">
-            <TableGrid
-              tableData={tableData}
-              selectedCells={selectedCells}
-              editingCell={editingCell}
-              onSelectCell={selectCell}
-              onStartEditing={startEditing}
-              onStopEditing={stopEditing}
-              onUpdateCell={updateCell}
-              onAddRow={addRow}
-              onDeleteRow={deleteRow}
-              onAddColumn={addColumn}
-              onDeleteColumn={deleteColumn}
-              scale={scale}
-            />
-          </div>
-
-          <div className="modal-sidebar">
-            <div className="sidebar-section">
-              <h4 className="sidebar-section-title">表格属性</h4>
-              <div className="sidebar-row">
-                <ColorPicker
-                  label="Fill"
-                  codeAttr="bg"
-                  value={tableData.attrs.bg || '#ffffff'}
-                  onChange={(color) => updateTableAttrs({ bg: color })}
-                />
+          <div className="modal-toolbar">
+            <div className="toolbar-group">
+              <span className="toolbar-group-label">表格</span>
+              <div className="toolbar-field">
+                <span className="toolbar-label">Fill</span>
+                <ColorPicker value={tableData.attrs.bg || '#ffffff'} onChange={(color) => updateTableAttrs({ bg: color })} label="表格背景色" />
               </div>
-              <div className="sidebar-row">
-                <ColorPicker
-                  label="Border"
-                  codeAttr="b"
-                  value={tableData.attrs.b || '#333333'}
-                  onChange={(color) => updateTableAttrs({ b: color })}
-                />
+              <div className="toolbar-field">
+                <span className="toolbar-label">Border</span>
+                <ColorPicker value={tableData.attrs.b || '#333333'} onChange={(color) => updateTableAttrs({ b: color })} label="表格边框色" />
               </div>
-              <div className="sidebar-row two-col">
-                <div className="mini-field">
-                  <span className="mini-label">W</span>
-                  <DraggableNumberInput
-                    label=""
-                    value={tableData.attrs.w || 600}
-                    onChange={(v) => updateTableAttrs({ w: v })}
-                  />
-                </div>
-                <div className="mini-field">
-                  <span className="mini-label">H</span>
-                  <DraggableNumberInput
-                    label=""
-                    value={tableData.attrs.h || 0}
-                    onChange={(v) => updateTableAttrs({ h: v })}
-                  />
-                </div>
+              <div className="toolbar-field">
+                <span className="toolbar-label">W</span>
+                <DraggableNumberInput label="" value={tableData.attrs.w || 600} onChange={(v) => updateTableAttrs({ w: v })} />
               </div>
-              <div className="sidebar-row two-col">
-                <div className="mini-field">
-                  <span className="mini-label">Border</span>
-                  <DraggableNumberInput
-                    label=""
-                    value={tableData.attrs.border || 1}
-                    onChange={(v) => updateTableAttrs({ border: v })}
-                  />
-                </div>
-                <div className="mini-field">
-                  <span className="mini-label">CS</span>
-                  <DraggableNumberInput
-                    label=""
-                    value={tableData.attrs.cellspacing || 0}
-                    onChange={(v) => updateTableAttrs({ cellspacing: v })}
-                  />
-                </div>
+              <div className="toolbar-field">
+                <span className="toolbar-label">H</span>
+                <DraggableNumberInput label="" value={tableData.attrs.h || 0} onChange={(v) => updateTableAttrs({ h: v })} />
+              </div>
+              <div className="toolbar-field">
+                <span className="toolbar-label">Border</span>
+                <DraggableNumberInput label="" value={tableData.attrs.border || 1} onChange={(v) => updateTableAttrs({ border: v })} />
+              </div>
+              <div className="toolbar-field">
+                <span className="toolbar-label">CS</span>
+                <DraggableNumberInput label="" value={tableData.attrs.cellspacing || 0} onChange={(v) => updateTableAttrs({ cellspacing: v })} />
               </div>
             </div>
+            <div className="toolbar-group">
+              <span className="toolbar-group-label">结构</span>
+              <button className="toolbar-btn" onClick={() => addRow()}>+ 行</button>
+              <button className="toolbar-btn" onClick={() => addColumn()}>+ 列</button>
+              <button className="toolbar-btn danger" onClick={() => deleteRow(tableData.rows.length - 1)} disabled={tableData.rows.length <= 1}>- 行</button>
+              <button className="toolbar-btn danger" onClick={() => deleteColumn(tableData.rows[0]?.cells.length - 1)} disabled={(tableData.rows[0]?.cells.length || 0) <= 1}>- 列</button>
+            </div>
+            <div className="toolbar-group">
+              <span className="toolbar-info">{tableData.rows.length} 行 × {tableData.rows[0]?.cells.length || 0} 列</span>
+              {isDirty && <span className="dirty-indicator" title="有未保存的修改">●</span>}
+            </div>
+          </div>
 
-            <div className="sidebar-divider" />
+          <div className="modal-content-area">
+            <div className="modal-main">
+              <TableGrid
+                tableData={tableData}
+                selectedCells={selectedCells}
+                editingCell={editingCell}
+                onSelectCell={selectCell}
+                onStartEditing={startEditing}
+                onStopEditing={stopEditing}
+                onUpdateCell={updateCell}
+                onAddRow={addRow}
+                onDeleteRow={deleteRow}
+                onAddColumn={addColumn}
+                onDeleteColumn={deleteColumn}
+                scale={scale}
+              />
+            </div>
 
-            <CellProperties
-              tableData={tableData}
-              selectedCells={selectedCells}
-              onUpdateCell={updateCell}
-              onUpdateRow={updateRow}
-            />
+            <div className="modal-sidebar">
+              <CellProperties
+                tableData={tableData}
+                selectedCells={selectedCells}
+                onUpdateCell={updateCell}
+                onUpdateRow={updateRow}
+                onResetRowAttrs={resetRowAttrs}
+                onResetCellAttrs={resetCellAttrs}
+              />
+            </div>
           </div>
         </div>
 

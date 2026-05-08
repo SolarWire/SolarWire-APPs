@@ -9,6 +9,7 @@
   cursor: default;
   user-select: none;
   -webkit-user-select: none;
+  isolation: isolate;
 }
 
 .solarwire-preview.pan-mode {

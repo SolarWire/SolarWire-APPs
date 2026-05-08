@@ -8,6 +8,7 @@ interface CanvasRulerProps {
   width: number;
   height: number;
   rulerSize?: number;
+  theme?: string;
 }
 
 const RULER_SIZE = 24;
@@ -19,7 +20,7 @@ function getRulerColors(): {
   tickColor: string;
   borderColor: string;
 } {
-  const style = getComputedStyle(document.documentElement);
+  const style = getComputedStyle(document.body);
   const bg = style.getPropertyValue('--ruler-bg').trim() || '#1e1e1e';
   const text = style.getPropertyValue('--ruler-text').trim() || '#999';
   const tick = style.getPropertyValue('--ruler-tick').trim() || '#555';
@@ -46,7 +47,8 @@ const HorizontalRuler: React.FC<{
   viewport: ViewportManager;
   width: number;
   rulerSize: number;
-}> = React.memo(({ viewport, width, rulerSize }) => {
+  themeKey: string;
+}> = React.memo(({ viewport, width, rulerSize, themeKey }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const draw = useCallback(() => {
@@ -117,7 +119,7 @@ const HorizontalRuler: React.FC<{
         ctx.stroke();
       }
     }
-  }, [viewport, width, rulerSize]);
+  }, [viewport, width, rulerSize, themeKey]);
 
   useEffect(() => {
     draw();
@@ -133,7 +135,7 @@ const HorizontalRuler: React.FC<{
         position: 'absolute',
         top: 0,
         left: rulerSize,
-        zIndex: 10,
+        zIndex: 1,
         pointerEvents: 'none',
       }}
     />
@@ -146,7 +148,8 @@ const VerticalRuler: React.FC<{
   viewport: ViewportManager;
   height: number;
   rulerSize: number;
-}> = React.memo(({ viewport, height, rulerSize }) => {
+  themeKey: string;
+}> = React.memo(({ viewport, height, rulerSize, themeKey }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const draw = useCallback(() => {
@@ -221,7 +224,7 @@ const VerticalRuler: React.FC<{
         ctx.stroke();
       }
     }
-  }, [viewport, height, rulerSize]);
+  }, [viewport, height, rulerSize, themeKey]);
 
   useEffect(() => {
     draw();
@@ -237,7 +240,7 @@ const VerticalRuler: React.FC<{
         position: 'absolute',
         top: rulerSize,
         left: 0,
-        zIndex: 10,
+        zIndex: 1,
         pointerEvents: 'none',
       }}
     />
@@ -249,7 +252,8 @@ VerticalRuler.displayName = 'VerticalRuler';
 const RulerCorner: React.FC<{
   rulerSize: number;
   onClick?: () => void;
-}> = React.memo(({ rulerSize, onClick }) => {
+  themeKey: string;
+}> = React.memo(({ rulerSize, onClick, themeKey }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -279,7 +283,7 @@ const RulerCorner: React.FC<{
     ctx.moveTo(0, rulerSize - 0.5);
     ctx.lineTo(rulerSize, rulerSize - 0.5);
     ctx.stroke();
-  }, [rulerSize]);
+  }, [rulerSize, themeKey]);
 
   return (
     <canvas
@@ -292,7 +296,7 @@ const RulerCorner: React.FC<{
         position: 'absolute',
         top: 0,
         left: 0,
-        zIndex: 11,
+        zIndex: 2,
         pointerEvents: onClick ? 'auto' : 'none',
       }}
     />
@@ -308,7 +312,10 @@ const CanvasRuler: React.FC<CanvasRulerProps> = React.memo(({
   width,
   height,
   rulerSize = RULER_SIZE,
+  theme,
 }) => {
+  const themeKey = theme || '';
+
   const viewport = useMemo(
     () => new ViewportManager(position, scale, viewBoxOffset),
     [position.x, position.y, scale, viewBoxOffset.x, viewBoxOffset.y]
@@ -316,16 +323,18 @@ const CanvasRuler: React.FC<CanvasRulerProps> = React.memo(({
 
   return (
     <>
-      <RulerCorner rulerSize={rulerSize} />
+      <RulerCorner rulerSize={rulerSize} themeKey={themeKey} />
       <HorizontalRuler
         viewport={viewport}
         width={Math.max(0, width - rulerSize)}
         rulerSize={rulerSize}
+        themeKey={themeKey}
       />
       <VerticalRuler
         viewport={viewport}
         height={Math.max(0, height - rulerSize)}
         rulerSize={rulerSize}
+        themeKey={themeKey}
       />
     </>
   );

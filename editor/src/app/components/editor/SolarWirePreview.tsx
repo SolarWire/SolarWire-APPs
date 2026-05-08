@@ -8,6 +8,7 @@ import { useEditorStore } from '../../stores/editorStore';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { useFileStore } from '../../stores/fileStore';
 import { usePreviewStore } from '../../stores/previewStore';
+import { useAppStore } from '../../stores/appStore';
 import { parse } from '../../../lib/parser';
 import { render, RenderResultWithMeta } from '../../../lib/renderer';
 import { useImageDrop, getFileDir } from '../../hooks/useImageDrop';
@@ -53,6 +54,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
   const { currentPath, selectedFile } = useFileStore();
   const fileDir = getFileDir(selectedFile?.path, currentPath);
   const { primaryColor } = useSettingsStore();
+  const { theme } = useAppStore();
 
   const {
     scale, setScale, position, setPosition,
@@ -387,6 +389,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
           viewBoxOffset={{ x: viewBox?.x || 0, y: viewBox?.y || 0 }}
           width={containerSize.width}
           height={containerSize.height}
+          theme={theme}
         />
       )}
 

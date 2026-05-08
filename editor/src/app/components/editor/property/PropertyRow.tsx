@@ -65,10 +65,11 @@ interface DraggableNumberInputProps {
   onChange: (value: any) => void;
   step?: number;
   codeAttr?: string;
+  placeholder?: string;
 }
 
 export const DraggableNumberInput: React.FC<DraggableNumberInputProps> = ({
-  label, value, onChange, step = 1, codeAttr
+  label, value, onChange, step = 1, codeAttr, placeholder
 }) => {
   const dragState = useRef<{ startX: number; startValue: number } | null>(null);
   const meta = codeAttr ? PROPERTY_META[codeAttr] : undefined;
@@ -129,7 +130,12 @@ export const DraggableNumberInput: React.FC<DraggableNumberInputProps> = ({
       <input
         type="number"
         value={value}
-        onChange={(e) => onChange(parseInt(e.target.value) || 0)}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (placeholder && val === '') return;
+          onChange(parseInt(val) || 0);
+        }}
+        placeholder={placeholder}
       />
     </div>
   );

@@ -21,9 +21,9 @@ const ShadowEditor: React.FC<ShadowEditorProps> = ({ attrs, onChange }) => {
             onChange={(e) => {
               if (e.target.checked) {
                 onChange('shadow-enabled', true);
-                if (!attrs['shadow-x']) onChange('shadow-x', 2);
-                if (!attrs['shadow-y']) onChange('shadow-y', 2);
-                if (!attrs['shadow-blur']) onChange('shadow-blur', 4);
+                if (!attrs['shadow-x']) onChange('shadow-x', 0);
+                if (!attrs['shadow-y']) onChange('shadow-y', 0);
+                if (!attrs['shadow-blur']) onChange('shadow-blur', 3);
                 if (!attrs['shadow-color']) onChange('shadow-color', '#000000');
               } else {
                 onChange('shadow-enabled', undefined);
@@ -41,13 +41,13 @@ const ShadowEditor: React.FC<ShadowEditorProps> = ({ attrs, onChange }) => {
           <div className="property-row">
             <DraggableNumberInput
               label="X"
-              value={attrs['shadow-x'] || ''}
+              value={attrs['shadow-x'] || 0}
               codeAttr="shadow-x"
               onChange={(v) => onChange('shadow-x', v)}
             />
             <DraggableNumberInput
               label="Y"
-              value={attrs['shadow-y'] || ''}
+              value={attrs['shadow-y'] || 0}
               codeAttr="shadow-y"
               onChange={(v) => onChange('shadow-y', v)}
             />
@@ -55,7 +55,7 @@ const ShadowEditor: React.FC<ShadowEditorProps> = ({ attrs, onChange }) => {
           <PropertyRow label="Blur" codeAttr="shadow-blur">
             <DraggableNumberInput
               label=""
-              value={attrs['shadow-blur'] || ''}
+              value={attrs['shadow-blur'] || 3}
               codeAttr="shadow-blur"
               onChange={(v) => onChange('shadow-blur', v)}
             />

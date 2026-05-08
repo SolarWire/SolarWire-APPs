@@ -113,20 +113,73 @@ When a new codebase is provided for an existing PRD:
 
 **Goal: Extract UI structure and interactions**
 
-#### 2.1 Component Structure
+#### 2.1 Component Resolution (CRITICAL)
+
+**Problem**: Well-decoupled code splits UI into many layers. A page file may only render `<LoginForm />`, while the actual form elements are in deeply nested child components. If you only read the page file, you will miss all UI elements.
+
+**Rule**: You MUST recursively trace every component reference until you reach the actual UI elements (HTML tags, UI library components).
+
+**Resolution Steps:**
+
+```
+1. Read page file (e.g., Login.tsx)
+2. Identify all component references (e.g., <LoginForm />, <Footer />)
+3. For each referenced component:
+   a. Find its source file (check imports, conventions)
+   b. Read the component source
+   c. Identify its child components
+   d. Repeat until reaching actual UI elements
+4. Build complete component tree for the page
+```
+
+**Component Resolution Table:**
+
+| Code Pattern | Resolution Action |
+|--------------|-------------------|
+| `<ComponentName />` | Find and read ComponentName source file |
+| `<ComponentName prop={value} />` | Trace prop value to understand data flow |
+| `{children}` | Read parent to understand what children are passed |
+| `import Component from './Component'` | Read ./Component file |
+| `import { Component } from '@/components'` | Search components directory for Component |
+| `import Component from 'ui-library'` | Recognize as UI library component, map to SolarWire element |
+| `render={() => <Component />}` | Read Component, this is a deferred render |
+| `React.lazy(() => import('./Component'))` | Read Component, this is a lazy-loaded component |
+| HOC: `withAuth(Component)` | Read Component + understand HOC behavior |
+| Custom Hook: `useAuth()` | Read hook source, extract state/effects that affect UI |
+
+**Component Tree Example:**
+
+```
+Login.tsx
+├── LoginForm.tsx
+│   ├── InputField.tsx (username)
+│   ├── InputField.tsx (password)
+│   ├── Checkbox.tsx (remember me)
+│   └── SubmitButton.tsx
+├── SocialLogin.tsx
+│   ├── WeChatButton.tsx
+│   └── DingTalkButton.tsx
+└── Footer.tsx
+    ├── Link (terms)
+    └── Link (privacy)
+```
+
+**CRITICAL**: Do NOT stop at the page level. You must resolve the FULL component tree before generating wireframes. A page that only renders `<LoginForm />` without resolving LoginForm will produce an empty wireframe.
+
+#### 2.2 Component Structure
 
 Analyze frontend code to identify:
 
 | Analysis Target | What to Extract |
 |-----------------|-----------------|
 | Pages/Routes | All page components and their routes |
-| Components | Reusable UI components |
+| Components | Reusable UI components (resolve full tree) |
 | Layouts | Page layout patterns |
 | Navigation | Menu, tabs, breadcrumbs |
 
-#### 2.2 UI Elements
+#### 2.3 UI Elements
 
-For each page/component, identify:
+For each page/component, identify (after full component resolution):
 
 | Element Type | What to Extract |
 |--------------|-----------------|
@@ -136,7 +189,22 @@ For each page/component, identify:
 | Modals | Trigger conditions, content, actions |
 | Lists | Data source, item structure, interactions |
 
-#### 2.3 Interactions
+#### 2.4 State & Data Flow Tracing
+
+**Problem**: Business logic is often in custom hooks, context providers, or state management stores, not in the component itself. You must trace these to understand the full behavior.
+
+| Code Pattern | Resolution Action |
+|--------------|-------------------|
+| `const [state, setState] = useState()` | Extract initial state and all setState calls |
+| `const { data } = useQuery()` | Trace query to understand data source |
+| `const value = useContext()` | Find provider, extract provided value |
+| `const store = useSelector()` | Find reducer, extract state shape |
+| `const [state, dispatch] = useReducer()` | Read reducer, extract all actions |
+| Custom hook `useXxx()` | Read hook source, extract returned state/methods |
+| `useEffect(() => {}, [dep])` | Extract side effects and dependencies |
+| `props.xxx` | Trace from parent component |
+
+#### 2.5 Interactions
 
 Extract interaction patterns:
 
@@ -636,13 +704,15 @@ REQUIRED SUB-SKILL: solarwire-prd
 ## Important Reminders
 
 1. **Read All Code** - Analyze entire codebase, not just entry files
-2. **Understand Context** - Infer business meaning from code patterns
-3. **Follow SolarWire Syntax** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-syntax
-4. **Generate Complete PRD** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for PRD template
-5. **Document APIs** - Extract all endpoints from backend routes
-6. **Document Data Models** - Extract all schemas from database models
-7. **Infer Business Logic** - Extract rules from validation and processing code
-8. **Generate Wireframes** - Create SolarWire for every page/component
-9. **Add Notes** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for note writing rules
-10. **Output to .solarwire** - Save PRD to `.solarwire/[project-name]/solarwire-prd.md`
-11. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
+2. **Resolve Full Component Tree** - Recursively trace every component reference until reaching actual UI elements. NEVER stop at the page level
+3. **Trace State & Data Flow** - Follow custom hooks, context, and state management to understand full behavior
+4. **Understand Context** - Infer business meaning from code patterns
+5. **Follow SolarWire Syntax** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-syntax
+6. **Generate Complete PRD** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for PRD template
+7. **Document APIs** - Extract all endpoints from backend routes
+8. **Document Data Models** - Extract all schemas from database models
+9. **Infer Business Logic** - Extract rules from validation and processing code
+10. **Generate Wireframes** - Create SolarWire for every page/component
+11. **Add Notes** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for note writing rules
+12. **Output to .solarwire** - Save PRD to `.solarwire/[project-name]/solarwire-prd.md`
+13. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors

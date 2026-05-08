@@ -4,48 +4,71 @@ import type { Element } from '../../../../lib/parser/types';
 export interface ElementProps {
   type: string;
   attrs: Record<string, string>;
-  x: number;
-  y: number;
-  text: string;
-  w: string;
-  h: string;
-  r: string;
-  bg: string;
-  borderColor: string;
-  borderSize: string;
-  textColor: string;
-  fontSize: string;
-  align: string;
-  verticalAlign: string;
-  paddingTop: string;
-  paddingRight: string;
-  paddingBottom: string;
-  paddingLeft: string;
-  textDecoration: string;
-  opacity: string;
-  bold: boolean;
-  italic: boolean;
+
+  position: {
+    x: number;
+    y: number;
+  };
+
+  size: {
+    w: string;
+    h: string;
+    r: string;
+    show: boolean;
+    showRadius: boolean;
+    showPadding: boolean;
+  };
+
+  appearance: {
+    bg: string;
+    borderColor: string;
+    borderSize: string;
+    textColor: string;
+    opacity: string;
+    showBorder: boolean;
+    showFill: boolean;
+    showOpacity: boolean;
+    showShadow: boolean;
+  };
+
+  text: {
+    content: string;
+    isMultiline: boolean;
+    fontSize: string;
+    align: string;
+    verticalAlign: string;
+    bold: boolean;
+    italic: boolean;
+    textDecoration: string;
+    paddingTop: string;
+    paddingRight: string;
+    paddingBottom: string;
+    paddingLeft: string;
+    lineHeight: string;
+    letterSpacing: string;
+    show: boolean;
+    showAlign: boolean;
+  };
+
+  line?: {
+    end: { type: string; x?: { type: string; value: number }; y?: { type: string; value: number }; dx?: number; dy?: number };
+    label?: string;
+    labelColor: string;
+    style: string;
+  };
+
+  table?: {
+    border: string;
+    cellspacing: string;
+    rows: number;
+    cols: number;
+  };
+
+  image?: {
+    url: string;
+  };
+
   note: string;
-  showSizeControls: boolean;
-  showRadiusControl: boolean;
-  showTextControls: boolean;
-  showBorderControls: boolean;
-  showLineControls: boolean;
-  showAlignControl: boolean;
-  showShadow: boolean;
-  showOpacity: boolean;
-  isTable: boolean;
-  isMultilineText: boolean;
-  textContent: string;
-  end?: { type: string; x?: { type: string; value: number }; y?: { type: string; value: number }; dx?: number; dy?: number };
-  label?: string;
-  url?: string;
-  lineLabelColor: string;
-  lineStyle: string;
-  tableBorder: string;
-  tableCellspacing: string;
-  tableRows: number;
-  tableCols: number;
 }
 
 interface UseElementPropsOptions {
@@ -100,16 +123,16 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
       }
     }
 
-    const text = el.text || '';
+    const rawText = el.text || '';
     const w = attrs.w || '';
     const h = attrs.h || '';
     const r = attrs.r || '';
-    const bg = attrs.bg || '#ffffff';
+    const bg = attrs.bg || (type === 'text' ? 'transparent' : '#ffffff');
     const borderColor = attrs.b || '#333333';
     const borderSize = attrs.s || '1';
     const textColor = attrs.c || '#000000';
     const fontSize = attrs.size || attrs['text-size'] || '12';
-    const align = attrs.align || 'c';
+    const align = attrs.align || (type === 'text' ? 'l' : 'c');
     const verticalAlign = attrs['vertical-align'] || 't';
     const paddingTop = attrs['padding-top'] || '';
     const paddingRight = attrs['padding-right'] || '';
@@ -119,6 +142,8 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
     const opacity = attrs.opacity || '1';
     const bold = !!attrs.bold;
     const italic = !!attrs.italic;
+    const lineHeight = attrs['line-height'] || '22';
+    const letterSpacing = attrs['letter-spacing'] || '0';
     let note = attrs.note || '';
     if (typeof note === 'string') {
       note = note.replace(/^"""|"""$/g, '');
@@ -128,16 +153,16 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
     const showRadiusControl = type === 'rectangle';
     const showTextControls = 'text' in element || type === 'text';
     const showBorderControls = type !== 'line' && type !== 'text';
-    const showLineControls = type === 'line';
     const showAlignControl = type === 'text' || 'text' in element;
+    const showFill = type !== 'line';
     const showShadow = ['rectangle', 'circle', 'text', 'image'].includes(type);
     const showOpacity = ['rectangle', 'circle', 'text', 'image'].includes(type);
+    const showPaddingControls = showSizeControls && showTextControls && type !== 'table';
 
-    const isTable = type === 'table';
-    const isMultilineText = text.startsWith('"""') && text.endsWith('"""');
-    let textContent = text;
+    const isMultilineText = rawText.startsWith('"""') && rawText.endsWith('"""');
+    let textContent = rawText;
     if (isMultilineText) {
-      textContent = text.replace(/^"""|"""$/g, '');
+      textContent = rawText.replace(/^"""|"""$/g, '');
     }
 
     const lineLabelColor = attrs['text-color'] || '#333333';
@@ -149,13 +174,48 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
     const tableCols = (el.children?.[0] as any)?.children?.length || 0;
 
     return {
-      type, attrs, x, y, text, w, h, r, bg, borderColor, borderSize,
-      textColor, fontSize, align, verticalAlign, paddingTop, paddingRight, paddingBottom, paddingLeft, textDecoration, opacity, bold, italic, note, showSizeControls,
-      showRadiusControl, showTextControls, showBorderControls,
-      showLineControls, showAlignControl, showShadow, showOpacity, isTable, isMultilineText, textContent,
-      end: el.end, label: el.label, url: el.url,
-      lineLabelColor, lineStyle,
-      tableBorder, tableCellspacing, tableRows, tableCols,
+      type,
+      attrs,
+      position: { x, y },
+      size: {
+        w, h, r,
+        show: showSizeControls,
+        showRadius: showRadiusControl,
+        showPadding: showPaddingControls,
+      },
+      appearance: {
+        bg, borderColor, borderSize, textColor, opacity,
+        showBorder: showBorderControls,
+        showFill,
+        showOpacity,
+        showShadow,
+      },
+      text: {
+        content: textContent,
+        isMultiline: isMultilineText,
+        fontSize, align, verticalAlign,
+        bold, italic, textDecoration,
+        paddingTop, paddingRight, paddingBottom, paddingLeft,
+        lineHeight, letterSpacing,
+        show: showTextControls,
+        showAlign: showAlignControl,
+      },
+      line: type === 'line' ? {
+        end: el.end!,
+        label: el.label,
+        labelColor: lineLabelColor,
+        style: lineStyle,
+      } : undefined,
+      table: type === 'table' ? {
+        border: tableBorder,
+        cellspacing: tableCellspacing,
+        rows: tableRows,
+        cols: tableCols,
+      } : undefined,
+      image: type === 'image' ? {
+        url: el.url || '',
+      } : undefined,
+      note,
     };
   }, [element]);
 }

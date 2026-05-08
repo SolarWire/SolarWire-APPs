@@ -632,12 +632,17 @@ export function useElementInteraction({
 
         setAlignmentGuides([...snapped.snappedGuides]);
 
-        const distances = calculateDistances(
-          { x: snapped.x, y: snapped.y, w: elementW, h: elementH },
-          snapElements,
-          excludeIds
-        );
-        setDistanceLines(distances);
+        if (snapped.snapped) {
+          const distances = calculateDistances(
+            { x: snapped.x, y: snapped.y, w: elementW, h: elementH },
+            snapElements,
+            excludeIds,
+            50
+          );
+          setDistanceLines(distances);
+        } else {
+          setDistanceLines([]);
+        }
       } else {
         setAlignmentGuides([]);
         setDistanceLines([]);
@@ -724,12 +729,17 @@ export function useElementInteraction({
 
         setAlignmentGuides([...snapped.snappedGuides]);
 
-        const distances = calculateDistances(
-          { x: snapped.x, y: snapped.y, w: groupBounds.w, h: groupBounds.h },
-          snapElements,
-          excludeIds
-        );
-        setDistanceLines(distances);
+        if (snapped.snapped) {
+          const distances = calculateDistances(
+            { x: snapped.x, y: snapped.y, w: groupBounds.w, h: groupBounds.h },
+            snapElements,
+            excludeIds,
+            50
+          );
+          setDistanceLines(distances);
+        } else {
+          setDistanceLines([]);
+        }
 
         const gridSnapSize = 10;
         const snappedDx = Math.round(dx / gridSnapSize) * gridSnapSize;
@@ -797,7 +807,7 @@ export function useElementInteraction({
               !(selectedBounds.w === 0 && selectedBounds.h === 0) &&
               !(hoveredBounds.w === 0 && hoveredBounds.h === 0)) {
             const snapElements: SnapElement[] = [{ id: currentHoveredElement, bounds: hoveredBounds }];
-            const distances = calculateDistances(selectedBounds, snapElements, []);
+            const distances = calculateDistances(selectedBounds, snapElements, [], 50);
             setDistanceLines(distances);
           }
         }
@@ -833,7 +843,7 @@ export function useElementInteraction({
         }
 
         if (nearestElement) {
-          const distances = calculateDistances(selectedBounds, [nearestElement], []);
+          const distances = calculateDistances(selectedBounds, [nearestElement], [], 50);
           setDistanceLines(distances);
         } else {
           setDistanceLines([]);

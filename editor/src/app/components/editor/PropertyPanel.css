@@ -2,35 +2,11 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 8px;
+  padding: 12px;
   background: var(--bg-secondary);
   color: var(--text-primary);
   box-sizing: border-box;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.property-panel::-webkit-scrollbar {
-  width: var(--scrollbar-width);
-  height: var(--scrollbar-height);
-}
-
-.property-panel::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.property-panel::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: var(--scrollbar-radius, 4px);
-}
-
-.property-panel::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-.property-panel::-webkit-scrollbar-corner {
-  background: var(--scrollbar-track);
 }
 
 .property-panel h3 {
@@ -49,8 +25,8 @@
 .property-panel-header {
   display: flex;
   align-items: center;
-  padding-bottom: 8px;
-  margin-bottom: 4px;
+  padding-bottom: 10px;
+  margin-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -63,20 +39,20 @@
 }
 
 .property-group-wrapper {
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .property-group-title {
   font-size: 10px;
   color: var(--text-muted);
-  margin: 8px 0 4px 0;
+  margin: 0 0 8px 0;
   padding: 4px 0;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   user-select: none;
 }
 
@@ -107,21 +83,21 @@
 .property-group-content-inner {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding-top: 2px;
+  gap: 8px;
 }
 
 .property-row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
+  width: 100%;
 }
 
 .property-label {
   font-size: 11px;
   color: var(--text-muted);
   flex-shrink: 0;
-  width: 70px;
+  width: 68px;
   user-select: none;
   display: flex;
   align-items: center;
@@ -157,7 +133,7 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .property-drag-label {
@@ -192,7 +168,7 @@
 .property-row textarea,
 .property-row select {
   width: 100%;
-  padding: 3px 6px;
+  padding: 4px 6px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 11px;
@@ -226,7 +202,7 @@
 .opacity-control {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex: 1;
 }
 
@@ -251,7 +227,7 @@
 
 .align-buttons {
   display: flex;
-  gap: 2px;
+  gap: 3px;
 }
 
 .align-btn {
@@ -285,7 +261,7 @@
 }
 
 .toggle-row {
-  gap: 4px;
+  gap: 3px;
 }
 
 .toggle-btn {
@@ -314,9 +290,23 @@
   border-color: var(--accent-color);
 }
 
+.color-picker-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.color-picker-wrapper {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .image-url-row {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
 }
 
@@ -325,7 +315,7 @@
 }
 
 .image-browse-btn {
-  padding: 3px 8px;
+  padding: 4px 8px;
   background-color: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 4px;
