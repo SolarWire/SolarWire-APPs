@@ -1,12 +1,15 @@
 ## Inlined Syntax Rules (CRITICAL)
 
-- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
-- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
-- 边框颜色用 `b=`，边框宽度用 `s=`
-- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
-- 表格单元格和行不能指定 @(x,y)、w、h
-- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
-- 所有元素必须有坐标 @(x,y)
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks start with ` ```solarwire ` and end with ` ``` `
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y)
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards

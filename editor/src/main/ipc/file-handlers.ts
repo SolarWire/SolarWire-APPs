@@ -1,9 +1,13 @@
 import { ipcMain } from 'electron';
-import { readFile, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot, rename, deleteFile, deleteDirectory, mkdir, exists, showItemInFolder } from '../file-manager';
+import { readFile, readFileAsBuffer, writeFile, listFiles, getFileTree, collectSolarWireSnippets, copyFile, ensureDir, readImageAsBase64, setAllowedRoot, rename, deleteFile, deleteDirectory, mkdir, exists, showItemInFolder } from '../file-manager';
 
 export function registerFileHandlers(): void {
   ipcMain.handle('file:read', async (_event, filePath: string) => {
     return await readFile(filePath);
+  });
+
+  ipcMain.handle('file:readAsBuffer', async (_event, filePath: string) => {
+    return await readFileAsBuffer(filePath);
   });
 
   ipcMain.handle('file:write', async (_event, filePath: string, content: string | ArrayBuffer | Uint8Array, allowOutsideProject?: boolean) => {

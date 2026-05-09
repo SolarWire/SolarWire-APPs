@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
   readFile: (filePath: string) => ipcRenderer.invoke('file:read', filePath),
+  readFileAsBuffer: (filePath: string) => ipcRenderer.invoke('file:readAsBuffer', filePath),
   writeFile: (filePath: string, content: string | ArrayBuffer | Uint8Array, allowOutsideProject?: boolean) => ipcRenderer.invoke('file:write', filePath, content, allowOutsideProject),
   openFileDialog: (options?: Electron.OpenDialogOptions) => ipcRenderer.invoke('dialog:openFile', options),
   saveFileDialog: (options?: Electron.SaveDialogOptions) => ipcRenderer.invoke('dialog:saveFile', options),

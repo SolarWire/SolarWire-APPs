@@ -2,13 +2,16 @@
 
 ## Inlined Syntax Rules (CRITICAL)
 
-- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
-- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
-- 边框颜色用 `b=`，边框宽度用 `s=`
-- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
-- 表格单元格和行不能指定 @(x,y)、w、h
-- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
-- 所有元素必须有坐标 @(x,y)
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks start with ` ```solarwire ` and end with ` ``` `
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y)
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
@@ -372,6 +375,30 @@ sequenceDiagram
 - API documentation: [if available]
 ```
 
+### Phase 5: Renderer Validation (CRITICAL)
+
+**Goal: Ensure all generated wireframes can be correctly parsed and rendered**
+
+```
+Run: node sw-skills/solarwire/validate-sw.js .solarwire/[project-name]/
+
+If errors found:
+- Fix SolarWire syntax errors in the PRD
+- Re-run validation until all blocks pass
+- Common fixes:
+  - note="..." → note="""...""" (triple quotes)
+  - </solarwire> → ``` (proper closing)
+  - @(x,y) on table cells → remove coordinates
+  - Missing @(x,y) on elements → add coordinates
+  - stroke/strokeWidth → b=/s=
+  - (("text")) → ("text")
+  - ("text") as rounded rect → ["text"] r=N
+  - Pure text in ["text"] → "text"
+  - Rectangle without vertical-align=m → add vertical-align=m
+
+MUST pass validation before presenting PRD to user
+```
+
 ---
 
 ## Output File Structure
@@ -446,14 +473,14 @@ sequenceDiagram
 
 | Element Type | Mock Data Strategy |
 |--------------|-------------------|
-| **User names** | Use realistic names: "John Doe", "张三", "田中太郎" |
+| **User names** | Use realistic names: "John Doe", "Zhang San", "田中太郎" |
 | **Emails** | Use realistic emails: "john@example.com" |
 | **Dates** | Use realistic dates: "2024-01-15", "2024-01-15 14:30" |
-| **Status** | Use meaningful values: "Active", "正常", "有効" |
+| **Status** | Use meaningful values: "Active", "Normal", "有効" |
 | **Numbers** | Use realistic values: "¥1,234.00", "100 items" |
 | **IDs** | Use realistic IDs: "USR-001", "202401150001" |
 | **Descriptions** | Use meaningful text: "This is a sample description..." |
-| **Empty states** | Use meaningful placeholders: "No data", "暂无数据" |
+| **Empty states** | Use meaningful placeholders: "No data", "No Data Available" |
 
 ### Table Mock Data Example
 
@@ -473,9 +500,7 @@ sequenceDiagram
 **Good (Realistic Mock Data):**
 ```solarwire
 ## @(100,50) w=500 border=1 note="""User list table
-1. Data source
-   - User list data from User Management module
-2. Field descriptions
+1. Field descriptions
    - ID: Unique user identifier
    - Name: User display name
    - Status: 1=Active, 0=Disabled"""
@@ -489,7 +514,7 @@ sequenceDiagram
     ["Active"]
   #
     ["USR-002"]
-    ["张三"]
+    ["Zhang San"]
     ["Active"]
   # bg=#F9FAFB
     ["USR-003"]
@@ -515,9 +540,7 @@ sequenceDiagram
 **Convert to Table:**
 ```solarwire
 ## @(100,50) w=400 border=1 note="""Approval timeline
-1. Data source
-   - Approval history from Workflow module
-2. Field descriptions
+1. Field descriptions
    - Step: Approval stage name
    - Status: Current status
    - Time: Action timestamp"""
@@ -578,7 +601,7 @@ sequenceDiagram
 ```solarwire
 ["Loading data..."] @(100,50) w=200 h=40 c=#9CA3AF note="""Loading state
 1. Display condition
-   - Show while fetching data from backend
+   - Show while data is loading
 2. Behavior
    - Auto-hide when data loaded
    - Show actual data list on success"""
@@ -589,6 +612,9 @@ sequenceDiagram
 ## Note Writing Guidelines
 
 Key rules when generating notes from code analysis:
+
+**Note Content Scope**: Notes should ONLY describe user-visible UI behavior and interaction rules. Do NOT include backend implementation details such as API endpoints, data source modules, or database queries. Wireframes describe WHAT the user sees and does, not HOW the backend implements it.
+
 | Code Pattern | Note Content |
 |--------------|--------------|
 | `onClick={handleSubmit}` | "Click action - Submit form data" |
@@ -596,7 +622,12 @@ Key rules when generating notes from code analysis:
 | `disabled={condition}` | "Disabled conditions - [condition]" |
 | `onChange={handleChange}` | "Interaction - Update state on change" |
 | `errorMessage` state | "Error handling - Display: [message]" |
-| API call in handler | "API - Call [endpoint] on [action]" |
+
+**Forbidden in notes** (belongs in dev design, not wireframes):
+- ~~"Data source: User list data from User Management module"~~
+- ~~"API - Call /api/users on load"~~
+- ~~"Data fetched from backend API"~~
+- ~~"Database query: SELECT * FROM users"~~
 
 ---
 
@@ -735,4 +766,6 @@ my-app/
 11. **Add Notes** - Use note writing rules from [note-guide.md](note-guide.md)
 12. **Output to .solarwire** - Save PRD to `.solarwire/[project-name]/solarwire-prd.md`
 13. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
-14. **Resolve Full Component Tree** - Must recursively resolve all component references before generating wireframes
+14. **Pure Text Uses Text Element** - Labels, headings, descriptions and other pure text MUST use `"text"`, NOT `["text"]` rectangle. Only buttons, inputs, cards and other interactive/container elements use `["text"]`
+15. **Rectangle Text Alignment** - Rectangle elements MUST have `vertical-align=m` (vertically centered) and `align=l` (horizontally left-aligned). Default vertical-align is top (t), must explicitly set to middle (m)
+16. **Renderer Validation Required** - After generating wireframes, MUST run `node sw-skills/solarwire/validate-sw.js .solarwire/[project-name]/` and fix all errors before proceeding

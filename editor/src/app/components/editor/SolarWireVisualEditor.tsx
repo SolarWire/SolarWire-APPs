@@ -5,7 +5,6 @@ import TableEditorModal from './TableEditorModal';
 import ComponentLibrary from './ComponentLibrary';
 import LayerPanel from './LayerPanel';
 import SolarWireToolbar from '../toolbar/SolarWireToolbar';
-import ErrorCard from './ErrorCard';
 import { useSolarWireStore, SelectionTool } from '../../stores/solarWireStore';
 import { usePreviewStore } from '../../stores/previewStore';
 import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
@@ -99,12 +98,12 @@ function SolarWireVisualEditor({
     };
   }, [effectiveContent, errorSourceId]);
 
-  const handleJumpToError = useCallback((line: number, column: number) => {
+  const handleJumpToError = useCallback(() => {
     if (onSwitchToCodeTab) {
-      onSwitchToCodeTab(line, column);
+      onSwitchToCodeTab(1, 1);
     } else {
       setTimeout(() => {
-        const event = new CustomEvent('jumpToError', { detail: { line, column } });
+        const event = new CustomEvent('jumpToError', { detail: { line: 1, column: 1 } });
         window.dispatchEvent(event);
       }, 100);
     }
@@ -191,19 +190,8 @@ function SolarWireVisualEditor({
             allowImageElements={allowImageElements}
             onRequestExportSvg={(fn) => { getSvgContentRef.current = fn; }}
             hasSyntaxErrors={currentSyntaxErrors.length > 0}
+            onJumpToError={handleJumpToError}
           />
-
-        {currentSyntaxErrors.length > 0 && (
-          <>
-            {currentSyntaxErrors.slice(0, 3).map((error: SyntaxError, index: number) => (
-              <ErrorCard 
-                key={`${error.line}-${error.column}-${index}`}
-                error={error}
-                onViewInCode={handleJumpToError}
-              />
-            ))}
-          </>
-        )}
 
         {selectedElements.length > 0 && (
           <div className="property-panel-fixed">

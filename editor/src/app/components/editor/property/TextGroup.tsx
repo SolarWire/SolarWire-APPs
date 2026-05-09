@@ -1,6 +1,7 @@
 import React from 'react';
 import PropertyGroupTitle from './PropertyGroupTitle';
 import PropertyRow, { DraggableNumberInput } from './PropertyRow';
+import PropertyLabel from './PropertyLabel';
 import ColorPicker from '../../ui/ColorPicker';
 import ResizableTextarea from './ResizableTextarea';
 import type { ElementProps } from '../hooks/useElementProps';
@@ -65,6 +66,7 @@ const TextGroup: React.FC<TextGroupProps> = ({ element, text, appearance, type, 
         </PropertyRow>
       )}
       <div className="property-row toggle-row">
+        <PropertyLabel codeAttr="" fallbackLabel="样式" className="property-label-text toggle-row-label" />
         <button className={`toggle-btn${text.bold ? ' active' : ''}`} onClick={() => onChange('bold', text.bold ? undefined : true)} title="Bold"><b>B</b></button>
         <button className={`toggle-btn${text.italic ? ' active' : ''}`} onClick={() => onChange('italic', text.italic ? undefined : true)} title="Italic"><i>I</i></button>
         <button className={`toggle-btn${text.textDecoration === 'underline' ? ' active' : ''}`} onClick={() => onChange('text-decoration', text.textDecoration === 'underline' ? undefined : 'underline')} title="Underline"><u>U</u></button>

@@ -23,6 +23,7 @@ export interface FileState {
   fullFileContent: string;
   expandedDirectories: Set<string>;
   currentSnippet: SolarWireSnippet | null;
+  tableSheetData: any[] | null;
   autoRefreshEnabled: boolean;
   autoRefreshTimer: NodeJS.Timeout | null;
   refreshKey: number;
@@ -31,6 +32,7 @@ export interface FileState {
   setSelectedFile: (file: FileNode | null) => void;
   setSelectedImage: (image: { path: string } | null) => void;
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => void;
+  setTableSheetData: (data: any[] | null) => void;
   syncFullFileContent: (editorContent: string) => void;
   openFileAtPath?: (filePath: string) => Promise<void>;
   openSolarWireSnippet?: (snippet: SolarWireSnippet) => Promise<void>;

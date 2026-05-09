@@ -4,6 +4,7 @@
  */
 export interface IFileSystemService {
   readFile(filePath: string): Promise<string>;
+  readFileAsBuffer(filePath: string): Promise<ArrayBuffer>;
   writeFile(filePath: string, content: string | Uint8Array): Promise<void>;
   getFileTree(dirPath: string): Promise<FileNode[]>;
   ensureDir(dirPath: string): Promise<void>;
@@ -29,6 +30,14 @@ export class ElectronFileSystemService implements IFileSystemService {
     const api = (window as any).api;
     if (api && typeof api.readFile === 'function') {
       return await api.readFile(filePath);
+    }
+    throw new Error('File API not available');
+  }
+
+  async readFileAsBuffer(filePath: string): Promise<ArrayBuffer> {
+    const api = (window as any).api;
+    if (api && typeof api.readFileAsBuffer === 'function') {
+      return await api.readFileAsBuffer(filePath);
     }
     throw new Error('File API not available');
   }

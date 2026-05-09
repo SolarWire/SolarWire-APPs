@@ -1,15 +1,20 @@
 import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues, ValidationContext } from '../context';
 import { RenderResult } from './rectangle';
+
+let _canvas: HTMLCanvasElement | null = null;
+let _ctx: CanvasRenderingContext2D | null = null;
 
 function calculateTextWidth(text: string, fontSize: number): number {
   if (typeof document !== 'undefined' && typeof window !== 'undefined') {
     try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        ctx.font = `${fontSize}px Arial, sans-serif`;
-        return ctx.measureText(text).width;
+      if (!_canvas) {
+        _canvas = document.createElement('canvas');
+        _ctx = _canvas.getContext('2d');
+      }
+      if (_ctx) {
+        _ctx.font = `${fontSize}px Arial, sans-serif`;
+        return _ctx.measureText(text).width;
       }
     } catch (_) {}
   }
@@ -29,14 +34,12 @@ export type TableRowWithChildren = TableRowElement & {
   children?: Element[];
 };
 
-/**
- * 类型守卫：检查元素是否有 children 属性
- */
 export function hasChildren(element: Element): element is Element & { children: Element[] } {
   return 'children' in element && Array.isArray((element as any).children);
 }
 
 export function renderCircle(element: CircleElement, context: RenderContext): RenderResult {
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   let pos: AbsolutePosition;
   if (element.coordinates) {
     pos = calculatePosition(context, element.coordinates);
@@ -44,27 +47,27 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
     pos = { x: context.offsetX, y: context.offsetY };
   }
   
-  const w = Math.max(1, getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100));
-  const h = Math.max(1, getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40));
+  const w = Math.max(1, getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100, vc));
+  const h = Math.max(1, getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40, vc));
   const radius = Math.max(0.5, Math.min(w, h) / 2);
   const cx = pos.x + w / 2;
   const cy = pos.y + h / 2;
-  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent');
-  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
-  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
-  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent', vc);
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333', vc);
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1, vc);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000', vc);
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
-  const opacity = getOpacityAttribute(element.attributes);
-  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
-  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle');
-  const textDecoration = getTextDecorationAttribute(element.attributes);
-  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
-  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
-  const align = getAlignAttribute(element.attributes, 'middle');
-  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0);
+  const opacity = getOpacityAttribute(element.attributes, 'opacity', 1, vc);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults, vc);
+  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle', vc);
+  const textDecoration = getTextDecorationAttribute(element.attributes, vc);
+  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22, vc);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0, vc);
+  const align = getAlignAttribute(element.attributes, 'middle', vc);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0, vc);
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'circle'})"` : '';
@@ -76,8 +79,8 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   if (element.text) {
     const lines = element.text.split('\n');
     const totalTextHeight = lines.length * lineHeight;
-    const textAreaW = w * 0.7;
-    const textAreaH = h * 0.7;
+    const textAreaW = Math.max(0, w - padding.left - padding.right);
+    const textAreaH = Math.max(0, h - padding.top - padding.bottom);
 
     let fontStyle = '';
     if (bold) fontStyle += 'font-weight="bold" ';
@@ -156,6 +159,7 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
 }
 
 export function renderText(element: TextElement, context: RenderContext): RenderResult {
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   let pos: AbsolutePosition;
   if (element.coordinates) {
     pos = calculatePosition(context, element.coordinates);
@@ -164,20 +168,19 @@ export function renderText(element: TextElement, context: RenderContext): Render
   }
 
   const lines = element.text.split('\n');
-  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 0);
-  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
-  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
-  const align = getAlignAttribute(element.attributes, 'start');
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 0, vc);
+  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22, vc);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000', vc);
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
+  const align = getAlignAttribute(element.attributes, 'start', vc);
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
-  const opacity = getOpacityAttribute(element.attributes);
-  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  const opacity = getOpacityAttribute(element.attributes, 'opacity', 1, vc);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults, vc);
 
-  // 字间距属性
-  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults);
-  const textDecoration = getTextDecorationAttribute(element.attributes);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0, vc);
+  const textDecoration = getTextDecorationAttribute(element.attributes, vc);
 
   let fontStyle = '';
   if (bold) fontStyle += 'font-weight="bold" ';
@@ -185,7 +188,7 @@ export function renderText(element: TextElement, context: RenderContext): Render
   if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
   if (textDecoration !== 'none') fontStyle += `text-decoration="${textDecoration}" `;
 
-  const textAnchor = align;
+  const textAnchor = align === 'start' ? 'start' : align === 'middle' ? 'middle' : 'end';
   let textX = pos.x;
   if (textAnchor === 'middle') {
     textX = pos.x + (w || 100) / 2;
@@ -212,13 +215,34 @@ export function renderText(element: TextElement, context: RenderContext): Render
 
   svgParts.push('</text>');
 
-  const estimatedWidth = w || (lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100);
+  const containerWidth = w || 100;
+  const contentWidth = w > 0 ? w : (lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100);
   const estimatedHeight = lines.length > 0 ? lines.length * lineHeight : fontSize;
   
+  let boundsX = pos.x;
+  let boundsW = contentWidth;
+  
+  if (w > 0) {
+    const actualTextWidth = lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100;
+    if (containerWidth > actualTextWidth) {
+      if (textAnchor === 'end') {
+        boundsX = pos.x + containerWidth - actualTextWidth;
+        boundsW = actualTextWidth;
+      } else if (textAnchor === 'middle') {
+        boundsX = pos.x + (containerWidth - actualTextWidth) / 2;
+        boundsW = actualTextWidth;
+      } else {
+        boundsW = containerWidth;
+      }
+    } else {
+      boundsW = containerWidth;
+    }
+  }
+  
   const bounds: ElementBounds = {
-    x: pos.x,
+    x: boundsX,
     y: pos.y,
-    width: estimatedWidth,
+    width: boundsW,
     height: estimatedHeight,
   };
   
@@ -240,6 +264,7 @@ export function renderText(element: TextElement, context: RenderContext): Render
 }
 
 export function renderPlaceholder(element: PlaceholderElement, context: RenderContext): RenderResult {
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   let pos: AbsolutePosition;
   if (element.coordinates) {
     pos = calculatePosition(context, element.coordinates);
@@ -247,20 +272,20 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
     pos = { x: context.offsetX, y: context.offsetY };
   }
   
-  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100);
-  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40);
-  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0');
-  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#999999');
-  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
-  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100, vc);
+  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40, vc);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0', vc);
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#999999', vc);
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1, vc);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999', vc);
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
   const note = element.attributes['note'];
-  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle');
-  const align = getAlignAttribute(element.attributes, 'middle');
-  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
-  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
-  const textDecoration = getTextDecorationAttribute(element.attributes);
-  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0);
+  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle', vc);
+  const align = getAlignAttribute(element.attributes, 'middle', vc);
+  const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22, vc);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0, vc);
+  const textDecoration = getTextDecorationAttribute(element.attributes, vc);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0, vc);
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   
@@ -364,6 +389,7 @@ export function renderImage(
   context: RenderContext, 
   imageUrlResolver?: (relativePath: string) => string
 ): RenderResult {
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   let pos: AbsolutePosition;
   if (element.coordinates) {
     pos = calculatePosition(context, element.coordinates);
@@ -371,16 +397,20 @@ export function renderImage(
     pos = { x: context.offsetX, y: context.offsetY };
   }
   
-  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100);
-  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 80);
-  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0');
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
-  const borderColor = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#cccccc');
-  const borderSize = getNumberAttribute(element.attributes, context.globalDefaults, 's', 0);
-  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100, vc);
+  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 80, vc);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#f0f0f0', vc);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999', vc);
+  const borderColor = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#cccccc', vc);
+  const borderSize = getNumberAttribute(element.attributes, context.globalDefaults, 's', 0, vc);
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
   const note = element.attributes['note'];
-  const opacity = getOpacityAttribute(element.attributes);
-  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
+  const opacity = getOpacityAttribute(element.attributes, 'opacity', 1, vc);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults, vc);
+
+  const svgParts: string[] = [];
+
+  svgParts.push(`<g>`);
 
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   const shadowFilterAttr = shadow ? ` filter="url(#shadow-${element.location?.line || 'image'})"` : '';
@@ -389,13 +419,9 @@ export function renderImage(
   const resolvedUrl = imageUrlResolver ? imageUrlResolver(element.url) : element.url;
   const hasValidUrl = !!resolvedUrl && resolvedUrl.length > 0;
 
-  const svgParts: string[] = [];
-
-  svgParts.push(`<g>`);
-
   if (!hasValidUrl) {
-    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${opacityAttr}${shadowFilterAttr}${borderAttr}/>`);
-
+    svgParts.push(`<g${opacityAttr}${shadowFilterAttr}>`);
+    svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}"${borderAttr}/>`);
     const iconSize = Math.min(w, h) * 0.3;
     const iconX = pos.x + w / 2;
     const iconY = pos.y + h / 2 - fontSize;
@@ -406,7 +432,8 @@ export function renderImage(
     svgParts.push(`<circle cx="${iconSize * 0.35}" cy="${iconSize * 0.4}" r="${iconSize * 0.08}" fill="${c}"/>`);
     svgParts.push(`</g>`);
 
-    svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}"${opacityAttr}>Image</text>`);
+    svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2 + fontSize}" text-anchor="middle" fill="${c}" font-size="${fontSize}">Image</text>`);
+    svgParts.push(`</g>`);
   } else {
     svgParts.push(`<image x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" href="${escapeHtml(resolvedUrl)}"${opacityAttr}${shadowFilterAttr}${borderAttr}/>`);
   }
@@ -531,16 +558,18 @@ function estimateTableDimensions(rows: TableRowElement[]): { maxColCount: number
 
   rows.forEach((row, rowIndex) => {
     const cells = (row as any).children || [];
+    let rowColCount = 0;
     cells.forEach((cell: any) => {
       const colspan = cell.attributes['colspan'] ? parseInt(cell.attributes['colspan']) : 1;
       const rowspan = cell.attributes['rowspan'] ? parseInt(cell.attributes['rowspan']) : 1;
-      maxColCount = Math.max(maxColCount, colspan);
+      rowColCount += colspan;
       maxRowSpan = Math.max(maxRowSpan, rowIndex + rowspan);
     });
+    maxColCount = Math.max(maxColCount, rowColCount);
   });
 
   return {
-    maxColCount: Math.max(maxColCount, 10),
+    maxColCount: Math.max(maxColCount, 1),
     maxRowSpan
   };
 }
@@ -607,7 +636,8 @@ function renderTableCells(
   rowHeight: number,
   context: RenderContext,
   renderChild: (child: Element, childContext: RenderContext) => RenderResult,
-  svgParts: string[]
+  svgParts: string[],
+  vc?: ValidationContext
 ): void {
   cellData.forEach(data => {
     const cellX = pos.x + data.col * colWidth;
@@ -647,13 +677,13 @@ function renderTableCells(
     if (cellItalic) modifiedCell.attributes['italic'] = 'true';
     modifiedCell.attributes['align'] = cellAlign === 'start' ? 'l' : cellAlign === 'middle' ? 'c' : 'r';
     modifiedCell.attributes['line-height'] = cellLineHeight.toString();
-    modifiedCell.attributes['letter-spacing'] = cellLetterSpacing.toString();
+    if (cellLetterSpacing !== 0) modifiedCell.attributes['letter-spacing'] = cellLetterSpacing.toString();
     modifiedCell.attributes['vertical-align'] = cellVerticalAlign === 'top' ? 't' : cellVerticalAlign === 'middle' ? 'm' : 'b';
-    modifiedCell.attributes['text-decoration'] = cellTextDecoration;
-    modifiedCell.attributes['padding-top'] = cellPadding.top.toString();
-    modifiedCell.attributes['padding-right'] = cellPadding.right.toString();
-    modifiedCell.attributes['padding-bottom'] = cellPadding.bottom.toString();
-    modifiedCell.attributes['padding-left'] = cellPadding.left.toString();
+    if (cellTextDecoration !== 'none') modifiedCell.attributes['text-decoration'] = cellTextDecoration;
+    if (cellPadding.top !== 0) modifiedCell.attributes['padding-top'] = cellPadding.top.toString();
+    if (cellPadding.right !== 0) modifiedCell.attributes['padding-right'] = cellPadding.right.toString();
+    if (cellPadding.bottom !== 0) modifiedCell.attributes['padding-bottom'] = cellPadding.bottom.toString();
+    if (cellPadding.left !== 0) modifiedCell.attributes['padding-left'] = cellPadding.left.toString();
 
     const result = renderChild(modifiedCell as any, cellContext);
     svgParts.push(result.svg);
@@ -666,22 +696,23 @@ function renderTableElement(
   pos: AbsolutePosition,
   renderChild: (child: Element, childContext: RenderContext) => RenderResult
 ): RenderResult {
-  const border = getNumberAttribute(element.attributes, context.globalDefaults, 'border', 1);
-  const cellspacing = getNumberAttribute(element.attributes, context.globalDefaults, 'cellspacing', 0);
-  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
-  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent');
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+  const border = getNumberAttribute(element.attributes, context.globalDefaults, 'border', 1, vc);
+  const cellspacing = getNumberAttribute(element.attributes, context.globalDefaults, 'cellspacing', 0, vc);
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333', vc);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent', vc);
   const note = element.attributes['note'];
 
   const svgParts: string[] = [];
 
   svgParts.push(`<g data-table-id="${element.location?.line || 'table'}">`);
-  svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="0" height="0" fill="transparent" stroke="none" pointer-events="fill"/>`);
+  svgParts.push(`<!-- TABLE_BG_PLACEHOLDER -->`);
 
   const rows = element.children || [];
   validateTableStructure(element, rows, context);
 
-  const tableWidth = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 600);
-  const declaredTableHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 0);
+  const tableWidth = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 600, vc);
+  const declaredTableHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 0, vc);
   const defaultRowHeight = 40;
 
   const { maxColCount: estimatedMaxColCount, maxRowSpan: estimatedMaxRowSpan } = estimateTableDimensions(rows);
@@ -742,26 +773,18 @@ function renderTableElement(
   const { cellData } = buildCellGrid(rows, finalNumRows, finalNumCols);
   const colWidth = finalNumCols > 0 ? tableWidth / finalNumCols : 100;
 
-  renderTableCells(cellData, rows, pos, colWidth, rowHeight, context, renderChild, svgParts);
+  renderTableCells(cellData, rows, pos, colWidth, rowHeight, context, renderChild, svgParts, vc);
 
-  if (bg !== 'transparent') {
-    const bgRectIndex = svgParts.findIndex(part => part.includes('fill="transparent"'));
-    if (bgRectIndex !== -1) {
-      svgParts[bgRectIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="${bg}" stroke="none" pointer-events="all"/>`;
+  const bgPlaceholderIndex = svgParts.indexOf('<!-- TABLE_BG_PLACEHOLDER -->');
+  if (bgPlaceholderIndex !== -1) {
+    if (bg !== 'transparent') {
+      svgParts[bgPlaceholderIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="${bg}" stroke="none" pointer-events="all"/>`;
     } else {
-      svgParts.splice(1, 0, `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="${bg}" stroke="none"/>`);
+      svgParts[bgPlaceholderIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="transparent" stroke="none" pointer-events="all"/>`;
     }
   }
-
   if (border > 0) {
     svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="none" stroke="${b}" stroke-width="${border}"/>`);
-  }
-
-  if (bg === 'transparent') {
-    const transparentRectIndex = svgParts.findIndex(part => part.includes('fill="transparent"'));
-    if (transparentRectIndex !== -1) {
-      svgParts[transparentRectIndex] = `<rect x="${pos.x}" y="${pos.y}" width="${tableWidth}" height="${tableHeight}" fill="transparent" stroke="none" pointer-events="all"/>`;
-    }
   }
 
   const bounds: ElementBounds = {
@@ -789,7 +812,8 @@ function renderTableRow(
   pos: AbsolutePosition,
   renderChild: (child: Element, childContext: RenderContext) => RenderResult
 ): RenderResult {
-  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent');
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', 'transparent', vc);
   const note = element.attributes['note'];
   
   if (note) {
@@ -839,7 +863,7 @@ function renderTableRow(
   });
   
   const rowWidth = currentX - pos.x;
-  const rowHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', maxHeight || 40);
+  const rowHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'h', maxHeight || 40, vc);
   
   if (bg !== 'transparent') {
     svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${rowWidth}" height="${rowHeight}" fill="${bg}"/>`);

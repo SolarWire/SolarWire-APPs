@@ -61,7 +61,11 @@ export const DraggableNumberInput: React.FC<DraggableNumberInputProps> = ({
     : (codeAttr && PROPERTY_META[codeAttr] ? PROPERTY_META[codeAttr].zhName : '');
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).tagName === 'INPUT' || (e.target as HTMLElement).tagName === 'TEXTAREA') {
+      return;
+    }
     e.preventDefault();
+    e.stopPropagation();
     const startX = e.clientX;
     const startValue = typeof value === 'number' ? value : parseInt(String(value)) || 0;
     dragState.current = { startX, startValue };

@@ -1,16 +1,17 @@
 import { LineElement, Element } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, calculateLineEnd, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
+import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, calculateLineEnd, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
 import { RenderResult } from './rectangle';
 
 export function renderLine(element: LineElement, context: RenderContext): RenderResult {
   const start = calculatePosition(context, element.start);
   const end = calculateLineEnd(context, start, element.end);
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#333333');
-  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
-  const style = getStyleAttribute(element.attributes);
-  const textSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
-  const textColor = getColorAttribute(element.attributes, context.globalDefaults, 'text-color', '#333333');
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#333333', vc);
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1, vc);
+  const style = getStyleAttribute(element.attributes, vc);
+  const textSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
+  const textColor = getColorAttribute(element.attributes, context.globalDefaults, 'text-color', '#333333', vc);
   const note = element.attributes['note'];
   
   let svgParts: string[] = [];

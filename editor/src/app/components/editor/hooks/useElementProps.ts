@@ -132,8 +132,8 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
     const borderSize = attrs.s || '1';
     const textColor = attrs.c || '#000000';
     const fontSize = attrs.size || attrs['text-size'] || '12';
-    const align = attrs.align || (type === 'text' ? 'l' : 'c');
-    const verticalAlign = attrs['vertical-align'] || 't';
+    const align = attrs.align || '';
+    const verticalAlign = attrs['vertical-align'] || '';
     const paddingTop = attrs['padding-top'] || '';
     const paddingRight = attrs['padding-right'] || '';
     const paddingBottom = attrs['padding-bottom'] || '';

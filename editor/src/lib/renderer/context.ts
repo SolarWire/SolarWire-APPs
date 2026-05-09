@@ -127,6 +127,11 @@ export interface ElementBounds {
   height: number;
 }
 
+export interface ValidationContext {
+  sourceInput?: string;
+  element: Element;
+}
+
 export interface RenderContext {
   offsetX: number;
   offsetY: number;
@@ -142,7 +147,18 @@ export function createRenderContext(declarations: DocumentDeclaration[] = [], so
   declarations.forEach(decl => {
     const { key, value } = decl;
     if (['size', 'line-height', 'gap', 'r'].includes(key)) {
-      globalDefaults[key] = parseFloat(value);
+      const parsed = parseFloat(value);
+      if (isNaN(parsed)) {
+        throw new Error(formatRenderError({
+          title: `Invalid value for "!${key}" declaration`,
+          expected: 'A valid number',
+          found: `"${value}"`,
+          location: `declaration !${key}=${value}`,
+          reason: `The value "${value}" cannot be parsed as a number.`,
+          solution: `Use a numeric value for the "!${key}" declaration, e.g., !${key}=10.`
+        }, sourceInput, undefined));
+      }
+      globalDefaults[key] = parsed;
     } else if (key === 'bold') {
       globalDefaults[key] = true;
     } else {
@@ -261,14 +277,40 @@ export function getNumberAttribute(
   attributes: Record<string, string>,
   globalDefaults: GlobalDefaults,
   key: string,
-  defaultValue: number
+  defaultValue: number,
+  vc?: ValidationContext
 ): number {
   const localValue = attributes[key];
   if (localValue !== undefined) {
     const parsed = parseFloat(localValue);
-    return isNaN(parsed) ? defaultValue : parsed;
+    if (isNaN(parsed)) {
+      if (vc) {
+        throw new Error(formatRenderError({
+          title: `Invalid value for "${key}" attribute`,
+          expected: 'A valid number',
+          found: `"${localValue}"`,
+          location: getElementLocationInfo(vc.element),
+          reason: `The value "${localValue}" cannot be parsed as a number.`,
+          solution: `Use a numeric value for the "${key}" attribute, e.g., ${key}=10.`
+        }, vc.sourceInput, vc.element.location));
+      }
+      return defaultValue;
+    }
+    return parsed;
   }
   if (globalDefaults[key] !== undefined && typeof globalDefaults[key] === 'number') {
+    if (isNaN(globalDefaults[key] as number)) {
+      if (vc) {
+        throw new Error(formatRenderError({
+          title: `Invalid value for "${key}" attribute`,
+          expected: 'A valid number',
+          found: `"${globalDefaults[key]}"`,
+          location: getElementLocationInfo(vc.element),
+          reason: `The global default value for "${key}" is not a valid number.`,
+          solution: `Use a numeric value for the "!${key}" declaration, e.g., !${key}=10.`
+        }, vc.sourceInput, vc.element.location));
+      }
+    }
     return globalDefaults[key] as number;
   }
   return defaultValue;
@@ -278,9 +320,18 @@ export function getColorAttribute(
   attributes: Record<string, string>,
   globalDefaults: GlobalDefaults,
   key: string,
-  defaultValue: string
+  defaultValue: string,
+  vc?: ValidationContext
 ): string {
-  return attributes[key] ?? (globalDefaults[key] as string) ?? defaultValue;
+  const localValue = attributes[key];
+  if (localValue !== undefined) {
+    if (localValue === '') return 'transparent';
+    return localValue;
+  }
+  if (globalDefaults[key] !== undefined) {
+    return globalDefaults[key] as string;
+  }
+  return defaultValue;
 }
 
 export function getBooleanAttribute(
@@ -295,9 +346,24 @@ export function getBooleanAttribute(
 
 export function getAlignAttribute(
   attributes: Record<string, string>,
-  defaultValue: 'start' | 'middle' | 'end'
+  defaultValue: 'start' | 'middle' | 'end',
+  vc?: ValidationContext
 ): 'start' | 'middle' | 'end' {
   const align = attributes['align'];
+  const allowedValues = ['l', 'c', 'r'];
+  if (align !== undefined && !allowedValues.includes(align)) {
+    if (vc) {
+      throw new Error(formatRenderError({
+        title: `Invalid value for "align" attribute`,
+        expected: `One of: ${allowedValues.join(', ')}`,
+        found: `"${align}"`,
+        location: getElementLocationInfo(vc.element),
+        reason: `"${align}" is not a valid value for the "align" attribute.`,
+        solution: `Use one of the allowed values: ${allowedValues.join(', ')}.`
+      }, vc.sourceInput, vc.element.location));
+    }
+    return defaultValue;
+  }
   switch (align) {
     case 'l':
       return 'start';
@@ -311,9 +377,24 @@ export function getAlignAttribute(
 }
 
 export function getStyleAttribute(
-  attributes: Record<string, string>
+  attributes: Record<string, string>,
+  vc?: ValidationContext
 ): { strokeDasharray?: string } {
   const style = attributes['style'];
+  const allowedValues = ['dashed', 'dotted'];
+  if (style !== undefined && !allowedValues.includes(style)) {
+    if (vc) {
+      throw new Error(formatRenderError({
+        title: `Invalid value for "style" attribute`,
+        expected: `One of: ${allowedValues.join(', ')}`,
+        found: `"${style}"`,
+        location: getElementLocationInfo(vc.element),
+        reason: `"${style}" is not a valid value for the "style" attribute.`,
+        solution: `Use one of the allowed values: ${allowedValues.join(', ')}.`
+      }, vc.sourceInput, vc.element.location));
+    }
+    return {};
+  }
   switch (style) {
     case 'dashed':
       return { strokeDasharray: '5,5' };
@@ -327,28 +408,70 @@ export function getStyleAttribute(
 export function getOpacityAttribute(
   attributes: Record<string, string>,
   key: string = 'opacity',
-  defaultValue: number = 1
+  defaultValue: number = 1,
+  vc?: ValidationContext
 ): number {
   const value = attributes[key];
   if (value === undefined) return defaultValue;
   const parsed = parseFloat(value);
-  if (isNaN(parsed)) return defaultValue;
-  return Math.max(0, Math.min(1, parsed));
+  if (isNaN(parsed)) {
+    if (vc) {
+      throw new Error(formatRenderError({
+        title: `Invalid value for "${key}" attribute`,
+        expected: 'A valid number between 0 and 1',
+        found: `"${value}"`,
+        location: getElementLocationInfo(vc.element),
+        reason: `The value "${value}" cannot be parsed as a number.`,
+        solution: `Use a numeric value between 0 and 1 for the "${key}" attribute, e.g., ${key}=0.5.`
+      }, vc.sourceInput, vc.element.location));
+    }
+    return defaultValue;
+  }
+  if (parsed < 0 || parsed > 1) {
+    if (vc) {
+      throw new Error(formatRenderError({
+        title: `Invalid value for "${key}" attribute`,
+        expected: 'A number between 0 and 1',
+        found: `"${value}"`,
+        location: getElementLocationInfo(vc.element),
+        reason: `The value ${parsed} is outside the valid range of 0 to 1.`,
+        solution: `Use a value between 0 and 1 for the "${key}" attribute, e.g., ${key}=0.5.`
+      }, vc.sourceInput, vc.element.location));
+    }
+    return Math.max(0, Math.min(1, parsed));
+  }
+  return parsed;
 }
 
 export function getLetterSpacingAttribute(
   attributes: Record<string, string>,
   globalDefaults: GlobalDefaults,
-  defaultValue: number = 0
+  defaultValue: number = 0,
+  vc?: ValidationContext
 ): number {
-  return getNumberAttribute(attributes, globalDefaults, 'letter-spacing', defaultValue);
+  return getNumberAttribute(attributes, globalDefaults, 'letter-spacing', defaultValue, vc);
 }
 
 export function getVerticalAlignAttribute(
   attributes: Record<string, string>,
-  defaultValue: 'top' | 'middle' | 'bottom' = 'top'
+  defaultValue: 'top' | 'middle' | 'bottom' = 'top',
+  vc?: ValidationContext
 ): 'top' | 'middle' | 'bottom' {
   const val = attributes['vertical-align'];
+  const allowedValues = ['t', 'm', 'b'];
+  if (val !== undefined && !allowedValues.includes(val)) {
+    if (vc) {
+      throw new Error(formatRenderError({
+        title: `Invalid value for "vertical-align" attribute`,
+        expected: `One of: ${allowedValues.join(', ')}`,
+        found: `"${val}"`,
+        location: getElementLocationInfo(vc.element),
+        reason: `"${val}" is not a valid value for the "vertical-align" attribute.`,
+        solution: `Use one of the allowed values: ${allowedValues.join(', ')}.`
+      }, vc.sourceInput, vc.element.location));
+    }
+    return defaultValue;
+  }
   switch (val) {
     case 't':
       return 'top';
@@ -362,10 +485,27 @@ export function getVerticalAlignAttribute(
 }
 
 export function getTextDecorationAttribute(
-  attributes: Record<string, string>
+  attributes: Record<string, string>,
+  vc?: ValidationContext
 ): 'none' | 'underline' | 'line-through' {
   const val = attributes['text-decoration'];
+  const allowedValues = ['none', 'underline', 'line-through'];
+  if (val !== undefined && !allowedValues.includes(val)) {
+    if (vc) {
+      throw new Error(formatRenderError({
+        title: `Invalid value for "text-decoration" attribute`,
+        expected: `One of: ${allowedValues.join(', ')}`,
+        found: `"${val}"`,
+        location: getElementLocationInfo(vc.element),
+        reason: `"${val}" is not a valid value for the "text-decoration" attribute.`,
+        solution: `Use one of the allowed values: ${allowedValues.join(', ')}.`
+      }, vc.sourceInput, vc.element.location));
+    }
+    return 'none';
+  }
   switch (val) {
+    case 'none':
+      return 'none';
     case 'underline':
       return 'underline';
     case 'line-through':
@@ -385,13 +525,14 @@ export interface PaddingValues {
 export function getPaddingValues(
   attributes: Record<string, string>,
   globalDefaults: GlobalDefaults,
-  defaultValue: number = 0
+  defaultValue: number = 0,
+  vc?: ValidationContext
 ): PaddingValues {
   return {
-    top: getNumberAttribute(attributes, globalDefaults, 'padding-top', defaultValue),
-    right: getNumberAttribute(attributes, globalDefaults, 'padding-right', defaultValue),
-    bottom: getNumberAttribute(attributes, globalDefaults, 'padding-bottom', defaultValue),
-    left: getNumberAttribute(attributes, globalDefaults, 'padding-left', defaultValue),
+    top: getNumberAttribute(attributes, globalDefaults, 'padding-top', defaultValue, vc),
+    right: getNumberAttribute(attributes, globalDefaults, 'padding-right', defaultValue, vc),
+    bottom: getNumberAttribute(attributes, globalDefaults, 'padding-bottom', defaultValue, vc),
+    left: getNumberAttribute(attributes, globalDefaults, 'padding-left', defaultValue, vc),
   };
 }
 
@@ -404,16 +545,17 @@ export interface ShadowConfig {
 
 export function getShadowAttribute(
   attributes: Record<string, string>,
-  globalDefaults: GlobalDefaults
+  globalDefaults: GlobalDefaults,
+  vc?: ValidationContext
 ): ShadowConfig | null {
   if (attributes['shadow-enabled'] === undefined && attributes['shadow-x'] === undefined) {
     return null;
   }
 
-  const x = getNumberAttribute(attributes, globalDefaults, 'shadow-x', 0);
-  const y = getNumberAttribute(attributes, globalDefaults, 'shadow-y', 0);
-  const blur = getNumberAttribute(attributes, globalDefaults, 'shadow-blur', 3);
-  const color = getColorAttribute(attributes, globalDefaults, 'shadow-color', '#000000');
+  const x = getNumberAttribute(attributes, globalDefaults, 'shadow-x', 0, vc);
+  const y = getNumberAttribute(attributes, globalDefaults, 'shadow-y', 0, vc);
+  const blur = getNumberAttribute(attributes, globalDefaults, 'shadow-blur', 3, vc);
+  const color = getColorAttribute(attributes, globalDefaults, 'shadow-color', '#000000', vc);
 
   if (x === 0 && y === 0 && blur === 0) {
     return null;

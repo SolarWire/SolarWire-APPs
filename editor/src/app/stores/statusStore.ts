@@ -9,7 +9,7 @@ export interface FileStatus {
 }
 
 export interface EditorStatus {
-  mode: 'markdown' | 'solarwire';
+  mode: 'markdown' | 'solarwire' | 'table';
   zoom: number;
   elementCount: number;
   selectedElementCount: number;

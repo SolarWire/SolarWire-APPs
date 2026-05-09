@@ -78,6 +78,19 @@ export async function readFile(filePath: string): Promise<string> {
   }
 }
 
+export async function readFileAsBuffer(filePath: string): Promise<ArrayBuffer> {
+  try {
+    validatePath(filePath);
+    const buffer = await fs.readFile(filePath);
+    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to read file as buffer: ${filePath}`);
+  }
+}
+
 export async function writeFile(filePath: string, content: string | ArrayBuffer | Uint8Array, allowOutsideProject: boolean = false): Promise<void> {
   try {
     if (!allowOutsideProject) {

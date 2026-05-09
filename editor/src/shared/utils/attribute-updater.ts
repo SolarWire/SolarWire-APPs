@@ -465,7 +465,19 @@ function updateSimpleAttribute(
     } else {
       const hasOtherAttributes = /\s\w+=/.test(line);
       if (hasOtherAttributes) {
-        line = line.replace(/(\s\w+=[^\s]+)$/, `$1 ${attribute}=${value}`);
+        // Find the position after the last key=value attribute pair
+        // Text content follows attributes without a key= prefix
+        let insertPos = -1;
+        const attrMatchAll = [...line.matchAll(/\s\w+=[^\s]+/g)];
+        if (attrMatchAll.length > 0) {
+          const lastMatch = attrMatchAll[attrMatchAll.length - 1];
+          insertPos = lastMatch.index! + lastMatch[0].length;
+        }
+        if (insertPos >= 0) {
+          line = line.substring(0, insertPos) + ` ${attribute}=${value}` + line.substring(insertPos);
+        } else {
+          line = line.trimEnd() + ` ${attribute}=${value}`;
+        }
       } else {
         line = line.trimEnd() + ` ${attribute}=${value}`;
       }

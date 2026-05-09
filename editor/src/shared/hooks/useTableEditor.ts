@@ -39,7 +39,15 @@ export function useTableEditor(
         const newCells = r.cells.map((c, j) => {
           if (j !== col) return c;
           if (updates.attrs) {
-            return { ...c, attrs: { ...c.attrs, ...updates.attrs } };
+            const merged = { ...c.attrs };
+            for (const [key, value] of Object.entries(updates.attrs)) {
+              if (value === undefined) {
+                delete merged[key];
+              } else {
+                merged[key] = value;
+              }
+            }
+            return { ...c, attrs: merged };
           }
           return { ...c, ...updates };
         });
@@ -55,7 +63,15 @@ export function useTableEditor(
       if (!prev) return prev;
       const newRows = prev.rows.map((r, i) => {
         if (i !== rowIndex) return r;
-        return { ...r, attrs: { ...r.attrs, ...updates } };
+        const merged = { ...r.attrs };
+        for (const [key, value] of Object.entries(updates)) {
+          if (value === undefined) {
+            delete merged[key];
+          } else {
+            merged[key] = value;
+          }
+        }
+        return { ...r, attrs: merged };
       });
       return { ...prev, rows: newRows };
     });

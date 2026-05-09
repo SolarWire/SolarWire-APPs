@@ -1,22 +1,25 @@
+# SolarWire PRD to Test Case Generator
+
 ## Inlined Syntax Rules (CRITICAL)
 
-- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
-- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
-- 边框颜色用 `b=`，边框宽度用 `s=`
-- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
-- 表格单元格和行不能指定 @(x,y)、w、h
-- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
-- 所有元素必须有坐标 @(x,y)
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks use ` ```solarwire ` to start, ` ``` ` to end
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y)
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
 
-# SolarWire PRD to Test Case Generator
-
 ## Configuration
 
 - **Input**: `.solarwire/[requirement-name]/solarwire-prd.md`
-- **Output**: `.solarwire/[requirement-name]/test-cases.md`
+- **Output**: `.solarwire/[requirement-name]/test-cases.xlsx`
 
 ---
 
@@ -40,24 +43,24 @@ This skill guides AI to read and understand SolarWire PRD documents, then genera
 
 | Field | Content |
 |-------|---------|
-| Name | Login button-点击操作 |
-| Steps | 1. 查看Login button<br>2. 点击按钮 |
-| Expected | 验证用户名和密码 |
+| Name | Login Button-Click Action |
+| Steps | 1. View Login button<br>2. Click button |
+| Expected | Validate username and password |
 
 **Problems**:
-- "查看" is not a specific action
-- "验证" cannot determine pass/fail
+- "View" is not a specific action
+- "Verify" cannot determine pass/fail
 - Missing test data
 
 ### Good Test Case (Executable)
 
 | Field | Content |
 |-------|---------|
-| Name | 登录页面-登录按钮-正常登录成功 |
-| Precondition | 1. 用户已注册账号：testuser@example.com / Test@123<br>2. 用户未登录<br>3. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：testuser@example.com<br>2. 在密码输入框输入：Test@123<br>3. 点击"登录"按钮 |
-| Test Data | 用户名：testuser@example.com<br>密码：Test@123 |
-| Expected | 1. 登录成功，页面跳转到首页<br>2. 顶部导航栏显示用户头像<br>3. localStorage 中存在 token 字段 |
+| Name | Login Page-Login Button-Normal Login Success |
+| Precondition | 1. Registered test account: testuser@example.com / Test@123<br>2. User not logged in<br>3. Login page opened |
+| Steps | 1. Enter in username input field: testuser@example.com<br>2. Enter in password input field: Test@123<br>3. Click 'Login' button |
+| Test Data | Username: testuser@example.com<br>Password: Test@123 |
+| Expected | 1. Login success, page redirects to homepage<br>2. Top navigation bar shows user avatar<br>3. token field exists in localStorage |
 | Priority | P0 |
 
 ---
@@ -119,16 +122,16 @@ Given user is on login page, when entering valid credentials, then login succeed
 | Field | Content |
 |-------|---------|
 | ID | TC-001 |
-| Module | 登录页面 |
-| Name | US-001-用户登录-有效凭证登录成功 |
-| Type | 功能测试 |
-| Precondition | 1. 已注册测试账号：testuser@example.com，密码：Test@123<br>2. 用户未登录状态<br>3. 已打开浏览器，访问登录页面 |
-| Steps | 1. 在用户名输入框中输入：testuser@example.com<br>2. 在密码输入框中输入：Test@123<br>3. 点击"登录"按钮 |
-| Test Data | 用户名：testuser@example.com<br>密码：Test@123 |
-| Expected | 1. 页面跳转到首页（URL 变为 /home）<br>2. 顶部导航栏显示用户头像和用户名<br>3. 浏览器 localStorage 中存在 auth_token 字段<br>4. 不再显示登录按钮 |
+| Module | Login Page |
+| Name | US-001-User Login-Valid Credentials Login Success |
+| Type | Functional Test |
+| Precondition | 1. Registered test account: testuser@example.com, password: Test@123<br>2. User not logged in state<br>3. Browser opened, navigated to login page |
+| Steps | 1. Enter in username input field: testuser@example.com<br>2. Enter in password input field: Test@123<br>3. Click 'Login' button |
+| Test Data | Username: testuser@example.com<br>Password: Test@123 |
+| Expected | 1. Page redirects to homepage (URL changes to /home)<br>2. Top navigation bar shows user avatar and username<br>3. auth_token field exists in browser localStorage<br>4. Login button no longer displayed |
 | Priority | P0 |
 | Related | US-001 |
-| Remark | 验证正常登录流程 |
+| Remark | Verify normal login flow |
 
 ---
 
@@ -138,7 +141,7 @@ Given user is on login page, when entering valid credentials, then login succeed
 
 ```markdown
 | Module | Feature | Priority | Description |
-| 用户管理 | 用户登录 | P0 | 支持用户登录功能 |
+| User Management | User Login | P0 | Support user login feature |
 ```
 
 ### How to Generate Test Cases
@@ -150,15 +153,15 @@ Each feature generates a feature coverage test case with specific verification p
 | Field | Content |
 |-------|---------|
 | ID | TC-002 |
-| Module | 用户管理 |
-| Name | 用户登录功能-功能验证 |
-| Type | 功能测试 |
-| Precondition | 1. 系统已部署并正常运行<br>2. 已注册测试账号 |
-| Steps | 1. 访问登录页面<br>2. 输入有效的用户名和密码<br>3. 点击登录按钮<br>4. 验证登录成功<br>5. 退出登录<br>6. 输入无效的用户名和密码<br>7. 点击登录按钮<br>8. 验证登录失败提示 |
-| Test Data | 有效账号：testuser@example.com / Test@123<br>无效账号：invalid@test.com / wrong123 |
-| Expected | 1. 有效账号登录成功，跳转首页<br>2. 无效账号登录失败，显示错误提示<br>3. 错误提示内容为"用户名或密码错误" |
+| Module | User Management |
+| Name | User Login Feature-Feature Verification |
+| Type | Functional Test |
+| Precondition | 1. System deployed and running normally<br>2. Test account registered |
+| Steps | 1. Navigate to login page<br>2. Enter valid username and password<br>3. Click login button<br>4. Verify login success<br>5. Logout<br>6. Enter invalid username and password<br>7. Click login button<br>8. Verify login failure message |
+| Test Data | Valid account: testuser@example.com / Test@123<br>Invalid account: invalid@test.com / wrong123 |
+| Expected | 1. Valid account login success, redirect to homepage<br>2. Invalid account login failure, show error message<br>3. Error message content is "Invalid username or password" |
 | Priority | P0 |
-| Related | 用户登录功能 |
+| Related | User Login Feature |
 
 ---
 
@@ -168,14 +171,14 @@ Each feature generates a feature coverage test case with specific verification p
 
 ```mermaid
 flowchart TD
-    A[访问登录页面] --> B[输入用户名密码]
-    B --> C{验证格式}
-    C -->|格式正确| D[点击登录]
-    C -->|格式错误| E[显示格式错误]
-    D --> F{验证账号}
-    F -->|账号正确| G[登录成功]
-    F -->|账号错误| H[显示账号错误]
-    G --> I[跳转首页]
+    A[Navigate to login page] --> B[Enter username and password]
+    B --> C{Validate format}
+    C -->|Format correct| D[Click login]
+    C -->|Format error| E[Show format error]
+    D --> F{Validate account}
+    F -->|Account correct| G[Login success]
+    F -->|Account error| H[Show account error]
+    G --> I[Redirect to homepage]
 ```
 
 ### How to Generate Test Cases
@@ -186,24 +189,24 @@ flowchart TD
 
 | Path | Test Scenario | Key Verification Points |
 |------|--------------|------------------------|
-| Happy Path | A→B→C(正确)→D→F(正确)→G→I | 正常登录全流程 |
-| Format Error | A→B→C(错误)→E | 格式校验 |
-| Account Error | A→B→C(正确)→D→F(错误)→H | 账号验证失败 |
+| Happy Path | A→B→C(correct)→D→F(correct)→G→I | Normal login complete flow |
+| Format Error | A→B→C(error)→E | Format validation |
+| Account Error | A→B→C(correct)→D→F(error)→H | Account verification failed |
 
 ### Generated Test Case: Happy Path
 
 | Field | Content |
 |-------|---------|
 | ID | TC-003 |
-| Module | 业务流程测试 |
-| Name | 登录流程-正常登录完整流程 |
-| Type | 功能测试 |
-| Precondition | 1. 已注册账号：flowtest@example.com / Flow@123<br>2. 浏览器已打开 |
-| Steps | 1. 在浏览器地址栏输入登录页面URL<br>2. 验证页面加载完成，显示登录表单<br>3. 在用户名输入框输入：flowtest@example.com<br>4. 在密码输入框输入：Flow@123<br>5. 验证登录按钮可点击（非禁用状态）<br>6. 点击登录按钮<br>7. 等待页面跳转（最长3秒）<br>8. 验证当前URL为首页URL |
-| Test Data | 用户名：flowtest@example.com<br>密码：Flow@123 |
-| Expected | 1. 步骤2：登录表单正常显示，包含用户名、密码输入框和登录按钮<br>2. 步骤5：登录按钮为可点击状态，背景色为主题色<br>3. 步骤7：3秒内完成跳转<br>4. 步骤8：URL 变为 /home 或配置的首页路径 |
+| Module | Business Flow Test |
+| Name | Login Flow-Normal Login Complete Flow |
+| Type | Functional Test |
+| Precondition | 1. Registered account: flowtest@example.com / Flow@123<br>2. Browser opened |
+| Steps | 1. Enter login page URL in browser address bar<br>2. Verify page loaded, login form displayed<br>3. Enter in username input field: flowtest@example.com<br>4. Enter in password input field: Flow@123<br>5. Verify login button is clickable (not disabled)<br>6. Click login button<br>7. Wait for page redirect (max 3 seconds)<br>8. Verify current URL is homepage URL |
+| Test Data | Username: flowtest@example.com<br>Password: Flow@123 |
+| Expected | 1. Step 2: Login form displays normally, contains username, password input fields and login button<br>2. Step 5: Login button is clickable, background color is theme color<br>3. Step 7: Redirect completed within 3 seconds<br>4. Step 8: URL changes to /home or configured homepage path |
 | Priority | P0 |
-| Remark | 验证完整登录流程，包含页面加载、输入、点击、跳转各环节 |
+| Remark | Verify complete login flow, including page load, input, click, redirect steps |
 
 ---
 
@@ -259,14 +262,14 @@ flowchart TD
 ### How to Read Page Title
 
 ```
-!title="Login Page"  →  Module = 登录页面
+!title="Login Page"  →  Module = Login Page
 ```
 
 ### How to Read Element Content
 
 ```
-["Enter phone or email"]  →  输入框 placeholder = "Enter phone or email"
-["Login"]                 →  按钮文字 = "Login"
+["Enter phone or email"]  →  Input field placeholder = "Enter phone or email"
+["Login"]                 →  Button text = "Login"
 ```
 
 ---
@@ -292,9 +295,9 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 ## Detailed Test Case Generation Rules
 
-### Rule 1: Click Action / 点击
+### Rule 1: Click Action / Click
 
-**Test Type**: 功能测试
+**Test Type**: Functional Test
 
 **Generation Steps**:
 1. Identify the click trigger
@@ -314,21 +317,21 @@ The first line defines what this element IS. Use it as test case name prefix.
 | Field | Content |
 |-------|---------|
 | ID | TC-010 |
-| Module | 登录页面 |
-| Name | Login按钮-点击操作-验证并提交登录 |
-| Type | 功能测试 |
-| Precondition | 1. 已打开登录页面<br>2. 已注册测试账号：logintest@example.com / Login@123<br>3. 用户未登录 |
-| Steps | 1. 在用户名输入框输入：logintest@example.com<br>2. 在密码输入框输入：Login@123<br>3. 观察登录按钮状态（应为可点击）<br>4. 点击"Login"按钮<br>5. 观察页面变化 |
-| Test Data | 用户名：logintest@example.com<br>密码：Login@123 |
-| Expected | 1. 步骤3：登录按钮背景色为 #1890FF，鼠标悬停时显示手型光标<br>2. 步骤5：按钮显示 loading 状态（可选）<br>3. 步骤5：发送登录请求到后端<br>4. 步骤5：请求参数包含 username 和 password 字段 |
+| Module | Login Page |
+| Name | Login Button-Click Action-Validate and Submit Login |
+| Type | Functional Test |
+| Precondition | 1. Login page opened<br>2. Registered test account: logintest@example.com / Login@123<br>3. User not logged in |
+| Steps | 1. Enter in username input field: logintest@example.com<br>2. Enter in password input field: Login@123<br>3. Observe login button state (should be clickable)<br>4. Click 'Login' button<br>5. Observe page changes |
+| Test Data | Username: logintest@example.com<br>Password: Login@123 |
+| Expected | 1. Step 3: Login button background is #1890FF, shows pointer cursor on hover<br>2. Step 5: Button shows loading state (optional)<br>3. Step 5: Sends login request to backend<br>4. Step 5: Request parameters include username and password fields |
 | Priority | P0 |
-| Remark | 验证点击登录按钮触发的验证和提交逻辑 |
+| Remark | Verify validation and submission logic triggered by clicking login button |
 
 ---
 
-### Rule 2: Success Handling / 成功
+### Rule 2: Success Handling / Success
 
-**Test Type**: 功能测试
+**Test Type**: Functional Test
 
 **Generation Steps**:
 1. Define success state
@@ -344,39 +347,39 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-011: Token保存验证**
+**TC-011: Token Save Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-011 |
-| Module | 登录页面 |
-| Name | Login按钮-成功处理-Token保存验证 |
-| Type | 功能测试 |
-| Precondition | 1. 已打开登录页面<br>2. 已注册账号：tokentest@example.com / Token@123<br>3. 浏览器开发者工具已打开（Application > Local Storage） |
-| Steps | 1. 输入有效用户名：tokentest@example.com<br>2. 输入有效密码：Token@123<br>3. 点击登录按钮<br>4. 打开浏览器开发者工具 > Application > Local Storage<br>5. 查看当前域名的存储内容 |
-| Test Data | 用户名：tokentest@example.com<br>密码：Token@123 |
-| Expected | 1. Local Storage 中存在 auth_token 或 token 字段<br>2. Token 值为非空字符串（通常为 JWT 格式）<br>3. Token 有效期符合系统设计（如24小时） |
+| Module | Login Page |
+| Name | Login Button-Success Handling-Token Save Verification |
+| Type | Functional Test |
+| Precondition | 1. Login page opened<br>2. Registered account: tokentest@example.com / Token@123<br>3. Browser developer tools opened (Application > Local Storage) |
+| Steps | 1. Enter valid username: tokentest@example.com<br>2. Enter valid password: Token@123<br>3. Click login button<br>4. Open browser developer tools > Application > Local Storage<br>5. View storage content for current domain |
+| Test Data | Username: tokentest@example.com<br>Password: Token@123 |
+| Expected | 1. auth_token or token field exists in Local Storage<br>2. Token value is non-empty string (typically JWT format)<br>3. Token validity matches system design (e.g., 24 hours) |
 | Priority | P0 |
 
-**TC-012: 页面跳转验证**
+**TC-012: Page Redirect Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-012 |
-| Module | 登录页面 |
-| Name | Login按钮-成功处理-页面跳转验证 |
-| Type | 功能测试 |
-| Precondition | 1. 已打开登录页面<br>2. 已注册账号：redirecttest@example.com / Redirect@123 |
-| Steps | 1. 记录当前页面 URL<br>2. 输入有效用户名：redirecttest@example.com<br>3. 输入有效密码：Redirect@123<br>4. 点击登录按钮<br>5. 等待页面跳转（最长5秒）<br>6. 检查当前页面 URL |
-| Test Data | 用户名：redirecttest@example.com<br>密码：Redirect@123 |
-| Expected | 1. 步骤5：5秒内完成页面跳转<br>2. 步骤6：URL 变为首页路径（如 /home 或 /dashboard）<br>3. 页面顶部导航栏显示用户头像和用户名<br>4. 页面不显示登录/注册按钮 |
+| Module | Login Page |
+| Name | Login Button-Success Handling-Page Redirect Verification |
+| Type | Functional Test |
+| Precondition | 1. Login page opened<br>2. Registered account: redirecttest@example.com / Redirect@123 |
+| Steps | 1. Record current page URL<br>2. Enter valid username: redirecttest@example.com<br>3. Enter valid password: Redirect@123<br>4. Click login button<br>5. Wait for page redirect (max 5 seconds)<br>6. Check current page URL |
+| Test Data | Username: redirecttest@example.com<br>Password: Redirect@123 |
+| Expected | 1. Step 5: Page redirect completed within 5 seconds<br>2. Step 6: URL changes to homepage path (e.g., /home or /dashboard)<br>3. Top navigation bar shows user avatar and username<br>4. Page does not show login/register buttons |
 | Priority | P0 |
 
 ---
 
-### Rule 3: Failure Handling / 失败
+### Rule 3: Failure Handling / Failure
 
-**Test Type**: 异常测试
+**Test Type**: Exception Test
 
 **Generation Steps**:
 1. Identify failure scenarios
@@ -394,41 +397,41 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-013: 错误提示验证**
+**TC-013: Error Message Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-013 |
-| Module | 登录页面 |
-| Name | Login按钮-失败处理-错误提示显示 |
-| Type | 异常测试 |
-| Precondition | 1. 已打开登录页面<br>2. 准备无效账号数据 |
-| Steps | 1. 在用户名输入框输入：wronguser@example.com<br>2. 在密码输入框输入：WrongPassword@123<br>3. 点击登录按钮<br>4. 观察页面响应 |
-| Test Data | 用户名：wronguser@example.com（未注册）<br>密码：WrongPassword@123 |
-| Expected | 1. 页面显示错误提示（toast 或 表单下方）<br>2. 错误提示内容为"Invalid credentials"或"用户名或密码错误"<br>3. 错误提示使用红色文字或红色背景<br>4. 错误提示在3秒后自动消失（或需手动关闭） |
+| Module | Login Page |
+| Name | Login Button-Failure Handling-Error Message Display |
+| Type | Exception Test |
+| Precondition | 1. Login page opened<br>2. Prepare invalid account data |
+| Steps | 1. Enter in username field: wronguser@example.com<br>2. Enter in password field: WrongPassword@123<br>3. Click login button<br>4. Observe page response |
+| Test Data | Username: wronguser@example.com (unregistered)<br>Password: WrongPassword@123 |
+| Expected | 1. Page shows error message (toast or below form)<br>2. Error message content is "Invalid credentials"<br>3. Error message uses red text or red background<br>4. Error message auto-dismisses after 3 seconds (or requires manual close) |
 | Priority | P1 |
-| Exception | 使用未注册的账号登录 |
+| Exception | Login with unregistered account |
 
-**TC-014: 密码清空验证**
+**TC-014: Password Clear Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-014 |
-| Module | 登录页面 |
-| Name | Login按钮-失败处理-密码字段清空 |
-| Type | 异常测试 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：testuser@example.com<br>2. 在密码输入框输入：WrongPassword@123<br>3. 点击登录按钮<br>4. 观察密码输入框状态 |
-| Test Data | 用户名：testuser@example.com（已注册）<br>密码：WrongPassword@123（错误密码） |
-| Expected | 1. 登录失败后，密码输入框内容被清空<br>2. 密码输入框为空白状态<br>3. 用户名输入框保持原值不变<br>4. 光标焦点回到密码输入框 |
+| Module | Login Page |
+| Name | Login Button-Failure Handling-Password Field Clear |
+| Type | Exception Test |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: testuser@example.com<br>2. Enter in password field: WrongPassword@123<br>3. Click login button<br>4. Observe password input field state |
+| Test Data | Username: testuser@example.com (registered)<br>Password: WrongPassword@123 (wrong password) |
+| Expected | 1. After login failure, password input field content is cleared<br>2. Password input field is blank<br>3. Username input field keeps original value<br>4. Cursor focus returns to password input field |
 | Priority | P1 |
-| Exception | 使用正确用户名但错误密码登录 |
+| Exception | Login with correct username but wrong password |
 
 ---
 
-### Rule 4: Input Rules / 输入规则
+### Rule 4: Input Rules / Input Rules
 
-**Test Type**: 表单验证 + 边界测试
+**Test Type**: Form Validation + Boundary Test
 
 **Generation Steps**:
 1. Extract length constraints → Generate boundary tests (min-1, min, max, max+1)
@@ -446,82 +449,82 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-020: 手机号格式-有效**
+**TC-020: Phone Format-Valid**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-020 |
-| Module | 登录页面 |
-| Name | Username输入框-输入规则-手机号格式有效 |
-| Type | 表单验证 |
-| Precondition | 1. 已打开登录页面<br>2. 用户名输入框为空 |
-| Steps | 1. 在用户名输入框输入：13812345678<br>2. 观察输入框状态<br>3. 点击密码输入框（触发 blur）<br>4. 观察是否显示错误提示 |
-| Test Data | 手机号：13812345678 |
-| Expected | 1. 输入框正常显示输入内容<br>2. 不显示格式错误提示<br>3. 输入框边框保持默认颜色（非红色） |
+| Module | Login Page |
+| Name | Username Input-Input Rules-Phone Format Valid |
+| Type | Form Validation |
+| Precondition | 1. Login page opened<br>2. Username input field is empty |
+| Steps | 1. Enter in username field: 13812345678<br>2. Observe input field state<br>3. Click password field (trigger blur)<br>4. Observe whether error message is displayed |
+| Test Data | Phone: 13812345678 |
+| Expected | 1. Input field normally displays entered content<br>2. No format error message displayed<br>3. Input field border keeps default color (not red) |
 | Priority | P0 |
 
-**TC-021: 邮箱格式-有效**
+**TC-021: Email Format-Valid**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-021 |
-| Module | 登录页面 |
-| Name | Username输入框-输入规则-邮箱格式有效 |
-| Type | 表单验证 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：test@example.com<br>2. 点击密码输入框触发校验<br>3. 观察是否显示错误提示 |
-| Test Data | 邮箱：test@example.com |
-| Expected | 1. 不显示格式错误提示<br>2. 输入框边框保持默认颜色 |
+| Module | Login Page |
+| Name | Username Input-Input Rules-Email Format Valid |
+| Type | Form Validation |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: test@example.com<br>2. Click password field to trigger validation<br>3. Observe whether error message is displayed |
+| Test Data | Email: test@example.com |
+| Expected | 1. No format error message displayed<br>2. Input field border keeps default color |
 | Priority | P0 |
 
-**TC-022: 无效格式**
+**TC-022: Invalid Format**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-022 |
-| Module | 登录页面 |
-| Name | Username输入框-输入规则-无效格式校验 |
-| Type | 表单验证 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：abc123<br>2. 点击密码输入框触发校验<br>3. 观察错误提示 |
-| Test Data | 无效格式：abc123 |
-| Expected | 1. 显示错误提示："Please enter valid phone or email"<br>2. 输入框边框变为红色<br>3. 错误提示显示在输入框下方 |
+| Module | Login Page |
+| Name | Username Input-Input Rules-Invalid Format Validation |
+| Type | Form Validation |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: abc123<br>2. Click password field to trigger validation<br>3. Observe error message |
+| Test Data | Invalid format: abc123 |
+| Expected | 1. Shows error message: "Please enter valid phone or email"<br>2. Input field border turns red<br>3. Error message displays below input field |
 | Priority | P0 |
 
-**TC-023: 空格自动去除**
+**TC-023: Auto Trim Spaces**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-023 |
-| Module | 登录页面 |
-| Name | Username输入框-输入规则-空格自动去除 |
-| Type | 功能测试 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入： test@example.com （前后有空格）<br>2. 点击密码输入框触发 blur<br>3. 观察输入框内容变化 |
-| Test Data | 带空格的邮箱： test@example.com |
-| Expected | 1. 输入框内容自动变为：test@example.com（无前后空格）<br>2. 不显示格式错误提示 |
+| Module | Login Page |
+| Name | Username Input-Input Rules-Auto Trim Spaces |
+| Type | Functional Test |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: ' test@example.com ' (with leading/trailing spaces)<br>2. Click password field to trigger blur<br>3. Observe input field content change |
+| Test Data | Email with spaces: ' test@example.com ' |
+| Expected | 1. Input field content auto-changes to: test@example.com (no leading/trailing spaces)<br>2. No format error message displayed |
 | Priority | P1 |
 
-**TC-024: 最大长度限制**
+**TC-024: Max Length Limit**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-024 |
-| Module | 登录页面 |
-| Name | Username输入框-输入规则-最大长度限制 |
-| Type | 边界测试 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 准备一个51字符的字符串<br>2. 尝试在用户名输入框输入该字符串<br>3. 观察实际输入的字符数 |
-| Test Data | 51字符邮箱：aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@test.com |
-| Expected | 1. 输入框只接受前50个字符<br>2. 第51个字符无法输入<br>3. 不显示错误提示（静默限制） |
+| Module | Login Page |
+| Name | Username Input-Input Rules-Max Length Limit |
+| Type | Boundary Test |
+| Precondition | 1. Login page opened |
+| Steps | 1. Prepare a 51-character string<br>2. Attempt to enter the string in username field<br>3. Observe actual number of characters entered |
+| Test Data | 51-char email: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@test.com |
+| Expected | 1. Input field only accepts first 50 characters<br>2. 51st character cannot be entered<br>3. No error message displayed (silent limit) |
 | Priority | P1 |
-| Boundary | 49字符（有效）、50字符（边界）、51字符（超限） |
+| Boundary | 49 characters (valid), 50 characters (boundary), 51 characters (exceeded) |
 
 ---
 
-### Rule 5: Validation / 校验
+### Rule 5: Validation / Validation
 
-**Test Type**: 表单验证
+**Test Type**: Form Validation
 
 **Example Note:**
 ```
@@ -532,39 +535,39 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-025: 手机号格式校验-有效**
+**TC-025: Phone Format Validation-Valid**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-025 |
-| Module | 登录页面 |
-| Name | Username输入框-格式校验-11位手机号有效 |
-| Type | 表单验证 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：13812345678<br>2. 点击其他区域触发 blur<br>3. 观察校验结果 |
-| Test Data | 手机号：13812345678 |
-| Expected | 1. 不显示错误提示<br>2. 输入框边框为默认颜色 |
+| Module | Login Page |
+| Name | Username Input-Format Validation-11-Digit Phone Valid |
+| Type | Form Validation |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: 13812345678<br>2. Click other area to trigger blur<br>3. Observe validation result |
+| Test Data | Phone: 13812345678 |
+| Expected | 1. No error message displayed<br>2. Input field border is default color |
 | Priority | P0 |
 
-**TC-026: 手机号格式校验-位数不足**
+**TC-026: Phone Format Validation-Insufficient Digits**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-026 |
-| Module | 登录页面 |
-| Name | Username输入框-格式校验-手机号位数不足 |
-| Type | 表单验证 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：1381234567（10位）<br>2. 点击其他区域触发 blur<br>3. 观察校验结果 |
-| Test Data | 手机号：1381234567（10位） |
-| Expected | 1. 显示错误提示："Please enter a valid phone number or email"<br>2. 输入框边框变为红色 |
+| Module | Login Page |
+| Name | Username Input-Format Validation-Phone Insufficient Digits |
+| Type | Form Validation |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: 1381234567 (10 digits)<br>2. Click other area to trigger blur<br>3. Observe validation result |
+| Test Data | Phone: 1381234567 (10 digits) |
+| Expected | 1. Shows error message: "Please enter a valid phone number or email"<br>2. Input field border turns red |
 | Priority | P0 |
 
 ---
 
-### Rule 6: Disabled Conditions / 禁用条件
+### Rule 6: Disabled Conditions / Disabled Conditions
 
-**Test Type**: UI测试
+**Test Type**: UI Test
 
 **Example Note:**
 ```
@@ -575,53 +578,53 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-030: 用户名为空时按钮禁用**
+**TC-030: Button Disabled When Username Empty**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-030 |
-| Module | 登录页面 |
-| Name | Login按钮-禁用状态-用户名为空 |
-| Type | UI测试 |
-| Precondition | 1. 已打开登录页面<br>2. 所有输入框为空 |
-| Steps | 1. 保持用户名输入框为空<br>2. 在密码输入框输入：Test@123<br>3. 观察登录按钮状态 |
-| Test Data | 密码：Test@123 |
-| Expected | 1. 登录按钮处于禁用状态<br>2. 按钮背景色为灰色（如 #AAAAAA 或 #CCCCCC）<br>3. 鼠标悬停时显示禁止光标<br>4. 点击按钮无响应 |
+| Module | Login Page |
+| Name | Login Button-Disabled State-Username Empty |
+| Type | UI Test |
+| Precondition | 1. Login page opened<br>2. All input fields are empty |
+| Steps | 1. Keep username input field empty<br>2. Enter in password field: Test@123<br>3. Observe login button state |
+| Test Data | Password: Test@123 |
+| Expected | 1. Login button is in disabled state<br>2. Button background is gray (e.g., #AAAAAA or #CCCCCC)<br>3. Shows prohibited cursor on hover<br>4. Clicking button has no response |
 | Priority | P1 |
 
-**TC-031: 密码为空时按钮禁用**
+**TC-031: Button Disabled When Password Empty**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-031 |
-| Module | 登录页面 |
-| Name | Login按钮-禁用状态-密码为空 |
-| Type | UI测试 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：test@example.com<br>2. 保持密码输入框为空<br>3. 观察登录按钮状态 |
-| Test Data | 用户名：test@example.com |
-| Expected | 1. 登录按钮处于禁用状态<br>2. 按钮背景色为灰色<br>3. 点击按钮无响应 |
+| Module | Login Page |
+| Name | Login Button-Disabled State-Password Empty |
+| Type | UI Test |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: test@example.com<br>2. Keep password input field empty<br>3. Observe login button state |
+| Test Data | Username: test@example.com |
+| Expected | 1. Login button is in disabled state<br>2. Button background is gray<br>3. Clicking button has no response |
 | Priority | P1 |
 
-**TC-032: 格式校验失败时按钮禁用**
+**TC-032: Button Disabled When Format Validation Fails**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-032 |
-| Module | 登录页面 |
-| Name | Login按钮-禁用状态-格式校验失败 |
-| Type | UI测试 |
-| Precondition | 1. 已打开登录页面 |
-| Steps | 1. 在用户名输入框输入：invalid-format<br>2. 点击密码输入框触发校验<br>3. 在密码输入框输入：Test@123<br>4. 观察登录按钮状态 |
-| Test Data | 用户名：invalid-format<br>密码：Test@123 |
-| Expected | 1. 用户名显示格式错误提示<br>2. 登录按钮处于禁用状态<br>3. 按钮背景色为灰色 |
+| Module | Login Page |
+| Name | Login Button-Disabled State-Format Validation Failed |
+| Type | UI Test |
+| Precondition | 1. Login page opened |
+| Steps | 1. Enter in username field: invalid-format<br>2. Click password field to trigger validation<br>3. Enter in password field: Test@123<br>4. Observe login button state |
+| Test Data | Username: invalid-format<br>Password: Test@123 |
+| Expected | 1. Username shows format error message<br>2. Login button is in disabled state<br>3. Button background is gray |
 | Priority | P1 |
 
 ---
 
-### Rule 7: Visibility Conditions / 显示条件
+### Rule 7: Visibility Conditions / Visibility Conditions
 
-**Test Type**: UI测试
+**Test Type**: UI Test
 
 **Example Note:**
 ```
@@ -632,39 +635,39 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-040: 选中项目后显示**
+**TC-040: Shown After Item Selected**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-040 |
-| Module | 用户列表页面 |
-| Name | 批量删除按钮-显示条件-选中项目后显示 |
-| Type | UI测试 |
-| Precondition | 1. 已登录系统<br>2. 已打开用户列表页面<br>3. 列表中存在至少3条数据 |
-| Steps | 1. 观察批量删除按钮初始状态<br>2. 点击第一行数据的复选框<br>3. 观察批量删除按钮状态变化 |
-| Test Data | 无 |
-| Expected | 1. 步骤1：批量删除按钮隐藏或不可见<br>2. 步骤3：批量删除按钮显示出来<br>3. 按钮位置在表格上方工具栏区域 |
+| Module | User List Page |
+| Name | Batch Delete Button-Visibility-Shown After Selection |
+| Type | UI Test |
+| Precondition | 1. Logged into system<br>2. User list page opened<br>3. At least 3 data records in list |
+| Steps | 1. Observe batch delete button initial state<br>2. Click checkbox of first row data<br>3. Observe batch delete button state change |
+| Test Data | None |
+| Expected | 1. Step 1: Batch delete button hidden or invisible<br>2. Step 3: Batch delete button appears<br>3. Button located in toolbar area above table |
 | Priority | P1 |
 
-**TC-041: 取消选中后隐藏**
+**TC-041: Hidden After Deselection**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-041 |
-| Module | 用户列表页面 |
-| Name | 批量删除按钮-显示条件-取消选中后隐藏 |
-| Type | UI测试 |
-| Precondition | 1. 已登录系统<br>2. 已打开用户列表页面<br>3. 已选中1条数据，批量删除按钮显示 |
-| Steps | 1. 点击已选中行的复选框（取消选中）<br>2. 观察批量删除按钮状态变化 |
-| Test Data | 无 |
-| Expected | 1. 批量删除按钮隐藏或消失<br>2. 工具栏区域不再显示该按钮 |
+| Module | User List Page |
+| Name | Batch Delete Button-Visibility-Hidden After Deselection |
+| Type | UI Test |
+| Precondition | 1. Logged into system<br>2. User list page opened<br>3. 1 item selected, batch delete button visible |
+| Steps | 1. Click checkbox of selected row (deselect)<br>2. Observe batch delete button state change |
+| Test Data | None |
+| Expected | 1. Batch delete button hidden or disappears<br>2. Button no longer displayed in toolbar area |
 | Priority | P1 |
 
 ---
 
-### Rule 8: Data Source / 数据来源
+### Rule 8: Data Source / Data Source
 
-**Test Type**: 功能测试
+**Test Type**: Functional Test
 
 **Example Note:**
 ```
@@ -680,67 +683,67 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-050: 数据加载验证**
+**TC-050: Data Loading Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-050 |
-| Module | 用户列表页面 |
-| Name | 用户列表表格-数据来源-数据加载验证 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录管理员账号<br>2. 用户管理模块中存在测试数据 |
-| Steps | 1. 打开用户列表页面<br>2. 等待数据加载完成<br>3. 检查表格数据行数 |
-| Test Data | 无 |
-| Expected | 1. 表格显示用户管理模块中的用户数据<br>2. 数据加载时显示 loading 状态<br>3. 加载完成后表格显示数据行 |
+| Module | User List Page |
+| Name | User List Table-Data Source-Data Loading Verification |
+| Type | Functional Test |
+| Precondition | 1. Logged in as admin account<br>2. Test data exists in User Management module |
+| Steps | 1. Open user list page<br>2. Wait for data loading to complete<br>3. Check table data row count |
+| Test Data | None |
+| Expected | 1. Table displays user data from User Management module<br>2. Show loading state while data is loading<br>3. Table shows data rows after loading completes |
 | Priority | P1 |
 
-**TC-051: 默认排序验证**
+**TC-051: Default Sort Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-051 |
-| Module | 用户列表页面 |
-| Name | 用户列表表格-数据来源-默认排序验证 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录管理员账号<br>2. 存在多个不同创建时间的用户数据 |
-| Steps | 1. 打开用户列表页面<br>2. 记录第一行和第二行的创建时间<br>3. 比较两个时间的大小关系 |
-| Test Data | 无 |
-| Expected | 1. 第一行的创建时间 >= 第二行的创建时间<br>2. 数据按创建时间降序排列（最新在前） |
+| Module | User List Page |
+| Name | User List Table-Data Source-Default Sort Verification |
+| Type | Functional Test |
+| Precondition | 1. Logged in as admin account<br>2. Multiple user records with different creation times exist |
+| Steps | 1. Open user list page<br>2. Record creation time of first and second rows<br>3. Compare the two timestamps |
+| Test Data | None |
+| Expected | 1. First row creation time >= second row creation time<br>2. Data sorted by creation time descending (newest first) |
 | Priority | P1 |
 
-**TC-052: 字段显示-Name为空**
+**TC-052: Field Display-Name Empty**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-052 |
-| Module | 用户列表页面 |
-| Name | 用户列表表格-字段显示-Name为空时显示 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录管理员账号<br>2. 存在 Name 字段为空的用户数据 |
-| Steps | 1. 打开用户列表页面<br>2. 找到 Name 为空的用户行<br>3. 观察 Name 列的显示内容 |
-| Test Data | Name 为空的用户记录 |
-| Expected | 1. Name 列显示文本 "Not set" 或 "未设置"<br>2. 文字颜色可能为灰色表示未设置状态 |
+| Module | User List Page |
+| Name | User List Table-Field Display-Name Empty Display |
+| Type | Functional Test |
+| Precondition | 1. Logged in as admin account<br>2. User record with empty Name field exists |
+| Steps | 1. Open user list page<br>2. Find the row with empty Name<br>3. Observe Name column display content |
+| Test Data | User record with empty Name |
+| Expected | 1. Name column displays text "Not set"<br>2. Text color may be gray indicating unset state |
 | Priority | P2 |
 
-**TC-053: 字段显示-Status状态值**
+**TC-053: Field Display-Status Values**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-053 |
-| Module | 用户列表页面 |
-| Name | 用户列表表格-字段显示-Status状态值显示 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录管理员账号<br>2. 存在 Active 和 Disabled 状态的用户 |
-| Steps | 1. 打开用户列表页面<br>2. 找到 Status=1 的用户行，观察显示<br>3. 找到 Status=0 的用户行，观察显示 |
-| Test Data | Status=1 和 Status=0 的用户记录 |
-| Expected | 1. Status=1 的行显示 "Active" 或 "正常"<br>2. Status=0 的行显示 "Disabled" 或 "禁用"<br>3. Disabled 状态的文字显示为红色 |
+| Module | User List Page |
+| Name | User List Table-Field Display-Status Value Display |
+| Type | Functional Test |
+| Precondition | 1. Logged in as admin account<br>2. Users with Active and Disabled status exist |
+| Steps | 1. Open user list page<br>2. Find row with Status=1, observe display<br>3. Find row with Status=0, observe display |
+| Test Data | User records with Status=1 and Status=0 |
+| Expected | 1. Row with Status=1 displays "Active"<br>2. Row with Status=0 displays "Disabled"<br>3. Disabled status text displays in red |
 | Priority | P1 |
 
 ---
 
-### Rule 9: Options / 选项
+### Rule 9: Options / Options
 
-**Test Type**: 功能测试
+**Test Type**: Functional Test
 
 **Example Note:**
 ```
@@ -753,53 +756,53 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-060: 选项列表显示**
+**TC-060: Options List Display**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-060 |
-| Module | 用户列表页面 |
-| Name | 状态筛选下拉框-选项列表显示 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录系统<br>2. 已打开用户列表页面 |
-| Steps | 1. 找到状态筛选下拉框<br>2. 点击下拉框展开选项列表<br>3. 检查显示的选项 |
-| Test Data | 无 |
-| Expected | 1. 下拉框展开后显示3个选项<br>2. 选项分别为：All、Active、Disabled<br>3. 每个选项可点击选择 |
+| Module | User List Page |
+| Name | Status Filter Dropdown-Options List Display |
+| Type | Functional Test |
+| Precondition | 1. Logged into system<br>2. User list page opened |
+| Steps | 1. Find status filter dropdown<br>2. Click dropdown to expand options list<br>3. Check displayed options |
+| Test Data | None |
+| Expected | 1. Dropdown expands showing 3 options<br>2. Options are: All, Active, Disabled<br>3. Each option is clickable |
 | Priority | P0 |
 
-**TC-061: 默认值验证**
+**TC-061: Default Value Verification**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-061 |
-| Module | 用户列表页面 |
-| Name | 状态筛选下拉框-默认值验证 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录系统<br>2. 首次打开用户列表页面 |
-| Steps | 1. 观察状态筛选下拉框的默认显示值 |
-| Test Data | 无 |
-| Expected | 1. 下拉框默认显示 "All"<br>2. 列表显示所有状态的用户数据 |
+| Module | User List Page |
+| Name | Status Filter Dropdown-Default Value Verification |
+| Type | Functional Test |
+| Precondition | 1. Logged into system<br>2. First time opening user list page |
+| Steps | 1. Observe default display value of status filter dropdown |
+| Test Data | None |
+| Expected | 1. Dropdown default displays "All"<br>2. List displays user data of all statuses |
 | Priority | P1 |
 
-**TC-062: 选项选择功能**
+**TC-062: Option Selection Function**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-062 |
-| Module | 用户列表页面 |
-| Name | 状态筛选下拉框-选项选择功能 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录系统<br>2. 已打开用户列表页面 |
-| Steps | 1. 点击状态筛选下拉框<br>2. 选择 "Active" 选项<br>3. 观察下拉框显示值变化<br>4. 观察列表数据变化 |
-| Test Data | 无 |
-| Expected | 1. 下拉框显示值变为 "Active"<br>2. 列表只显示 Status=Active 的用户数据<br>3. 下拉框自动收起 |
+| Module | User List Page |
+| Name | Status Filter Dropdown-Option Selection Function |
+| Type | Functional Test |
+| Precondition | 1. Logged into system<br>2. User list page opened |
+| Steps | 1. Click status filter dropdown<br>2. Select "Active" option<br>3. Observe dropdown display value change<br>4. Observe list data change |
+| Test Data | None |
+| Expected | 1. Dropdown display value changes to "Active"<br>2. List only shows users with Status=Active<br>3. Dropdown auto-collapses |
 | Priority | P0 |
 
 ---
 
-### Rule 10: Tooltip / 提示
+### Rule 10: Tooltip / Tooltip
 
-**Test Type**: UI测试
+**Test Type**: UI Test
 
 **Example Note:**
 ```
@@ -809,25 +812,25 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-070: 提示内容显示**
+**TC-070: Tooltip Content Display**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-070 |
-| Module | 登录页面 |
-| Name | 帮助图标-提示内容显示 |
-| Type | UI测试 |
-| Precondition | 1. 已打开登录页面<br>2. 用户名输入框旁存在帮助图标(?) |
-| Steps | 1. 找到用户名输入框旁的帮助图标<br>2. 将鼠标悬停在帮助图标上<br>3. 等待提示出现<br>4. 观察提示内容 |
-| Test Data | 无 |
-| Expected | 1. 悬停约0.5秒后显示提示框<br>2. 提示内容为："Supports phone number or email login"<br>3. 提示框显示在图标附近（上方或右侧）<br>4. 鼠标移开后提示框消失 |
+| Module | Login Page |
+| Name | Help Icon-Tooltip Content Display |
+| Type | UI Test |
+| Precondition | 1. Login page opened<br>2. Help icon (?) exists next to username input |
+| Steps | 1. Find help icon next to username input<br>2. Hover mouse over help icon<br>3. Wait for tooltip to appear<br>4. Observe tooltip content |
+| Test Data | None |
+| Expected | 1. Tooltip appears after hovering ~0.5 seconds<br>2. Tooltip content is: "Supports phone number or email login"<br>3. Tooltip displays near icon (above or to the right)<br>4. Tooltip disappears after mouse moves away |
 | Priority | P2 |
 
 ---
 
-### Rule 11: i18n / 多语言
+### Rule 11: i18n / i18n
 
-**Test Type**: 国际化测试
+**Test Type**: i18n Test
 
 **Example Note:**
 ```
@@ -836,32 +839,32 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 **Generated Test Cases:**
 
-**TC-080: 英文语言显示**
+**TC-080: English Language Display**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-080 |
-| Module | 登录页面 |
-| Name | Login按钮-多语言-英文显示 |
-| Type | 国际化测试 |
-| Precondition | 1. 已打开登录页面<br>2. 系统语言设置为 English |
-| Steps | 1. 刷新页面确保语言设置生效<br>2. 检查登录按钮文字 |
-| Test Data | 无 |
-| Expected | 1. 登录按钮显示文字 "Login"<br>2. 其他UI元素也显示英文 |
+| Module | Login Page |
+| Name | Login Button-i18n-English Display |
+| Type | i18n Test |
+| Precondition | 1. Login page opened<br>2. System language set to English |
+| Steps | 1. Refresh page to ensure language setting takes effect<br>2. Check login button text |
+| Test Data | None |
+| Expected | 1. Login button displays text "Login"<br>2. Other UI elements also display in English |
 | Priority | P2 |
 
-**TC-081: 中文语言显示**
+**TC-081: Chinese Language Display**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-081 |
-| Module | 登录页面 |
-| Name | Login按钮-多语言-中文显示 |
-| Type | 国际化测试 |
-| Precondition | 1. 已打开登录页面<br>2. 系统语言设置为中文 |
-| Steps | 1. 切换系统语言为中文<br>2. 刷新页面<br>3. 检查登录按钮文字 |
-| Test Data | 无 |
-| Expected | 1. 登录按钮显示文字 "登录"<br>2. 其他UI元素也显示中文 |
+| Module | Login Page |
+| Name | Login Button-i18n-Chinese Display |
+| Type | i18n Test |
+| Precondition | 1. Login page opened<br>2. System language set to Chinese |
+| Steps | 1. Switch system language to Chinese<br>2. Refresh page<br>3. Check login button text |
+| Test Data | None |
+| Expected | 1. Login button displays text "登录"<br>2. Other UI elements also display in Chinese |
 | Priority | P2 |
 
 ---
@@ -894,37 +897,41 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 ### Generated Test Cases for Tables
 
-**TC-090: 表格列头显示**
+**TC-090: Column Header Display**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-090 |
-| Module | 用户列表页面 |
-| Name | 用户列表表格-列头显示验证 |
-| Type | UI测试 |
-| Precondition | 1. 已登录系统<br>2. 已打开用户列表页面 |
-| Steps | 1. 检查表格第一行（表头行）<br>2. 记录各列的列名 |
-| Test Data | 无 |
-| Expected | 1. 表头行背景色为 #F2F2F2<br>2. 列名依次为：ID、Name、Status、Actions<br>3. 列名文字加粗显示 |
+| Module | User List Page |
+| Name | User List Table-Column Header Display Verification |
+| Type | UI Test |
+| Precondition | 1. Logged into system<br>2. User list page opened |
+| Steps | 1. Check table first row (header row)<br>2. Record column names |
+| Test Data | None |
+| Expected | 1. Header row background color is #F2F2F2<br>2. Column names in order: ID, Name, Status, Actions<br>3. Column name text displayed in bold |
 | Priority | P2 |
 
-**TC-091: 排序功能-按Name排序**
+**TC-091: Sort Function-Sort by Name**
 
 | Field | Content |
 |-------|---------|
 | ID | TC-091 |
-| Module | 用户列表页面 |
-| Name | 用户列表表格-排序功能-按Name排序 |
-| Type | 功能测试 |
-| Precondition | 1. 已登录系统<br>2. 已打开用户列表页面<br>3. 列表中存在多条数据 |
-| Steps | 1. 点击 Name 列头<br>2. 观察排序指示器变化<br>3. 记录第一行和最后一行的 Name 值<br>4. 再次点击 Name 列头<br>5. 观察排序顺序变化 |
-| Test Data | 无 |
-| Expected | 1. 点击后 Name 列头显示排序箭头（升序）<br>2. 数据按 Name 升序排列（A-Z）<br>3. 再次点击后变为降序排列（Z-A）<br>4. 箭头方向随之改变 |
+| Module | User List Page |
+| Name | User List Table-Sort Function-Sort by Name |
+| Type | Functional Test |
+| Precondition | 1. Logged into system<br>2. User list page opened<br>3. Multiple data records exist in list |
+| Steps | 1. Click Name column header<br>2. Observe sort indicator change<br>3. Record Name values of first and last rows<br>4. Click Name column header again<br>5. Observe sort order change |
+| Test Data | None |
+| Expected | 1. After click, Name column header shows sort arrow (ascending)<br>2. Data sorted by Name ascending (A-Z)<br>3. After clicking again, changes to descending (Z-A)<br>4. Arrow direction changes accordingly |
 | Priority | P1 |
 
 ---
 
-## Test Case Output Format (.md)
+## Test Case Output Format
+
+### Step 1: Generate Markdown Test Cases
+
+First, write all test cases to `.solarwire/[requirement-name]/test-cases.md` in the following Markdown format:
 
 ```markdown
 # Test Cases - [Project Name]
@@ -946,14 +953,14 @@ The first line defines what this element IS. Use it as test case name prefix.
 
 | ID | Module | Name | Type | Precondition | Steps | Test Data | Expected Result | Priority | Related | Boundary | Exception | Remark |
 |----|--------|------|------|-------------|-------|-----------|----------------|----------|---------|----------|-----------|--------|
-| TC-001 | 登录页面 | Login按钮-点击操作-正常登录成功 | 功能测试 | 1. 已注册账号... | 1. 输入用户名... | 用户名：test@example.com | 1. 登录成功... | P0 | US-001 | | | |
-| TC-002 | 登录页面 | Login按钮-成功处理-Token保存验证 | 功能测试 | 1. 已打开登录页面... | 1. 输入有效用户名... | 用户名：test@example.com | 1. Local Storage中存在token... | P0 | US-001 | | | |
+| TC-001 | Login Page | Login Button-Click Action-Normal Login Success | Functional Test | 1. Registered account... | 1. Enter username... | Username: test@example.com | 1. Login success... | P0 | US-001 | | | |
+| TC-002 | Login Page | Login Button-Success Handling-Token Save Verification | Functional Test | 1. Login page opened... | 1. Enter valid username... | Username: test@example.com | 1. token field exists in Local Storage... | P0 | US-001 | | | |
 
 ### [Another Module Name]
 
 | ID | Module | Name | Type | Precondition | Steps | Test Data | Expected Result | Priority | Related | Boundary | Exception | Remark |
 |----|--------|------|------|-------------|-------|-----------|----------------|----------|---------|----------|-----------|--------|
-| TC-050 | 用户列表页面 | 用户列表表格-数据来源-数据加载验证 | 功能测试 | 1. 已登录管理员账号... | 1. 打开用户列表页面... | 无 | 1. 表格显示用户数据... | P1 | | | | |
+| TC-050 | User List Page | User List Table-Data Source-Data Loading Verification | Functional Test | 1. Logged in as admin account... | 1. Open user list page... | None | 1. Table displays user data... | P1 | | | | |
 
 ## Statistics
 | Item | Count |
@@ -962,12 +969,49 @@ The first line defines what this element IS. Use it as test case name prefix.
 | P0 | N |
 | P1 | N |
 | P2 | N |
-| 功能测试 | N |
-| 表单验证 | N |
-| 边界测试 | N |
-| 异常测试 | N |
-| UI测试 | N |
-| 国际化测试 | N |
+| Functional Test | N |
+| Form Validation | N |
+| Boundary Test | N |
+| Exception Test | N |
+| UI Test | N |
+| i18n Test | N |
+```
+
+### Step 2: Convert Markdown to Excel
+
+After generating the Markdown file, convert it to xlsx using the generate-excel script:
+
+```bash
+node sw-skills/solarwire/lib/generate-excel.js from-md \
+  --input .solarwire/[requirement-name]/test-cases.md \
+  --output .solarwire/[requirement-name]/test-cases.xlsx
+```
+
+**Excel Output Structure**:
+- **Test Cases** sheet: All test cases in a flat table with styled headers (blue) and priority color-coding (P0=red, P1=amber)
+- **By Module** sheet: Test cases grouped by module with module headers
+- **Statistics** sheet: Summary counts by priority, type, and module
+
+**Alternative: Batch Mode** (for large PRDs, to avoid context overflow):
+
+```bash
+# Initialize
+node sw-skills/solarwire/lib/generate-excel.js create --output .solarwire/[req-name]/test-cases.xlsx
+
+# Append each module's test cases as they are generated
+node sw-skills/solarwire/lib/generate-excel.js append-batch \
+  --file .solarwire/[req-name]/test-cases.xlsx \
+  --json-file .solarwire/[req-name]/batch-tc.json
+
+# Finalize (generates xlsx from accumulated data)
+node sw-skills/solarwire/lib/generate-excel.js finalize --file .solarwire/[req-name]/test-cases.xlsx
+```
+
+For batch mode, write each batch of test cases to `.solarwire/[req-name]/batch-tc.json` as a JSON array:
+```json
+[
+  {"id":"TC-001","module":"Login Page","name":"Login Success","type":"Functional Test","precondition":"...","steps":"...","test_data":"...","expected":"...","priority":"P0"}
+]
 ```
 
 ---
@@ -988,7 +1032,7 @@ When adding test cases for incremental features (PRD already has existing test c
 ### Affected Existing Test Cases
 | Test Case ID | Module | Impact | Action Required |
 |-------------|--------|--------|----------------|
-| TC-001 | 登录页面 | 登录流程变更 | 需重新验证 |
+| TC-001 | Login Page | Login flow changed | Needs re-verification |
 
 ### New Test Cases
 [Only new/changed test cases in standard format]
@@ -1012,13 +1056,13 @@ When adding test cases for incremental features (PRD already has existing test c
 
 | Test Type | Default Priority |
 |-----------|-----------------|
-| 功能测试 - 核心流程 | P0 |
-| 功能测试 - 辅助功能 | P1 |
-| 表单验证 | P0 |
-| 边界测试 | P1 |
-| 异常测试 | P1 |
-| UI测试 | P2 |
-| 国际化测试 | P2 |
+| Functional Test - Core flow | P0 |
+| Functional Test - Auxiliary function | P1 |
+| Form Validation | P0 |
+| Boundary Test | P1 |
+| Exception Test | P1 |
+| UI Test | P2 |
+| i18n Test | P2 |
 
 ---
 
@@ -1027,19 +1071,19 @@ When adding test cases for incremental features (PRD already has existing test c
 ### Format
 
 ```
-[元素定义]-[测试场景]-[具体条件/数据]
+[Element definition]-[Test scenario]-[Specific condition/data]
 ```
 
 ### Examples
 
 | Name | Description |
 |------|-------------|
-| Login按钮-点击操作-验证并提交登录 | 点击登录按钮的功能测试 |
-| Login按钮-成功处理-Token保存验证 | 登录成功后的Token保存验证 |
-| Username输入框-输入规则-手机号格式有效 | 手机号格式验证 |
-| Username输入框-格式校验-位数不足 | 手机号位数不足的校验 |
-| Login按钮-禁用状态-用户名为空 | 用户名为空时按钮禁用 |
-| 用户列表表格-字段显示-Status状态值显示 | 表格状态字段显示验证 |
+| Login Button-Click Action-Validate and Submit Login | Click login button functional test |
+| Login Button-Success Handling-Token Save Verification | Token save verification after login success |
+| Username Input-Input Rules-Phone Format Valid | Phone format validation |
+| Username Input-Format Validation-Insufficient Digits | Phone insufficient digits validation |
+| Login Button-Disabled State-Username Empty | Button disabled when username empty |
+| User List Table-Field Display-Status Value Display | Table status field display verification |
 
 ---
 
@@ -1079,7 +1123,19 @@ Write all test cases to `.solarwire/[requirement-name]/test-cases.md` in the Mar
 
 **IMPORTANT**: To avoid context overflow, generate test cases in batches. Write each module's test cases as they are generated, then append the next module.
 
-### Step 6: Generate Statistics
+### Step 6: Convert to Excel
+
+After all test cases are written to the .md file, run the conversion script:
+
+```bash
+node sw-skills/solarwire/lib/generate-excel.js from-md \
+  --input .solarwire/[requirement-name]/test-cases.md \
+  --output .solarwire/[requirement-name]/test-cases.xlsx
+```
+
+Verify the xlsx file was generated successfully.
+
+### Step 7: Generate Statistics
 
 After all test cases are generated, calculate and append the Statistics section.
 
@@ -1094,6 +1150,6 @@ After all test cases are generated, calculate and append the Statistics section.
 5. **Black-Box Only** - Focus on user-visible behavior
 6. **Fine-Grained** - Each note item generates separate, detailed test cases
 7. **Page-Based Modules** - Use `!title` as module name
-8. **Chinese Output** - Use Chinese for field names and test case content (unless PRD is in another language)
-9. **Markdown Output** - Output format is .md, not .xlsx
+8. **English Output** - Use English for field names and test case content (unless PRD is in another language)
+9. **Excel Output** - Final output is .xlsx (generate .md first, then convert using `node sw-skills/solarwire/lib/generate-excel.js from-md`)
 10. **NOTE MUST USE TRIPLE QUOTES** - When referencing SolarWire code in test cases, always use `note="""..."""`, NEVER use `note="..."` or `note='...'`

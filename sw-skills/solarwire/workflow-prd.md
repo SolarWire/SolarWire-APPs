@@ -2,13 +2,16 @@
 
 ## Inlined Syntax Rules (CRITICAL)
 
-- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
-- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
-- 边框颜色用 `b=`，边框宽度用 `s=`
-- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
-- 表格单元格和行不能指定 @(x,y)、w、h
-- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
-- 所有元素必须有坐标 @(x,y)
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks start with ` ```solarwire ` and end with ` ``` `
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y)
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
@@ -91,7 +94,7 @@ Does this project require multi-language support?
 
 If yes:
 - Which languages need to be supported?
-- Common options: English, 中文, 日本語, 한국어, Deutsch, Français, Español, etc.
+- Common options: English, Chinese, 日本語, 한국어, Deutsch, Français, Español, etc.
 - The default language will be set based on your primary language.
 
 If no:
@@ -162,8 +165,8 @@ Is this understanding correct? Any adjustments or additions needed?
 #### Check 1: Placeholder Scan
 ```
 Check items:
-- Any "TBD", "To Be Determined", "待定"
-- Any "TODO", "待完成"
+- Any "TBD", "To Be Determined", "Pending"
+- Any "TODO", "To Be Completed"
 - Incomplete sections
 - Vague requirement descriptions
 
@@ -218,6 +221,27 @@ If ambiguity found:
 **Note: Visual ambiguity is allowed**
 - Visual descriptions like "appropriate spacing", "reasonable layout" don't need quantification
 - But functional requirements must be clear (e.g., "user can edit" not "user might be able to edit")
+```
+
+#### Check 5: Renderer Validation (CRITICAL)
+```
+Run: node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/
+
+If errors found:
+- Fix SolarWire syntax errors in the PRD
+- Re-run validation until all blocks pass
+- Common fixes:
+  - note="..." → note="""...""" (triple quotes)
+  - </solarwire> → ``` (proper closing)
+  - @(x,y) on table cells → remove coordinates
+  - Missing @(x,y) on elements → add coordinates
+  - stroke/strokeWidth → b=/s=
+  - (("text")) → ("text")
+  - ("text") as rounded rect → ["text"] r=N
+  - Pure text in ["text"] → "text"
+  - Rectangle without vertical-align=m → add vertical-align=m
+
+MUST pass validation before proceeding to Step 10
 ```
 
 **Fix Principle:**
@@ -287,10 +311,11 @@ You MUST complete each step in order:
 **Phase 3: Generate & Quality**
 9. [ ] Generate PRD
 10. [ ] Spec self-review (4 checks)
-11. [ ] User review gate (user MUST review)
+11. [ ] Renderer validation: `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
+12. [ ] User review gate (user MUST review)
 
 **Phase 4: Output**
-12. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
+13. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
 
 ---
 
@@ -303,7 +328,7 @@ You MUST complete each step in order:
 | Project Name | [Project Name] |
 | Version | v1.0 |
 | Type | New Feature / Incremental Feature |
-| Base Requirement | (仅增量特性时填写) |
+| Base Requirement | (fill in only for incremental features) |
 | Created Date | [Date] |
 
 ## Change Log
@@ -393,7 +418,7 @@ sequenceDiagram
 | [Page 1] | Main Page | New | [Description] |
 | [Page 2] | Modal | New | [Description] |
 
-（增量特性时Change Type列为New/Modified）
+(For incremental features, Change Type column is New/Modified)
 
 ---
 
@@ -416,40 +441,37 @@ sequenceDiagram
 // Page Content - Each element has detailed note description
 ["Logo"] @(50,50) w=120 h=60 note="""Logo
 1. Click action
-   - Return to homepage"""
+   - When clicked, return to homepage"""
 
 "User Login" @(100,150) size=24 bold
 
 "Username" @(100,220)
 ["Enter phone or email"] @(100,245) w=300 h=44 bg=#FFFFFF b=#E5E7EB note="""Username input
 1. Input rules
-   - Supports phone number or email
-   - Automatically trims leading/trailing spaces
-   - Max length: 50 characters
+   - Always supports phone number or email input
+   - Always automatically trims leading/trailing spaces
+   - If input exceeds 50 characters, truncate to 50
 2. Validation
-   - Format: 11-digit phone number or email format
-   - Error message: 'Please enter a valid phone number or email'"""
+   - If format is invalid on blur, show 'Please enter a valid phone number or email'"""
 
 "Password" @(100,310)
 ["Enter password"] @(100,335) w=300 h=44 bg=#FFFFFF b=#E5E7EB note="""Password input
 1. Input rules
-   - Password displayed as dots
-   - Min length: 6 characters, Max: 32 characters
-   - Must contain letters and numbers
+   - Always display password as dots
+   - If input is less than 6 or more than 32 characters, show validation error
+   - If password does not contain both letters and numbers, show validation error
 2. Interaction
-   - Show/hide toggle icon on right"""
+   - When eye icon is clicked, toggle password visibility"""
 
 ["Login"] @(100,450) w=300 h=48 bg=#3B82F6 c=#FFFFFF size=16 note="""Login button
 1. Click action
-   - Validate username and password
+   - When clicked, validate username and password
 2. Success handling
-   - Save login state
-   - Redirect to homepage
+   - When login succeeds, save login state and redirect to homepage
 3. Failure handling
-   - Display modal: 'Invalid username or password'
-   - Clear password field
+   - If login fails, show modal 'Invalid username or password' and clear password field
 4. Disabled conditions
-   - Disabled when username or password is empty"""
+   - While username or password is empty, disable button"""
 ```
 
 ---
@@ -533,28 +555,25 @@ Add a chapter listing affected/unaffected pages:
 // UNCHANGED: Original header
 ["Logo"] @(50,50) w=120 h=60 note="""Logo
 1. Click action
-   - Return to homepage"""
+   - When clicked, return to homepage"""
 
 // NEW: Social login section
 ["WeChat Login"] @(100,500) w=300 h=44 bg=#F0FDF4 b=#22C55E note="""[NEW] WeChat login button
 1. Click action
-   - WeChat authorization login
+   - When clicked, initiate WeChat authorization login
 2. Success handling
-   - Bind WeChat account
-   - Redirect to homepage"""
+   - When WeChat authorization succeeds, bind WeChat account and redirect to homepage"""
 
 // MODIFIED: Login button now shows loading
 ["Login"] @(100,450) w=300 h=48 bg=#FFFBEB b=#F59E0B size=16 note="""[MODIFIED] Login button
 1. Click action
-   - Validate username and password
+   - When clicked, validate username and password
 2. Success handling
-   - Save login state
-   - Redirect to homepage
+   - When login succeeds, save login state and redirect to homepage
 3. Failure handling
-   - Display modal: 'Invalid username or password'
+   - If login fails, show modal 'Invalid username or password'
 4. NEW: Loading state
-   - Show loading spinner during login
-   - Disable button to prevent double-click"""
+   - While login is in progress, show loading spinner and disable button to prevent double-click"""
 
 // REMOVED: Old SMS login
 ["SMS Login"] @(100,600) w=300 h=44 bg=#FEF2F2 b=#EF4444 opacity=0.4 note="""[REMOVED] SMS login button
@@ -649,14 +668,17 @@ Which approach would you like to choose?
 9. **Layout Close to Reality** - Wireframes should reflect actual page structure with 10px spacing
 10. **Separate Modals/States/Tabs** - Each independent view in separate code block; all modals must have separate wireframe
 11. **Table Row Must Be Inside Table** - Row element `#` CANNOT exist independently, MUST be inside table container `##`
-12. **Table Child Element Restrictions** - Rows and cells CANNOT have coordinates `@(x,y)`, width `w`, height `h`, or border `b`; only support style attributes (`bg`, `c`, `size`, `bold`, `italic`, `align`, `colspan`, `rowspan`)
+12. **Table Child Element Restrictions** - Rows and cells CANNOT have coordinates `@(x,y)`, width `w`, height `h`; only support style attributes (`bg`, `b`, `c`, `size`, `bold`, `italic`, `align`, `colspan`, `rowspan`)
 13. **Container Rectangle Required** - First element of each page is white background container
 14. **Color Standards (Tailwind CSS)** - Use unified colors: #111827 (text), #6B7280 (secondary), #E5E7EB (border), #FFFFFF (bg), #F9FAFB (alternating row), #3B82F6 (primary), #EF4444 (error)
 15. **Font Standards** - Font size 13px, line height 22px
-16. **i18n Only When Confirmed** - Add multi-language support ONLY when user explicitly confirms; if not confirmed, absolutely NO i18n information; if confirmed, ALL meaningful elements MUST include i18n translations using full language names (English, 中文, 日本語)
+16. **i18n Only When Confirmed** - Add multi-language support ONLY when user explicitly confirms; if not confirmed, absolutely NO i18n information; if confirmed, ALL meaningful elements MUST include i18n translations using full language names (English, Chinese, 日本語)
 17. **Incremental Feature Uses Base+Delta** - Modified pages use Base+Delta mode with color-coded change markers
 18. **PRD Includes Changelog** - All PRDs must have version tracking via Change Log table
 19. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
+20. **Pure Text Uses Text Element** - Labels, headings, descriptions and other pure text MUST use `"text"`, NOT `["text"]` rectangle. Only buttons, inputs, cards and other interactive/container elements use `["text"]`
+21. **Rectangle Text Alignment** - Rectangle elements MUST have `vertical-align=m` (vertically centered) and `align=l` (horizontally left-aligned). Default vertical-align is top (t), must explicitly set to middle (m)
+22. **Renderer Validation Required** - After generating wireframes, MUST run `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` and fix all errors before proceeding
 
 ---
 

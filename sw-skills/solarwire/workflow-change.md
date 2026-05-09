@@ -1,12 +1,15 @@
 ## Inlined Syntax Rules (CRITICAL)
 
-- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
-- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
-- 边框颜色用 `b=`，边框宽度用 `s=`
-- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
-- 表格单元格和行不能指定 @(x,y)、w、h
-- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
-- 所有元素必须有坐标 @(x,y)
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks start with ` ```solarwire ` and end with ` ``` `
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y)
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
@@ -47,13 +50,13 @@ This skill manages requirement changes for confirmed PRDs, ensuring all downstre
 
 **Example**:
 ```
-User: "登录页面需要增加手机验证码登录方式"
+User: "Login page needs to add phone verification code login method"
 
 AI confirms:
 - Change type: New feature addition
-- Affected page: 登录页面
-- Affected feature: 登录功能
-- Business reason: 提升用户体验，支持免密码登录
+- Affected page: Login Page
+- Affected feature: Login Feature
+- Business reason: Improve user experience, support passwordless login
 ```
 
 ---
@@ -68,29 +71,29 @@ Analyze the following dimensions:
 
 | Page | Change Type | Impact Description |
 |------|------------|-------------------|
-| 登录页面 | MODIFIED | 新增验证码输入区域和发送按钮 |
-| 登录页面-验证码弹窗 | NEW | 新增验证码输入弹窗 |
+| Login Page | MODIFIED | Added verification code input area and send button |
+| Login Page - Verification Code Modal | NEW | Added verification code input modal |
 
 #### 2.2 Affected Features
 
 | Feature | Impact |
 |---------|--------|
-| 用户登录 | 新增验证码登录方式 |
-| 登录按钮 | 逻辑变更：支持密码和验证码两种方式 |
+| User Login | Added verification code login method |
+| Login Button | Logic change: Support both password and verification code methods |
 
 #### 2.3 Affected Test Cases
 
 | Test Case ID | Impact |
 |-------------|--------|
-| TC-001 | 需更新：登录流程增加验证码分支 |
-| TC-010 | 需更新：点击操作增加方式选择 |
+| TC-001 | Needs update: Login flow added verification code branch |
+| TC-010 | Needs update: Click action added method selection |
 
 #### 2.4 Affected Dev Design
 
 | Section | Impact |
 |---------|--------|
-| 登录模块架构 | 新增验证码服务依赖 |
-| API接口 | 新增发送验证码和验证接口 |
+| Login module architecture | Added verification code service dependency |
+| API endpoints | Added send verification code and verification API |
 
 **Output**: Impact Analysis Report
 
@@ -136,11 +139,11 @@ For SolarWire wireframes, use visual markers to distinguish change types:
 
 **NEW elements**:
 ```
-b=#22C55E bg=#F0FDF4 note前缀[NEW]
+b=#22C55E bg=#F0FDF4 note prefix [NEW]
 ```
 Example:
 ```solarwire
-["发送验证码"] @(100,380) w=280 h=44 bg=#F0FDF4 b=#22C55E c=#111827 note="""[NEW] 发送验证码按钮
+["Send Verification Code"] @(100,380) w=280 h=44 bg=#F0FDF4 b=#22C55E c=#111827 note="""[NEW] Send Verification Code Button
 1. Click action
    - Validate phone number format
    - Send verification code to phone"""
@@ -148,12 +151,12 @@ Example:
 
 **MODIFIED elements**:
 ```
-b=#F59E0B bg=#FFFBEB note前缀[MODIFIED] + 变更说明
+b=#F59E0B bg=#FFFBEB note prefix [MODIFIED] + change description
 ```
 Example:
 ```solarwire
 ["Login"] @(100,320) w=280 h=44 bg=#FFFBEB b=#F59E0B c=#111827 note="""[MODIFIED] Login button
-变更说明：支持密码和验证码两种登录方式
+Change description: Support both password and verification code login methods
 1. Click action
    - Validate inputs based on selected login method
    - Submit login request
@@ -168,12 +171,12 @@ Example:
 
 **REMOVED elements**:
 ```
-b=#EF4444 bg=#FEF2F2 opacity=0.4 note前缀[REMOVED] + 原因
+b=#EF4444 bg=#FEF2F2 opacity=0.4 note prefix [REMOVED] + reason
 ```
 Example:
 ```solarwire
 ["Remember Me"] @(100,400) w=16 h=16 bg=#FEF2F2 b=#EF4444 opacity=0.4 note="""[REMOVED] Remember me checkbox
-移除原因：验证码登录不需要记住密码功能"""
+Removal reason: Verification code login does not need remember password feature"""
 ```
 
 **UNCHANGED elements**:
@@ -187,7 +190,7 @@ Add a new entry to the PRD Changelog section:
 ## Change Log
 | Version | Date | Changes |
 |---------|------|---------|
-| v1.1 | 2025-01-15 | 新增手机验证码登录方式；修改登录按钮逻辑；移除记住密码功能 |
+| v1.1 | 2025-01-15 | Added phone verification code login method; Modified login button logic; Removed remember password feature |
 | v1.0 | 2025-01-10 | Initial PRD |
 ```
 
@@ -196,9 +199,35 @@ Add a new entry to the PRD Changelog section:
 | Change Type | Border Color | Background | Opacity | Note Prefix | Note Content |
 |------------|-------------|-----------|---------|-------------|-------------|
 | NEW | `b=#22C55E` | `bg=#F0FDF4` | 1.0 | `[NEW]` | Element definition + details |
-| MODIFIED | `b=#F59E0B` | `bg=#FFFBEB` | 1.0 | `[MODIFIED]` | 变更说明 + updated details |
-| REMOVED | `b=#EF4444` | `bg=#FEF2F2` | 0.4 | `[REMOVED]` | 移除原因 |
+| MODIFIED | `b=#F59E0B` | `bg=#FFFBEB` | 1.0 | `[MODIFIED]` | Change description + updated details |
+| REMOVED | `b=#EF4444` | `bg=#FEF2F2` | 0.4 | `[REMOVED]` | Removal reason |
 | UNCHANGED | Original | Original | 1.0 | None | Original |
+
+---
+
+### Step 4.5: Renderer Validation (CRITICAL)
+
+**Goal: Ensure all modified wireframes can be correctly parsed and rendered**
+
+```
+Run: node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/
+
+If errors found:
+- Fix SolarWire syntax errors in the PRD
+- Re-run validation until all blocks pass
+- Common fixes:
+  - note="..." → note="""...""" (triple quotes)
+  - </solarwire> → ``` (proper closing)
+  - @(x,y) on table cells → remove coordinates
+  - Missing @(x,y) on elements → add coordinates
+  - stroke/strokeWidth → b=/s=
+  - (("text")) → ("text")
+  - ("text") as rounded rect → ["text"] r=N
+  - Pure text in ["text"] → "text"
+  - Rectangle without vertical-align=m → add vertical-align=m
+
+MUST pass validation before proceeding to Step 5
+```
 
 ---
 
@@ -215,8 +244,8 @@ Present the following to the user:
 **Previous Version:** `archive/solarwire-prd-v1.0.md`
 
 **Changes Summary:**
-- NEW: 发送验证码按钮, 验证码输入弹窗
-- MODIFIED: Login按钮 (支持双方式登录)
+- NEW: Send Verification Code Button, Verification Code Input Modal
+- MODIFIED: Login Button (supports dual-method login)
 - REMOVED: Remember Me checkbox
 
 **Impact Analysis:**
@@ -263,8 +292,8 @@ After confirmation, I will update downstream artifacts:
 
 | ID | Module | Name | Type | Precondition | Steps | Test Data | Expected Result | Priority | Related | Boundary | Exception | Remark |
 |----|--------|------|------|-------------|-------|-----------|----------------|----------|---------|----------|-----------|--------|
-| TC-001 | 登录页面 | Login按钮-点击操作-正常登录成功 | 功能测试 | 1. 已注册账号... [MODIFIED: 新增验证码登录前置条件] | 1. 选择登录方式 [NEW] ... | ... | ... | P0 | US-001 | | | 需回归验证 |
-| TC-100 | 登录页面 | 发送验证码按钮-点击操作-发送成功 [NEW] | 功能测试 | ... | ... | ... | ... | P0 | US-010 | | | 新增用例 |
+| TC-001 | Login Page | Login Button - Click Action - Normal Login Success | Functional Test | 1. Registered account... [MODIFIED: Added verification code login precondition] | 1. Select login method [NEW] ... | ... | ... | P0 | US-001 | | | Needs regression verification |
+| TC-100 | Login Page | Send Verification Code Button - Click Action - Send Success [NEW] | Functional Test | ... | ... | ... | ... | P0 | US-010 | | | New test case |
 ```
 
 #### 6.2 Update Dev Design (dev-design.md)
@@ -290,7 +319,7 @@ After downstream artifacts are updated, the following steps are typically manual
 ## Impact Analysis Report
 
 ### Change Description
-[变更描述]
+[Change Description]
 
 ### Change Type
 - [ ] New Feature
@@ -342,8 +371,9 @@ After downstream artifacts are updated, the following steps are typically manual
 2. [ ] Step 2: Impact Analysis - Analyze pages, features, test cases, dev design
 3. [ ] Step 3: Archive Current Version - Copy to archive, increment version
 4. [ ] Step 4: Modify PRD - Apply Base+Delta markers, update Changelog
-5. [ ] Step 5: User Confirmation - Get explicit approval
-6. [ ] Step 6: Update Downstream Artifacts - Test cases, dev design
+5. [ ] Step 4.5: Renderer Validation - `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
+6. [ ] Step 5: User Confirmation - Get explicit approval
+7. [ ] Step 6: Update Downstream Artifacts - Test cases, dev design
 
 ---
 
@@ -389,3 +419,6 @@ After downstream artifacts are updated, the following steps are typically manual
 7. **Downstream Sync** - All affected artifacts must be updated, not just the PRD
 8. **No Silent Changes** - Every change must be visible through markers or Changelog
 9. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
+10. **Pure Text Uses Text Element** - Labels, headings, descriptions and other pure text MUST use `"text"`, NOT `["text"]` rectangle. Only buttons, inputs, cards and other interactive/container elements use `["text"]`
+11. **Rectangle Text Alignment** - Rectangle elements MUST have `vertical-align=m` (vertically centered) and `align=l` (horizontally left-aligned). Default vertical-align is top (t), must explicitly set to middle (m)
+12. **Renderer Validation Required** - After modifying wireframes, MUST run `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` and fix all errors before user confirmation

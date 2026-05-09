@@ -140,7 +140,7 @@ Must include ALL of the following sections:
 
 | Section | Required | Description |
 |---------|----------|-------------|
-| **1. Data source** | Required | Where data comes from, filtering conditions, sorting rules |
+| **1. Data source** | Required | Business-level data scope, filtering conditions, sorting rules. Do NOT include API endpoints or technical implementation details |
 | **2. Display rules** | Required | Field meanings, formats, empty value handling |
 | **3. Business rules** | Optional | Status mappings, conditional display, calculations |
 | **4. Sorting/Filtering** | Optional | If applicable, describe sorting and filtering behavior |
@@ -269,6 +269,55 @@ Describe directly in note, no separate wireframe needed.
 | **Organization** | Use standard format, clear hierarchy |
 | **Self-explanatory** | Element definition should be clear, no need for secondary explanation |
 | **Business-focused** | Describe business logic, avoid technical implementation details |
+| **Action-oriented** | Describe behavior with condition-action pairs, not just state enumeration |
+
+### EARS Description Style
+
+Use condition-action patterns to describe element behavior. This makes notes unambiguous and directly understandable by developers.
+
+**Pattern Templates:**
+
+| Pattern | Template | When to Use |
+|---------|----------|-------------|
+| **Always** | Always [behavior] | Behavior that always applies |
+| **When** | When [event/trigger], [behavior] | User action or event triggers behavior |
+| **While** | While [condition], [behavior] | Behavior applies during a specific state |
+| **If** | If [condition], [behavior] | Exception or boundary condition handling |
+
+**Bad (State enumeration, ambiguous):**
+```
+- Status: 1=Active, 0=Disabled
+- VIP: Show gold star
+- Empty: Show '-'
+```
+
+**Good (Condition-action, unambiguous):**
+```
+- While status is Active, show green tag with text 'Active'
+- While status is Disabled, show red tag with text 'Disabled'
+- If customer is VIP, show gold star icon before name
+- If contact is not set, display '-' as placeholder
+```
+
+**Bad (Vague action):**
+```
+- Click action: Submit form
+- Error handling: Show error
+```
+
+**Good (Specific condition-action):**
+```
+- When clicked, validate all form fields then submit
+- If validation fails, highlight invalid fields and show first error message
+- If network error, show toast 'Network error, please try again'
+- If server returns 403, show toast 'Permission denied'
+```
+
+**Key Rules:**
+- Every behavior MUST have a trigger condition (When/While/If) or be always true (Always)
+- Avoid bare enumerations like "Status: 1=Active" — describe what happens in each state
+- Error messages MUST be quoted exactly as the user sees them
+- Conditions MUST be specific, not vague ("If format is invalid" not "If error")
 
 ---
 
@@ -318,7 +367,7 @@ Describe directly in note, no separate wireframe needed.
 |---------|---------|----------|
 | Missing Permission Control | No visibility/disabled rules | Add who can see/use element |
 | Incomplete Error Handling | Only generic "show error" | List all error types: validation, network, server, timeout, permission |
-| Missing Data Source Details | Just "User data" | Add module, filters, sort, permission |
+| Missing Data Source Details | Just "User data" | Add business scope, filters, sort, permission |
 | Wrong First Line | "[Primary Button]" | Use functional description: "Login button" |
 | Visual Details in Note | "Blue background, 14px font" | Remove, these are shown in wireframe |
 | Technical Implementation | "API: POST /api/login" | Remove, this is technical detail |
@@ -348,7 +397,7 @@ When describing data display, always specify format rules:
 | Decimal | 2 decimal places | 1,234.56 |
 | Currency | With symbol and separators | ¥1,234.56 |
 | Percentage | With % symbol | 68.5% |
-| Large numbers | Abbreviated | 1.23万, 1.5M |
+| Large numbers | Abbreviated | 1.23M, 1.5B |
 
 ### Text Formats
 
@@ -361,16 +410,15 @@ When describing data display, always specify format rules:
 
 ### Status/Tag Display
 
-Always describe status values with their visual representation:
+Always describe status values with their visual representation using condition-action style:
 
 ```solarwire
 "Following" @(100,50) note="""Lead status
 1. Display rules
-   - Status values with visual style:
-     - Unassigned: Gray tag (#D1D5DB background)
-     - Following: Blue tag (#3B82F6 background)
-     - Converted: Green tag (#22C55E background)
-     - Invalid: Red tag (#EF4444 background)
+   - While status is Unassigned, show gray tag with text 'Unassigned'
+   - While status is Following, show blue tag with text 'Following'
+   - While status is Converted, show green tag with text 'Converted'
+   - While status is Invalid, show red tag with text 'Invalid'
    - All tags: White text, rounded corners"""
 ```
 
@@ -419,7 +467,7 @@ Always describe status values with their visual representation:
 ```solarwire
 ["Login"] @(100,50) w=100 h=40 note="""Login button
 1. Click action
-   - Validate username and password
+   - When clicked, validate username and password
 2. i18n: English=Login, 中文=登录, 日本語=ログイン"""
 ```
 
@@ -436,11 +484,11 @@ Use compact format with language names declared once:
 ```solarwire
 ## @(100,50) w=600 border=1 note="""User list table
 1. Data source
-   - User list data from User Management module
+   - Always shows users from User Management module
 2. Fields (i18n: English/中文/日本語)
    - ID: Unique user identifier [ID/ID/ID]
    - Name: User display name [Name/用户名/ユーザー名]
-   - Status: 1=Active, 0=Disabled [Status/状态/ステータス]
+   - Status: While 1, show 'Active'; While 0, show 'Disabled' [Status/状态/ステータス]
      - Values: Active/正常/有効, Disabled/禁用/無効
    - Created: Account creation time [Created/创建时间/作成日時]
    - Actions: View and edit operations [Actions/操作/操作]
@@ -471,12 +519,15 @@ Use compact format with language names declared once:
 ```solarwire
 ["Submit"] @(100,50) w=100 h=40 note="""Submit button
 1. Click action
-   - Validate and submit form data
-2. Success message
+   - When clicked, validate and submit form data
+2. Success handling
+   - When submission succeeds, show success message
    - i18n: English=Submitted successfully, 中文=提交成功, 日本語=送信成功
-3. Error messages
-   - Network error: i18n: English=Network error, please try again, 中文=网络错误，请重试, 日本語=ネットワークエラー、再試行してください
-   - Validation error: i18n: English=Please check your input, 中文=请检查您的输入, 日本語=入力内容を確認してください"""
+3. Failure handling
+   - If network error, show toast
+   - i18n: English=Network error, please try again, 中文=网络错误，请重试, 日本語=ネットワークエラー、再試行してください
+   - If validation error, show message
+   - i18n: English=Please check your input, 中文=请检查您的输入, 日本語=入力内容を確認してください"""
 ```
 
 ---
@@ -497,24 +548,24 @@ Use compact format with language names declared once:
 - Contains visual details (color, border radius)
 - Contains technical implementation (API endpoint)
 
-### Good Note (Functional behavior)
+### Good Note (Functional behavior with EARS style)
 
 ```solarwire
 ["Login"] @(100,50) w=100 h=40 note="""Login button
 1. Click action
-   - Validate username and password
+   - When clicked, validate username and password
 2. Success handling
-   - Save login state
-   - Redirect to homepage
+   - When login succeeds, save login state and redirect to homepage
 3. Failure handling
-   - Display error: 'Invalid credentials'
+   - If credentials are invalid, display error 'Invalid credentials'
+   - If network error, display toast 'Network error, please try again'
 4. Disabled conditions
-   - Disabled when username or password is empty"""
+   - While username or password is empty, button is disabled"""
 ```
 
 **Strengths:**
 - First line is functional description
-- Describes behavior, not appearance
+- Describes behavior with condition-action pairs (When/If/While)
 - Covers all interaction scenarios
 - No technical implementation details
 
@@ -548,23 +599,23 @@ Use compact format with language names declared once:
 ```solarwire
 ## @(100,50) w=600 border=1 note="""User list table
 1. Data source
-   - User data from User Management module
-   - Filter: Active users only (status=1)
+   - Always shows users from User Management module
+   - Always filters by current user's department (data permission)
    - Default sort: Created time descending
-   - Permission: Current user's department users
 2. Display rules
-   - Name: Full name, required, click to view detail
-   - Status: 1=Active (green), 0=Disabled (red)
-   - Phone: Format as 138****8000
-   - Created: YYYY-MM-DD HH:mm
-   - Empty: Show 'No data' with illustration
+   - When Name is not set, display '-' as placeholder
+   - While status is Active, show green tag with text 'Active'
+   - While status is Disabled, show red tag with text 'Disabled'
+   - Always format phone as 138****8000
+   - Always format created time as YYYY-MM-DD HH:mm
+   - If no data, show 'No data' with illustration
 3. Actions column
    - View: Always visible
-   - Edit: Visible for Active status
-   - Disable: Visible for Active status, requires permission
+   - Edit: Visible while status is Active
+   - Disable: Visible while status is Active, requires permission
 4. Sorting
-   - Support: Name, Created time, Status
-   - Click header to toggle sort"""
+   - When clicking column header, toggle ascending/descending sort
+   - Supported columns: Name, Created time, Status"""
 ```
 
 ### Bad Input Field Note
@@ -585,15 +636,13 @@ Use compact format with language names declared once:
 ```solarwire
 ["Enter email"] @(100,50) w=280 h=40 note="""Email input
 1. Input rules
-   - Format: Standard email format
-   - Max length: 100 characters
-   - Auto-trim leading/trailing spaces
+   - Always accept standard email format only
+   - Always trim leading/trailing spaces on blur
+   - If input exceeds 100 characters, silently truncate
 2. Validation
-   - Required: Cannot be empty
-   - Format check: Must match email pattern
-   - Error message: 'Please enter a valid email address'
-   - Validate on: Blur
+   - If field is empty on blur, show 'This field is required'
+   - If format does not match email pattern on blur, show 'Please enter a valid email address'
 3. Business rules
-   - Unique: Email must not already exist in system
-   - Duplicate check: On blur, show 'Email already registered' if duplicate"""
+   - When losing focus, check for duplicate email
+   - If email already exists, show 'Email already registered'"""
 ```

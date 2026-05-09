@@ -1,5 +1,5 @@
 import { RectangleElement } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues, getLetterSpacingAttribute } from '../context';
+import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues, getLetterSpacingAttribute } from '../context';
 
 export interface RenderResult {
   svg: string;
@@ -11,7 +11,8 @@ export function renderRectangle(
   element: RectangleElement,
   context: RenderContext
 ): RenderResult {
-  const r = getNumberAttribute(element.attributes, context.globalDefaults, 'r', 0);
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+  const r = getNumberAttribute(element.attributes, context.globalDefaults, 'r', 0, vc);
   const isRounded = r > 0;
   
   let pos: AbsolutePosition;
@@ -21,23 +22,23 @@ export function renderRectangle(
     pos = { x: context.offsetX, y: context.offsetY };
   }
   
-  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100);
-  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40);
-  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#ffffff');
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000');
-  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333');
-  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
-  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
-  const align = getAlignAttribute(element.attributes, 'start');
+  const w = getNumberAttribute(element.attributes, context.globalDefaults, 'w', 100, vc);
+  const h = getNumberAttribute(element.attributes, context.globalDefaults, 'h', 40, vc);
+  const bg = getColorAttribute(element.attributes, context.globalDefaults, 'bg', '#ffffff', vc);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000', vc);
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333', vc);
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1, vc);
+  const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
+  const align = getAlignAttribute(element.attributes, 'start', vc);
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
-  const opacity = getOpacityAttribute(element.attributes);
-  const shadow = getShadowAttribute(element.attributes, context.globalDefaults);
-  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'top');
-  const textDecoration = getTextDecorationAttribute(element.attributes);
-  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0);
-  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0);
+  const opacity = getOpacityAttribute(element.attributes, 'opacity', 1, vc);
+  const shadow = getShadowAttribute(element.attributes, context.globalDefaults, vc);
+  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'top', vc);
+  const textDecoration = getTextDecorationAttribute(element.attributes, vc);
+  const padding = getPaddingValues(element.attributes, context.globalDefaults, 0, vc);
+  const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0, vc);
   
   let svgParts: string[] = [];
   
@@ -60,7 +61,7 @@ export function renderRectangle(
   
   if (element.text) {
     const lines = element.text.split('\n');
-    const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22);
+    const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22, vc);
     
     let textX: number;
     let textAnchor: string;

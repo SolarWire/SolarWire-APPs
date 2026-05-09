@@ -139,8 +139,8 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
 
   const effectiveBg = commonBg || '#ffffff';
   const effectiveColor = commonColor || '#000000';
-  const effectiveAlign = commonAlign || 'l';
-  const effectiveVAlign = commonVAlign || 't';
+  const effectiveAlign = commonAlign || '';
+  const effectiveVAlign = commonVAlign || '';
   const effectiveBold = commonBold === 'true';
   const effectiveItalic = commonItalic === 'true';
 
@@ -194,18 +194,16 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
       for (const key of cellKeys) {
         const { r, c } = getCellInfo(key);
         const cell = tableData.rows[r]?.cells[c];
-        const row = tableData.rows[r];
-        const currentDecoration = cell.attrs['text-decoration'] || row?.attrs?.['text-decoration'];
-        if (currentDecoration === decoration) {
+        if (cell) {
           const { 'text-decoration': _, ...rest } = cell.attrs;
-          onUpdateCell(r, c, { attrs: rest });
+          onUpdateCell(r, c, { attrs: { ...rest, 'text-decoration': undefined as any } });
         }
       }
       for (const r of fullySelectedRows) {
         const row = tableData.rows[r];
-        if (row?.attrs?.['text-decoration'] === decoration) {
+        if (row) {
           const { 'text-decoration': _, ...rest } = row.attrs;
-          onUpdateRow(r, rest);
+          onUpdateRow(r, { ...rest, 'text-decoration': undefined as any });
         }
       }
     } else {
@@ -239,37 +237,38 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
         placeholder={mixedSize ? '—' : undefined}
       />
 
-      <div className="property-section">
-        <PropertyLabel codeAttr="align" className="prop-label" />
-        <div className="align-btns">
-          {(['l', 'c', 'r'] as const).map((a) => (
-            <button
-              key={a}
-              className={`align-btn ${!mixedAlign && effectiveAlign === a ? 'active' : ''}`}
-              onClick={() => handleBatchChange('align', a)}
-            >
-              {a === 'l' ? 'L' : a === 'c' ? 'C' : 'R'}
-            </button>
-          ))}
+      <div className="property-row">
+        <PropertyLabel codeAttr="align" className="property-label-text" />
+        <div className="align-buttons">
+          <button className={`align-btn ${!mixedAlign && effectiveAlign === 'l' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'l')} title="Left">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="7" x2="9" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
+          <button className={`align-btn ${!mixedAlign && effectiveAlign === 'c' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'c')} title="Center">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="3.5" y1="7" x2="10.5" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
+          <button className={`align-btn ${!mixedAlign && effectiveAlign === 'r' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'r')} title="Right">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="5" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
         </div>
       </div>
 
-      <div className="property-section">
-        <PropertyLabel codeAttr="vertical-align" className="prop-label" />
-        <div className="align-btns">
-          {(['t', 'm', 'b'] as const).map((va) => (
-            <button
-              key={va}
-              className={`align-btn ${!mixedVAlign && effectiveVAlign === va ? 'active' : ''}`}
-              onClick={() => handleBatchChange('vertical-align', va)}
-            >
-              {va === 't' ? '↑' : va === 'm' ? '↕' : '↓'}
-            </button>
-          ))}
+      <div className="property-row">
+        <PropertyLabel codeAttr="vertical-align" className="property-label-text" />
+        <div className="align-buttons">
+          <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 't' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 't')} title="Top">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
+          <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'm' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'm')} title="Middle">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5.5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
+          <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'b' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'b')} title="Bottom">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="8" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+          </button>
         </div>
       </div>
 
-      <div className="toggle-section">
+      <div className="property-row toggle-row">
+        <PropertyLabel codeAttr="" fallbackLabel="样式" className="property-label-text toggle-row-label" />
         <button
           className={`toggle-btn ${mixedBold ? 'mixed' : ''} ${!mixedBold && effectiveBold ? 'active' : ''}`}
           onClick={() => handleBatchChange('bold', !effectiveBold)}
@@ -288,8 +287,7 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
         ><s>S</s></button>
       </div>
 
-      <div className="property-section">
-        <PropertyLabel codeAttr="padding" className="prop-label" />
+      <div className="padding-section">
         <div className="padding-grid">
           <DraggableNumberInput label="左边距" codeAttr="pl" value={mixedPl ? '' : parseVal(effectivePl)} onChange={(v) => handleBatchChange('pl', v.toString())} placeholder={mixedPl ? '—' : undefined} />
           <DraggableNumberInput label="上边距" codeAttr="pt" value={mixedPt ? '' : parseVal(effectivePt)} onChange={(v) => handleBatchChange('pt', v.toString())} placeholder={mixedPt ? '—' : undefined} />
@@ -300,20 +298,6 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
 
       {showRowAttrs && (
         <>
-          <DraggableNumberInput
-            label="行高"
-            codeAttr="line-height"
-            value={mixedLineHeight ? '' : (parseInt(commonLineHeight || '22') || 22)}
-            onChange={(v) => handleBatchChange('line-height', v.toString())}
-            placeholder={mixedLineHeight ? '—' : undefined}
-          />
-          <DraggableNumberInput
-            label="字间距"
-            codeAttr="letter-spacing"
-            value={mixedLetterSpacing ? '' : (parseInt(commonLetterSpacing || '0') || 0)}
-            onChange={(v) => handleBatchChange('letter-spacing', v.toString())}
-            placeholder={mixedLetterSpacing ? '—' : undefined}
-          />
         </>
       )}
 

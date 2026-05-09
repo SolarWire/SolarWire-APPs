@@ -7,6 +7,8 @@ import { useStatusStore } from './statusStore';
 import { feedback } from './feedbackStore';
 import { useEditorStore } from './editorStore';
 import { syntaxErrorService } from '../services/syntax-error-service';
+import { isTableFile, getTableFileExtension, parseTableFile, serializeTableFile } from '../../shared/utils/table-file-adapters';
+import type { Sheet } from '@fortune-sheet/core';
 
 const AUTO_REFRESH_INTERVAL = 30000;
 
@@ -87,6 +89,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
   fullFileContent: '',
   expandedDirectories: new Set(),
   currentSnippet: null,
+  tableSheetData: null,
   autoRefreshEnabled: true,
   autoRefreshTimer: null,
   refreshKey: 0,
@@ -100,6 +103,8 @@ export const useFileStore = create<FileState>()((set, get) => ({
   setSelectedImage: (image) => set({ selectedImage: image, selectedFile: null, currentSnippet: null }),
 
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => set({ currentSnippet: snippet }),
+
+  setTableSheetData: (data: any[] | null) => set({ tableSheetData: data }),
 
   toggleDirectory: (dirPath: string) => {
     const expanded = new Set(get().expandedDirectories);
@@ -155,6 +160,36 @@ export const useFileStore = create<FileState>()((set, get) => ({
 
         feedback.operation.complete(opId, '已打开图片');
         feedback.toast.info(`已打开图片: ${name}`);
+        return;
+      }
+
+      if (isTableFile(filePath)) {
+        const node: FileNode = { name, path: filePath, type: 'file' };
+        const ext = getTableFileExtension(filePath);
+
+        let sheetData: Sheet[] = [];
+        if (ext === 'csv') {
+          const content = await readFile(filePath);
+          sheetData = parseTableFile(content, name);
+          set({ selectedFile: node, fullFileContent: content, selectedImage: null, currentSnippet: null, tableSheetData: sheetData });
+        } else {
+          const buffer = await fileSystemService.readFileAsBuffer(filePath);
+          sheetData = parseTableFile(buffer, name);
+          set({ selectedFile: node, fullFileContent: '', selectedImage: null, currentSnippet: null, tableSheetData: sheetData });
+        }
+
+        const editorStore = useEditorStore.getState();
+        editorStore.clearHistory();
+        syntaxErrorService.clearAllErrors();
+
+        eventBus.emit(EditorEvents.MODE_CHANGED, 'table');
+        statusStore.setCurrentFilePath(filePath);
+        statusStore.updateEditorStatus({ mode: 'table' });
+        statusStore.updateFileStatus({ isModified: false, lineCount: 0, encoding: 'UTF-8' });
+
+        eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: name });
+        feedback.operation.complete(opId, `已打开: ${name}`);
+        feedback.toast.success(`文件已打开: ${name}`);
         return;
       }
 
@@ -282,7 +317,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
   },
 
   saveFile: async () => {
-    const { selectedFile, currentSnippet, fullFileContent } = get();
+    const { selectedFile, currentSnippet, fullFileContent, tableSheetData } = get();
     const editorStore = useEditorStore.getState();
     const editorContent = editorStore.content;
     const currentMode = editorStore.mode;
@@ -301,6 +336,17 @@ export const useFileStore = create<FileState>()((set, get) => ({
 
     try {
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'start' });
+
+      if (currentMode === 'table' && tableSheetData) {
+        const serialized = serializeTableFile(tableSheetData, selectedFile.name);
+        await fileSystemService.writeFile(selectedFile.path, serialized as string | Uint8Array);
+        editorStore.setModified(false);
+        eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'complete' });
+        statusStore.updateFileStatus({ isModified: false });
+        feedback.operation.complete(opId, '保存成功');
+        feedback.toast.success('文件保存成功');
+        return;
+      }
 
       const isSnippet = currentSnippet && currentSnippet.type === 'snippet';
       const hasSnippetIndex = currentSnippet && currentSnippet.snippetIndex !== undefined;

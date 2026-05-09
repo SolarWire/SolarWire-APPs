@@ -20,7 +20,7 @@ interface TreeItemProps {
   onContextMenu?: (node: FileNode, x: number, y: number) => void;
 }
 
-const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'];
+const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'csv', 'xlsx', 'xls'];
 
 const isSupportedFile = (filename: string): boolean => {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
@@ -83,6 +83,11 @@ const TreeItem: React.FC<TreeItemProps> = ({
       case 'bmp':
       case 'ico':
         return '🖼️';
+      case 'csv':
+        return '📊';
+      case 'xlsx':
+      case 'xls':
+        return '📗';
       default:
         return '📄';
     }

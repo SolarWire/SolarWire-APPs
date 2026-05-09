@@ -4,13 +4,6 @@ import { renderRectangle, RenderResult } from './elements/rectangle';
 import { renderCircle, renderText, renderPlaceholder, renderImage, renderTable } from './elements/otherElements';
 import { renderLine } from './elements/lineAndContainer';
 
-/**
- * 文本换行函数
- * @param text 文本内容
- * @param maxWidth 最大宽度
- * @param fontSize 字体大小
- * @returns 换行后的文本行数组
- */
 function wrapText(text: string, maxWidth: number, fontSize: number = 12): string[] {
   const lines: string[] = [];
   const avgCharWidth = fontSize * 0.65;
@@ -108,9 +101,6 @@ function wrapText(text: string, maxWidth: number, fontSize: number = 12): string
   return lines;
 }
 
-/**
- * 备注信息接口
- */
 interface NoteInfo {
   number: number;
   note: string;
@@ -161,9 +151,6 @@ function calculateNoteLayout(
   return { notesAreaHeight, cardHeights, rowMaxHeights, rowStartYs };
 }
 
-/**
- * 内部渲染选项接口
- */
 interface InternalRenderOptions {
   /** 是否禁用备注 */
   disableNotes?: boolean;
@@ -179,13 +166,6 @@ interface InternalRenderOptions {
   imageUrlResolver?: (relativePath: string) => string;
 }
 
-/**
- * 渲染元素
- * @param element 元素
- * @param context 渲染上下文
- * @param options 渲染选项
- * @returns 渲染结果
- */
 export function renderElement(element: Element, context: RenderContext, options?: InternalRenderOptions): RenderResult {
   const result = (() => {
     switch (element.type) {
@@ -263,13 +243,6 @@ export interface RenderResultWithMeta {
 export function render(ast: Document, options?: RenderOptions): string;
 export function render(ast: Document, options?: RenderOptions, returnMeta?: false): string;
 export function render(ast: Document, options?: RenderOptions, returnMeta?: true): RenderResultWithMeta;
-/**
- * 渲染文档为 SVG
- * @param ast 文档 AST
- * @param options 渲染选项
- * @param returnMeta 是否返回元数据
- * @returns SVG 字符串或带元数据的渲染结果
- */
 export function render(ast: Document, options?: RenderOptions, returnMeta?: boolean): string | RenderResultWithMeta {
   const context = createRenderContext(ast.declarations, options?.sourceInput);
   const svgParts: string[] = [];

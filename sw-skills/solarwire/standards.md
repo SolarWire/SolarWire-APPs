@@ -1,7 +1,7 @@
 # SolarWire Wireframe Standards
 
 > This document defines the standards for creating SolarWire wireframes in PRD documents.
-> For note writing rules, see [note-writing-guide.md](note-writing-guide.md).
+> For note writing rules, see [note-guide.md](note-guide.md).
 > For syntax validation, refer to the solarwire-syntax skill.
 
 ---

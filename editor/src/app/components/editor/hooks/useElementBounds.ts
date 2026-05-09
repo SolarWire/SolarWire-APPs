@@ -156,25 +156,41 @@ export function useElementBounds({
         const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
         const lineHeight = parseInt(attrs['line-height'] || '22');
         const declaredWidth = parseInt(attrs.w || '0');
-        if (declaredWidth) {
-          w = declaredWidth;
-        } else if (lines.length > 0) {
-          const fontFamily = attrs['font-family'] || 'sans-serif';
-          const isBold = attrs.bold !== undefined;
-          const isItalic = attrs.italic !== undefined;
-          const fontStyle = `${isBold ? 'bold' : ''} ${isItalic ? 'italic' : ''} ${fontSize}px ${fontFamily}`.trim();
-          const measureCanvas = document.createElement('canvas');
-          const ctx = measureCanvas.getContext('2d');
-          if (ctx) {
-            ctx.font = fontStyle;
-            w = Math.max(...lines.map((l: string) => ctx.measureText(l).width));
-          } else {
-            w = Math.max(...lines.map((l: string) => l.length * fontSize * 0.6));
-          }
+        const rawAlign = attrs.align || 'start';
+        const align = rawAlign === 'l' ? 'start' : rawAlign === 'c' ? 'middle' : rawAlign === 'r' ? 'end' : 'start';
+        
+        const fontFamily = attrs['font-family'] || 'sans-serif';
+        const isBold = attrs.bold !== undefined;
+        const isItalic = attrs.italic !== undefined;
+        const fontStyle = `${isBold ? 'bold' : ''} ${isItalic ? 'italic' : ''} ${fontSize}px ${fontFamily}`.trim();
+        const measureCanvas = document.createElement('canvas');
+        const ctx = measureCanvas.getContext('2d');
+        let textWidth = 100;
+        if (ctx) {
+          ctx.font = fontStyle;
+          textWidth = Math.max(...lines.map((l: string) => ctx.measureText(l).width));
         } else {
-          w = 100;
+          textWidth = Math.max(...lines.map((l: string) => l.length * fontSize * 0.6));
         }
         h = lines.length > 0 ? lines.length * lineHeight : fontSize;
+        
+        if (declaredWidth > 0) {
+          if (declaredWidth > textWidth) {
+            if (align === 'end') {
+              x = x + declaredWidth - textWidth;
+              w = textWidth;
+            } else if (align === 'middle') {
+              x = x + (declaredWidth - textWidth) / 2;
+              w = textWidth;
+            } else {
+              w = declaredWidth;
+            }
+          } else {
+            w = declaredWidth;
+          }
+        } else {
+          w = textWidth;
+        }
         break;
       }
       case 'line': {

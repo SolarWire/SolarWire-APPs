@@ -1,4 +1,4 @@
-export type EditorMode = 'blank' | 'markdown' | 'solarwire' | 'image' | 'componentLibraryManager';
+export type EditorMode = 'blank' | 'markdown' | 'solarwire' | 'image' | 'componentLibraryManager' | 'table';
 
 export interface EditorState {
   mode: EditorMode;

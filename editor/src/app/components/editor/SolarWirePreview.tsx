@@ -45,9 +45,10 @@ interface SolarWirePreviewProps {
   allowImageElements?: boolean;
   onRequestExportSvg?: (getSvgContent: () => string | null) => void;
   hasSyntaxErrors?: boolean;
+  onJumpToError?: () => void;
 }
 
-function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, isSpacePressed = false, snapToGuides = true, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false }: SolarWirePreviewProps): React.ReactElement {
+function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, isSpacePressed = false, snapToGuides = true, showGridProp = false, snapToGridProp = false, gridSizeProp = 20, externalContent, onExternalContentChange, onContextMenu, allowImageElements = true, onRequestExportSvg, hasSyntaxErrors = false, onJumpToError }: SolarWirePreviewProps): React.ReactElement {
   const selectedElements = useSolarWireStore(s => s.selectedElements);
   const selectElements = useSolarWireStore(s => s.selectElements);
   const { content, setContent } = useEditorStore();
@@ -316,7 +317,14 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
     return (
       <div className="error-overlay">
         <div className="error-content">
-          <div className="error-title">{isRenderErr ? '⚠️ Render Error' : '⚠️ Parse Error'}</div>
+          <div className="error-title-row">
+            <div className="error-title">{isRenderErr ? '⚠️ Render Error' : '⚠️ Parse Error'}</div>
+            {onJumpToError && (
+              <button className="error-fix-btn" onClick={onJumpToError} title="跳转到代码修复错误">
+                🔧 去修复
+              </button>
+            )}
+          </div>
           <pre className="error-message">{error}</pre>
         </div>
       </div>

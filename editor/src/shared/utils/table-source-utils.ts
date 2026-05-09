@@ -141,6 +141,14 @@ export function serializeTableToSource(
   }
 
   const originalLine = lines[tableLineIdx];
+  
+  // 提取原始声明行中的 note 部分
+  let notePart = '';
+  const noteMatch = originalLine.match(/(\s+note=.+)$/);
+  if (noteMatch) {
+    notePart = noteMatch[1];
+  }
+  
   let coordStr = '';
   if (attrs.x !== undefined && attrs.y !== undefined) {
     coordStr = ` @(${attrs.x}, ${attrs.y})`;
@@ -158,7 +166,7 @@ export function serializeTableToSource(
   if (attrs.bg) attrParts.push(`bg=${attrs.bg}`);
 
   const attrsStr = attrParts.length > 0 ? ` ${attrParts.join(' ')}` : '';
-  lines[tableLineIdx] = `##${coordStr}${attrsStr}`;
+  lines[tableLineIdx] = `##${coordStr}${attrsStr}${notePart}`;
 
   const newTableLines: string[] = [];
 
@@ -206,14 +214,51 @@ export function serializeTableToSource(
     });
   });
 
-  let tableEndIdx = tableLineIdx + 1;
-  while (tableEndIdx < lines.length) {
-    const lineContent = lines[tableEndIdx];
-    if (lineContent.trim() === '' || !lineContent.startsWith(' ')) break;
-    tableEndIdx++;
+  // 第一步：找到表格行的范围（声明行+1开始，包括 # 行和单元格行）
+  // 表格行格式：# 行以 "  #" 开头，单元格行以 "    " 开头（4个或更多空格）
+  let tableRowsEndIdx = tableLineIdx + 1;
+  while (tableRowsEndIdx < lines.length) {
+    const lineContent = lines[tableRowsEndIdx];
+    const trimmed = lineContent.trim();
+    // 空行结束表格
+    if (trimmed === '') break;
+    // # 行开始新的表格行
+    if (/^  #/.test(lineContent)) {
+      tableRowsEndIdx++;
+      continue;
+    }
+    // 单元格行：以4个或更多空格开头，紧跟在 # 行之后
+    if (/^    \S/.test(lineContent)) {
+      tableRowsEndIdx++;
+      continue;
+    }
+    // 其他格式的行，表格结束
+    break;
   }
 
-  lines.splice(tableLineIdx + 1, tableEndIdx - tableLineIdx - 1, ...newTableLines);
+  // 第二步：检查是否有 note，如果有，找到 note 的结束位置
+  let replaceEndIdx = tableRowsEndIdx;
+  if (notePart) {
+    const noteContent = notePart;
+    const tripleQuoteOpenIdx = noteContent.indexOf('"""');
+    const tripleQuoteCloseIdx = noteContent.indexOf('"""', tripleQuoteOpenIdx + 3);
+    
+    if (tripleQuoteOpenIdx !== -1 && tripleQuoteCloseIdx === -1) {
+      // 多行 note：开放的三引号在声明行上，关闭的三引号在后续行
+      // 从表格行尾之后开始扫描，找到关闭的三引号
+      let j = tableRowsEndIdx;
+      while (j < lines.length) {
+        if (lines[j].includes('"""')) {
+          replaceEndIdx = j + 1;
+          break;
+        }
+        j++;
+      }
+    }
+  }
+
+  // 替换：从声明行+1到replaceEndIdx之间的内容，替换为新的表格行
+  lines.splice(tableLineIdx + 1, replaceEndIdx - tableLineIdx - 1, ...newTableLines);
 
   return lines.join('\n');
 }

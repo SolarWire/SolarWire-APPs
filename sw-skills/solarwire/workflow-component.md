@@ -1,12 +1,15 @@
 ## Inlined Syntax Rules (CRITICAL)
 
-- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
-- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
-- 边框颜色用 `b=`，边框宽度用 `s=`
-- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
-- 表格单元格和行不能指定 @(x,y)、w、h
-- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
-- 所有元素必须有坐标 @(x,y)
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks use ` ```solarwire ` to open, ` ``` ` to close
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y)
+- Plain text must use text element `"text"`, NOT rectangle `["text"]` to wrap plain text
+- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- After generating component code must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
@@ -40,29 +43,29 @@ This skill generates or modifies .swc format SolarWire component library files.
 ## .swc File Structure
 
 ```markdown
-# 组件库名称
+# Component Library Name
 id: uuid
 $schema: solarwire-component-library-v1
-description: 描述
+description: Description
 version: 1.0.0
-author: 作者
+author: Author
 createdAt: ISO 8601
 updatedAt: ISO 8601
 
-## 通用
+## General
 id: cat-general
 parentId: null
 
-### 主按钮
+### Primary Button
 id: btn-primary
-name: 主按钮
-description: 用于主要操作的高亮按钮
+name: Primary Button
+description: Highlighted button for primary actions
 categoryId: cat-button
 createdAt: 2024-01-01T00:00:00.000Z
 updatedAt: 2024-01-01T00:00:00.000Z
 
 ```solarwire
-["按钮"] @(0,0) w=120 h=40 bg=#3B82F6 c=#FFFFFF r=6
+["Button"] @(0,0) w=120 h=40 bg=#3B82F6 c=#FFFFFF r=6
 ```
 ```
 
@@ -70,7 +73,7 @@ updatedAt: 2024-01-01T00:00:00.000Z
 
 ## Field Descriptions
 
-**metadata (Required)** - Defined after `# 组件库名称` heading using key: value pairs:
+**metadata (Required)** - Defined after `# Component Library Name` heading using key: value pairs:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | id | string | Yes | UUID format |
@@ -82,14 +85,14 @@ updatedAt: 2024-01-01T00:00:00.000Z
 | createdAt | string | Yes | ISO 8601 format |
 | updatedAt | string | Yes | ISO 8601 format |
 
-**categories (Required)** - Defined using `## 分类名称` heading with key: value pairs:
+**categories (Required)** - Defined using `## Category Name` heading with key: value pairs:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | id | string | Yes | Format: `cat-` prefix + kebab-case |
 | name | string | Yes | Display name (from `## ` heading) |
 | parentId | string/null | Yes | Parent category id, null for top-level |
 
-**components (Required)** - Defined using `### 组件名称` heading with key: value pairs:
+**components (Required)** - Defined using `### Component Name` heading with key: value pairs:
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | id | string | Yes | kebab-case format |
@@ -108,17 +111,19 @@ updatedAt: 2024-01-01T00:00:00.000Z
 - Coordinates are relative to component top-left corner, base point `@(0,0)`
 - Use absolute coordinates
 - Avoid using image elements `<url>`
+- Pure text MUST use text element `"text"`, NOT rectangle `["text"]`
+- Rectangle elements MUST have `vertical-align=m` (vertically centered) and `align=l` (horizontally left-aligned)
 
 ### Allowed Syntax Elements
 
 | Element | Syntax | Example |
 |---------|--------|---------|
-| Rectangle | `["文本"]` | `["按钮"] @(0,0) w=120 h=40` |
-| Rounded Rectangle | `["文本"] r=N` | `["卡片"] @(0,0) w=300 h=200 r=8` |
-| Circle | `("文本")` | `("头像") @(0,0) w=60` |
-| Multi-line Text | `"""___"""` | `"""第一行\n第二行""" @(0,0) w=200` |
-| Plain Text | `"文本"` | `"标题" @(0,0) size=24 bold` |
-| Placeholder | `[?"文本"]` | `[?"图片"] @(0,0) w=150 h=100` |
+| Rectangle | `["Text"]` | `["Button"] @(0,0) w=120 h=40` |
+| Rounded Rectangle | `["Text"] r=N` | `["Card"] @(0,0) w=300 h=200 r=8` |
+| Circle | `("Text")` | `("Avatar") @(0,0) w=60` |
+| Multi-line Text | `"""___"""` | `"""Line 1\nLine 2""" @(0,0) w=200` |
+| Plain Text | `"Text"` | `"Title" @(0,0) size=24 bold` |
+| Placeholder | `[?"Text"]` | `[?"Image"] @(0,0) w=150 h=100` |
 | Line | `--` | `-- @(0,100)->(400,100) b=#E5E7EB` |
 | Table | `##` | `## @(0,0) w=500 border=1` |
 
@@ -143,14 +148,12 @@ updatedAt: 2024-01-01T00:00:00.000Z
 | `opacity` | Element opacity (0-1) | `opacity=0.5` |
 
 **Important**: Do NOT use the following hallucinated attributes:
-- `padding-top=N` - Top text padding (default: 8)
-- `padding-right=N` - Right text padding (default: 8)
-- `padding-bottom=N` - Bottom text padding (default: 8)
-- `padding-left=N` - Left text padding (default: 8)
 - ~~`multiline`~~ - Not a valid SolarWire attribute
 - ~~`truncate`~~ - Not a valid SolarWire attribute
 - ~~`stroke`~~ - Use `b=` for border color instead
 - ~~`strokeWidth`~~ - Use `s=` for border width instead
+
+**Note**: `padding-top`, `padding-right`, `padding-bottom`, `padding-left` are valid attributes (default: 8). Only use them when you need to override the default padding.
 
 ---
 
@@ -163,11 +166,26 @@ After generating or modifying a component, validate the `code` field:
 3. Run the validation script:
 
 ```bash
-node validate.js temp-code.txt --no-svg
+node sw-skills/solarwire/validate-sw.js temp-code.txt
 ```
 
 4. Check exit code: 0 = pass, 1 = fail
-5. Delete temporary file after validation
+5. If failed, fix SolarWire syntax errors and re-validate
+6. Delete temporary file after validation
+
+**For .swc files, validate the entire file:**
+
+```bash
+node sw-skills/solarwire/validate-sw.js path/to/component-library.swc
+```
+
+**Common validation fixes:**
+- `note="..."` → `note="""..."""` (triple quotes)
+- `stroke`/`strokeWidth` → `b=`/`s=`
+- `(("text"))` → `("text")` (circle)
+- `("text")` as rounded rect → `["text"] r=N`
+- Pure text in `["text"]` → `"text"`
+- Rectangle without `vertical-align=m` → add `vertical-align=m`
 
 ---
 
@@ -188,7 +206,7 @@ Based on component types, define categories with hierarchy and sort order.
 
 1. Understand user requirements, determine component visual structure
 2. Write SolarWire code following `solarwire-syntax` rules
-3. Validate code using validate.js
+3. Validate code using `node sw-skills/solarwire/validate-sw.js <file>`
 4. Set component id, name, description, categoryId
 
 ### Step 4: Assemble Complete Structure
@@ -244,43 +262,43 @@ Identify the type of modification:
 ### Standard Categories
 
 ```markdown
-## 通用
+## General
 id: cat-general
 parentId: null
 
-## 按钮
+## Buttons
 id: cat-button
 parentId: cat-general
 
-## 输入框
+## Inputs
 id: cat-input
 parentId: cat-general
 
-## 容器
+## Containers
 id: cat-container
 parentId: cat-general
 
-## 文本
+## Text
 id: cat-text
 parentId: cat-general
 
-## 导航
+## Navigation
 id: cat-navigation
 parentId: cat-general
 
-## 反馈
+## Feedback
 id: cat-feedback
 parentId: cat-general
 
-## 数据展示
+## Data Display
 id: cat-data-display
 parentId: cat-general
 
-## 表单
+## Forms
 id: cat-form
 parentId: cat-general
 
-## 布局
+## Layout
 id: cat-layout
 parentId: cat-general
 ```
@@ -297,94 +315,94 @@ parentId: cat-general
 ### Primary Button
 
 ```markdown
-### 主按钮
+### Primary Button
 id: btn-primary
-name: 主按钮
-description: 用于主要操作的高亮按钮
+name: Primary Button
+description: Highlighted button for primary actions
 categoryId: cat-button
 
 ```solarwire
-["按钮"] @(0,0) w=120 h=40 bg=#3B82F6 c=#FFFFFF r=6
+["Button"] @(0,0) w=120 h=40 bg=#3B82F6 c=#FFFFFF r=6
 ```
 ```
 
 ### Secondary Button
 
 ```markdown
-### 次按钮
+### Secondary Button
 id: btn-secondary
-name: 次按钮
-description: 用于次要操作的边框按钮
+name: Secondary Button
+description: Bordered button for secondary actions
 categoryId: cat-button
 
 ```solarwire
-["按钮"] @(0,0) w=120 h=40 bg=#FFFFFF c=#111827 b=#E5E7EB s=1 r=6
+["Button"] @(0,0) w=120 h=40 bg=#FFFFFF c=#111827 b=#E5E7EB s=1 r=6
 ```
 ```
 
 ### Danger Button
 
 ```markdown
-### 危险按钮
+### Danger Button
 id: btn-danger
-name: 危险按钮
-description: 用于危险操作（如删除）的红色按钮
+name: Danger Button
+description: Red button for dangerous actions (e.g., delete)
 categoryId: cat-button
 
 ```solarwire
-["按钮"] @(0,0) w=120 h=40 bg=#EF4444 c=#FFFFFF r=6
+["Button"] @(0,0) w=120 h=40 bg=#EF4444 c=#FFFFFF r=6
 ```
 ```
 
 ### Default Input
 
 ```markdown
-### 默认输入框
+### Default Input
 id: input-default
-name: 默认输入框
-description: 单行文本输入框
+name: Default Input
+description: Single-line text input
 categoryId: cat-input
 
 ```solarwire
-["请输入..."] @(0,0) w=200 h=40 bg=#FFFFFF b=#D1D5DB s=1 r=6
+["Enter..."] @(0,0) w=200 h=40 bg=#FFFFFF b=#D1D5DB s=1 r=6
 ```
 ```
 
 ### Search Input
 
 ```markdown
-### 搜索输入框
+### Search Input
 id: input-search
-name: 搜索输入框
-description: 带搜索图标的输入框
+name: Search Input
+description: Input with search icon
 categoryId: cat-input
 
 ```solarwire
-["搜索..."] @(0,0) w=240 h=40 bg=#FFFFFF b=#E5E7EB s=1 r=6
+["Search..."] @(0,0) w=240 h=40 bg=#FFFFFF b=#E5E7EB s=1 r=6
 ```
 ```
 
 ### Default Card
 
 ```markdown
-### 默认卡片
+### Default Card
 id: card-default
-name: 默认卡片
-description: 圆角容器，用于包裹相关内容区块
+name: Default Card
+description: Rounded container for wrapping related content blocks
 categoryId: cat-container
 
 ```solarwire
-["卡片标题"] @(0,0) w=300 h=200 r=8 bg=#FFFFFF b=#E5E7EB s=1
+["Card Title"] @(0,0) w=300 h=200 r=8 bg=#FFFFFF b=#E5E7EB s=1
 ```
 ```
 
 ### Avatar
 
 ```markdown
-### 默认头像
+### Default Avatar
 id: avatar-default
-name: 默认头像
-description: 圆形头像占位
+name: Default Avatar
+description: Circular avatar placeholder
 categoryId: cat-data-display
 
 ```solarwire
@@ -395,24 +413,24 @@ categoryId: cat-data-display
 ### Tag/Badge
 
 ```markdown
-### 默认标签
+### Default Tag
 id: tag-default
-name: 默认标签
-description: 用于状态或分类的标签
+name: Default Tag
+description: Tag for status or classification
 categoryId: cat-data-display
 
 ```solarwire
-["标签"] @(0,0) w=60 h=24 bg=#EFF6FF c=#3B82F6 r=4
+["Tag"] @(0,0) w=60 h=24 bg=#EFF6FF c=#3B82F6 r=4
 ```
 ```
 
 ### Divider
 
 ```markdown
-### 分割线
+### Divider
 id: divider-default
-name: 分割线
-description: 水平分割线
+name: Divider
+description: Horizontal divider
 categoryId: cat-layout
 
 ```solarwire
@@ -423,10 +441,10 @@ categoryId: cat-layout
 ### Checkbox
 
 ```markdown
-### 复选框
+### Checkbox
 id: checkbox-default
-name: 复选框
-description: 带标签的复选框
+name: Checkbox
+description: Checkbox with label
 categoryId: cat-form
 
 ```solarwire
@@ -442,8 +460,8 @@ categoryId: cat-form
 |------|--------|---------|
 | Component id | kebab-case | `btn-primary`, `input-search` |
 | Category id | `cat-` prefix + kebab-case | `cat-button`, `cat-input` |
-| Component name | Clear Chinese or English name | 主按钮, 默认输入框 |
-| Category name | Concise Chinese name | 按钮, 输入框, 容器 |
+| Component name | Clear name | Primary Button, Default Input |
+| Category name | Concise name | Buttons, Inputs, Containers |
 
 ---
 
@@ -455,7 +473,7 @@ Validate the entire .swc file:
 2. **Uniqueness Check** - All category ids unique, all component ids unique
 3. **Referential Integrity** - All component categoryId found in categories
 4. **Format Check** - Markdown-like format correct, timestamps in ISO 8601
-5. **Code Validation** - Each component's code field passes validate.js
+5. **Code Validation** - Each component's code field passes `node sw-skills/solarwire/validate-sw.js`
 
 ---
 
@@ -467,10 +485,8 @@ Validate the entire .swc file:
 | Component code using simplified syntax | Syntax error | Use solarwire-syntax PRD syntax |
 | Missing description field | Component lacks description | Every component must have description |
 | Missing categoryId field | Component not linked to category | Every component must have categoryId |
-| Using image element | Component libraries don't include images | Use placeholder `[?"图片"]` instead |
-| Component code not validated | Syntax may be incorrect | Use validate.js to validate |
-| Using `stroke=` attribute | Deprecated attribute | Use `b=` for border color |
-| Using `strokeWidth=` attribute | Deprecated attribute | Use `s=` for border width |
+| Using image element | Component libraries don't include images | Use placeholder `[?"Image"]` instead |
+| Component code not validated | Syntax may be incorrect | Use `node sw-skills/solarwire/validate-sw.js` to validate |
 | Using `stroke` or `strokeWidth` | Deprecated attributes | Use `b=` for border color, `s=` for border width |
 | Using `multiline` attribute | Hallucinated attribute | Remove, not a valid SolarWire attribute |
 | Using `truncate` attribute | Hallucinated attribute | Remove, not a valid SolarWire attribute |
