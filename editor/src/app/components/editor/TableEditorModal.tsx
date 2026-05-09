@@ -102,7 +102,7 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={handleOverlayClick}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container glass-panel" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2 className="modal-title">编辑表格</h2>
           <div className="modal-header-actions">

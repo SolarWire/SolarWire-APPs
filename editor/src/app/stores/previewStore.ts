@@ -72,6 +72,9 @@ interface PreviewState {
   alignmentGuides: AlignmentGuide[];
   distanceLines: DistanceLine[];
   altKeyPressed: boolean;
+
+  draftContent: string | null;
+  markSnapshot: string | null;
 }
 
 interface PreviewActions {
@@ -94,6 +97,11 @@ interface PreviewActions {
   setDistanceLines: (lines: DistanceLine[]) => void;
   setAltKeyPressed: (pressed: boolean) => void;
 
+  setDraftContent: (content: string) => void;
+  mark: (currentContent: string) => void;
+  commit: () => { content: string; snapshot: string } | null;
+  clearDraftContent: () => void;
+
   resetInteractionStates: () => void;
 }
 
@@ -109,7 +117,7 @@ const initialInteractionState = {
   distanceLines: [] as DistanceLine[],
 };
 
-export const usePreviewStore = create<PreviewStore>((set) => ({
+export const usePreviewStore = create<PreviewStore>((set, get) => ({
   scale: 1,
   position: { x: 0, y: 0 },
   isDraggingCanvas: false,
@@ -128,6 +136,8 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   alignmentGuides: [],
   distanceLines: [],
   altKeyPressed: false,
+  draftContent: null,
+  markSnapshot: null,
 
   setScale: (scale) => set({ scale }),
   setPosition: (position) => set({ position }),
@@ -153,6 +163,29 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   setAlignmentGuides: (guides) => set({ alignmentGuides: guides }),
   setDistanceLines: (lines) => set({ distanceLines: lines }),
   setAltKeyPressed: (pressed) => set({ altKeyPressed: pressed }),
+
+  setDraftContent: (content) => {
+    const { markSnapshot } = get();
+    if (markSnapshot !== null) {
+      set({ draftContent: content });
+    }
+  },
+  mark: (currentContent) => set({
+    markSnapshot: currentContent,
+    draftContent: currentContent,
+  }),
+  commit: () => {
+    const { draftContent, markSnapshot } = get();
+    if (draftContent !== null && markSnapshot !== null) {
+      set({ draftContent: null, markSnapshot: null });
+      return { content: draftContent, snapshot: markSnapshot };
+    }
+    return null;
+  },
+  clearDraftContent: () => set({
+    draftContent: null,
+    markSnapshot: null,
+  }),
 
   resetInteractionStates: () => set(initialInteractionState),
 }));

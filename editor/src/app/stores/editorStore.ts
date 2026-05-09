@@ -76,6 +76,26 @@ export const useEditorStore = create<EditorState>()((set, get) => {
       }
     },
     
+    commitContent: (content: string, snapshot: string) => {
+      const { history, historyIndex } = get();
+
+      if (content === snapshot) return;
+
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(snapshot);
+
+      if (newHistory.length > 50) {
+        newHistory.shift();
+      }
+
+      set({
+        content,
+        isModified: true,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      });
+    },
+    
     /**
      * 设置修改状态
      */

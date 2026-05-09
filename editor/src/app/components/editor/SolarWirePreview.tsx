@@ -5,7 +5,6 @@ import {
 } from '../../../shared/utils/preview-utils';
 import { useSolarWireStore } from '../../stores/solarWireStore';
 import { useEditorStore } from '../../stores/editorStore';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { useFileStore } from '../../stores/fileStore';
 import { usePreviewStore } from '../../stores/previewStore';
 import { useAppStore } from '../../stores/appStore';
@@ -29,6 +28,14 @@ import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import SelectionOverlay from './overlays/SelectionOverlay';
 import DragPreviewOverlay from './overlays/DragPreviewOverlay';
 import SnapOverlay from './overlays/SnapOverlay';
+
+/**
+ * 从CSS变量获取当前主题的强调色
+ */
+function getAccentColor(): string {
+  const computedStyle = getComputedStyle(document.documentElement);
+  return computedStyle.getPropertyValue('--accent-color').trim() || '#FCA506';
+}
 
 interface SolarWirePreviewProps {
   selectionTool: SelectionTool;
@@ -54,8 +61,10 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
   const { content, setContent } = useEditorStore();
   const { currentPath, selectedFile } = useFileStore();
   const fileDir = getFileDir(selectedFile?.path, currentPath);
-  const { primaryColor } = useSettingsStore();
   const { theme } = useAppStore();
+
+  // 从CSS变量获取当前主题的强调色
+  const primaryColor = useMemo(() => getAccentColor(), [theme]);
 
   const {
     scale, setScale, position, setPosition,
@@ -63,6 +72,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
     boxSelection, dragPreviewElement,
     hoveredElement, setHoveredElement,
     alignmentGuides, distanceLines,
+    draftContent,
   } = usePreviewStore();
 
   const [parseError, setParseError] = useState<string | null>(null);
@@ -70,7 +80,18 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
 
   const isExternalMode = externalContent !== undefined;
   const effectiveContent = isExternalMode ? externalContent : content;
-  const effectiveSetContent = isExternalMode ? (onExternalContentChange || (() => {})) : setContent;
+  const { commitContent } = useEditorStore();
+  const effectiveSetContent = isExternalMode
+    ? (onExternalContentChange ? (c: string, _snapshot?: string) => onExternalContentChange(c) : () => {})
+    : (c: string, snapshot?: string) => { if (snapshot !== undefined) { commitContent(c, snapshot); } else { setContent(c); } };
+  const renderContent = draftContent ?? effectiveContent;
+
+  useEffect(() => {
+    const { draftContent: dc, markSnapshot } = usePreviewStore.getState();
+    if (dc !== null || markSnapshot !== null) {
+      usePreviewStore.getState().clearDraftContent();
+    }
+  }, [effectiveContent]);
 
   const svgContainerRef = useRef<HTMLDivElement>(null);
   const imageCacheRef = useRef<Record<string, string>>({});
@@ -87,7 +108,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
 
   const ast = useMemo(() => {
     try {
-      const safeContent = effectiveContent || '';
+      const safeContent = renderContent || '';
       if (!safeContent.trim()) {
         return null;
       }
@@ -95,7 +116,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
     } catch {
       return null;
     }
-  }, [effectiveContent]);
+  }, [renderContent]);
 
   const { svg, viewBox, renderErrorMsg } = useMemo(() => {
     if (!ast) return { svg: '', viewBox: null, renderErrorMsg: null };
@@ -104,24 +125,24 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
         disableNotes: !showNotes,
         selectedElementIds: selectedElements,
         primaryColor,
-        sourceInput: effectiveContent || '',
+        sourceInput: renderContent || '',
         imageUrlResolver,
       }, true) as RenderResultWithMeta;
       return { svg: renderedResult.svg, viewBox: renderedResult.viewBox, renderErrorMsg: null };
     } catch (e: any) {
       return { svg: '', viewBox: null, renderErrorMsg: e.message || String(e) };
     }
-  }, [ast, showNotes, selectedElements, primaryColor, effectiveContent, imageUrlResolver]);
+  }, [ast, showNotes, selectedElements, primaryColor, renderContent, imageUrlResolver]);
 
   const parseErrorMsg = useMemo(() => {
-    if (!effectiveContent?.trim()) return null;
+    if (!renderContent?.trim()) return null;
     try {
-      parse(effectiveContent);
+      parse(renderContent);
       return null;
     } catch (e: any) {
       return e.message || String(e);
     }
-  }, [effectiveContent]);
+  }, [renderContent]);
 
   const { viewport, getSvgCoords, getTransform, containerRef } = useCoordinateSystem({
     position,
@@ -250,7 +271,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
 
   const elementBounds = useElementBounds({
     ast,
-    effectiveContent,
+    effectiveContent: renderContent,
     selectionTool,
   });
 
@@ -266,7 +287,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
     isPanMode,
     isSpacePressed,
     snapToGuides,
-    effectiveContent,
+    effectiveContent: renderContent,
     effectiveSetContent,
     allowImageElements,
     containerRef,
@@ -286,7 +307,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
     handleDragOverCombined,
   } = useDropHandler({
     getSvgCoords,
-    effectiveContent,
+    effectiveContent: renderContent,
     effectiveSetContent,
     allowImageElements,
     fileDir,
@@ -300,7 +321,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
 
   useKeyboardShortcuts({
     containerRef,
-    effectiveContent,
+    effectiveContent: renderContent,
     effectiveSetContent,
     fileDir,
     lastMousePosition,
@@ -454,7 +475,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
                 alignmentGuides={alignmentGuides}
                 distanceLines={distanceLines}
                 selectedElements={selectedElements}
-                effectiveContent={effectiveContent}
+                effectiveContent={renderContent}
                 viewBox={viewBox}
                 scale={scale}
                 primaryColor={primaryColor}

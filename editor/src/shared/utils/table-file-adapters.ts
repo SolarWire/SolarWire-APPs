@@ -1,6 +1,37 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
-import type { Sheet, Cell, CellWithRowAndCol } from '@fortune-sheet/core';
+
+// Define types for Excel sheet data (replacing fortune-sheet types)
+interface Cell {
+  v?: any;
+  m?: string;
+  ct?: { fa: string; t: string };
+  f?: string;
+  bl?: number;
+  it?: number;
+  fs?: number;
+  fc?: string;
+  ff?: string;
+  bg?: string;
+  ht?: number;
+  vt?: number;
+}
+
+interface CellWithRowAndCol {
+  r: number;
+  c: number;
+  v: Cell;
+}
+
+interface Sheet {
+  name: string;
+  celldata: CellWithRowAndCol[];
+  row: number;
+  column: number;
+  defaultRowHeight: number;
+  defaultColWidth: number;
+  config?: any;
+}
 
 const TABLE_EXTENSIONS = new Set(['csv', 'xlsx', 'xls']);
 
@@ -56,22 +87,25 @@ function csvToSheetData(csvText: string, sheetName: string = 'Sheet1'): Sheet {
 }
 
 function sheetDataToCsv(sheet: Sheet): string {
-  const data = sheet.data;
-  if (!data) return '';
+  const celldata = sheet.celldata;
+  if (!celldata || celldata.length === 0) return '';
 
-  const rows: string[][] = [];
-  for (let r = 0; r < data.length; r++) {
-    const row: string[] = [];
-    if (data[r]) {
-      for (let c = 0; c < data[r].length; c++) {
-        const cell = data[r][c];
-        row.push(cell?.v != null ? String(cell.v) : '');
-      }
+  // Find max row and column to create grid
+  const maxRow = Math.max(...celldata.map(cell => cell.r)) + 1;
+  const maxCol = Math.max(...celldata.map(cell => cell.c)) + 1;
+
+  // Create empty grid
+  const grid: string[][] = Array(maxRow).fill(null).map(() => Array(maxCol).fill(''));
+
+  // Fill grid with cell values
+  celldata.forEach(cell => {
+    const { r: rowIndex, c: colIndex, v: cellData } = cell;
+    if (cellData != null && cellData.v != null) {
+      grid[rowIndex][colIndex] = String(cellData.v);
     }
-    rows.push(row);
-  }
+  });
 
-  return Papa.unparse(rows);
+  return Papa.unparse(grid);
 }
 
 function workbookToSheets(buffer: ArrayBuffer): Sheet[] {
@@ -196,24 +230,23 @@ function sheetsToWorkbook(sheets: Sheet[]): ArrayBuffer {
   const wb = XLSX.utils.book_new();
 
   for (const sheet of sheets) {
-    const data = sheet.data;
-    if (!data) continue;
+    const celldata = sheet.celldata;
+    if (!celldata || celldata.length === 0) continue;
 
-    const aoa: (string | number | boolean | null)[][] = [];
-    for (let r = 0; r < data.length; r++) {
-      const row: (string | number | boolean | null)[] = [];
-      if (data[r]) {
-        for (let c = 0; c < data[r].length; c++) {
-          const cell = data[r][c];
-          if (cell?.v != null) {
-            row.push(cell.v as string | number | boolean);
-          } else {
-            row.push(null);
-          }
-        }
+    // Find max row and column to create grid
+    const maxRow = Math.max(...celldata.map(cell => cell.r)) + 1;
+    const maxCol = Math.max(...celldata.map(cell => cell.c)) + 1;
+
+    // Create empty grid
+    const aoa: (string | number | boolean | null)[][] = Array(maxRow).fill(null).map(() => Array(maxCol).fill(null));
+
+    // Fill grid with cell values
+    celldata.forEach(cell => {
+      const { r: rowIndex, c: colIndex, v: cellData } = cell;
+      if (cellData != null && cellData.v != null) {
+        aoa[rowIndex][colIndex] = cellData.v;
       }
-      aoa.push(row);
-    }
+    });
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
     XLSX.utils.book_append_sheet(wb, ws, sheet.name);

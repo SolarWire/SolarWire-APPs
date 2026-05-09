@@ -214,9 +214,29 @@ export function serializeTableToSource(
     });
   });
 
-  // 第一步：找到表格行的范围（声明行+1开始，包括 # 行和单元格行）
+  // 第一步：检测 note 范围
+  // note 可能在声明行上完整（单行），也可能跨多行（三引号）
+  let noteEndIdx = tableLineIdx; // note 尾行的索引，初始为声明行（表示无 note 内容行）
+  if (notePart) {
+    const tripleQuoteOpenIdx = notePart.indexOf('"""');
+    const tripleQuoteCloseIdx = tripleQuoteOpenIdx !== -1 ? notePart.indexOf('"""', tripleQuoteOpenIdx + 3) : -1;
+    
+    if (tripleQuoteOpenIdx !== -1 && tripleQuoteCloseIdx === -1) {
+      // 多行 note：开放的三引号在声明行上，需要扫描后续行找到关闭的三引号
+      let j = tableLineIdx + 1;
+      while (j < lines.length) {
+        if (lines[j].includes('"""')) {
+          noteEndIdx = j;
+          break;
+        }
+        j++;
+      }
+    }
+  }
+
+  // 第二步：从 note 尾行之后开始找到表格行的范围
   // 表格行格式：# 行以 "  #" 开头，单元格行以 "    " 开头（4个或更多空格）
-  let tableRowsEndIdx = tableLineIdx + 1;
+  let tableRowsEndIdx = noteEndIdx + 1;
   while (tableRowsEndIdx < lines.length) {
     const lineContent = lines[tableRowsEndIdx];
     const trimmed = lineContent.trim();
@@ -236,29 +256,8 @@ export function serializeTableToSource(
     break;
   }
 
-  // 第二步：检查是否有 note，如果有，找到 note 的结束位置
-  let replaceEndIdx = tableRowsEndIdx;
-  if (notePart) {
-    const noteContent = notePart;
-    const tripleQuoteOpenIdx = noteContent.indexOf('"""');
-    const tripleQuoteCloseIdx = noteContent.indexOf('"""', tripleQuoteOpenIdx + 3);
-    
-    if (tripleQuoteOpenIdx !== -1 && tripleQuoteCloseIdx === -1) {
-      // 多行 note：开放的三引号在声明行上，关闭的三引号在后续行
-      // 从表格行尾之后开始扫描，找到关闭的三引号
-      let j = tableRowsEndIdx;
-      while (j < lines.length) {
-        if (lines[j].includes('"""')) {
-          replaceEndIdx = j + 1;
-          break;
-        }
-        j++;
-      }
-    }
-  }
-
-  // 替换：从声明行+1到replaceEndIdx之间的内容，替换为新的表格行
-  lines.splice(tableLineIdx + 1, replaceEndIdx - tableLineIdx - 1, ...newTableLines);
+  // 替换：从 note 尾行+1 到表格行尾之间的内容，替换为新的表格行
+  lines.splice(noteEndIdx + 1, tableRowsEndIdx - noteEndIdx - 1, ...newTableLines);
 
   return lines.join('\n');
 }

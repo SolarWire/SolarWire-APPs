@@ -133,7 +133,7 @@ const CreateSolarWireModal: React.FC<CreateSolarWireModalProps> = ({ isOpen, onC
 
   return (
     <ModalPortal><div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>新建SolarWire文件</h3>
           <button className="close-button" onClick={onClose}>✕</button>

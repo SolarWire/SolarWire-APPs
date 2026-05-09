@@ -102,7 +102,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
   if (parseError) {
     return (
-      <div className="property-panel">
+      <div className="property-panel glass-panel">
         <div className="error-section">
           <h3>错误</h3>
           <div className="error-message">
@@ -120,7 +120,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
   if (selectedElements.length === 0) {
     return (
-      <div className="property-panel">
+      <div className="property-panel glass-panel">
         <p className="empty-state">未选中元素</p>
       </div>
     );
@@ -128,7 +128,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
   if (selectedElements.length > 1) {
     return (
-      <div className="property-panel">
+      <div className="property-panel glass-panel">
         <div className="property-panel-header">
           <span className="property-panel-type">{selectedElements.length} 个元素已选中</span>
         </div>
@@ -139,7 +139,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
 
   if (!element || !elementProps) {
     return (
-      <div className="property-panel">
+      <div className="property-panel glass-panel">
         <p className="empty-state">未找到元素</p>
       </div>
     );
@@ -148,7 +148,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   const { type, attrs, position, size, appearance, text, line, table, image, note } = elementProps;
 
   return (
-    <div className="property-panel">
+    <div className="property-panel glass-panel">
       <div className="property-panel-header">
         <span className="property-panel-type">{type}</span>
       </div>

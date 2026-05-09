@@ -16,4 +16,17 @@ export function registerDialogHandlers(): void {
     });
     return res;
   });
+
+  ipcMain.handle('dialog:openDirectory', async (_event, options?: OpenDialogOptions) => {
+    const res = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      ...options,
+    });
+
+    if (res.canceled || res.filePaths.length === 0) {
+      return null;
+    }
+
+    return res.filePaths[0];
+  });
 }

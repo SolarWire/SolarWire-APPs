@@ -83,7 +83,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({ visible, x, y, items, onClose
   return createPortal(
     <div
       ref={menuRef}
-      className="context-menu"
+      className="context-menu glass-panel"
       style={{ left: x, top: y }}
     >
       {items.map((item, index) => {

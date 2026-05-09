@@ -70,7 +70,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
 
   return (
     <ModalPortal><div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>确认删除</h3>
           <button className="close-button" onClick={onClose}>✕</button>

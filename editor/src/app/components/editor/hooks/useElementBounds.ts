@@ -156,8 +156,8 @@ export function useElementBounds({
         const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
         const lineHeight = parseInt(attrs['line-height'] || '22');
         const declaredWidth = parseInt(attrs.w || '0');
-        const rawAlign = attrs.align || 'start';
-        const align = rawAlign === 'l' ? 'start' : rawAlign === 'c' ? 'middle' : rawAlign === 'r' ? 'end' : 'start';
+        const rawAlign = attrs.align || '';
+        const align = rawAlign === 'l' || rawAlign === 'left' ? 'start' : rawAlign === 'c' || rawAlign === 'center' ? 'middle' : rawAlign === 'r' || rawAlign === 'right' || rawAlign === 'end' ? 'end' : 'start';
         
         const fontFamily = attrs['font-family'] || 'sans-serif';
         const isBold = attrs.bold !== undefined;
@@ -175,20 +175,17 @@ export function useElementBounds({
         h = lines.length > 0 ? lines.length * lineHeight : fontSize;
         
         if (declaredWidth > 0) {
-          if (declaredWidth > textWidth) {
-            if (align === 'end') {
-              x = x + declaredWidth - textWidth;
-              w = textWidth;
-            } else if (align === 'middle') {
-              x = x + (declaredWidth - textWidth) / 2;
-              w = textWidth;
-            } else {
-              w = declaredWidth;
-            }
+          if (align === 'end') {
+            x = x + declaredWidth - textWidth;
+            w = textWidth;
+          } else if (align === 'middle') {
+            x = x + (declaredWidth - textWidth) / 2;
+            w = textWidth;
           } else {
             w = declaredWidth;
           }
         } else {
+          // 没有声明宽度时，bounds 就是文本实际宽度
           w = textWidth;
         }
         break;

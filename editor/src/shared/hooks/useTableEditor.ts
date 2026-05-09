@@ -39,7 +39,7 @@ export function useTableEditor(
         const newCells = r.cells.map((c, j) => {
           if (j !== col) return c;
           if (updates.attrs) {
-            const merged = { ...c.attrs };
+            const merged: Record<string, any> = { ...c.attrs };
             for (const [key, value] of Object.entries(updates.attrs)) {
               if (value === undefined) {
                 delete merged[key];
@@ -63,7 +63,7 @@ export function useTableEditor(
       if (!prev) return prev;
       const newRows = prev.rows.map((r, i) => {
         if (i !== rowIndex) return r;
-        const merged = { ...r.attrs };
+        const merged: Record<string, any> = { ...r.attrs };
         for (const [key, value] of Object.entries(updates)) {
           if (value === undefined) {
             delete merged[key];

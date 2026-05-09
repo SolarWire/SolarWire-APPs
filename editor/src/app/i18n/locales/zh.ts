@@ -48,6 +48,13 @@ export const zh = {
     minimapDescription: '在编辑器中显示缩略图',
     lineNumbers: '行号',
     lineNumbersDescription: '在编辑器中显示行号',
+    skills: '技能包',
+    copySkillsButton: '复制 SolarWire 技能包',
+    copySkillsDescription: '将 SolarWire 技能包复制到指定目录，方便在其他项目中使用',
+    selectDirectory: '选择目录',
+    copyingSkills: '正在复制技能包...',
+    skillsCopiedSuccess: '技能包复制成功',
+    skillsCopyFailed: '技能包复制失败',
   },
   
   // Editor

@@ -85,7 +85,7 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
 
   return (
     <ModalPortal><div className="create-library-modal-overlay">
-      <div className="create-library-modal">
+      <div className="create-library-modal glass-panel">
         <div className="create-library-header">
           <h2>📦 新建组件库</h2>
           <button className="close-button" onClick={handleClose}>✕</button>

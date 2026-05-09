@@ -88,7 +88,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
 
   return (
     <ModalPortal><div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>重命名</h3>
           <button className="close-button" onClick={onClose}>✕</button>

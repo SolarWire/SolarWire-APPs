@@ -149,11 +149,11 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
       note = note.replace(/^"""|"""$/g, '');
     }
 
-    const showSizeControls = type !== 'text' && type !== 'line';
+    const showSizeControls = type !== 'line' && type !== 'text';
     const showRadiusControl = type === 'rectangle';
     const showTextControls = 'text' in element || type === 'text';
     const showBorderControls = type !== 'line' && type !== 'text';
-    const showAlignControl = type === 'text' || 'text' in element;
+    const showAlignControl = type !== 'text' && ('text' in element);
     const showFill = type !== 'line';
     const showShadow = ['rectangle', 'circle', 'text', 'image'].includes(type);
     const showOpacity = ['rectangle', 'circle', 'text', 'image'].includes(type);

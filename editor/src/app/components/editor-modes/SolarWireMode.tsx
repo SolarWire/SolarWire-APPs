@@ -11,7 +11,7 @@ import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-ser
 import './SolarWireMode.css';
 
 function SolarWireMode(): React.ReactElement {
-  const { content, setContent, undo } = useEditorStore();
+  const { content, setContent, commitContent, undo } = useEditorStore();
   const { selectedFile, fullFileContent, currentSnippet, syncFullFileContent } = useFileStore();
   const selectedElements = useSolarWireStore(s => s.selectedElements);
   const setSelectedElements = useSolarWireStore(s => s.setSelectedElements);
@@ -53,13 +53,17 @@ function SolarWireMode(): React.ReactElement {
     };
   }, []);
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
+  const handleContentChange = useCallback((newContent: string, snapshot?: string) => {
+    if (snapshot !== undefined) {
+      commitContent(newContent, snapshot);
+    } else {
+      setContent(newContent);
+    }
     syncFullFileContent(newContent);
 
     syntaxErrorService.setCurrentSourceId(mainErrorSourceId);
     syntaxErrorService.runRendererCheck(newContent);
-  }, [setContent, syncFullFileContent, mainErrorSourceId]);
+  }, [setContent, commitContent, syncFullFileContent, mainErrorSourceId]);
 
   const handleJumpToError = useCallback((line: number, column: number) => {
     setActiveTab('code');

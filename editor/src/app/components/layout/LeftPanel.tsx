@@ -5,7 +5,7 @@ import './LeftPanel.css';
 
 const LeftPanel: React.FC = () => {
   return (
-    <div className="left-panel">
+    <div className="left-panel glass-panel">
       <LeftPanelHeader />
       <ViewTabs />
     </div>

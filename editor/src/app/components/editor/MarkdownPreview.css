@@ -281,32 +281,4 @@
   margin: 16px 0;
 }
 
-/* Markdown渲染进度条 */
-.markdown-render-progress {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: var(--z-toast);
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  min-width: 200px;
-}
 
-.progress-bar-container {
-  width: 100%;
-  height: 4px;
-  background: var(--bg-tertiary);
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: var(--accent-color);
-  border-radius: 2px;
-  transition: width 0.3s ease;
-}

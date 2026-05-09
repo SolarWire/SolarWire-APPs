@@ -54,7 +54,7 @@ const SolarWireToolbar: React.FC<SolarWireToolbarProps> = ({ state, callbacks })
   } = callbacks;
 
   return (
-    <div className="solarwire-toolbar">
+    <div className="solarwire-toolbar glass-panel">
       <div className="toolbar-section sidebar-section">
         <button
           className={`unified-tool-button layers-toggle-button ${showLayerPanel ? 'active' : ''}`}

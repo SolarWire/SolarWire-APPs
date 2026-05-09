@@ -122,7 +122,7 @@ const CreateMarkdownModal: React.FC<CreateMarkdownModalProps> = ({ isOpen, onClo
 
   return (
     <ModalPortal><div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>新建Markdown文件</h3>
           <button className="close-button" onClick={onClose}>✕</button>

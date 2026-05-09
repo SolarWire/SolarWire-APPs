@@ -19,7 +19,7 @@ const ToastLayer: React.FC = () => {
   return (
     <div className="toast-layer">
       {toasts.map((toast) => (
-        <div key={toast.id} className={`toast-item toast-${toast.type}`}>
+        <div key={toast.id} className={`toast-item toast-${toast.type} glass-panel`}>
           <span className="toast-icon">{TOAST_ICONS[toast.type]}</span>
           <span className="toast-message">{toast.message}</span>
           <button className="toast-close" onClick={() => removeToast(toast.id)}>

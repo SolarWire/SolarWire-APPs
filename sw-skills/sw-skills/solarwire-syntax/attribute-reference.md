@@ -147,15 +147,15 @@
 
 ## Text `""`
 
+纯文本元素，外框完全由文本内容决定。不支持容器属性（`w`、`align`、`bg`、`b`、`s` 等）。
+
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `w` | number | 0 | 宽度(0=自动计算文本宽度) |
 | `c` | color | #000000 | 文字颜色 |
 | `size` | number | 12 | 字体大小 |
 | `text-size` | number | — | 字体大小(备选，优先用size) |
 | `bold` | boolean | false | 粗体 |
 | `italic` | boolean | false | 斜体 |
-| `align` | enum(l/c/r) | l | 水平对齐方式 |
 | `line-height` | number | 22 | 行高 |
 | `letter-spacing` | number | 0 | 字间距 |
 | `text-decoration` | enum(underline/line-through) | — | 文本装饰(下划线/删除线) |
@@ -166,21 +166,19 @@
 | `shadow-color` | color | transparent | 阴影颜色 |
 | `note` | string | — | 功能描述(支持三引号多行) |
 
-> 纯文本不支持 `vertical-align`、`padding`、`bg`、`b`、`s`（无边框容器）
+> **注意**: Text 元素不支持 `w`、`align`、`vertical-align`、`padding`、`bg`、`b`、`s` 属性。如需固定宽度的文本容器，请使用 Rectangle `[...]` 或 Placeholder `[?...]` 元素。
 
 ## Multi-line Text `"""___"""`
 
-用于显示多行文本内容，如段落、描述等。属性与 Text `""` 完全一致。
+用于显示多行文本内容，如段落、描述等。属性与 Text `""` 完全一致（同样不支持 `w`、`align` 等容器属性）。
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `w` | number | 0 | 宽度(0=自动计算) |
 | `c` | color | #000000 | 文字颜色 |
 | `size` | number | 12 | 字体大小 |
 | `text-size` | number | — | 字体大小(备选，优先用size) |
 | `bold` | boolean | false | 粗体 |
 | `italic` | boolean | false | 斜体 |
-| `align` | enum(l/c/r) | l | 水平对齐方式 |
 | `line-height` | number | 22 | 行高 |
 | `letter-spacing` | number | 0 | 字间距 |
 | `text-decoration` | enum(underline/line-through) | — | 文本装饰(下划线/删除线) |

@@ -94,7 +94,7 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
 
   return (
     <ModalPortal><div className="change-component-parent-modal-overlay">
-      <div className="change-component-parent-modal">
+      <div className="change-component-parent-modal glass-panel">
         <div className="change-component-parent-header">
           <h2>🔄 改变组件归属</h2>
           <button className="close-button" onClick={handleClose}>✕</button>

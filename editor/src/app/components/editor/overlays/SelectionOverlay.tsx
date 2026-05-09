@@ -58,18 +58,24 @@ const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
   const renderHoverHighlight = () => {
     if (!hoveredElement) return null;
 
+    // 如果元素已被选中，不显示悬停框（避免与选中外框重叠）
+    if (selectedElements.includes(hoveredElement)) return null;
+
     const bounds = getElementBounds(hoveredElement);
-    if (bounds.w === 0 && bounds.h === 0) return null;
+    // 允许显示即使尺寸为0（最小显示1px）
+    const displayWidth = Math.max(1, bounds.w);
+    const displayHeight = Math.max(1, bounds.h);
 
     return (
       <rect
         x={bounds.x}
         y={bounds.y}
-        width={bounds.w}
-        height={bounds.h}
+        width={displayWidth}
+        height={displayHeight}
         fill="none"
         stroke={primaryColor}
         strokeWidth={1 / scale}
+        opacity={0.4}
         style={{ pointerEvents: 'none' }}
       />
     );
@@ -85,6 +91,26 @@ const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
       const elementData = getElementData(elementId);
       const bounds = getElementBounds(elementId);
 
+      // 渲染选中外框（所有元素类型）
+      const displayWidth = Math.max(1, bounds.w);
+      const displayHeight = Math.max(1, bounds.h);
+      
+      handles.push(
+        <rect
+          key={`${elementId}-selection-border`}
+          data-element-id={elementId}
+          x={bounds.x}
+          y={bounds.y}
+          width={displayWidth}
+          height={displayHeight}
+          fill="none"
+          stroke={primaryColor}
+          strokeWidth={2 / scale}
+          style={{ pointerEvents: 'none' }}
+        />
+      );
+
+      // 线条元素：只显示起点和终点控制点
       if (elementData && elementData.type === 'line') {
         const { x1, y1, x2, y2 } = getLineCoords(elementData);
 
@@ -109,74 +135,59 @@ const SelectionOverlay: React.FC<SelectionOverlayProps> = ({
             />
           );
         });
-      } else if (elementData) {
-        if (elementData.type === 'text') {
+      } else if (elementData && elementData.type !== 'text') {
+        // 非文本元素：渲染控制手柄
+        const isCircle = elementData.type === 'circle';
+        const corners = isCircle
+          ? [
+              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
+            ]
+          : [
+              { x: bounds.x, y: bounds.y, handle: 'nw' as const },
+              { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
+              { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
+              { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
+              { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
+              { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
+              { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
+              { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const },
+            ];
+
+        const cursorMap: Record<string, string> = isCircle
+          ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
+          : {
+              nw: 'nw-resize',
+              n: 'n-resize',
+              ne: 'ne-resize',
+              e: 'e-resize',
+              se: 'se-resize',
+              s: 's-resize',
+              sw: 'sw-resize',
+              w: 'w-resize',
+            };
+
+        corners.forEach((corner) => {
           handles.push(
             <rect
-              key={`${elementId}-selection-border`}
+              key={`${elementId}-handle-${corner.handle}`}
               data-element-id={elementId}
-              x={bounds.x}
-              y={bounds.y}
-              width={bounds.w}
-              height={bounds.h}
-              fill="none"
+              data-handle={corner.handle}
+              x={corner.x - handleSize / 2}
+              y={corner.y - handleSize / 2}
+              width={handleSize}
+              height={handleSize}
+              fill="white"
               stroke={primaryColor}
               strokeWidth={2 / scale}
-              style={{ pointerEvents: 'none' }}
+              style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
             />
           );
-        } else {
-          const isCircle = elementData.type === 'circle';
-          const corners = isCircle
-            ? [
-                { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-                { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-                { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-                { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
-              ]
-            : [
-                { x: bounds.x, y: bounds.y, handle: 'nw' as const },
-                { x: bounds.x + bounds.w / 2, y: bounds.y, handle: 'n' as const },
-                { x: bounds.x + bounds.w, y: bounds.y, handle: 'ne' as const },
-                { x: bounds.x + bounds.w, y: bounds.y + bounds.h / 2, handle: 'e' as const },
-                { x: bounds.x + bounds.w, y: bounds.y + bounds.h, handle: 'se' as const },
-                { x: bounds.x + bounds.w / 2, y: bounds.y + bounds.h, handle: 's' as const },
-                { x: bounds.x, y: bounds.y + bounds.h, handle: 'sw' as const },
-                { x: bounds.x, y: bounds.y + bounds.h / 2, handle: 'w' as const },
-              ];
-
-          const cursorMap: Record<string, string> = isCircle
-            ? { nw: 'nw-resize', ne: 'ne-resize', sw: 'sw-resize', se: 'se-resize' }
-            : {
-                nw: 'nw-resize',
-                n: 'n-resize',
-                ne: 'ne-resize',
-                e: 'e-resize',
-                se: 'se-resize',
-                s: 's-resize',
-                sw: 'sw-resize',
-                w: 'w-resize',
-              };
-
-          corners.forEach((corner) => {
-            handles.push(
-              <rect
-                key={`${elementId}-handle-${corner.handle}`}
-                data-element-id={elementId}
-                data-handle={corner.handle}
-                x={corner.x - handleSize / 2}
-                y={corner.y - handleSize / 2}
-                width={handleSize}
-                height={handleSize}
-                fill="white"
-                stroke={primaryColor}
-                strokeWidth={2 / scale}
-                style={{ cursor: cursorMap[corner.handle], pointerEvents: 'auto' }}
-              />
-            );
-          });
-        }
+        });
       }
+      // 文本元素不显示控制手柄（因为尺寸由内容决定）
     });
 
     return handles;

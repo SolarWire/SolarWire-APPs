@@ -561,6 +561,10 @@ body.theme-minimal {
   --ruler-text: #666666;
   --ruler-tick: #cccccc;
   --ruler-border: #e0e0e0;
+
+  /* Fix for minimal theme button text contrast */
+  --button-text: #ffffff;
+  --button-hover-text: #ffffff;
 }
 
 /* ========================================

@@ -307,7 +307,7 @@ function LayerPanel({ onSelectElement, onReorderElements, externalContent }: Lay
 
   if (layers.length === 0) {
     return (
-      <div className="layer-panel">
+      <div className="layer-panel glass-panel">
         <div className="layer-panel-header">Layers</div>
         <div className="layer-panel-empty">No elements yet</div>
       </div>
@@ -315,7 +315,7 @@ function LayerPanel({ onSelectElement, onReorderElements, externalContent }: Lay
   }
 
   return (
-    <div className="layer-panel">
+    <div className="layer-panel glass-panel">
       <div className="layer-panel-header">
         <span>Layers</span>
         <span className="layer-count">{layers.length}</span>

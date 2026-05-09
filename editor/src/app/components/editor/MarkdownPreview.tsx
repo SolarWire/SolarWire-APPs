@@ -9,6 +9,7 @@ import { useSelectionStore } from '../../stores/selectionStore';
 import { parse } from "../../../lib/parser";
 import { render as renderSvg } from '../../../lib/renderer';
 import { Scrollbar } from '../ui/Scrollbar';
+import LoadingOverlay from '../ui/LoadingOverlay';
 import './MarkdownPreview.css';
 
 /**
@@ -623,16 +624,12 @@ function MarkdownPreview(): React.ReactElement {
 
   return (
     <div className="markdown-preview-container">
-      {isRendering && (
-        <div className="markdown-render-progress">
-          <div className="progress-bar-container">
-            <div
-              className="progress-bar"
-              style={{ width: `${renderProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
+      <LoadingOverlay
+        visible={isRendering}
+        icon="📝"
+        text="正在渲染预览..."
+        progress={renderProgress}
+      />
       <Scrollbar className="markdown-preview" ref={scrollContainerRef} onScroll={handleScroll}>
         <div dangerouslySetInnerHTML={{ __html: html }} />
       </Scrollbar>

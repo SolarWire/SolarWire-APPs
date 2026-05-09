@@ -15,11 +15,9 @@ const defaultFavoriteColors = [
 ];
 
 export interface SettingsState {
-  primaryColor: string;
   favoriteColors: string[];
   noteTextareaHeight: number;
   textTextareaHeight: number;
-  setPrimaryColor: (color: string) => void;
   addFavoriteColor: (color: string) => void;
   removeFavoriteColor: (color: string) => void;
   resetFavoriteColors: () => void;
@@ -30,7 +28,6 @@ export interface SettingsState {
 }
 
 const defaultSettings = {
-  primaryColor: '#FCA506',
   favoriteColors: defaultFavoriteColors,
   noteTextareaHeight: 120,
   textTextareaHeight: 120,
@@ -38,12 +35,6 @@ const defaultSettings = {
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   ...defaultSettings,
-
-  setPrimaryColor: (color: string) => {
-    set({ primaryColor: color });
-    get().saveSettings();
-    document.documentElement.style.setProperty('--accent-color', color);
-  },
 
   addFavoriteColor: (color: string) => {
     const { favoriteColors } = get();
@@ -84,12 +75,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (saved) {
         const parsed = JSON.parse(saved);
         set({
-          primaryColor: parsed.primaryColor || defaultSettings.primaryColor,
           favoriteColors: parsed.favoriteColors || defaultSettings.favoriteColors,
           noteTextareaHeight: parsed.noteTextareaHeight || defaultSettings.noteTextareaHeight,
           textTextareaHeight: parsed.textTextareaHeight || defaultSettings.textTextareaHeight,
         });
-        document.documentElement.style.setProperty('--accent-color', parsed.primaryColor || defaultSettings.primaryColor);
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -99,9 +88,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
 
   saveSettings: () => {
     try {
-      const { primaryColor, favoriteColors, noteTextareaHeight, textTextareaHeight } = get();
+      const { favoriteColors, noteTextareaHeight, textTextareaHeight } = get();
       localStorage.setItem('solarwire-settings', JSON.stringify({
-        primaryColor,
         favoriteColors,
         noteTextareaHeight,
         textTextareaHeight,

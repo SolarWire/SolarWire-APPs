@@ -1,6 +1,5 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { getLineCoordinates } from '../../../../shared/utils/line-coordinate-utils';
-import { createRafContentUpdater } from '../../../../shared/utils/preview-utils';
 import { updateLineAttribute } from '../../../../shared/utils/attribute-updater';
 import { detectElementBounds } from '../../../../shared/utils/element-bounds';
 import { useSolarWireStore } from '../../../stores/solarWireStore';
@@ -111,7 +110,7 @@ interface UseElementInteractionOptions {
   isSpacePressed: boolean;
   snapToGuides: boolean;
   effectiveContent: string;
-  effectiveSetContent: (c: string) => void;
+  effectiveSetContent: (c: string, snapshot?: string) => void;
   allowImageElements: boolean;
   containerRef: React.RefObject<HTMLDivElement | null>;
   getElementData: (elementId: string) => SolarWireElement | null;
@@ -172,8 +171,6 @@ export function useElementInteraction({
   const setDistanceLines = usePreviewStore(s => s.setDistanceLines);
   const altKeyPressed = usePreviewStore(s => s.altKeyPressed);
 
-  const rafUpdater = useMemo(() => createRafContentUpdater(effectiveSetContent), [effectiveSetContent]);
-
   const [lastMousePosition, setLastMousePosition] = useState({ x: 200, y: 200 });
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
@@ -221,6 +218,7 @@ export function useElementInteraction({
               y2 = y1;
             }
 
+            usePreviewStore.getState().mark(effectiveContent);
             setResizeHandleState({
               elementId,
               handle: handleAttr as 'start' | 'end',
@@ -234,6 +232,7 @@ export function useElementInteraction({
             return;
           }
         } else {
+          usePreviewStore.getState().mark(effectiveContent);
           const bounds = getElementBounds(elementId);
           setResizeHandleState({
             elementId,
@@ -299,6 +298,7 @@ export function useElementInteraction({
             } as any;
           }
 
+          usePreviewStore.getState().mark(effectiveContent);
           setDragElementState(dragState);
 
           const currentSelectedElements = useSolarWireStore.getState().selectedElements;
@@ -342,6 +342,7 @@ export function useElementInteraction({
                   } as any);
                 }
               });
+              usePreviewStore.getState().mark(effectiveContent);
               setMultiDragElements(initialPositions);
               setDragElementState(null);
             }
@@ -469,7 +470,7 @@ export function useElementInteraction({
             }
 
             lines[lineNum - 1] = line;
-            rafUpdater(lines.join('\n'));
+            usePreviewStore.getState().setDraftContent(lines.join('\n'));
           }
         }
         return;
@@ -582,7 +583,7 @@ export function useElementInteraction({
           newContent = updateLineAttribute(newContent, attributeLine, 'y', newY);
           newContent = updateLineAttribute(newContent, attributeLine, 'w', newW);
           newContent = updateLineAttribute(newContent, attributeLine, 'h', newH);
-          rafUpdater(newContent);
+          usePreviewStore.getState().setDraftContent(newContent);
         }
       }
       return;
@@ -663,7 +664,7 @@ export function useElementInteraction({
             currentDragElementState.elementY2,
             dx,
             dy,
-            rafUpdater,
+            (c: string) => usePreviewStore.getState().setDraftContent(c),
             isEndRelative
           );
         } else {
@@ -674,7 +675,7 @@ export function useElementInteraction({
             currentDragElementState.elementY,
             dx,
             dy,
-            rafUpdater
+            (c: string) => usePreviewStore.getState().setDraftContent(c)
           );
         }
       }
@@ -693,7 +694,7 @@ export function useElementInteraction({
 
       const groupBounds = getGroupBounds(currentMultiDragElements.map(e => e.elementId));
       if (!groupBounds) {
-        rafUpdater(effectiveContent);
+        usePreviewStore.getState().setDraftContent(effectiveContent);
         return;
       }
 
@@ -781,7 +782,7 @@ export function useElementInteraction({
         }
       });
 
-      rafUpdater(newContent);
+      usePreviewStore.getState().setDraftContent(newContent);
       return;
     }
 
@@ -854,7 +855,6 @@ export function useElementInteraction({
     getSvgCoords, isPanMode, isSpacePressed, snapToGuides, effectiveContent, ast,
     setPosition, setBoxSelection, setHoveredElement, setAlignmentGuides,
     setDistanceLines, getElementBounds, getAllElementsBoundsMap, getGroupBounds,
-    rafUpdater,
   ]);
 
   const handleMouseUp = useCallback((e: React.MouseEvent) => {
@@ -871,17 +871,36 @@ export function useElementInteraction({
     }
 
     if (currentResizeHandleState) {
+      const result = usePreviewStore.getState().commit();
+      if (result && result.content !== result.snapshot) {
+        effectiveSetContent(result.content, result.snapshot);
+      } else {
+        usePreviewStore.getState().clearDraftContent();
+      }
       setResizeHandleState(null);
+      setAlignmentGuides([]);
       return;
     }
 
     if (currentDragElementState) {
+      const result = usePreviewStore.getState().commit();
+      if (result && result.content !== result.snapshot) {
+        effectiveSetContent(result.content, result.snapshot);
+      } else {
+        usePreviewStore.getState().clearDraftContent();
+      }
       setDragElementState(null);
       setAlignmentGuides([]);
       return;
     }
 
     if (currentMultiDragElements.length > 0) {
+      const result = usePreviewStore.getState().commit();
+      if (result && result.content !== result.snapshot) {
+        effectiveSetContent(result.content, result.snapshot);
+      } else {
+        usePreviewStore.getState().clearDraftContent();
+      }
       setMultiDragElements([]);
       setAlignmentGuides([]);
       return;

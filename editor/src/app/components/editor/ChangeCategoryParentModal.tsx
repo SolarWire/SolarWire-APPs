@@ -67,7 +67,7 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
 
   return (
     <ModalPortal><div className="change-category-parent-modal-overlay">
-      <div className="change-category-parent-modal">
+      <div className="change-category-parent-modal glass-panel">
         <div className="change-category-parent-header">
           <h2>🔄 改变分类归属</h2>
           <button className="close-button" onClick={handleClose}>✕</button>

@@ -136,7 +136,7 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
 
   return (
     <ModalPortal><div className="create-component-modal-overlay">
-      <div className="create-component-modal">
+      <div className="create-component-modal glass-panel">
         <div className="create-component-header">
           <h2>🧩 新建组件</h2>
           <button className="close-button" onClick={handleClose}>✕</button>

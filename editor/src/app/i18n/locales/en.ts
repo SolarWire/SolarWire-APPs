@@ -48,6 +48,13 @@ export const en = {
     minimapDescription: 'Show the minimap in the editor',
     lineNumbers: 'Line Numbers',
     lineNumbersDescription: 'Show line numbers in the editor',
+    skills: 'Skills',
+    copySkillsButton: 'Copy SolarWire Skills',
+    copySkillsDescription: 'Copy SolarWire skills package to specified directory for use in other projects',
+    selectDirectory: 'Select Directory',
+    copyingSkills: 'Copying skills...',
+    skillsCopiedSuccess: 'Skills copied successfully',
+    skillsCopyFailed: 'Failed to copy skills',
   },
   
   // Editor

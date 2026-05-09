@@ -160,6 +160,9 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
 
 export function renderText(element: TextElement, context: RenderContext): RenderResult {
   const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+  
+  const isTableCell = (element as any)._isTableCell;
+  
   let pos: AbsolutePosition;
   if (element.coordinates) {
     pos = calculatePosition(context, element.coordinates);
@@ -172,7 +175,7 @@ export function renderText(element: TextElement, context: RenderContext): Render
   const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22, vc);
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#000000', vc);
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
-  const align = getAlignAttribute(element.attributes, 'start', vc);
+  const align = getAlignAttribute(element.attributes, 'start', isTableCell ? vc : undefined);
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
@@ -188,7 +191,7 @@ export function renderText(element: TextElement, context: RenderContext): Render
   if (letterSpacing !== 0) fontStyle += `letter-spacing="${letterSpacing}" `;
   if (textDecoration !== 'none') fontStyle += `text-decoration="${textDecoration}" `;
 
-  const textAnchor = align === 'start' ? 'start' : align === 'middle' ? 'middle' : 'end';
+  const textAnchor = align;
   let textX = pos.x;
   if (textAnchor === 'middle') {
     textX = pos.x + (w || 100) / 2;
@@ -215,36 +218,24 @@ export function renderText(element: TextElement, context: RenderContext): Render
 
   svgParts.push('</text>');
 
-  const containerWidth = w || 100;
-  const contentWidth = w > 0 ? w : (lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100);
+  const actualTextWidth = lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 0;
   const estimatedHeight = lines.length > 0 ? lines.length * lineHeight : fontSize;
   
   let boundsX = pos.x;
-  let boundsW = contentWidth;
+  let boundsW = actualTextWidth;
   
   if (w > 0) {
-    const actualTextWidth = lines.length > 0 ? Math.max(...lines.map(l => calculateTextWidth(l, fontSize))) : 100;
-    if (containerWidth > actualTextWidth) {
-      if (textAnchor === 'end') {
-        boundsX = pos.x + containerWidth - actualTextWidth;
-        boundsW = actualTextWidth;
-      } else if (textAnchor === 'middle') {
-        boundsX = pos.x + (containerWidth - actualTextWidth) / 2;
-        boundsW = actualTextWidth;
-      } else {
-        boundsW = containerWidth;
-      }
+    if (textAnchor === 'end') {
+      boundsX = pos.x + w - actualTextWidth;
+      boundsW = actualTextWidth;
+    } else if (textAnchor === 'middle') {
+      boundsX = pos.x + (w - actualTextWidth) / 2;
+      boundsW = actualTextWidth;
     } else {
-      boundsW = containerWidth;
+      boundsX = pos.x;
+      boundsW = w;
     }
   }
-  
-  const bounds: ElementBounds = {
-    x: boundsX,
-    y: pos.y,
-    width: boundsW,
-    height: estimatedHeight,
-  };
   
   updateLastElementBounds(context, bounds);
   
@@ -664,8 +655,9 @@ function renderTableCells(
     svgParts.push(`<rect x="${cellX}" y="${cellY}" width="${cellWidth}" height="${cellHeight}" fill="${cellBg}" stroke="${cellBorder}" stroke-width="${cellStrokeWidth}" data-cell-row="${data.row}" data-cell-col="${data.col}" data-cell-key="${data.row}-${data.col}"/>`);
 
     const cellContext = createChildContext(context, cellX, cellY);
-    const modifiedCell = { ...data.cell };
+    const modifiedCell: any = { ...data.cell };
     modifiedCell.attributes = { ...modifiedCell.attributes };
+    modifiedCell._isTableCell = true; // 内部标记:此元素在表格单元格中渲染
     modifiedCell.attributes['w'] = cellWidth.toString();
     modifiedCell.attributes['h'] = cellHeight.toString();
     modifiedCell.attributes['bg'] = cellBg;
@@ -685,7 +677,7 @@ function renderTableCells(
     if (cellPadding.bottom !== 0) modifiedCell.attributes['padding-bottom'] = cellPadding.bottom.toString();
     if (cellPadding.left !== 0) modifiedCell.attributes['padding-left'] = cellPadding.left.toString();
 
-    const result = renderChild(modifiedCell as any, cellContext);
+    const result = renderChild(modifiedCell, cellContext);
     svgParts.push(result.svg);
   });
 }

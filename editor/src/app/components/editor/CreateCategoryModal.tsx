@@ -93,7 +93,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
 
   return (
     <ModalPortal><div className="create-category-modal-overlay">
-      <div className="create-category-modal">
+      <div className="create-category-modal glass-panel">
         <div className="create-category-header">
           <h2>📁 新建分类</h2>
           <button className="close-button" onClick={handleClose}>✕</button>

@@ -7,8 +7,7 @@ import { useStatusStore } from './statusStore';
 import { feedback } from './feedbackStore';
 import { useEditorStore } from './editorStore';
 import { syntaxErrorService } from '../services/syntax-error-service';
-import { isTableFile, getTableFileExtension, parseTableFile, serializeTableFile } from '../../shared/utils/table-file-adapters';
-import type { Sheet } from '@fortune-sheet/core';
+import { isTableFile } from '../../shared/utils/table-file-adapters';
 
 const AUTO_REFRESH_INTERVAL = 30000;
 
@@ -165,23 +164,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
 
       if (isTableFile(filePath)) {
         const node: FileNode = { name, path: filePath, type: 'file' };
-        const ext = getTableFileExtension(filePath);
-
-        let sheetData: Sheet[] = [];
-        if (ext === 'csv') {
-          const content = await readFile(filePath);
-          sheetData = parseTableFile(content, name);
-          set({ selectedFile: node, fullFileContent: content, selectedImage: null, currentSnippet: null, tableSheetData: sheetData });
-        } else {
-          const buffer = await fileSystemService.readFileAsBuffer(filePath);
-          sheetData = parseTableFile(buffer, name);
-          set({ selectedFile: node, fullFileContent: '', selectedImage: null, currentSnippet: null, tableSheetData: sheetData });
-        }
-
-        const editorStore = useEditorStore.getState();
-        editorStore.clearHistory();
-        syntaxErrorService.clearAllErrors();
-
+        set({ selectedFile: node, selectedImage: null, currentSnippet: null });
         eventBus.emit(EditorEvents.MODE_CHANGED, 'table');
         statusStore.setCurrentFilePath(filePath);
         statusStore.updateEditorStatus({ mode: 'table' });
@@ -338,8 +321,8 @@ export const useFileStore = create<FileState>()((set, get) => ({
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'start' });
 
       if (currentMode === 'table' && tableSheetData) {
-        const serialized = serializeTableFile(tableSheetData, selectedFile.name);
-        await fileSystemService.writeFile(selectedFile.path, serialized as string | Uint8Array);
+        const result = await fileSystemService.saveTableFile(selectedFile.path, tableSheetData);
+        if (!result.success) throw new Error(result.error || '保存失败');
         editorStore.setModified(false);
         eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'complete' });
         statusStore.updateFileStatus({ isModified: false });

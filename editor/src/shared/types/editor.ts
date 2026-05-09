@@ -8,6 +8,7 @@ export interface EditorState {
   historyIndex: number;
   setMode: (mode: EditorMode) => void;
   setContent: (content: string) => void;
+  commitContent: (content: string, snapshot: string) => void;
   setModified: (modified: boolean) => void;
   clearHistory: () => void;
   undo: () => void;

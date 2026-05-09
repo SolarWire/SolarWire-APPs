@@ -194,7 +194,7 @@ function SolarWireVisualEditor({
           />
 
         {selectedElements.length > 0 && (
-          <div className="property-panel-fixed">
+          <div className="property-panel-fixed glass-panel">
             <PropertyPanel
               externalContent={externalContent}
               onExternalContentChange={onExternalContentChange}
@@ -207,7 +207,7 @@ function SolarWireVisualEditor({
         )}
 
         {showLayerPanel && (
-          <div className="layer-panel-fixed">
+          <div className="layer-panel-fixed glass-panel">
             <LayerPanel 
               onSelectElement={(id) => setSelectedElements([id])} 
               onReorderElements={handleReorderElements}
@@ -217,7 +217,7 @@ function SolarWireVisualEditor({
         )}
 
         {showComponentLibrary && (
-          <div className="component-library-panel-fixed">
+          <div className="component-library-panel-fixed glass-panel">
             <ComponentLibrary onDropToCanvas={handleDropComponentToCanvas} />
           </div>
         )}
