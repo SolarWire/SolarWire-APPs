@@ -9,10 +9,10 @@ interface TableGroupProps {
 }
 
 const TableGroup: React.FC<TableGroupProps> = ({ table, onOpenTableEditor, tableLine }) => (
-  <PropertyGroupTitle title="Table">
+  <PropertyGroupTitle title="表格">
     <div className="table-structure-info">
       <span className="structure-text">
-        {table.rows} rows × {table.cols} cols
+        {table.rows} 行 × {table.cols} 列
       </span>
       <button
         className="edit-table-btn"

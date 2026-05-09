@@ -9,6 +9,7 @@ import PropertyGroupTitle from './property/PropertyGroupTitle';
 import ShadowEditor from './property/ShadowEditor';
 import PositionGroup from './property/PositionGroup';
 import SizeGroup from './property/SizeGroup';
+import PaddingEditor from './property/PaddingEditor';
 import LineGroup from './property/LineGroup';
 import AppearanceGroup from './property/AppearanceGroup';
 import TextGroup from './property/TextGroup';
@@ -103,13 +104,13 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     return (
       <div className="property-panel">
         <div className="error-section">
-          <h3>Error</h3>
+          <h3>错误</h3>
           <div className="error-message">
             <pre>{parseError}</pre>
           </div>
           {errorLine && (
             <button className="error-button" onClick={handleGoToError}>
-              Go to Error Line
+              跳转到错误行
             </button>
           )}
         </div>
@@ -120,7 +121,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   if (selectedElements.length === 0) {
     return (
       <div className="property-panel">
-        <p className="empty-state">No element selected</p>
+        <p className="empty-state">未选中元素</p>
       </div>
     );
   }
@@ -129,9 +130,9 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     return (
       <div className="property-panel">
         <div className="property-panel-header">
-          <span className="property-panel-type">{selectedElements.length} Elements Selected</span>
+          <span className="property-panel-type">{selectedElements.length} 个元素已选中</span>
         </div>
-        <p className="multi-select-hint">Select a single element to edit its properties.</p>
+        <p className="multi-select-hint">请选择单个元素以编辑其属性。</p>
       </div>
     );
   }
@@ -139,7 +140,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   if (!element || !elementProps) {
     return (
       <div className="property-panel">
-        <p className="empty-state">Element not found</p>
+        <p className="empty-state">未找到元素</p>
       </div>
     );
   }
@@ -153,7 +154,19 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
       </div>
 
       <PositionGroup position={position} onChange={handleChange} />
-      <SizeGroup size={size} text={text} onChange={handleChange} />
+      <SizeGroup size={size} onChange={handleChange} />
+
+      {size.showPadding && (
+        <PropertyGroupTitle title="边距">
+          <PaddingEditor
+            paddingTop={text.paddingTop}
+            paddingRight={text.paddingRight}
+            paddingBottom={text.paddingBottom}
+            paddingLeft={text.paddingLeft}
+            onChange={handleChange}
+          />
+        </PropertyGroupTitle>
+      )}
 
       {line ? (
         <LineGroup line={line} appearance={appearance} onChange={handleChange} />
@@ -162,7 +175,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
       ) : null}
 
       {appearance.showShadow && (
-        <PropertyGroupTitle title="Shadow" defaultCollapsed={true}>
+        <PropertyGroupTitle title="阴影" defaultCollapsed={true}>
           <ShadowEditor attrs={attrs} onChange={handleChange} />
         </PropertyGroupTitle>
       )}

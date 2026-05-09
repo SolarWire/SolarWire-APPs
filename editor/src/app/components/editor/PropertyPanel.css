@@ -113,14 +113,6 @@
   white-space: nowrap;
 }
 
-.property-code-attr {
-  font-size: 9px;
-  color: var(--text-muted);
-  opacity: 0.6;
-  font-family: monospace;
-  white-space: nowrap;
-}
-
 .property-input {
   flex: 1;
   min-width: 0;
@@ -140,21 +132,16 @@
   font-size: 11px;
   color: var(--text-muted);
   flex-shrink: 0;
-  min-width: 18px;
-  text-align: center;
+  min-width: 20px;
+  text-align: left;
   cursor: ew-resize;
   user-select: none;
-  padding: 2px 0;
+  padding: 2px 4px 2px 0;
   border-radius: 2px;
   display: flex;
   align-items: center;
   gap: 1px;
-}
-
-.drag-code-attr {
-  font-size: 8px;
-  opacity: 0.5;
-  font-family: monospace;
+  white-space: nowrap;
 }
 
 .property-drag-label:hover {
@@ -190,9 +177,15 @@
 }
 
 .property-row input[type="number"]::-webkit-outer-spin-button,
-.property-row input[type="number"]::-webkit-inner-spin-button {
+.property-row input[type="number"]::-webkit-inner-spin-button,
+.property-drag-input input[type="number"]::-webkit-outer-spin-button,
+.property-drag-input input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+.property-drag-input input[type="number"] {
+  -moz-appearance: textfield;
 }
 
 .property-row select {
@@ -231,7 +224,7 @@
 }
 
 .align-btn {
-  width: 28px;
+  flex: 1;
   height: 24px;
   border: 1px solid var(--border-color);
   background: var(--bg-tertiary);
@@ -244,10 +237,6 @@
   justify-content: center;
   padding: 0;
 }
-
-.align-btn:nth-child(1) { text-align: left; justify-content: flex-start; padding-left: 5px; }
-.align-btn:nth-child(2) { text-align: center; justify-content: center; }
-.align-btn:nth-child(3) { text-align: right; justify-content: flex-end; padding-right: 5px; }
 
 .align-btn:hover {
   background: var(--bg-hover);
@@ -265,7 +254,7 @@
 }
 
 .toggle-btn {
-  width: 28px;
+  flex: 1;
   height: 24px;
   border: 1px solid var(--border-color);
   background: var(--bg-tertiary);
@@ -294,14 +283,6 @@
   display: flex;
   gap: 8px;
   align-items: center;
-}
-
-.color-picker-wrapper {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .image-url-row {
@@ -347,8 +328,6 @@
   line-height: 1.4;
   font-family: inherit;
   overflow: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .note-textarea-wrapper textarea:focus {

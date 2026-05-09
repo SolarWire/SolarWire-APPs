@@ -9,7 +9,7 @@ interface PositionGroupProps {
 }
 
 const PositionGroup: React.FC<PositionGroupProps> = ({ position, onChange }) => (
-  <PropertyGroupTitle title="Position">
+  <PropertyGroupTitle title="位置">
     <PropertyPair
       label1="X" codeAttr1="x"
       value1={position.x}

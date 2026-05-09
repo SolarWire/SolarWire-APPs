@@ -1,5 +1,6 @@
 import React from 'react';
 import { DraggableNumberInput } from './property/PropertyRow';
+import PropertyLabel from './property/PropertyLabel';
 import ColorPicker from '../ui/ColorPicker';
 import type { TableData, TableRow } from '../../../shared/utils/table-source-utils';
 import './CellProperties.css';
@@ -12,6 +13,11 @@ interface CellPropertiesProps {
   onResetRowAttrs: (rowIndex: number) => void;
   onResetCellAttrs: (row: number, col: number) => void;
 }
+
+const parseVal = (v: string | undefined): number => {
+  if (v === undefined || v === '') return 0;
+  return parseInt(v) || 0;
+};
 
 const CellProperties: React.FC<CellPropertiesProps> = ({
   tableData,
@@ -126,10 +132,10 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const commonLineHeight = getCommonAttr('line-height');
   const commonLetterSpacing = getCommonAttr('letter-spacing');
   const commonTextDecoration = getCommonAttr('text-decoration');
+  const commonPl = getCommonAttr('pl');
   const commonPt = getCommonAttr('pt');
   const commonPr = getCommonAttr('pr');
   const commonPb = getCommonAttr('pb');
-  const commonPl = getCommonAttr('pl');
 
   const effectiveBg = commonBg || '#ffffff';
   const effectiveColor = commonColor || '#000000';
@@ -148,16 +154,16 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const mixedLineHeight = isMixed('line-height');
   const mixedLetterSpacing = isMixed('letter-spacing');
   const mixedTextDecoration = isMixed('text-decoration');
+  const mixedPl = isMixed('pl');
   const mixedPt = isMixed('pt');
   const mixedPr = isMixed('pr');
   const mixedPb = isMixed('pb');
-  const mixedPl = isMixed('pl');
 
   const effectiveTextDecoration = commonTextDecoration || '';
+  const effectivePl = commonPl || '';
   const effectivePt = commonPt || '';
   const effectivePr = commonPr || '';
   const effectivePb = commonPb || '';
-  const effectivePl = commonPl || '';
 
   const textDecorationValues = cellKeys.map(key => getEffectiveAttr(key, 'text-decoration'));
   const hasUnderline = textDecorationValues.some(v => v === 'underline');
@@ -182,42 +188,59 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
 
   const showRowAttrs = fullySelectedRows.size > 0;
 
+  const toggleTextDecoration = (decoration: 'underline' | 'line-through') => {
+    const isAllActive = decoration === 'underline' ? allUnderline : allLineThrough;
+    if (isAllActive) {
+      for (const key of cellKeys) {
+        const { r, c } = getCellInfo(key);
+        const cell = tableData.rows[r]?.cells[c];
+        const row = tableData.rows[r];
+        const currentDecoration = cell.attrs['text-decoration'] || row?.attrs?.['text-decoration'];
+        if (currentDecoration === decoration) {
+          const { 'text-decoration': _, ...rest } = cell.attrs;
+          onUpdateCell(r, c, { attrs: rest });
+        }
+      }
+      for (const r of fullySelectedRows) {
+        const row = tableData.rows[r];
+        if (row?.attrs?.['text-decoration'] === decoration) {
+          const { 'text-decoration': _, ...rest } = row.attrs;
+          onUpdateRow(r, rest);
+        }
+      }
+    } else {
+      handleBatchChange('text-decoration', decoration);
+    }
+  };
+
   return (
     <div className="cell-properties">
       <h4 className="properties-title">{title}</h4>
 
-      <div className="property-section">
-        <ColorPicker
-          label="Fill"
-          codeAttr="bg"
-          value={effectiveBg}
-          onChange={(color) => handleBatchChange('bg', color)}
-        />
-      </div>
+      <ColorPicker
+        label="填充色"
+        codeAttr="bg"
+        value={effectiveBg}
+        onChange={(color) => handleBatchChange('bg', color)}
+      />
+
+      <ColorPicker
+        label="文字色"
+        codeAttr="c"
+        value={effectiveColor}
+        onChange={(color) => handleBatchChange('c', color)}
+      />
+
+      <DraggableNumberInput
+        label="字号"
+        codeAttr="size"
+        value={mixedSize ? '' : (parseInt(commonSize || '12') || 12)}
+        onChange={(v) => handleBatchChange('size', v.toString())}
+        placeholder={mixedSize ? '—' : undefined}
+      />
 
       <div className="property-section">
-        <ColorPicker
-          label="Color"
-          codeAttr="c"
-          value={effectiveColor}
-          onChange={(color) => handleBatchChange('c', color)}
-        />
-      </div>
-
-      <div className="property-section">
-        <div className="property-row-inline">
-          <span className="prop-label">Size</span>
-          <DraggableNumberInput
-            label=""
-            value={mixedSize ? '' : (parseInt(commonSize || '12') || 12)}
-            onChange={(v) => handleBatchChange('size', v.toString())}
-            placeholder={mixedSize ? '—' : undefined}
-          />
-        </div>
-      </div>
-
-      <div className="property-section">
-        <span className="prop-label">Align</span>
+        <PropertyLabel codeAttr="align" className="prop-label" />
         <div className="align-btns">
           {(['l', 'c', 'r'] as const).map((a) => (
             <button
@@ -232,7 +255,7 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
       </div>
 
       <div className="property-section">
-        <span className="prop-label">V-Align</span>
+        <PropertyLabel codeAttr="vertical-align" className="prop-label" />
         <div className="align-btns">
           {(['t', 'm', 'b'] as const).map((va) => (
             <button
@@ -246,7 +269,7 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
         </div>
       </div>
 
-      <div className="property-section toggle-section">
+      <div className="toggle-section">
         <button
           className={`toggle-btn ${mixedBold ? 'mixed' : ''} ${!mixedBold && effectiveBold ? 'active' : ''}`}
           onClick={() => handleBatchChange('bold', !effectiveBold)}
@@ -257,108 +280,40 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
         ><i>I</i></button>
         <button
           className={`toggle-btn ${mixedTextDecoration ? 'mixed' : ''} ${!mixedTextDecoration && allUnderline ? 'active' : ''}`}
-          onClick={() => {
-            if (allUnderline) {
-              for (const key of cellKeys) {
-                const { r, c } = getCellInfo(key);
-                const cell = tableData.rows[r]?.cells[c];
-                const { 'text-decoration': _, ...rest } = cell.attrs;
-                onUpdateCell(r, c, { attrs: rest });
-              }
-            } else {
-              for (const key of cellKeys) {
-                const { r, c } = getCellInfo(key);
-                onUpdateCell(r, c, { attrs: { 'text-decoration': 'underline' } });
-              }
-            }
-          }}
+          onClick={() => toggleTextDecoration('underline')}
         ><u>U</u></button>
         <button
           className={`toggle-btn ${mixedTextDecoration ? 'mixed' : ''} ${!mixedTextDecoration && allLineThrough ? 'active' : ''}`}
-          onClick={() => {
-            if (allLineThrough) {
-              for (const key of cellKeys) {
-                const { r, c } = getCellInfo(key);
-                const cell = tableData.rows[r]?.cells[c];
-                const { 'text-decoration': _, ...rest } = cell.attrs;
-                onUpdateCell(r, c, { attrs: rest });
-              }
-            } else {
-              for (const key of cellKeys) {
-                const { r, c } = getCellInfo(key);
-                onUpdateCell(r, c, { attrs: { 'text-decoration': 'line-through' } });
-              }
-            }
-          }}
+          onClick={() => toggleTextDecoration('line-through')}
         ><s>S</s></button>
       </div>
 
       <div className="property-section">
-        <span className="prop-label">Padding</span>
+        <PropertyLabel codeAttr="padding" className="prop-label" />
         <div className="padding-grid">
-          <div className="padding-field">
-            <span className="padding-label">T</span>
-            <DraggableNumberInput
-              label=""
-              value={mixedPt ? '' : (parseInt(effectivePt) || 0)}
-              onChange={(v) => handleBatchChange('pt', v.toString())}
-              placeholder={mixedPt ? '—' : undefined}
-            />
-          </div>
-          <div className="padding-field">
-            <span className="padding-label">R</span>
-            <DraggableNumberInput
-              label=""
-              value={mixedPr ? '' : (parseInt(effectivePr) || 0)}
-              onChange={(v) => handleBatchChange('pr', v.toString())}
-              placeholder={mixedPr ? '—' : undefined}
-            />
-          </div>
-          <div className="padding-field">
-            <span className="padding-label">B</span>
-            <DraggableNumberInput
-              label=""
-              value={mixedPb ? '' : (parseInt(effectivePb) || 0)}
-              onChange={(v) => handleBatchChange('pb', v.toString())}
-              placeholder={mixedPb ? '—' : undefined}
-            />
-          </div>
-          <div className="padding-field">
-            <span className="padding-label">L</span>
-            <DraggableNumberInput
-              label=""
-              value={mixedPl ? '' : (parseInt(effectivePl) || 0)}
-              onChange={(v) => handleBatchChange('pl', v.toString())}
-              placeholder={mixedPl ? '—' : undefined}
-            />
-          </div>
+          <DraggableNumberInput label="左边距" codeAttr="pl" value={mixedPl ? '' : parseVal(effectivePl)} onChange={(v) => handleBatchChange('pl', v.toString())} placeholder={mixedPl ? '—' : undefined} />
+          <DraggableNumberInput label="上边距" codeAttr="pt" value={mixedPt ? '' : parseVal(effectivePt)} onChange={(v) => handleBatchChange('pt', v.toString())} placeholder={mixedPt ? '—' : undefined} />
+          <DraggableNumberInput label="右边距" codeAttr="pr" value={mixedPr ? '' : parseVal(effectivePr)} onChange={(v) => handleBatchChange('pr', v.toString())} placeholder={mixedPr ? '—' : undefined} />
+          <DraggableNumberInput label="下边距" codeAttr="pb" value={mixedPb ? '' : parseVal(effectivePb)} onChange={(v) => handleBatchChange('pb', v.toString())} placeholder={mixedPb ? '—' : undefined} />
         </div>
       </div>
 
       {showRowAttrs && (
         <>
-          <div className="property-section">
-            <div className="property-row-inline">
-              <span className="prop-label">LH</span>
-              <DraggableNumberInput
-                label=""
-                value={mixedLineHeight ? '' : (parseInt(commonLineHeight || '22') || 22)}
-                onChange={(v) => handleBatchChange('line-height', v.toString())}
-                placeholder={mixedLineHeight ? '—' : undefined}
-              />
-            </div>
-          </div>
-          <div className="property-section">
-            <div className="property-row-inline">
-              <span className="prop-label">LS</span>
-              <DraggableNumberInput
-                label=""
-                value={mixedLetterSpacing ? '' : (parseInt(commonLetterSpacing || '0') || 0)}
-                onChange={(v) => handleBatchChange('letter-spacing', v.toString())}
-                placeholder={mixedLetterSpacing ? '—' : undefined}
-              />
-            </div>
-          </div>
+          <DraggableNumberInput
+            label="行高"
+            codeAttr="line-height"
+            value={mixedLineHeight ? '' : (parseInt(commonLineHeight || '22') || 22)}
+            onChange={(v) => handleBatchChange('line-height', v.toString())}
+            placeholder={mixedLineHeight ? '—' : undefined}
+          />
+          <DraggableNumberInput
+            label="字间距"
+            codeAttr="letter-spacing"
+            value={mixedLetterSpacing ? '' : (parseInt(commonLetterSpacing || '0') || 0)}
+            onChange={(v) => handleBatchChange('letter-spacing', v.toString())}
+            placeholder={mixedLetterSpacing ? '—' : undefined}
+          />
         </>
       )}
 

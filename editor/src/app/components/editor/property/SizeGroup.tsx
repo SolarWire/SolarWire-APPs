@@ -1,19 +1,17 @@
 import React from 'react';
 import PropertyGroupTitle from './PropertyGroupTitle';
-import PropertyRow, { PropertyPair, DraggableNumberInput } from './PropertyRow';
-import PaddingEditor from './PaddingEditor';
+import { PropertyPair, DraggableNumberInput } from './PropertyRow';
 import type { ElementProps } from '../hooks/useElementProps';
 
 interface SizeGroupProps {
   size: ElementProps['size'];
-  text: ElementProps['text'];
   onChange: (property: string, value: string | number | boolean | undefined) => void;
 }
 
-const SizeGroup: React.FC<SizeGroupProps> = ({ size, text, onChange }) => {
+const SizeGroup: React.FC<SizeGroupProps> = ({ size, onChange }) => {
   if (!size.show) return null;
   return (
-    <PropertyGroupTitle title="Size">
+    <PropertyGroupTitle title="尺寸">
       <PropertyPair
         label1="W" codeAttr1="w"
         value1={size.w}
@@ -23,18 +21,7 @@ const SizeGroup: React.FC<SizeGroupProps> = ({ size, text, onChange }) => {
         onChange2={(v) => onChange('h', v)}
       />
       {size.showRadius && (
-        <PropertyRow label="R" codeAttr="r">
-          <DraggableNumberInput label="" value={size.r} onChange={(v) => onChange('r', v)} />
-        </PropertyRow>
-      )}
-      {size.showPadding && (
-        <PaddingEditor
-          paddingTop={text.paddingTop}
-          paddingRight={text.paddingRight}
-          paddingBottom={text.paddingBottom}
-          paddingLeft={text.paddingLeft}
-          onChange={onChange}
-        />
+        <DraggableNumberInput label="圆角" codeAttr="r" value={size.r} onChange={(v) => onChange('r', v)} />
       )}
     </PropertyGroupTitle>
   );

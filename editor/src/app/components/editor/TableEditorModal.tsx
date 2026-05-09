@@ -1,8 +1,6 @@
 import React, { useEffect, useCallback, useState, useRef } from 'react';
 import TableGrid from './TableGrid';
 import CellProperties from './CellProperties';
-import { DraggableNumberInput } from './property/PropertyRow';
-import ColorPicker from '../ui/ColorPicker';
 import { useTableEditor } from '../../../shared/hooks/useTableEditor';
 import './TableEditorModal.css';
 
@@ -33,7 +31,6 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
     updateRow,
     resetRowAttrs,
     resetCellAttrs,
-    updateTableAttrs,
     addRow,
     deleteRow,
     addColumn,
@@ -114,6 +111,7 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
               <span className="zoom-value" onClick={handleZoomReset} title="点击重置缩放">{Math.round(scale * 100)}%</span>
               <button className="zoom-btn" onClick={handleZoomIn} title="放大">+</button>
             </div>
+            <span className="toolbar-info">{tableData.rows.length} 行 × {tableData.rows[0]?.cells.length || 0} 列</span>
             {isDirty && <span className="dirty-indicator" title="有未保存的修改">●</span>}
             <button className="close-btn" onClick={handleOverlayClick}>×</button>
           </div>
@@ -121,44 +119,10 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
 
         <div className="modal-body">
           <div className="modal-toolbar">
-            <div className="toolbar-group">
-              <span className="toolbar-group-label">表格</span>
-              <div className="toolbar-field">
-                <span className="toolbar-label">Fill</span>
-                <ColorPicker value={tableData.attrs.bg || '#ffffff'} onChange={(color) => updateTableAttrs({ bg: color })} label="表格背景色" />
-              </div>
-              <div className="toolbar-field">
-                <span className="toolbar-label">Border</span>
-                <ColorPicker value={tableData.attrs.b || '#333333'} onChange={(color) => updateTableAttrs({ b: color })} label="表格边框色" />
-              </div>
-              <div className="toolbar-field">
-                <span className="toolbar-label">W</span>
-                <DraggableNumberInput label="" value={tableData.attrs.w || 600} onChange={(v) => updateTableAttrs({ w: v })} />
-              </div>
-              <div className="toolbar-field">
-                <span className="toolbar-label">H</span>
-                <DraggableNumberInput label="" value={tableData.attrs.h || 0} onChange={(v) => updateTableAttrs({ h: v })} />
-              </div>
-              <div className="toolbar-field">
-                <span className="toolbar-label">Border</span>
-                <DraggableNumberInput label="" value={tableData.attrs.border || 1} onChange={(v) => updateTableAttrs({ border: v })} />
-              </div>
-              <div className="toolbar-field">
-                <span className="toolbar-label">CS</span>
-                <DraggableNumberInput label="" value={tableData.attrs.cellspacing || 0} onChange={(v) => updateTableAttrs({ cellspacing: v })} />
-              </div>
-            </div>
-            <div className="toolbar-group">
-              <span className="toolbar-group-label">结构</span>
-              <button className="toolbar-btn" onClick={() => addRow()}>+ 行</button>
-              <button className="toolbar-btn" onClick={() => addColumn()}>+ 列</button>
-              <button className="toolbar-btn danger" onClick={() => deleteRow(tableData.rows.length - 1)} disabled={tableData.rows.length <= 1}>- 行</button>
-              <button className="toolbar-btn danger" onClick={() => deleteColumn(tableData.rows[0]?.cells.length - 1)} disabled={(tableData.rows[0]?.cells.length || 0) <= 1}>- 列</button>
-            </div>
-            <div className="toolbar-group">
-              <span className="toolbar-info">{tableData.rows.length} 行 × {tableData.rows[0]?.cells.length || 0} 列</span>
-              {isDirty && <span className="dirty-indicator" title="有未保存的修改">●</span>}
-            </div>
+            <button className="toolbar-btn" onClick={() => addRow()}>+ 行</button>
+            <button className="toolbar-btn" onClick={() => addColumn()}>+ 列</button>
+            <button className="toolbar-btn danger" onClick={() => deleteRow(tableData.rows.length - 1)} disabled={tableData.rows.length <= 1}>- 行</button>
+            <button className="toolbar-btn danger" onClick={() => deleteColumn(tableData.rows[0]?.cells.length - 1)} disabled={(tableData.rows[0]?.cells.length || 0) <= 1}>- 列</button>
           </div>
 
           <div className="modal-content-area">

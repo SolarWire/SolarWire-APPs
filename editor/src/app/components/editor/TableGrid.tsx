@@ -75,7 +75,8 @@ const TableGrid: React.FC<TableGridProps> = ({
       <div className="table-grid-scroll" style={{ zoom: scale }}>
         <div className="table-grid-header">
           <div className="grid-corner">
-            <button className="grid-add-btn" onClick={() => onAddColumn(0)} title="在最左侧添加列">+</button>
+            <button className="grid-add-btn add-row" onClick={() => onAddRow(0)} title="在最上方添加行">↕+</button>
+            <button className="grid-add-btn add-col" onClick={() => onAddColumn(0)} title="在最左侧添加列">↔+</button>
           </div>
           {Array.from({ length: numCols }).map((_, colIdx) => (
             <div key={colIdx} className="grid-col-header">

@@ -8,30 +8,4 @@
   z-index: var(--z-base);
 }
 
-.scrollbar::-webkit-scrollbar {
-  width: var(--scrollbar-width);
-  height: var(--scrollbar-height);
-}
 
-.scrollbar::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.scrollbar::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 0px;
-}
-
-.scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-}
-
-.scrollbar::-webkit-scrollbar-corner {
-  background: var(--scrollbar-corner);
-}
-
-/* Firefox 滚动条支持 */
-.scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}

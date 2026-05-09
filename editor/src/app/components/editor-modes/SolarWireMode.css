@@ -180,26 +180,6 @@
 .property-panel-fixed > *:last-child {
   flex: 1;
   overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-.property-panel-fixed > *:last-child::-webkit-scrollbar {
-  width: var(--scrollbar-width);
-  height: var(--scrollbar-height);
-}
-
-.property-panel-fixed > *:last-child::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-}
-
-.property-panel-fixed > *:last-child::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 0;
-}
-
-.property-panel-fixed > *:last-child::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
 }
 
 /* 固定工具栏：在 header 下方的文档流中 */

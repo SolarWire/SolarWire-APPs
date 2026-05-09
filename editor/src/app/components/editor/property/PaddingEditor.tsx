@@ -1,7 +1,5 @@
 import React from 'react';
 import { DraggableNumberInput } from './PropertyRow';
-import PropertyTooltip from './PropertyTooltip';
-import { PROPERTY_META } from './propertyMeta';
 import './PaddingEditor.css';
 
 interface PaddingEditorProps {
@@ -17,34 +15,28 @@ const parseVal = (v: string | undefined): number => {
   return parseInt(v) || 0;
 };
 
+const PADDING_FIELDS = [
+  { attr: 'padding-left', valueKey: 'paddingLeft' as const },
+  { attr: 'padding-top', valueKey: 'paddingTop' as const },
+  { attr: 'padding-right', valueKey: 'paddingRight' as const },
+  { attr: 'padding-bottom', valueKey: 'paddingBottom' as const },
+] as const;
+
 const PaddingEditor: React.FC<PaddingEditorProps> = ({
   paddingTop, paddingRight, paddingBottom, paddingLeft, onChange
 }) => {
+  const values = { paddingTop, paddingRight, paddingBottom, paddingLeft };
+
   return (
-    <div className="padding-editor">
-      {([
-        { label: 'Top', attr: 'padding-top', value: paddingTop },
-        { label: 'Right', attr: 'padding-right', value: paddingRight },
-        { label: 'Bottom', attr: 'padding-bottom', value: paddingBottom },
-        { label: 'Left', attr: 'padding-left', value: paddingLeft },
-      ] as const).map(({ label, attr, value }) => {
-        const meta = PROPERTY_META[attr];
-        return (
-          <div key={attr} className="padding-row">
-            <PropertyTooltip meta={meta}>
-              <span className="padding-label">
-                <span className="padding-label-text">{label}</span>
-              </span>
-            </PropertyTooltip>
-            <DraggableNumberInput
-              label=""
-              value={parseVal(value)}
-              codeAttr={attr}
-              onChange={(v: number) => onChange(attr, v)}
-            />
-          </div>
-        );
-      })}
+    <div className="padding-grid">
+      {PADDING_FIELDS.map(({ attr, valueKey }) => (
+        <DraggableNumberInput
+          key={attr}
+          codeAttr={attr}
+          value={parseVal(values[valueKey])}
+          onChange={(v: number) => onChange(attr, v)}
+        />
+      ))}
     </div>
   );
 };

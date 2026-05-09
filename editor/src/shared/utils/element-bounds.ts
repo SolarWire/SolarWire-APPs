@@ -252,38 +252,24 @@ export function detectTableBounds(
   for (let j = scanStartIndex; j < lines.length; j++) {
     const line = lines[j];
     const lineTrimmed = line.trim();
-    
-    // 跳过空行和注释行
-    if (lineTrimmed === '' || lineTrimmed.startsWith('//')) {
+
+    if (lineTrimmed === '') {
       continue;
     }
-    
+
     const lineIndent = getIndent(line);
-    
-    // 找到没有缩进的行，说明这是表格外的下一个元素
+
     if (lineIndent === 0) {
-      // 从当前行往前找，跳过所有注释行和空行
-      let endIdx = j - 1;
-      while (endIdx >= scanStartIndex) {
-        const prevLine = lines[endIdx].trim();
-        // 如果是注释或空行，继续往前
-        if (prevLine === '' || prevLine.startsWith('//')) {
-          endIdx--;
-        } else {
-          // 找到最后一个非注释行
-          break;
-        }
-      }
-      return { startLine, endLine: endIdx + 1 };
+      return { startLine, endLine: j };
     }
   }
   
   // 没有找到下一个无缩进行，表格是文件最后一个元素
-  // 从文件末尾往前找最后一个非注释行
+  // 从文件末尾往前找最后一个非空行
   let endIdx = lines.length - 1;
   while (endIdx >= scanStartIndex) {
     const line = lines[endIdx].trim();
-    if (line === '' || line.startsWith('//')) {
+    if (line === '') {
       endIdx--;
     } else {
       break;

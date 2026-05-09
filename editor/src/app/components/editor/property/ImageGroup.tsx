@@ -13,8 +13,8 @@ interface ImageGroupProps {
 }
 
 const ImageGroup: React.FC<ImageGroupProps> = ({ image, onChange, fileDialogService: dialogService = fileDialogService }) => (
-  <PropertyGroupTitle title="Image">
-    <PropertyRow label="URL" codeAttr="url">
+  <PropertyGroupTitle title="图片">
+    <PropertyRow label="图片路径" codeAttr="url">
       <div className="image-url-row">
         <input
           type="text"

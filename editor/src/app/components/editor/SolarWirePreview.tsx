@@ -96,8 +96,8 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
     }
   }, [effectiveContent]);
 
-  const svg = useMemo(() => {
-    if (!ast) return '';
+  const { svg, viewBox, renderErrorMsg } = useMemo(() => {
+    if (!ast) return { svg: '', viewBox: null, renderErrorMsg: null };
     try {
       const renderedResult = render(ast, {
         disableNotes: !showNotes,
@@ -106,29 +106,13 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
         sourceInput: effectiveContent || '',
         imageUrlResolver,
       }, true) as RenderResultWithMeta;
-      return renderedResult.svg;
-    } catch {
-      return '';
+      return { svg: renderedResult.svg, viewBox: renderedResult.viewBox, renderErrorMsg: null };
+    } catch (e: any) {
+      return { svg: '', viewBox: null, renderErrorMsg: e.message || String(e) };
     }
   }, [ast, showNotes, selectedElements, primaryColor, effectiveContent, imageUrlResolver]);
 
-  const viewBox = useMemo(() => {
-    if (!ast) return null;
-    try {
-      const renderedResult = render(ast, {
-        disableNotes: !showNotes,
-        selectedElementIds: selectedElements,
-        primaryColor,
-        sourceInput: effectiveContent || '',
-        imageUrlResolver,
-      }, true) as RenderResultWithMeta;
-      return renderedResult.viewBox;
-    } catch {
-      return null;
-    }
-  }, [ast, showNotes, selectedElements, primaryColor, effectiveContent, imageUrlResolver]);
-
-  const renderParseError = useMemo(() => {
+  const parseErrorMsg = useMemo(() => {
     if (!effectiveContent?.trim()) return null;
     try {
       parse(effectiveContent);
@@ -168,12 +152,13 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
   });
 
   useEffect(() => {
-    if (renderParseError) {
+    const error = renderErrorMsg || parseErrorMsg;
+    if (error) {
       setTimeout(() => {
-        console.error('[SolarWirePreview] Parse/Render error:', renderParseError);
+        console.error('[SolarWirePreview] Parse/Render error:', error);
       }, 0);
     }
-  }, [renderParseError]);
+  }, [renderErrorMsg, parseErrorMsg]);
 
   useEffect(() => {
     const errorFromAst = (ast as any)?.parseError || null;
@@ -323,21 +308,23 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
   const setIsPreviewFocused = useSolarWireStore(s => s.setIsPreviewFocused);
   const cursor = isSpacePressed ? 'grab' : undefined;
 
-  const renderError = () => {
-    if (!parseError) return null;
+  const showErrorOverlay = () => {
+    const error = renderErrorMsg || parseErrorMsg || parseError;
+    if (!error) return null;
 
+    const isRenderErr = !!renderErrorMsg;
     return (
       <div className="error-overlay">
         <div className="error-content">
-          <div className="error-title">⚠️ Parse Error</div>
-          <pre className="error-message">{parseError}</pre>
+          <div className="error-title">{isRenderErr ? '⚠️ Render Error' : '⚠️ Parse Error'}</div>
+          <pre className="error-message">{error}</pre>
         </div>
       </div>
     );
   };
 
   const renderEmpty = () => {
-    if (parseError || svg || hasSyntaxErrors) return null;
+    if (parseError || renderErrorMsg || parseErrorMsg || svg || hasSyntaxErrors) return null;
 
     return (
       <div className="empty-overlay">
@@ -472,7 +459,7 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
         </div>
       )}
 
-      {renderError()}
+      {showErrorOverlay()}
       {renderEmpty()}
     </div>
   );

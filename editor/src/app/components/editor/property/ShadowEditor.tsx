@@ -13,7 +13,7 @@ const ShadowEditor: React.FC<ShadowEditorProps> = ({ attrs, onChange }) => {
 
   return (
     <>
-      <PropertyRow label="Shadow">
+      <PropertyRow label="阴影" codeAttr="shadow-enabled">
         <div className="shadow-toggle">
           <input
             type="checkbox"
@@ -40,28 +40,26 @@ const ShadowEditor: React.FC<ShadowEditorProps> = ({ attrs, onChange }) => {
         <>
           <div className="property-row">
             <DraggableNumberInput
-              label="X"
+              label="阴影X"
               value={attrs['shadow-x'] || 0}
               codeAttr="shadow-x"
               onChange={(v) => onChange('shadow-x', v)}
             />
             <DraggableNumberInput
-              label="Y"
+              label="阴影Y"
               value={attrs['shadow-y'] || 0}
               codeAttr="shadow-y"
               onChange={(v) => onChange('shadow-y', v)}
             />
           </div>
-          <PropertyRow label="Blur" codeAttr="shadow-blur">
-            <DraggableNumberInput
-              label=""
-              value={attrs['shadow-blur'] || 3}
-              codeAttr="shadow-blur"
-              onChange={(v) => onChange('shadow-blur', v)}
-            />
-          </PropertyRow>
+          <DraggableNumberInput
+            label="阴影模糊"
+            codeAttr="shadow-blur"
+            value={attrs['shadow-blur'] || 3}
+            onChange={(v) => onChange('shadow-blur', v)}
+          />
           <ColorPicker
-            label="Color"
+            label="阴影色"
             codeAttr="shadow-color"
             value={attrs['shadow-color'] || '#000000'}
             onChange={(color) => onChange('shadow-color', color)}

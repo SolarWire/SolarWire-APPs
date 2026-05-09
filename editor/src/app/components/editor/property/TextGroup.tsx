@@ -16,13 +16,13 @@ interface TextGroupProps {
 const TextGroup: React.FC<TextGroupProps> = ({ element, text, appearance, type, onChange }) => {
   if (!text.show) return null;
   return (
-    <PropertyGroupTitle title="Text">
+    <PropertyGroupTitle title="文字">
       {'text' in element && (
-        <PropertyRow label="Content">
+        <PropertyRow label="内容">
           {text.isMultiline ? (
             <ResizableTextarea
               value={text.content}
-              placeholder="Enter text content..."
+              placeholder="输入文本内容..."
               onBlur={(v) => onChange('text', `"""${v}"""`)}
             />
           ) : (
@@ -31,11 +31,11 @@ const TextGroup: React.FC<TextGroupProps> = ({ element, text, appearance, type, 
         </PropertyRow>
       )}
       <div className="property-row">
-        <ColorPicker label="Color" codeAttr="c" value={appearance.textColor} onChange={(color) => onChange('c', color)} />
-        <DraggableNumberInput label="Size" value={text.fontSize} onChange={(v) => onChange('size', v)} codeAttr="size" />
+        <ColorPicker label="文字色" codeAttr="c" value={appearance.textColor} onChange={(color) => onChange('c', color)} />
+        <DraggableNumberInput label="字号" codeAttr="size" value={text.fontSize} onChange={(v) => onChange('size', v)} />
       </div>
       {text.showAlign && (
-        <PropertyRow label="Align" codeAttr="align">
+        <PropertyRow label="水平对齐" codeAttr="align">
           <div className="align-buttons">
             <button className={`align-btn${text.align === 'l' ? ' active' : ''}`} onClick={() => onChange('align', 'l')} title="Left">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="7" x2="9" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
@@ -50,7 +50,7 @@ const TextGroup: React.FC<TextGroupProps> = ({ element, text, appearance, type, 
         </PropertyRow>
       )}
       {text.showAlign && type !== 'text' && (
-        <PropertyRow label="V-Align" codeAttr="vertical-align">
+        <PropertyRow label="垂直对齐" codeAttr="vertical-align">
           <div className="align-buttons">
             <button className={`align-btn${text.verticalAlign === 't' ? ' active' : ''}`} onClick={() => onChange('vertical-align', 't')} title="Top">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
@@ -70,12 +70,8 @@ const TextGroup: React.FC<TextGroupProps> = ({ element, text, appearance, type, 
         <button className={`toggle-btn${text.textDecoration === 'underline' ? ' active' : ''}`} onClick={() => onChange('text-decoration', text.textDecoration === 'underline' ? undefined : 'underline')} title="Underline"><u>U</u></button>
         <button className={`toggle-btn${text.textDecoration === 'line-through' ? ' active' : ''}`} onClick={() => onChange('text-decoration', text.textDecoration === 'line-through' ? undefined : 'line-through')} title="Strikethrough"><s>S</s></button>
       </div>
-      <PropertyRow label="Line Height" codeAttr="line-height">
-        <DraggableNumberInput label="" value={text.lineHeight} onChange={(v) => onChange('line-height', v)} />
-      </PropertyRow>
-      <PropertyRow label="Letter Spacing" codeAttr="letter-spacing">
-        <DraggableNumberInput label="" value={text.letterSpacing} onChange={(v) => onChange('letter-spacing', v)} />
-      </PropertyRow>
+      <DraggableNumberInput label="行高" codeAttr="line-height" value={text.lineHeight} onChange={(v) => onChange('line-height', v)} />
+      <DraggableNumberInput label="字间距" codeAttr="letter-spacing" value={text.letterSpacing} onChange={(v) => onChange('letter-spacing', v)} />
     </PropertyGroupTitle>
   );
 };

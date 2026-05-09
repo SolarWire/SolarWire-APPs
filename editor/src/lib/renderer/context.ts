@@ -226,7 +226,7 @@ export function calculateCoordinate(
       break;
     default: {
       const exhaustiveCheck: never = coord;
-      throw new Error(`Unknown coordinate type: ${(exhaustiveCheck as any).type}`);
+      throw new Error(`Internal error: Unknown coordinate type "${(exhaustiveCheck as any).type}". This is a renderer bug, not a user input error.`);
     }
   }
 
@@ -406,16 +406,19 @@ export function getShadowAttribute(
   attributes: Record<string, string>,
   globalDefaults: GlobalDefaults
 ): ShadowConfig | null {
+  if (attributes['shadow-enabled'] === undefined && attributes['shadow-x'] === undefined) {
+    return null;
+  }
+
   const x = getNumberAttribute(attributes, globalDefaults, 'shadow-x', 0);
   const y = getNumberAttribute(attributes, globalDefaults, 'shadow-y', 0);
-  const blur = getNumberAttribute(attributes, globalDefaults, 'shadow-blur', 0);
-  const color = getColorAttribute(attributes, globalDefaults, 'shadow-color', 'transparent');
-  
-  // 如果所有值都是默认值，则没有阴影
+  const blur = getNumberAttribute(attributes, globalDefaults, 'shadow-blur', 3);
+  const color = getColorAttribute(attributes, globalDefaults, 'shadow-color', '#000000');
+
   if (x === 0 && y === 0 && blur === 0) {
     return null;
   }
-  
+
   return { x, y, blur, color };
 }
 

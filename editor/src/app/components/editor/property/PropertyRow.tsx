@@ -1,5 +1,5 @@
 import React, { useCallback, useRef } from 'react';
-import PropertyTooltip from './PropertyTooltip';
+import PropertyLabel from './PropertyLabel';
 import { PROPERTY_META } from './propertyMeta';
 
 interface PropertyRowProps {
@@ -8,30 +8,14 @@ interface PropertyRowProps {
   children: React.ReactNode;
 }
 
-const PropertyRow: React.FC<PropertyRowProps> = ({ label, codeAttr, children }) => {
-  const meta = codeAttr ? PROPERTY_META[codeAttr] : undefined;
-
-  const labelContent = (
-    <span className="property-label-text">{label}</span>
-  );
-
-  return (
-    <div className="property-row">
-      {meta ? (
-        <PropertyTooltip meta={meta}>
-          {labelContent}
-        </PropertyTooltip>
-      ) : (
-        <span className="property-label">
-          {labelContent}
-        </span>
-      )}
-      <div className="property-input">
-        {children}
-      </div>
+const PropertyRow: React.FC<PropertyRowProps> = ({ label, codeAttr, children }) => (
+  <div className="property-row">
+    <PropertyLabel codeAttr={codeAttr || ''} fallbackLabel={label} className="property-label-text" />
+    <div className="property-input">
+      {children}
     </div>
-  );
-};
+  </div>
+);
 
 interface PropertyPairProps {
   label1: string;
@@ -42,7 +26,6 @@ interface PropertyPairProps {
   onChange2: (value: any) => void;
   codeAttr1?: string;
   codeAttr2?: string;
-  type?: 'number' | 'text';
   step?: number;
 }
 
@@ -50,7 +33,6 @@ export const PropertyPair: React.FC<PropertyPairProps> = ({
   label1, value1, onChange1,
   label2, value2, onChange2,
   codeAttr1, codeAttr2,
-  type = 'number',
   step = 1
 }) => (
   <div className="property-row">
@@ -60,7 +42,7 @@ export const PropertyPair: React.FC<PropertyPairProps> = ({
 );
 
 interface DraggableNumberInputProps {
-  label: string;
+  label?: string;
   value: string | number;
   onChange: (value: any) => void;
   step?: number;
@@ -72,7 +54,11 @@ export const DraggableNumberInput: React.FC<DraggableNumberInputProps> = ({
   label, value, onChange, step = 1, codeAttr, placeholder
 }) => {
   const dragState = useRef<{ startX: number; startValue: number } | null>(null);
-  const meta = codeAttr ? PROPERTY_META[codeAttr] : undefined;
+
+  const hasLabel = (label && label.trim() !== '') || (codeAttr && PROPERTY_META[codeAttr]);
+  const displayText = (label && label.trim() !== '')
+    ? label
+    : (codeAttr && PROPERTY_META[codeAttr] ? PROPERTY_META[codeAttr].zhName : '');
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -102,31 +88,17 @@ export const DraggableNumberInput: React.FC<DraggableNumberInputProps> = ({
     document.addEventListener('mouseup', handleMouseUp);
   }, [value, onChange, step]);
 
-  const labelContent = (
-    <span>{label}</span>
-  );
-
   return (
     <div className="property-drag-input">
-      {meta ? (
-        <PropertyTooltip meta={meta}>
-          <span
-            className="property-drag-label"
-            onMouseDown={handleMouseDown}
-            title={`Drag to adjust. Shift+drag for ×10`}
-          >
-            {label}
-          </span>
-        </PropertyTooltip>
-      ) : (
-        <span
+      {hasLabel ? (
+        <PropertyLabel
+          codeAttr={codeAttr || ''}
+          fallbackLabel={displayText}
           className="property-drag-label"
           onMouseDown={handleMouseDown}
-          title={`Drag to adjust. Shift+drag for ×10`}
-        >
-          {label}
-        </span>
-      )}
+          title="拖拽调整数值，Shift+拖拽 ×10"
+        />
+      ) : null}
       <input
         type="number"
         value={value}

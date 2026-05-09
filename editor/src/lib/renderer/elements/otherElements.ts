@@ -798,8 +798,8 @@ function renderTableRow(
       expected: 'No "note" attribute on row element',
       found: `note="${note}"`,
       location: getElementLocationInfo(element),
-      reason: 'Notes are only supported on individual cell elements.',
-      solution: 'Remove the "note" attribute from the row element. Add notes to individual cells if needed.'
+      reason: 'Table row elements (#) do not support the note attribute. Notes are only supported on individual cell elements.',
+      solution: 'Remove the "note" attribute from the table row. Add notes to individual cells if needed, or move the note to the table element (##).'
     }, context.sourceInput, element.location));
   }
   

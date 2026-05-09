@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { HexColorPicker, HexColorInput, RgbColorPicker } from 'react-colorful';
-import PropertyTooltip from '../editor/property/PropertyTooltip';
+import PropertyLabel from '../editor/property/PropertyLabel';
 import { PROPERTY_META } from '../editor/property/propertyMeta';
 import './ColorPicker.css';
 
@@ -346,13 +346,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
 
   return (
     <div className="color-picker" ref={containerRef}>
-      {codeAttr && PROPERTY_META[codeAttr] ? (
-        <PropertyTooltip meta={PROPERTY_META[codeAttr]}>
-          <span className="color-picker-label">{label}</span>
-        </PropertyTooltip>
-      ) : (
-        <span className="color-picker-label">{label}</span>
-      )}
+      <PropertyLabel codeAttr={codeAttr || ''} fallbackLabel={label} className="color-picker-label" />
       <button
         className="color-picker-swatch"
         style={{ backgroundColor: value }}

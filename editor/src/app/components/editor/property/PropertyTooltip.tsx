@@ -46,13 +46,13 @@ const PropertyTooltip: React.FC<PropertyTooltipProps> = ({ meta, children }) => 
 
   const tooltipContent = visible && createPortal(
     <div className="property-tooltip" style={{ left: position.x, top: position.y }}>
-      <div className="tooltip-title">{meta.friendlyName}</div>
+      <div className="tooltip-title">{meta.zhName}</div>
       <div className="tooltip-code-attr">属性: {meta.codeAttr}</div>
       <div className="tooltip-section">
-        <div className="tooltip-label">SolarWire 语法:</div>
+        <div className="tooltip-label">SolarWire 语法</div>
         <div className="tooltip-code">{meta.syntax}</div>
       </div>
-      <div className="tooltip-desc">{meta.description}</div>
+      <div className="tooltip-desc">{meta.zhDescription}</div>
       <div className="tooltip-supported">
         支持: {meta.supportedTypes.join(', ')}
       </div>

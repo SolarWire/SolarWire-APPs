@@ -208,9 +208,11 @@ export function renderElement(element: Element, context: RenderContext, options?
         const elem = element as any;
         throw new Error(formatRenderError({
           title: `Unknown element type: "${elem.type}"`,
+          expected: 'rectangle, circle, text, placeholder, image, line, table, or table-row',
+          found: `"${elem.type}"`,
           location: getElementLocationInfo(elem),
           reason: 'The renderer does not recognize this element type.',
-          solution: 'Check if the element type is correct and supported.'
+          solution: 'Check if the element type is correct and supported. Supported types: [] (rectangle), () (circle), "" (text), [?] (placeholder), <> (image), -- (line), ## (table), # (table-row).'
         }, context.sourceInput, elem.location));
       }
     }

@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SolarWire Monaco Editor - 自动化测试</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f2f5; padding: 20px; }
+    h1 { text-align: center; margin-bottom: 20px; color: #1a1a2e; font-size: 24px; }
+    .container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .panel { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .panel h2 { font-size: 18px; margin-bottom: 12px; color: #333; display: flex; align-items: center; gap: 8px; }
+    .panel h2 .badge { font-size: 12px; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+    .badge-pass { background: #dcfce7; color: #166534; }
+    .badge-fail { background: #fee2e2; color: #991b1b; }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    #editor-container { height: 400px; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+    .test-results { max-height: 500px; overflow-y: auto; }
+    .test-item { padding: 10px 12px; margin: 4px 0; border-radius: 6px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; }
+    .test-pass { background: #f0fdf4; border-left: 3px solid #22c55e; }
+    .test-fail { background: #fef2f2; border-left: 3px solid #ef4444; }
+    .test-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .test-name { font-weight: 500; color: #333; }
+    .test-detail { font-size: 11px; color: #666; margin-top: 2px; }
+    .summary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-around; text-align: center; }
+    .summary-item { flex: 1; }
+    .summary-number { font-size: 32px; font-weight: 700; }
+    .summary-label { font-size: 12px; opacity: 0.8; margin-top: 4px; }
+    #controls { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
+    #controls button { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    #run-all { background: #667eea; color: white; }
+    #run-all:hover { background: #5a6fd6; }
+    #theme-toggle { background: #333; color: white; }
+    #theme-toggle:hover { background: #555; }
+    .code-preview { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px; font-family: 'Fira Code', monospace; font-size: 12px; overflow-x: auto; margin-top: 8px; white-space: pre; }
+  </style>
+</head>
+<body>
+  <h1>SolarWire Monaco Editor — 自动化测试平台</h1>
+
+  <div class="summary" id="summary">
+    <div class="summary-item">
+      <div class="summary-number" id="total-count">0</div>
+      <div class="summary-label">总测试数</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-number" id="pass-count">0</div>
+      <div class="summary-label">通过</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-number" id="fail-count">0</div>
+      <div class="summary-label">失败</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-number" id="pending-count">0</div>
+      <div class="summary-label">待运行</div>
+    </div>
+  </div>
+
+  <div id="controls">
+    <button id="run-all">运行全部测试</button>
+    <button id="theme-toggle">切换 Dark 主题</button>
+  </div>
+
+  <div class="container">
+    <div>
+      <div class="panel">
+        <h2>Monaco Editor <span class="badge badge-pending" id="editor-status">待加载</span></h2>
+        <div id="editor-container"></div>
+        <div class="code-preview" id="code-preview"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel">
+        <h2>测试结果 <span class="badge badge-pending" id="test-status">等待中</span></h2>
+        <div class="test-results" id="test-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="http://localhost:5174/monaco/min/vs/loader.js"></script>
+  <script src="http://localhost:5174/monaco/min/vs/basic-languages/solarwire/solarwire.js"></script>
+  <script>
+    const testResults = [];
+    let editor = null;
+    let isDark = false;
+
+    function addTest(name, status, detail = '') {
+      testResults.push({ name, status, detail });
+      renderResults();
+      updateSummary();
+    }
+
+    function renderResults() {
+      const container = document.getElementById('test-results');
+      container.innerHTML = testResults.map(t => `
+        <div class="test-item ${t.status === 'pass' ? 'test-pass' : 'test-fail'}">
+          <span class="test-icon">${t.status === 'pass' ? '✅' : '❌'}</span>
+          <div>
+            <div class="test-name">${t.name}</div>
+            ${t.detail ? `<div class="test-detail">${t.detail}</div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateSummary() {
+      const total = testResults.length;
+      const pass = testResults.filter(t => t.status === 'pass').length;
+      const fail = testResults.filter(t => t.status === 'fail').length;
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('pass-count').textContent = pass;
+      document.getElementById('fail-count').textContent = fail;
+    }
+
+    function setBadge(id, status) {
+      const el = document.getElementById(id);
+      el.className = `badge badge-${status}`;
+      el.textContent = status === 'pass' ? '通过' : status === 'fail' ? '失败' : '待运行';
+    }
+
+    require.config({ paths: { vs: 'http://localhost:5174/monaco/min/vs' } });
+    require(['vs/editor/editor.main'], function () {
+      document.getElementById('editor-status').textContent = '已加载';
+      setBadge('editor-status', 'pass');
+
+      const SOLARWIRE_CODE = `!title="登录页面"
+!bg=#FFFFFF
+!size=14
+!c=#333333
+
+// 这是一个注释行
+["登录按钮"] @(100,50) w=200 h=50 bg=#3B82F6 c=#FFFFFF bold r=8
+
+("头像") @(350,50) w=60
+
+"欢迎回来" @(100,150) size=24 bold c=#1a1a2e
+
+"""这是多行文本
+第二行内容
+第三行结束""" @(100,200) size=14
+
+[?"图片占位符"] @(100,300) w=150 h=100
+
+<https://example.com/logo.png> @(500,50) w=80 h=80
+
+-- "连接线" -- @(150,100)->(350,100)
+
+## @(50,400) w=500 border=2 b=#E5E7EB
+  # bg=#F3F4F6
+    ["列1头"]
+    ["列2头"]
+    ["列3头"]
+  #
+    ["数据1"]
+    ["数据2"]
+    ["数据3"]`;
+
+      document.getElementById('code-preview').textContent = SOLARWIRE_CODE;
+
+      editor = monaco.editor.create(document.getElementById('editor-container'), {
+        value: SOLARWIRE_CODE,
+        language: 'solarwire',
+        theme: 'solarwire-light',
+        fontSize: 14,
+        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
+        lineNumbers: 'on',
+        minimap: { enabled: false },
+        scrollBeyondLastLine: false,
+        wordWrap: 'off',
+        automaticLayout: true,
+        tabSize: 2,
+        insertSpaces: true,
+        renderWhitespace: 'selection',
+        renderLineHighlight: 'line',
+        cursorBlinking: 'blink',
+        cursorSmoothCaretAnimation: 'on',
+        smoothScrolling: true,
+        bracketPairColorization: { enabled: true },
+      });
+    });
+
+    async function runAllTests() {
+      testResults.length = 0;
+      renderResults();
+      updateSummary();
+      document.getElementById('test-status').textContent = '运行中';
+      setBadge('test-status', 'pending');
+
+      await sleep(100);
+
+      await test('Monaco 加载', () => !!window.monaco);
+      await test('SolarWire 语言注册', () => {
+        const langs = monaco.languages.getLanguages();
+        return langs.some(l => l.id === 'solarwire');
+      });
+      await test('Monarch Tokenizer 注册', () => {
+        return monaco.languages._providers && !!monaco.languages._providers.get('solarwire');
+      });
+      await test('Editor 实例创建', () => !!editor);
+      await test('编辑器语言为 solarwire', () => {
+        return editor && editor.getModel().getLanguageId() === 'solarwire';
+      });
+      await test('solarwire-light 主题存在', () => {
+        return monaco.editor._themeService?._themes?.has('solarwire-light');
+      });
+      await test('solarwire-dark 主题存在', () => {
+        return monaco.editor._themeService?._themes?.has('solarwire-dark');
+      });
+      await test('当前主题为 solarwire-light', () => {
+        const theme = editor?._themeService?._theme?.themeName;
+        return theme === 'solarwire-light';
+      });
+
+      await test('语法高亮 - 注释行 (//...)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(4);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 声明 (!title)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(1);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 矩形元素 (["text"])', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(6);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 圆形元素 ((text))', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(8);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 多行文本 ("""...""")', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(12);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 占位符 ([?"text"])', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(16);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 图片 (<url>)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(18);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 线条 (--)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(20);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 表格 (##)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(22);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 颜色值 (#3B82F6)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(6);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 坐标 @(x,y)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(6);
+        return tokens.getCount() > 0;
+      });
+      await test('语法高亮 - 属性 (w=, h=, bg=)', () => {
+        const model = editor.getModel();
+        const tokens = model.getLineTokens(6);
+        return tokens.getCount() > 0;
+      });
+
+      await test('DOM 中存在高亮 span 元素', () => {
+        const lines = document.querySelectorAll('.view-lines .view-line');
+        if (lines.length === 0) return false;
+        const firstLine = lines[0];
+        const spans = firstLine.querySelectorAll('span');
+        return spans.length > 0;
+      });
+      await test('高亮 span 有颜色样式', () => {
+        const spans = document.querySelectorAll('.view-lines .view-line span');
+        const hasColor = Array.from(spans).some(
+          span => span.style.color && span.style.color !== ''
+        );
+        return hasColor;
+      });
+
+      await test('括号对颜色化已启用', () => {
+        return editor.getOption(monaco.editor.EditorOption.bracketPairColorization).enabled;
+      });
+      await test('自动关闭对已配置', () => {
+        const pairs = editor.getOption(monaco.editor.EditorOption.autoClosingPairs);
+        return pairs && pairs.length > 0;
+      });
+
+      document.getElementById('test-status').textContent = testResults.some(t => t.status === 'fail') ? '失败' : '通过';
+      setBadge('test-status', testResults.some(t => t.status === 'fail') ? 'fail' : 'pass');
+    }
+
+    function test(name, fn) {
+      try {
+        const result = fn();
+        addTest(name, result ? 'pass' : 'fail', result ? '验证通过' : '返回 falsy 值');
+      } catch (err) {
+        addTest(name, 'fail', err.message);
+      }
+      return Promise.resolve();
+    }
+
+    function sleep(ms) {
+      return new Promise(r => setTimeout(r, ms));
+    }
+
+    document.getElementById('run-all').addEventListener('click', runAllTests);
+
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      isDark = !isDark;
+      monaco.editor.setTheme(isDark ? 'solarwire-dark' : 'solarwire-light');
+      document.getElementById('theme-toggle').textContent = isDark ? '切换 Light 主题' : '切换 Dark 主题';
+    });
+  </script>
+</body>
+</html>

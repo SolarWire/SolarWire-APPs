@@ -340,6 +340,138 @@ describe('deleteLineAttribute', () => {
     const result = deleteLineAttribute(src, 1, 'r');
     expect(result).not.toContain('r=');
   });
+
+  it('删除 shadow-enabled', () => {
+    const src = '[] @(10, 20) shadow-enabled shadow-x=0 shadow-y=0 shadow-blur=3 shadow-color=#000000';
+    const result = deleteLineAttribute(src, 1, 'shadow-enabled');
+    expect(result).not.toContain('shadow-enabled');
+  });
+
+  it('删除 shadow-x', () => {
+    const src = '[] @(10, 20) shadow-x=2';
+    const result = deleteLineAttribute(src, 1, 'shadow-x');
+    expect(result).not.toContain('shadow-x=');
+  });
+
+  it('删除 text-decoration', () => {
+    const src = '"text" @(10, 20) text-decoration=underline';
+    const result = deleteLineAttribute(src, 1, 'text-decoration');
+    expect(result).not.toContain('text-decoration=');
+  });
+});
+
+describe('updateLineAttribute - text 元素专属属性', () => {
+  it('text: 新增 bg', () => {
+    const src = '"Hello" @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'bg', '#FF0000');
+    expect(result).toContain('bg=#FF0000');
+  });
+
+  it('text: 替换 bg', () => {
+    const src = '"Hello" @(10, 20) bg=#FFF';
+    const result = updateLineAttribute(src, 1, 'bg', '#000');
+    expect(result).toContain('bg=#000');
+    expect(result).not.toContain('bg=#FFF');
+  });
+
+  it('text: 新增 align', () => {
+    const src = '"Hello" @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'align', 'c');
+    expect(result).toContain('align=c');
+  });
+
+  it('text: 替换 align', () => {
+    const src = '"Hello" @(10, 20) align=l';
+    const result = updateLineAttribute(src, 1, 'align', 'r');
+    expect(result).toContain('align=r');
+    expect(result).not.toContain('align=l');
+  });
+
+  it('text: 新增 text-decoration underline', () => {
+    const src = '"Hello" @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'text-decoration', 'underline');
+    expect(result).toContain('text-decoration=underline');
+  });
+
+  it('text: 新增 text-decoration line-through', () => {
+    const src = '"Hello" @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'text-decoration', 'line-through');
+    expect(result).toContain('text-decoration=line-through');
+  });
+
+  it('text: 替换 text-decoration', () => {
+    const src = '"Hello" @(10, 20) text-decoration=underline';
+    const result = updateLineAttribute(src, 1, 'text-decoration', 'line-through');
+    expect(result).toContain('text-decoration=line-through');
+    expect(result).not.toContain('text-decoration=underline');
+  });
+
+  it('text: 删除 text-decoration（设为 undefined）', () => {
+    const src = '"Hello" @(10, 20) text-decoration=underline';
+    const result = deleteLineAttribute(src, 1, 'text-decoration');
+    expect(result).not.toContain('text-decoration');
+  });
+});
+
+describe('updateLineAttribute - 阴影属性', () => {
+  it('新增 shadow-enabled', () => {
+    const src = '[] @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'shadow-enabled', true);
+    expect(result).toContain('shadow-enabled');
+  });
+
+  it('移除 shadow-enabled', () => {
+    const src = '[] @(10, 20) shadow-enabled';
+    const result = updateLineAttribute(src, 1, 'shadow-enabled', undefined);
+    expect(result).not.toContain('shadow-enabled');
+  });
+
+  it('新增 shadow-x', () => {
+    const src = '[] @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'shadow-x', 0);
+    expect(result).toContain('shadow-x=0');
+  });
+
+  it('新增 shadow-y', () => {
+    const src = '[] @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'shadow-y', 0);
+    expect(result).toContain('shadow-y=0');
+  });
+
+  it('新增 shadow-blur', () => {
+    const src = '[] @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'shadow-blur', 3);
+    expect(result).toContain('shadow-blur=3');
+  });
+
+  it('新增 shadow-color', () => {
+    const src = '[] @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'shadow-color', '#000000');
+    expect(result).toContain('shadow-color=#000000');
+  });
+
+  it('替换 shadow-blur', () => {
+    const src = '[] @(10, 20) shadow-blur=3';
+    const result = updateLineAttribute(src, 1, 'shadow-blur', 5);
+    expect(result).toContain('shadow-blur=5');
+    expect(result).not.toContain('shadow-blur=3');
+  });
+
+  it('text: 新增阴影属性', () => {
+    const src = '"Hello" @(10, 20)';
+    const result = updateLineAttribute(src, 1, 'shadow-enabled', true);
+    expect(result).toContain('shadow-enabled');
+  });
+
+  it('删除所有阴影属性', () => {
+    const src = '[] @(10, 20) shadow-enabled shadow-x=0 shadow-y=0 shadow-blur=3 shadow-color=#000000';
+    let result = deleteLineAttribute(src, 1, 'shadow-enabled');
+    result = deleteLineAttribute(result, 1, 'shadow-x');
+    result = deleteLineAttribute(result, 1, 'shadow-y');
+    result = deleteLineAttribute(result, 1, 'shadow-blur');
+    result = deleteLineAttribute(result, 1, 'shadow-color');
+    expect(result).not.toContain('shadow');
+  });
 });
 
 describe('updateLineCoords', () => {

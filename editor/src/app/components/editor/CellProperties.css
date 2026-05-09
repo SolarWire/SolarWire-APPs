@@ -34,23 +34,12 @@
   gap: 6px;
 }
 
-.property-row-inline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
 .prop-label {
   font-size: 11px;
   color: var(--text-muted);
   min-width: 32px;
   flex-shrink: 0;
   white-space: nowrap;
-}
-
-.prop-label-wide {
-  min-width: 48px;
 }
 
 .align-btns {
@@ -98,7 +87,7 @@
   color: var(--text-muted);
   border-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   transition: all 0.15s;
   white-space: nowrap;
 }
@@ -154,40 +143,8 @@
   color: var(--text-muted);
 }
 
-.padding-grid {
+.cell-properties .padding-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  flex: 1;
-}
-
-.padding-field {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.padding-field input {
-  flex: 1;
-  min-width: 0;
-  padding: 4px 6px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  font-size: 11px;
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  box-sizing: border-box;
-  outline: none;
-}
-
-.padding-field input:focus {
-  border-color: var(--accent-color);
-}
-
-.padding-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  min-width: 14px;
-  text-align: center;
-  flex-shrink: 0;
 }

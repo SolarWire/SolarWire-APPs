@@ -1,9 +1,19 @@
----
-name: "solarwire-code-to-prd"
-description: "Use when user wants to generate PRD from existing codebase, understand project structure, or create documentation from code"
----
+# Code to PRD Workflow
 
-# Code to PRD Converter
+## Inlined Syntax Rules (CRITICAL)
+
+- note必须用三引号: `note="""..."""`，绝不使用 `note="..."` 或 `note='...'`
+- SolarWire代码块用 ` ```solarwire ` 开头，` ``` ` 结尾
+- 边框颜色用 `b=`，边框宽度用 `s=`
+- 圆形用 `("text")`，圆角矩形用 `["text"] r=N`
+- 表格单元格和行不能指定 @(x,y)、w、h
+- 幻觉属性禁止：multiline, truncate, stroke, strokeWidth
+- 所有元素必须有坐标 @(x,y)
+- See [syntax.md](syntax.md) for complete syntax reference
+- See [note-guide.md](note-guide.md) for note writing rules
+- See [standards.md](standards.md) for color/spacing/scenario standards
+
+---
 
 ## Configuration
 
@@ -257,7 +267,7 @@ Extract business rules from code:
 
 **Goal: Generate complete PRD document**
 
-Follow the exact PRD structure from `solarwire-prd` skill:
+Follow the exact PRD structure from workflow-prd.md:
 
 ```markdown
 # Product Requirements Document - [Project Name]
@@ -578,8 +588,6 @@ sequenceDiagram
 
 ## Note Writing Guidelines
 
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for note writing guidelines (see note-writing-guide.md)
-
 Key rules when generating notes from code analysis:
 | Code Pattern | Note Content |
 |--------------|--------------|
@@ -594,16 +602,11 @@ Key rules when generating notes from code analysis:
 
 ## Multi-language (i18n) Support
 
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for i18n format rules (see note-writing-guide.md)
-
 CRITICAL: Only add i18n when user explicitly confirms multi-language support is needed.
 
 ---
 
 ## SolarWire Wireframe Specifications
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-syntax for syntax rules
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for wireframe standards (see wireframe-standards.md)
 
 Key principles when generating wireframes from code:
 1. All elements must have coordinates @(x,y)
@@ -635,7 +638,7 @@ All SolarWire wireframes MUST be enclosed in standard Markdown code blocks.
 ```
 </solarwire>       // Never use HTML-like closing tags
 <end>              // Never use custom closing tags
-````
+```
 
 **Rule**: Always use triple backticks with `solarwire` language tag. Opening is ` ```solarwire `, closing is ` ``` `. Nothing else.
 
@@ -668,46 +671,10 @@ Table cells are auto-sized by the table renderer. The `w` and `h` attributes are
     ["Value"]
 ```
 
-**Rule**: 
+**Rule**:
 - Table (`##`): can have `@(x,y)`, `w`, `h`
 - Table row (`#`): can have `bg`, `c`, `b`, `s`, etc. but NOT `@(x,y)`, `w`, `h`
 - Table cells: can have `bg`, `c`, `b`, `s`, `colspan`, `rowspan`, etc. but NOT `@(x,y)`, `w`, `h`
-
----
-
-## Syntax Reference
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-syntax for complete syntax reference and attribute reference
-
----
-
-## Color & Spacing Standards
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for color and spacing standards (see wireframe-standards.md)
-
----
-
-## Scenario Specifications
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for scenario specifications (see wireframe-standards.md)
-
----
-
-## Modal Presentation Rules
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for modal presentation rules (see wireframe-standards.md)
-
----
-
-## Data Format Specifications
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for data format specifications (see note-writing-guide.md)
-
----
-
-## Wireframe Quality
-
-**REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for wireframe quality guidelines (see wireframe-standards.md)
 
 ---
 
@@ -753,27 +720,19 @@ my-app/
 
 ---
 
-## Dependencies
-
-```
-REQUIRED SUB-SKILL: solarwire-syntax
-REQUIRED SUB-SKILL: solarwire-prd
-```
-
----
-
 ## Important Reminders
 
 1. **Read All Code** - Analyze entire codebase, not just entry files
 2. **Resolve Full Component Tree** - Recursively trace every component reference until reaching actual UI elements. NEVER stop at the page level
 3. **Trace State & Data Flow** - Follow custom hooks, context, and state management to understand full behavior
 4. **Understand Context** - Infer business meaning from code patterns
-5. **Follow SolarWire Syntax** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-syntax
-6. **Generate Complete PRD** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for PRD template
+5. **Follow SolarWire Syntax** - Use syntax rules from [syntax.md](syntax.md)
+6. **Generate Complete PRD** - Use PRD template from [workflow-prd.md](workflow-prd.md)
 7. **Document APIs** - Extract all endpoints from backend routes
 8. **Document Data Models** - Extract all schemas from database models
 9. **Infer Business Logic** - Extract rules from validation and processing code
 10. **Generate Wireframes** - Create SolarWire for every page/component
-11. **Add Notes** - **REQUIRED SUB-SKILL:** Use solarwire:solarwire-prd for note writing rules
+11. **Add Notes** - Use note writing rules from [note-guide.md](note-guide.md)
 12. **Output to .solarwire** - Save PRD to `.solarwire/[project-name]/solarwire-prd.md`
 13. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
+14. **Resolve Full Component Tree** - Must recursively resolve all component references before generating wireframes

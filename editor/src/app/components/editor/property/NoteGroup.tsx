@@ -8,10 +8,10 @@ interface NoteGroupProps {
 }
 
 const NoteGroup: React.FC<NoteGroupProps> = ({ value, onChange }) => (
-  <PropertyGroupTitle title="Note" defaultCollapsed={false}>
+  <PropertyGroupTitle title="备注" defaultCollapsed={false}>
     <ResizableTextarea
       value={value}
-      placeholder="Add a note..."
+      placeholder="添加备注..."
       onBlur={(v) => onChange('note', v)}
     />
   </PropertyGroupTitle>
