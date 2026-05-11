@@ -5,6 +5,7 @@
 - Border color uses `b=`, border width uses `s=`
 - Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
 - Table cells and rows cannot specify @(x,y), w, h
+- Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
 - Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
 - All elements must have coordinates @(x,y)
 - Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
@@ -13,6 +14,21 @@
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
+
+## Inlined Note Writing Rules (CRITICAL)
+
+- Note first line: functional description (e.g., "Login button"), NOT element type (e.g., "[Primary Button]")
+- Note structure: First line = element definition; First level = numbered (1. 2. 3.); Second level = dash (-); Third level = double dash (--)
+- EARS description style: Use condition-action patterns
+  - Always [behavior] - for always-true behaviors
+  - When [event], [behavior] - for event-triggered behaviors
+  - While [condition], [behavior] - for state-dependent behaviors
+  - If [condition], [behavior] - for exception/boundary handling
+- Avoid bare enumerations (BAD: "Status: 1=Active"; GOOD: "While status is Active, show green tag 'Active'")
+- Error messages MUST be quoted exactly as user sees them
+- Forbidden in notes: visual details, technical implementation, API endpoints, CSS properties
+- For modified elements: note must describe before→after change
+- See [note-guide.md](note-guide.md) for complete note writing reference
 
 # Technical Design Document Generator
 
@@ -806,3 +822,4 @@ For important design decisions, document the rationale:
 18. **Soft Delete Preferred** - Use `deleted_at` instead of physical delete
 19. **UUID Primary Keys** - Use UUID for all primary keys
 20. **Audit Fields** - Include `created_at`, `updated_at` on all tables
+21. **Document Language** - Write documents in the user's communication language. If unsure, ask the user.

@@ -1,6 +1,7 @@
 import type { BaseElement, TableElement, TableRowElement } from '../../lib/parser/types';
 
 export interface TableCell {
+  type: string;
   text: string;
   colspan: number;
   rowspan: number;
@@ -70,6 +71,7 @@ export function parseTableFromSource(
       row.children?.forEach((cellEl) => {
         const attrs = cellEl.attributes || {};
         cells.push({
+          type: cellEl.type || 'text',
           text: (cellEl as BaseElement & { text?: string }).text || '',
           colspan: parseInt(attrs.colspan) || 1,
           rowspan: parseInt(attrs.rowspan) || 1,
@@ -205,9 +207,21 @@ export function serializeTableToSource(
       if (cell.attrs.pl) cellAttrParts.push(`pl=${cell.attrs.pl}`);
 
       const text = cell.text || '';
-      const quotedText = text.includes('\n') || text.includes('"""')
-        ? `"""${text.replace(/"""/g, '\\"""')}"""`
-        : `"${text.replace(/"/g, '\\"')}"`;
+      const cellType = cell.type || 'text';
+      let quotedText: string;
+      if (cellType === 'rectangle' || cellType === 'circle') {
+        quotedText = text.includes('\n') || text.includes('"""')
+          ? `["""${text.replace(/"""/g, '\\"""')}"""]`
+          : `["${text.replace(/"/g, '\\"')}"]`;
+      } else if (cellType === 'placeholder') {
+        quotedText = text.includes('\n') || text.includes('"""')
+          ? `[?"""${text.replace(/"""/g, '\\"""')}"""]`
+          : `[?"${text.replace(/"/g, '\\"')}"]`;
+      } else {
+        quotedText = text.includes('\n') || text.includes('"""')
+          ? `"""${text.replace(/"""/g, '\\"""')}"""`
+          : `"${text.replace(/"/g, '\\"')}"`;
+      }
 
       const cellAttrsStr = cellAttrParts.length > 0 ? ` ${cellAttrParts.join(' ')}` : '';
       newTableLines.push(`    ${quotedText}${cellAttrsStr}`);

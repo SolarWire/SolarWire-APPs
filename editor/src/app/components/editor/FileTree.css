@@ -50,3 +50,34 @@
 .tree-children {
   padding-left: 16px;
 }
+
+.tree-item-badge {
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: 10px;
+  color: var(--accent-color, #f0c040);
+  border: 1px solid var(--accent-opacity-35, rgba(240, 192, 64, 0.35));
+  border-radius: 3px;
+  padding: 0 5px;
+  cursor: default;
+  position: relative;
+  flex-shrink: 0;
+  line-height: 18px;
+}
+
+.tree-item-badge-tooltip {
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: var(--bg-primary, #1e1e1e);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}

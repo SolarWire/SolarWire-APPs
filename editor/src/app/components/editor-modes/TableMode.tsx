@@ -1,40 +1,32 @@
 import React, { useCallback } from 'react';
 import { useFileStore } from '../../stores/fileStore';
+import { feedback } from '../../stores/feedbackStore';
 import './TableMode.css';
 
 const TableMode: React.FC = () => {
   const { selectedFile } = useFileStore();
 
-  // Handle opening file with system default program
-  const handleOpenWithSystem = useCallback(async () => {
+  const handleShowInFolder = useCallback(async () => {
     if (!selectedFile?.path) return;
-    
+
     try {
       const api = (window as any).api;
-      if (api && typeof api.system?.openWithSystem === 'function') {
-        const result = await api.system.openWithSystem(selectedFile.path);
-        if (!result.success) {
-          console.error('Failed to open file:', result.error);
-        }
-      } else if (api && typeof api.system?.openPath === 'function') {
-        const result = await api.system.openPath(selectedFile.path);
-        if (!result.success) {
-          console.error('Failed to open file:', result.error);
-        }
+      if (api && typeof api.showItemInFolder === 'function') {
+        await api.showItemInFolder(selectedFile.path);
       } else {
-        console.error('System API not available');
+        console.warn('showItemInFolder not available in current environment');
+        feedback.toast.error('此功能仅在Electron应用中可用');
       }
-    } catch (error) {
-      console.error('Failed to open file with system:', error);
+    } catch (err) {
+      console.error('Failed to show item in folder:', err);
+      feedback.toast.error('打开资源管理器失败');
     }
   }, [selectedFile]);
 
-  // Get file extension for display
   const getFileExtension = (filePath: string) => {
     return filePath.split('.').pop()?.toLowerCase() || '';
   };
 
-  // Get file icon based on extension
   const getFileIcon = (extension: string) => {
     switch (extension) {
       case 'xlsx':
@@ -47,7 +39,6 @@ const TableMode: React.FC = () => {
     }
   };
 
-  // Get file type name
   const getFileTypeName = (extension: string) => {
     switch (extension) {
       case 'xlsx':
@@ -87,15 +78,15 @@ const TableMode: React.FC = () => {
       
       <div className="table-message">
         <p>此文件类型需要在系统默认程序中打开编辑。</p>
-        <p>点击下方按钮用系统默认程序打开此文件。</p>
+        <p>点击下方按钮在资源管理器中查看此文件。</p>
       </div>
       
       <div className="table-actions">
         <button 
           className="table-open-button"
-          onClick={handleOpenWithSystem}
+          onClick={handleShowInFolder}
         >
-          🚀 用系统默认程序打开
+          📂 在资源管理器中查看
         </button>
       </div>
     </div>

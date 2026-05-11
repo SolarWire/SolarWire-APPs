@@ -19,6 +19,16 @@ const parseVal = (v: string | undefined): number => {
   return parseInt(v) || 0;
 };
 
+const TYPE_ZH_NAME: Record<string, string> = {
+  text: '文本',
+  rectangle: '矩形',
+  circle: '圆形',
+  placeholder: '占位符',
+  image: '图片',
+  line: '线条',
+  icon: '图标',
+};
+
 const CellProperties: React.FC<CellPropertiesProps> = ({
   tableData,
   selectedCells,
@@ -123,14 +133,14 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   };
 
   const commonBg = getCommonAttr('bg');
+  const commonBorderColor = getCommonAttr('b');
+  const commonBorderSize = getCommonAttr('s');
   const commonColor = getCommonAttr('c');
   const commonSize = getCommonAttr('size');
   const commonAlign = getCommonAttr('align');
   const commonVAlign = getCommonAttr('vertical-align');
   const commonBold = getCommonAttr('bold');
   const commonItalic = getCommonAttr('italic');
-  const commonLineHeight = getCommonAttr('line-height');
-  const commonLetterSpacing = getCommonAttr('letter-spacing');
   const commonTextDecoration = getCommonAttr('text-decoration');
   const commonPl = getCommonAttr('pl');
   const commonPt = getCommonAttr('pt');
@@ -138,6 +148,8 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const commonPb = getCommonAttr('pb');
 
   const effectiveBg = commonBg || '#ffffff';
+  const effectiveBorderColor = commonBorderColor || '#333333';
+  const effectiveBorderSize = commonBorderSize || '1';
   const effectiveColor = commonColor || '#000000';
   const effectiveAlign = commonAlign || '';
   const effectiveVAlign = commonVAlign || '';
@@ -145,14 +157,14 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const effectiveItalic = commonItalic === 'true';
 
   const mixedBg = isMixed('bg');
+  const mixedBorderColor = isMixed('b');
+  const mixedBorderSize = isMixed('s');
   const mixedColor = isMixed('c');
   const mixedSize = isMixed('size');
   const mixedAlign = isMixed('align');
   const mixedVAlign = isMixed('vertical-align');
   const mixedBold = isMixed('bold');
   const mixedItalic = isMixed('italic');
-  const mixedLineHeight = isMixed('line-height');
-  const mixedLetterSpacing = isMixed('letter-spacing');
   const mixedTextDecoration = isMixed('text-decoration');
   const mixedPl = isMixed('pl');
   const mixedPt = isMixed('pt');
@@ -166,8 +178,6 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const effectivePb = commonPb || '';
 
   const textDecorationValues = cellKeys.map(key => getEffectiveAttr(key, 'text-decoration'));
-  const hasUnderline = textDecorationValues.some(v => v === 'underline');
-  const hasLineThrough = textDecorationValues.some(v => v === 'line-through');
   const allUnderline = cellKeys.length > 0 && textDecorationValues.every(v => v === 'underline');
   const allLineThrough = cellKeys.length > 0 && textDecorationValues.every(v => v === 'line-through');
 
@@ -186,7 +196,20 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
     title = `${cellKeys.length} 个单元格`;
   }
 
-  const showRowAttrs = fullySelectedRows.size > 0;
+  const cellTypes = new Set(cellKeys.map(key => {
+    const { cell } = getCellInfo(key);
+    return cell?.type || 'text';
+  }));
+  const singleCellType = cellTypes.size === 1 ? [...cellTypes][0] : null;
+
+  const showFill = singleCellType !== 'image' && singleCellType !== 'line';
+  const showBorder = singleCellType !== 'text' && singleCellType !== 'image' && singleCellType !== 'line';
+  const showTextColor = singleCellType !== 'image' && singleCellType !== 'line';
+  const showFontSize = singleCellType !== 'image' && singleCellType !== 'line';
+  const showAlign = singleCellType !== 'text' && singleCellType !== 'image' && singleCellType !== 'line';
+  const showVAlign = singleCellType !== 'text' && singleCellType !== 'image' && singleCellType !== 'line';
+  const showTextStyle = singleCellType !== 'image' && singleCellType !== 'line' && singleCellType !== 'circle';
+  const showPadding = singleCellType === 'rectangle' || singleCellType === 'placeholder';
 
   const toggleTextDecoration = (decoration: 'underline' | 'line-through') => {
     const isAllActive = decoration === 'underline' ? allUnderline : allLineThrough;
@@ -213,92 +236,122 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
 
   return (
     <div className="cell-properties">
-      <h4 className="properties-title">{title}</h4>
+      <h4 className="properties-title">
+        {title}
+        {singleCellType && <span className="cell-type-tag">{TYPE_ZH_NAME[singleCellType] || singleCellType}</span>}
+      </h4>
 
-      <ColorPicker
-        label="填充色"
-        codeAttr="bg"
-        value={effectiveBg}
-        onChange={(color) => handleBatchChange('bg', color)}
-      />
+      {showFill && (
+        <ColorPicker
+          label="填充色"
+          codeAttr="bg"
+          value={effectiveBg}
+          onChange={(color) => handleBatchChange('bg', color)}
+        />
+      )}
 
-      <ColorPicker
-        label="文字色"
-        codeAttr="c"
-        value={effectiveColor}
-        onChange={(color) => handleBatchChange('c', color)}
-      />
-
-      <DraggableNumberInput
-        label="字号"
-        codeAttr="size"
-        value={mixedSize ? '' : (parseInt(commonSize || '12') || 12)}
-        onChange={(v) => handleBatchChange('size', v.toString())}
-        placeholder={mixedSize ? '—' : undefined}
-      />
-
-      <div className="property-row">
-        <PropertyLabel codeAttr="align" className="property-label-text" />
-        <div className="align-buttons">
-          <button className={`align-btn ${!mixedAlign && effectiveAlign === 'l' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'l')} title="Left">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="7" x2="9" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
-          </button>
-          <button className={`align-btn ${!mixedAlign && effectiveAlign === 'c' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'c')} title="Center">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="3.5" y1="7" x2="10.5" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
-          </button>
-          <button className={`align-btn ${!mixedAlign && effectiveAlign === 'r' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'r')} title="Right">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="5" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="property-row">
-        <PropertyLabel codeAttr="vertical-align" className="property-label-text" />
-        <div className="align-buttons">
-          <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 't' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 't')} title="Top">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
-          </button>
-          <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'm' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'm')} title="Middle">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5.5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
-          </button>
-          <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'b' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'b')} title="Bottom">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="8" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <div className="property-row toggle-row">
-        <PropertyLabel codeAttr="" fallbackLabel="样式" className="property-label-text toggle-row-label" />
-        <button
-          className={`toggle-btn ${mixedBold ? 'mixed' : ''} ${!mixedBold && effectiveBold ? 'active' : ''}`}
-          onClick={() => handleBatchChange('bold', !effectiveBold)}
-        ><b>B</b></button>
-        <button
-          className={`toggle-btn ${mixedItalic ? 'mixed' : ''} ${!mixedItalic && effectiveItalic ? 'active' : ''}`}
-          onClick={() => handleBatchChange('italic', !effectiveItalic)}
-        ><i>I</i></button>
-        <button
-          className={`toggle-btn ${mixedTextDecoration ? 'mixed' : ''} ${!mixedTextDecoration && allUnderline ? 'active' : ''}`}
-          onClick={() => toggleTextDecoration('underline')}
-        ><u>U</u></button>
-        <button
-          className={`toggle-btn ${mixedTextDecoration ? 'mixed' : ''} ${!mixedTextDecoration && allLineThrough ? 'active' : ''}`}
-          onClick={() => toggleTextDecoration('line-through')}
-        ><s>S</s></button>
-      </div>
-
-      <div className="padding-section">
-        <div className="padding-grid">
-          <DraggableNumberInput label="左边距" codeAttr="pl" value={mixedPl ? '' : parseVal(effectivePl)} onChange={(v) => handleBatchChange('pl', v.toString())} placeholder={mixedPl ? '—' : undefined} />
-          <DraggableNumberInput label="上边距" codeAttr="pt" value={mixedPt ? '' : parseVal(effectivePt)} onChange={(v) => handleBatchChange('pt', v.toString())} placeholder={mixedPt ? '—' : undefined} />
-          <DraggableNumberInput label="右边距" codeAttr="pr" value={mixedPr ? '' : parseVal(effectivePr)} onChange={(v) => handleBatchChange('pr', v.toString())} placeholder={mixedPr ? '—' : undefined} />
-          <DraggableNumberInput label="下边距" codeAttr="pb" value={mixedPb ? '' : parseVal(effectivePb)} onChange={(v) => handleBatchChange('pb', v.toString())} placeholder={mixedPb ? '—' : undefined} />
-        </div>
-      </div>
-
-      {showRowAttrs && (
+      {showBorder && (
         <>
+          <ColorPicker
+            label="边框色"
+            codeAttr="b"
+            value={effectiveBorderColor}
+            onChange={(color) => handleBatchChange('b', color)}
+          />
+          <DraggableNumberInput
+            label="边框宽度"
+            codeAttr="s"
+            value={mixedBorderSize ? '' : (parseInt(effectiveBorderSize) || 1)}
+            onChange={(v) => handleBatchChange('s', v.toString())}
+            placeholder={mixedBorderSize ? '—' : undefined}
+          />
         </>
+      )}
+
+      {showTextColor && (
+        <ColorPicker
+          label="文字色"
+          codeAttr="c"
+          value={effectiveColor}
+          onChange={(color) => handleBatchChange('c', color)}
+        />
+      )}
+
+      {showFontSize && (
+        <DraggableNumberInput
+          label="字号"
+          codeAttr="size"
+          value={mixedSize ? '' : (parseInt(commonSize || '12') || 12)}
+          onChange={(v) => handleBatchChange('size', v.toString())}
+          placeholder={mixedSize ? '—' : undefined}
+        />
+      )}
+
+      {showAlign && (
+        <div className="property-row">
+          <PropertyLabel codeAttr="align" className="property-label-text" />
+          <div className="align-buttons">
+            <button className={`align-btn ${!mixedAlign && effectiveAlign === 'l' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'l')} title="Left">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="7" x2="9" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+            </button>
+            <button className={`align-btn ${!mixedAlign && effectiveAlign === 'c' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'c')} title="Center">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="3.5" y1="7" x2="10.5" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+            </button>
+            <button className={`align-btn ${!mixedAlign && effectiveAlign === 'r' ? ' active' : ''}`} onClick={() => handleBatchChange('align', 'r')} title="Right">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><line x1="5" y1="7" x2="12" y2="7" stroke="currentColor" strokeWidth="1.5"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showVAlign && (
+        <div className="property-row">
+          <PropertyLabel codeAttr="vertical-align" className="property-label-text" />
+          <div className="align-buttons">
+            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 't' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 't')} title="Top">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+            </button>
+            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'm' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'm')} title="Middle">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5.5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+            </button>
+            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'b' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'b')} title="Bottom">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="8" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showTextStyle && (
+        <div className="property-row toggle-row">
+          <PropertyLabel codeAttr="" fallbackLabel="样式" className="property-label-text toggle-row-label" />
+          <button
+            className={`toggle-btn ${mixedBold ? 'mixed' : ''} ${!mixedBold && effectiveBold ? 'active' : ''}`}
+            onClick={() => handleBatchChange('bold', !effectiveBold)}
+          ><b>B</b></button>
+          <button
+            className={`toggle-btn ${mixedItalic ? 'mixed' : ''} ${!mixedItalic && effectiveItalic ? 'active' : ''}`}
+            onClick={() => handleBatchChange('italic', !effectiveItalic)}
+          ><i>I</i></button>
+          <button
+            className={`toggle-btn ${mixedTextDecoration ? 'mixed' : ''} ${!mixedTextDecoration && allUnderline ? 'active' : ''}`}
+            onClick={() => toggleTextDecoration('underline')}
+          ><u>U</u></button>
+          <button
+            className={`toggle-btn ${mixedTextDecoration ? 'mixed' : ''} ${!mixedTextDecoration && allLineThrough ? 'active' : ''}`}
+            onClick={() => toggleTextDecoration('line-through')}
+          ><s>S</s></button>
+        </div>
+      )}
+
+      {showPadding && (
+        <div className="padding-section">
+          <div className="padding-grid">
+            <DraggableNumberInput label="左边距" codeAttr="pl" value={mixedPl ? '' : parseVal(effectivePl)} onChange={(v) => handleBatchChange('pl', v.toString())} placeholder={mixedPl ? '—' : undefined} />
+            <DraggableNumberInput label="上边距" codeAttr="pt" value={mixedPt ? '' : parseVal(effectivePt)} onChange={(v) => handleBatchChange('pt', v.toString())} placeholder={mixedPt ? '—' : undefined} />
+            <DraggableNumberInput label="右边距" codeAttr="pr" value={mixedPr ? '' : parseVal(effectivePr)} onChange={(v) => handleBatchChange('pr', v.toString())} placeholder={mixedPr ? '—' : undefined} />
+            <DraggableNumberInput label="下边距" codeAttr="pb" value={mixedPb ? '' : parseVal(effectivePb)} onChange={(v) => handleBatchChange('pb', v.toString())} placeholder={mixedPb ? '—' : undefined} />
+          </div>
+        </div>
       )}
 
       <button

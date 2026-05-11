@@ -115,6 +115,21 @@
   color: white;
 }
 
+.cell-type-tag {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-weight: normal;
+}
+
+.property-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
 .reset-cell-btn {
   margin-top: 8px;
   padding: 6px 12px;

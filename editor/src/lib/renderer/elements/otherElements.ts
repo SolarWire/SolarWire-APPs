@@ -237,6 +237,13 @@ export function renderText(element: TextElement, context: RenderContext): Render
     }
   }
   
+  const bounds: ElementBounds = {
+    x: boundsX,
+    y: pos.y,
+    width: boundsW,
+    height: estimatedHeight,
+  };
+  
   updateLastElementBounds(context, bounds);
   
   if (note) {

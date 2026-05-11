@@ -189,3 +189,38 @@
   color: var(--text-muted);
   word-break: break-all;
 }
+
+.file-view-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.file-view-splitter {
+  height: 4px;
+  background: var(--border-color);
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.file-view-splitter:hover {
+  background: var(--accent-color);
+}
+
+.file-view-splitter-handle {
+  color: var(--text-muted);
+  font-size: 8px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.file-view-snippet-panel {
+  min-height: 80px;
+  overflow: hidden;
+  border-top: none;
+}

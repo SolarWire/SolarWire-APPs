@@ -1,0 +1,90 @@
+<h2>方案 B 最终设计</h2>
+<p class="subtitle">下半栏独立展示 — 完整交互规格</p>
+
+<div class="mockup">
+  <div class="mockup-header">状态 1：选中含 snippet 的 md 文件</div>
+  <div class="mockup-body" style="height:440px;display:flex;flex-direction:column;">
+    <div style="display:flex;border-bottom:2px solid #444;padding:4px 0;">
+      <span style="flex:1;text-align:center;padding:6px;background:#335;border-radius:4px;margin:0 2px;font-size:12px;">📁 文件</span>
+      <span style="flex:1;text-align:center;padding:6px;border-radius:4px;margin:0 2px;font-size:12px;">🧩 组件</span>
+    </div>
+    <div style="flex:1;padding:8px;font-size:11px;overflow:auto;min-height:120px;">
+      <div style="display:flex;align-items:center;padding:3px 0;">
+        <span style="margin-right:4px;">▼</span><span style="margin-right:4px;">📂</span><span>src/</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">▼</span><span style="margin-right:4px;">📂</span><span>pages/</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 32px;background:#1a1a2e;border-radius:3px;" title="3 个页面: #1 首页, #2 列表, #3 详情">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span style="flex:1;">home.md</span><span style="background:#f0c040;color:#000;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:bold;">3</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 32px;" title="1 个页面: #1 关于">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span style="flex:1;">about.md</span><span style="background:#f0c040;color:#000;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:bold;">1</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span>index.md</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">⚡</span><span>app.sw</span>
+      </div>
+    </div>
+    <div style="height:4px;background:#555;cursor:ns-resize;display:flex;align-items:center;justify-content:center;">
+      <span style="color:#888;font-size:8px;">⋯</span>
+    </div>
+    <div style="flex:1;padding:8px;font-size:11px;overflow:auto;min-height:100px;">
+      <div style="color:#888;font-size:10px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #333;display:flex;align-items:center;">
+        <span>📝 home.md · SolarWire 页面</span>
+      </div>
+      <div style="padding:6px 8px;background:#223;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.background='#334'" onmouseout="this.style.background='#223'">
+        <span style="color:#f0c040;margin-right:8px;">⚡</span>
+        <span style="flex:1;">#1 首页</span>
+      </div>
+      <div style="padding:6px 8px;background:#223;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.background='#334'" onmouseout="this.style.background='#223'">
+        <span style="color:#f0c040;margin-right:8px;">⚡</span>
+        <span style="flex:1;">#2 列表</span>
+      </div>
+      <div style="padding:6px 8px;background:#223;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;cursor:pointer;" onmouseover="this.style.background='#334'" onmouseout="this.style.background='#223'">
+        <span style="color:#f0c040;margin-right:8px;">⚡</span>
+        <span style="flex:1;">#3 详情</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mockup" style="margin-top:16px;">
+  <div class="mockup-header">状态 2：选中非 md 文件 / 无 snippet 的 md</div>
+  <div class="mockup-body" style="height:320px;display:flex;flex-direction:column;">
+    <div style="display:flex;border-bottom:2px solid #444;padding:4px 0;">
+      <span style="flex:1;text-align:center;padding:6px;background:#335;border-radius:4px;margin:0 2px;font-size:12px;">📁 文件</span>
+      <span style="flex:1;text-align:center;padding:6px;border-radius:4px;margin:0 2px;font-size:12px;">🧩 组件</span>
+    </div>
+    <div style="flex:1;padding:8px;font-size:11px;overflow:auto;">
+      <div style="display:flex;align-items:center;padding:3px 0;">
+        <span style="margin-right:4px;">▼</span><span style="margin-right:4px;">📂</span><span>src/</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">▼</span><span style="margin-right:4px;">📂</span><span>pages/</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 32px;" title="3 个页面: #1 首页, #2 列表, #3 详情">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span style="flex:1;">home.md</span><span style="background:#f0c040;color:#000;font-size:10px;padding:1px 6px;border-radius:8px;font-weight:bold;">3</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 32px;background:#1a1a2e;border-radius:3px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">⚡</span><span>app.sw</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;">
+  <h3>交互规格总结</h3>
+  <div style="color:#ccc;font-size:13px;line-height:1.8;">
+    <p>✅ SW Tab 完全移除，只保留「文件」和「组件库」两个 Tab</p>
+    <p>✅ md 文件右侧显示 snippet 数量 badge（如 <span style="background:#f0c040;color:#000;padding:1px 6px;border-radius:8px;font-weight:bold;font-size:11px;">3</span>）</p>
+    <p>✅ md 文件 hover 显示 tooltip：页面数量 + 编号名称列表</p>
+    <p>✅ 选中含 snippet 的 md → 下半栏出现，展示该 md 的 SW 页面列表</p>
+    <p>✅ 选中其他文件 / 无 snippet 的 md → 下半栏完全隐藏</p>
+    <p>✅ 下半栏 snippet 列表精简：只显示编号和名称</p>
+    <p>✅ 点击 snippet → 打开该 snippet 的 SolarWire 编辑模式</p>
+    <p>✅ 分栏分隔线支持上下拖动调整大小</p>
+  </div>
+</div>

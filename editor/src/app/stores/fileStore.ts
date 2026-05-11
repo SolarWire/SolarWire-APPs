@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { FileState, FileNode, SolarWireSnippet } from '../../shared/types/file';
+import { FileState, FileNode, SolarWireSnippet, SnippetInfo } from '../../shared/types/file';
 import { readFile } from '../../shared/utils/file-utils';
 import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
 import { fileSystemService } from '../services/file-system-service';
@@ -92,10 +92,15 @@ export const useFileStore = create<FileState>()((set, get) => ({
   autoRefreshEnabled: true,
   autoRefreshTimer: null,
   refreshKey: 0,
+  snippetsByFile: {},
+  snippetInfosByFile: {},
 
   setCurrentPath: (path: string) => set({ currentPath: path }),
 
   setFileTree: (tree: FileNode[]) => set({ fileTree: tree }),
+
+  setSnippetsByFile: (data: Record<string, SolarWireSnippet[]>) => set({ snippetsByFile: data }),
+  setSnippetInfosByFile: (data: Record<string, SnippetInfo[]>) => set({ snippetInfosByFile: data }),
 
   setSelectedFile: (file: FileNode | null) => set({ selectedFile: file, currentSnippet: null, selectedImage: null }),
 

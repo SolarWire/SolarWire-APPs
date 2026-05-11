@@ -15,6 +15,12 @@ export interface SolarWireSnippet {
   snippetIndex?: number;
 }
 
+export interface SnippetInfo {
+  id: string;
+  snippetIndex: number;
+  title: string;
+}
+
 export interface FileState {
   currentPath: string;
   fileTree: FileNode[];
@@ -27,6 +33,8 @@ export interface FileState {
   autoRefreshEnabled: boolean;
   autoRefreshTimer: NodeJS.Timeout | null;
   refreshKey: number;
+  snippetsByFile: Record<string, SolarWireSnippet[]>;
+  snippetInfosByFile: Record<string, SnippetInfo[]>;
   setCurrentPath: (path: string) => void;
   setFileTree: (tree: FileNode[]) => void;
   setSelectedFile: (file: FileNode | null) => void;
@@ -42,4 +50,6 @@ export interface FileState {
   saveFile: () => Promise<void>;
   refreshCurrentDirectory: () => Promise<void>;
   toggleAutoRefresh: () => void;
+  setSnippetsByFile: (data: Record<string, SolarWireSnippet[]>) => void;
+  setSnippetInfosByFile: (data: Record<string, SnippetInfo[]>) => void;
 }

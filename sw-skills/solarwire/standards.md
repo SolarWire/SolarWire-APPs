@@ -19,67 +19,19 @@
 9. [Spacing Standards](#9-spacing-standards)
 10. [Scenario Specifications](#10-scenario-specifications)
 11. [Modal Presentation Rules](#11-modal-presentation-rules)
-12. [Base+Delta Change Marking Rules](#12-basedelta-change-marking-rules)
+12. [Delta Only Rules for Modified Pages](#12-delta-only-rules-for-modified-pages)
 
 ---
 
 ## 1. Syntax Rules
 
-Refer to the **solarwire-syntax** skill for complete syntax specification. Key rules summarized below:
+Key syntax rules (see [syntax.md](syntax.md) for complete reference):
 
-```
-1. All elements must have coordinates @(x,y)
-2. Write attributes directly without brackets: w=100 h=40 (not [w=100 h=40])
-3. Text content MUST use double quotes: "Login" (not Login)
-4. Attribute order: Content → Coordinates → Size → Other attributes → note
-5. NOTE ATTRIBUTE MUST USE TRIPLE QUOTES: note="""Note content""" (never use single or double quotes)
-6. MULTILINE TEXT: Use triple quotes for text elements with multiple lines
-```
-
-**CRITICAL: Always use triple quotes `"""` for notes**
-- Triple quotes allow any characters inside, including newlines and double quotes
-- No need to escape anything inside triple quotes
-- DO NOT use single quotes `'` or double quotes `"` for notes
-
-**IMPORTANT: All text content MUST be wrapped in double quotes `""`**
-
-| Element | Correct | Incorrect |
-|---------|---------|-----------|
-| Rectangle | `["Button"]` | `[Button]` |
-| Circle | `("Avatar")` | `(Avatar)` |
-| Rounded Rectangle | `["Card"] r=8` | `[Card]` |
-| Plain Text | `"Label"` | `Label` |
-
-**Border attributes:**
-- Border color: `b=#hex` (NOT `stroke=`)
-- Border width: `s=N` (NOT `strokeWidth=`)
-
-**Text layout attributes:**
-- Vertical alignment: `vertical-align=t|m|b` (top/middle/bottom)
-- Padding: `padding-top=N`, `padding-right=N`, `padding-bottom=N`, `padding-left=N` (defaults: top/bottom=8, left/right=4 for circle, 8 for others)
-- Text decoration: `text-decoration=underline` or `text-decoration=line-through`
-
-**Forbidden attributes (hallucinated, do NOT use):**
-- `multiline` - Does not exist in SolarWire
-- `truncate` - Does not exist in SolarWire
-- `stroke` - Use `b=` instead
-- `strokeWidth` - Use `s=` instead
-
-**Correct Example:**
-```solarwire
-["Login"] @(100,50) w=100 h=40 bg=#3B82F6 c=#FFFFFF note="""Submit login form"""
-"Username" @(100,100)
-("Avatar") @(100,150) w=40
-```
-
-**Incorrect Examples:**
-```
-["Login"]                    - No coordinates
-["Login"] [w=100 h=40]       - Attributes in brackets
-["Login"] @(100,50) w=100    - Missing height
-(Avatar) @(100,50) w=40      - Text without double quotes
-["Login"] @(100,50) stroke=#E5E7EB strokeWidth=2  - Use b= and s= instead
-```
+1. All elements must have coordinates `@(x,y)`
+2. NOTE must use triple quotes: `note="""..."""` (never single/double quotes)
+3. Border color: `b=`, border width: `s=` (NOT `stroke`/`strokeWidth`)
+4. Forbidden attributes: `multiline`, `truncate`, `stroke`, `strokeWidth`
+5. Table cells/rows cannot specify `@(x,y)`, `w`, `h`
 
 ---
 
@@ -220,7 +172,7 @@ Top-left anchor: (cx - r, cy - r)
 |-----------|----------|
 | New page | Draw all elements completely, including navigation, menu, etc. |
 | Redesign page | Redraw completely |
-| Modified page (incremental) | Use Base+Delta mode with change markers (see Section 12) |
+| Modified page (incremental) | Only describe changed elements (Delta Only, see Section 12) |
 | Minor changes to existing page | Mark only changed parts on original wireframe; existing parts not modified or explained |
 | New content on existing page | Add new elements to original wireframe |
 
@@ -511,72 +463,52 @@ Top-left anchor: (cx - r, cy - r)
 
 ---
 
-## 12. Base+Delta Change Marking Rules
+## 12. Delta Only Rules for Modified Pages
 
-**Used for incremental feature PRDs when modifying existing pages.**
+**Used for incremental feature PRDs when modifying existing pages. Only describe changed elements — do not copy or re-describe unchanged parts from old PRDs.**
 
 ### Change Type Markers
 
-| Change Type | Border Color | Background | Note Prefix | Opacity | Example |
-|-------------|-------------|------------|-------------|---------|---------|
-| NEW | b=#22C55E | bg=#F0FDF4 | [NEW] | 1.0 | New element added |
-| MODIFIED | b=#F59E0B | bg=#FFFBEB | [MODIFIED] + change description | 1.0 | Existing element changed |
-| REMOVED | b=#EF4444 | bg=#FEF2F2 | [REMOVED] + reason | opacity=0.4 | Element removed |
-| UNCHANGED | Original | Original | No prefix | 1.0 | No change |
+| Change Type | Note Prefix | Description |
+|-------------|-------------|-------------|
+| NEW | `[NEW]` | Brand new element added to the page |
+| MODIFIED | `[MODIFIED]` + change description | Existing element with changes |
+| REMOVED | `[REMOVED]` + reason | Element removed from the page |
 
-### How to Apply Base+Delta
+### How to Apply Delta Only
 
-1. Copy the original page wireframe from the base PRD
-2. For NEW elements: Add with green border/background and [NEW] note prefix
-3. For MODIFIED elements: Change border/background to amber and add [MODIFIED] note prefix with change description
-4. For REMOVED elements: Change border/background to red, add opacity=0.4, and add [REMOVED] note prefix with reason
-5. For UNCHANGED elements: Keep as-is, no modifications
+1. For modified pages, only draw the changed elements in the wireframe
+2. For NEW elements: Add with `[NEW]` note prefix
+3. For MODIFIED elements: Add with `[MODIFIED]` note prefix and describe what changed (before→after)
+4. For REMOVED elements: List in note only, do not draw
+5. Do NOT copy unchanged elements from old PRDs
 
 ### Complete Example
 
 ```solarwire
-!title="User Profile (Modified)"
+!title="User Profile - Changes"
 !c=#111827
 !size=13
 !bg=#F9FAFB
 
 [] @(0,0) w=1440 h=900 bg=#FFFFFF
 
-// UNCHANGED: Original header
-["Logo"] @(50,50) w=120 h=60 note="""Logo
-1. Click action
-   - Return to homepage"""
+// Only changed elements are drawn below
 
-// UNCHANGED: Original navigation
-"Home" @(200,55) c=#6B7280
-"Profile" @(280,55) c=#3B82F6 bold
-
-// NEW: Social login section
-[] @(100,500) w=300 h=44 bg=#F0FDF4 b=#22C55E note="""[NEW] WeChat login button
+["WeChat Login"] @(100,500) w=300 h=44 note="""[NEW] WeChat login button
 1. Click action
-   - WeChat authorization login
+   - When clicked, initiate WeChat authorization login
 2. Success handling
-   - Bind WeChat account
-   - Redirect to homepage
-3. Failure handling
-   - Show error: 'WeChat login failed'"""
+   - When WeChat authorization succeeds, bind WeChat account and redirect to homepage"""
 
-// MODIFIED: Login button now has loading state
-["Login"] @(100,450) w=300 h=48 bg=#FFFBEB b=#F59E0B size=16 note="""[MODIFIED] Login button
-1. Click action
-   - Validate username and password
-2. Success handling
-   - Save login state
-   - Redirect to homepage
-3. Failure handling
-   - Display modal: 'Invalid username or password'
-4. NEW: Loading state
-   - Show loading spinner during login
-   - Disable button to prevent double-click"""
+["Login"] @(100,450) w=300 h=48 note="""[MODIFIED] Login button
+1. NEW: Loading state
+   - While login is in progress, show loading spinner and disable button to prevent double-click
+2. Existing behavior unchanged
+   - When clicked, validate username and password
+   - When login succeeds, save login state and redirect to homepage"""
 
-// REMOVED: Old SMS login
-["SMS Login"] @(100,600) w=300 h=44 bg=#FEF2F2 b=#EF4444 opacity=0.4 note="""[REMOVED] SMS login button
-- Reason: Replaced by WeChat login for better UX"""
+// REMOVED elements are listed in note only, not drawn
 ```
 
 ### Modified Page Annotation in PRD
@@ -584,8 +516,8 @@ Top-left anchor: (cx - r, cy - r)
 ```markdown
 ### 5.x [Page Name] (Modified)
 
-**Page Overview**: [One sentence description]
-**Base**: .solarwire/[base-req]/solarwire-prd.md - Section 5.x
+**Page Overview**: [One sentence description of what changed]
+**Changes**: Only changed elements are shown below. Unchanged elements are not repeated.
 ```
 
 ### Change Summary Table
@@ -593,13 +525,8 @@ Top-left anchor: (cx - r, cy - r)
 ```markdown
 ## Change Summary
 ### Affected Pages
-| Page | Change Type | Base Section |
+| Page | Change Type | Description |
 |------|-------------|-------------|
-| [Page 1] | Modified | .solarwire/[base-req]/solarwire-prd.md - Section 5.1 |
-| [Page 2] | New | - |
-
-### Unaffected Pages
-| Page | Base Section |
-|------|-------------|
-| [Page 3] | .solarwire/[base-req]/solarwire-prd.md - Section 5.3 |
+| [Page 1] | Modified | [Brief description of what changed] |
+| [Page 2] | New | [Brief description] |
 ```

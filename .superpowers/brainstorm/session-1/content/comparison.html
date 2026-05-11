@@ -1,0 +1,117 @@
+<h2>方案 A vs 方案 B 深度对比</h2>
+<p class="subtitle">从交互、空间、信息密度等维度分析</p>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">方案 A：内嵌展开</div>
+    <div class="mockup-body" style="height:400px;padding:8px;font-size:11px;overflow:auto;">
+      <div style="display:flex;align-items:center;padding:3px 0;">
+        <span style="margin-right:4px;">▶</span><span style="margin-right:4px;">📂</span><span>src/</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">▶</span><span style="margin-right:4px;">📂</span><span>pages/</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 32px;background:#1a1a2e;border-radius:3px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span style="flex:1;">home.md</span><span style="color:#888;font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid #555;border-radius:3px;" title="3 个页面: #1 首页, #2 列表, #3 详情">⚡3</span>
+      </div>
+      <div style="padding:3px 0 3px 48px;color:#aaa;">
+        <div style="padding:2px 0;display:flex;align-items:center;"><span style="color:#f0c040;margin-right:6px;">⚡</span>#1 首页</div>
+        <div style="padding:2px 0;display:flex;align-items:center;"><span style="color:#f0c040;margin-right:6px;">⚡</span>#2 列表</div>
+        <div style="padding:2px 0;display:flex;align-items:center;"><span style="color:#f0c040;margin-right:6px;">⚡</span>#3 详情</div>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 32px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span style="flex:1;">about.md</span><span style="color:#888;font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid #555;border-radius:3px;" title="1 个页面: #1 关于">⚡1</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span style="flex:1;">index.md</span><span style="color:#888;font-size:10px;cursor:pointer;padding:2px 6px;border:1px solid #555;border-radius:3px;" title="2 个页面: #1 主页, #2 导航">⚡2</span>
+      </div>
+      <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+        <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">⚡</span><span>app.sw</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">方案 B：下半栏展示</div>
+    <div class="mockup-body" style="height:400px;display:flex;flex-direction:column;">
+      <div style="flex:1;padding:8px;font-size:11px;overflow:auto;border-bottom:2px solid #444;">
+        <div style="display:flex;align-items:center;padding:3px 0;">
+          <span style="margin-right:4px;">▼</span><span style="margin-right:4px;">📂</span><span>src/</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+          <span style="margin-right:4px;">▼</span><span style="margin-right:4px;">📂</span><span>pages/</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:3px 0 3px 32px;background:#1a1a2e;border-radius:3px;">
+          <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span>home.md</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:3px 0 3px 32px;">
+          <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span>about.md</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+          <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">📝</span><span>index.md</span>
+        </div>
+        <div style="display:flex;align-items:center;padding:3px 0 3px 16px;">
+          <span style="margin-right:4px;">&nbsp;</span><span style="margin-right:4px;">⚡</span><span>app.sw</span>
+        </div>
+      </div>
+      <div style="flex:1;padding:8px;font-size:11px;overflow:auto;">
+        <div style="color:#888;font-size:10px;margin-bottom:6px;padding-bottom:4px;border-bottom:1px solid #333;">📝 home.md 的 SolarWire 页面</div>
+        <div style="padding:6px;background:#223;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;">
+          <span style="color:#f0c040;margin-right:8px;">⚡</span>
+          <span style="flex:1;">#1 首页</span>
+        </div>
+        <div style="padding:6px;background:#223;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;">
+          <span style="color:#f0c040;margin-right:8px;">⚡</span>
+          <span style="flex:1;">#2 列表</span>
+        </div>
+        <div style="padding:6px;background:#223;border-radius:4px;margin-bottom:4px;display:flex;align-items:center;">
+          <span style="color:#f0c040;margin-right:8px;">⚡</span>
+          <span style="flex:1;">#3 详情</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:16px;">
+  <div class="pros-cons">
+    <div class="pros">
+      <h4>方案 A 优势</h4>
+      <ul>
+        <li><strong>空间高效</strong> — 收起时零占用，文件树完整可见</li>
+        <li><strong>上下文关联</strong> — SW 列表紧贴所属 md 文件，归属关系一目了然</li>
+        <li><strong>多文件同时展开</strong> — 可同时查看多个 md 的 SW 列表</li>
+        <li><strong>交互模式统一</strong> — 与目录展开/收起一致，学习成本低</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 A 劣势</h4>
+      <ul>
+        <li><strong>长列表膨胀</strong> — 多个 md 展开后文件树会很长</li>
+        <li><strong>按钮冲突风险</strong> — 点击 md 打开编辑 vs 点击按钮展开，需精确区分</li>
+        <li><strong>信息密度低</strong> — 内嵌列表只能显示编号+名称，空间有限</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pros-cons" style="margin-top:12px;">
+    <div class="pros">
+      <h4>方案 B 优势</h4>
+      <ul>
+        <li><strong>布局稳定</strong> — 文件树始终完整，不被撑开</li>
+        <li><strong>信息空间充足</strong> — 下半栏可展示更多 snippet 详情</li>
+        <li><strong>无交互冲突</strong> — 点击 md 就是选中，下半栏自动响应</li>
+        <li><strong>专注感强</strong> — 一次只看一个 md 的 SW 列表，减少干扰</li>
+      </ul>
+    </div>
+    <div class="cons">
+      <h4>方案 B 劣势</h4>
+      <ul>
+        <li><strong>空间割裂</strong> — 文件树被压缩到上半部分，可见文件减少</li>
+        <li><strong>单文件限制</strong> — 只能看当前选中 md 的 SW，无法同时对比</li>
+        <li><strong>空状态浪费</strong> — 选中非 md 文件时下半栏无内容</li>
+        <li><strong>需要分栏比例</strong> — 上下比例固定可能不适配所有场景</li>
+      </ul>
+    </div>
+  </div>
+</div>

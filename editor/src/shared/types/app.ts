@@ -1,4 +1,4 @@
-export type ViewType = 'file' | 'solarwire' | 'componentLibraryManager';
+export type ViewType = 'file' | 'componentLibraryManager';
 export type Theme =
   | 'solid-dark'
   | 'solid-light'

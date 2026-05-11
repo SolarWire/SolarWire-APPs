@@ -120,6 +120,7 @@ export function useTableEditor(
       const insertAt = index ?? prev.rows.length;
       const numCols = prev.rows[0]?.cells.length || 1;
       const newCells: TableCell[] = Array.from({ length: numCols }, () => ({
+        type: 'rectangle',
         text: '',
         colspan: 1,
         rowspan: 1,
@@ -148,6 +149,7 @@ export function useTableEditor(
       const newRows = prev.rows.map(row => {
         const newCells = [...row.cells];
         newCells.splice(insertAt, 0, {
+          type: 'rectangle',
           text: '',
           colspan: 1,
           rowspan: 1,

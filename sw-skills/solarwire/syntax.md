@@ -467,3 +467,4 @@ Used for displaying multi-line text content, such as paragraphs, descriptions, e
 - Cells cannot specify `w` or `h` (size is auto-calculated by table; specifying causes render errors)
 - Cells cannot be line elements (causes render errors)
 - Supported cell element types: Text `""`, Rectangle `[]` (rounded rectangle when r>0), Circle `()`, Placeholder `[?]`, Multi-line Text `"""___"""`
+- **Recommended**: Use Rectangle `[""]` for cell content instead of Text `""` — rectangles support more text formatting options (bold, italic, size, color, alignment, padding, etc.)

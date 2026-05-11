@@ -1,6 +1,6 @@
 ---
 name: "solarwire"
-description: "Use for any SolarWire task including PRD creation, code-to-PRD reverse engineering, test case generation, dev design, requirement changes, or wireframe syntax validation"
+description: "Use for any SolarWire task including PRD creation, code reverse engineering, test case generation, dev design, implementation planning, or wireframe syntax validation"
 ---
 
 # SolarWire
@@ -9,32 +9,25 @@ SolarWire is an AI-powered software development engineering toolkit that covers 
 
 ## Intent Router
 
-| User Intent | Trigger Condition | Load File |
-|---------|---------|---------|
-| Create new PRD/Feature | User wants to write PRD, create requirements, new feature | [workflow-prd.md](workflow-prd.md) |
-| Generate PRD from code | User provides code/project, understand existing project | [workflow-code-to-prd.md](workflow-code-to-prd.md) |
-| Generate test cases | PRD exists, needs test cases | [workflow-test.md](workflow-test.md) |
-| Technical design | PRD confirmed, needs architecture design | [workflow-dev-design.md](workflow-dev-design.md) |
-| Requirement change | Modify existing PRD, requirement changes | [workflow-change.md](workflow-change.md) |
-| Component library | Create/modify .swc components | [workflow-component.md](workflow-component.md) |
-| Syntax reference | Generate/validate SW code, syntax errors | [syntax.md](syntax.md) |
-| Note writing | Unsure how to write notes | [note-guide.md](note-guide.md) |
-| Color/Spacing/Scene | Unsure about visual standards | [standards.md](standards.md) |
+| User Intent | Trigger Condition | Load File | Also Load |
+|---------|---------|---------|---------|
+| Create new PRD/Feature | User wants to write PRD, create requirements, new feature, modify existing features | [workflow-prd.md](workflow-prd.md) | [standards.md](standards.md) |
+| Generate PRD from code | User provides code/project, understand existing project | [workflow-prd.md](workflow-prd.md) (Scenario B) | [standards.md](standards.md) |
+| Generate test cases | PRD exists, needs test cases | [workflow-test.md](workflow-test.md) | — |
+| Technical design | PRD confirmed, needs architecture design | [workflow-dev-design.md](workflow-dev-design.md) | — |
+| Implementation plan | PRD + dev design confirmed, needs implementation plan | [workflow-implementation.md](workflow-implementation.md) | — |
+| Component library | Create/modify .swc components | [workflow-component.md](workflow-component.md) | [syntax.md](syntax.md) |
+| Syntax reference | Generate/validate SW code, syntax errors | [syntax.md](syntax.md) | — |
+| Note writing | Unsure how to write notes | [note-guide.md](note-guide.md) | — |
+| Color/Spacing/Scene | Unsure about visual standards | [standards.md](standards.md) | — |
 
-## Three Core Flows
+## Core Flows
 
 **Flow 1: New Feature Development**
-Gather requirements → Clarify requirements → User confirms requirements → Produce PRD (with wireframes) → User confirms PRD → Write test cases → Dev design → Write code → Code review → Execute tests → Test report
+Five Elements confirmation (Strategy→Scope→Structure→Framework→Presentation) → Produce PRD (with wireframes) → User confirms PRD → Write test cases → Dev design → Implementation plan → Write code → Code review → Execute tests → Test report
 
 **Flow 2: Understand Existing Project**
-Analyze frontend/backend code → Understand business logic and UI → Produce PRD (with wireframes) → User confirms understanding
-
-**Flow 3: Requirement Change**
-Clarify changes → Impact analysis → Archive current version → Modify PRD (Base+Delta) → User confirms changes → Update downstream artifacts
-
-## Incremental Feature Flow
-
-When a new feature builds on existing requirements: create a new requirement folder, declare Base Requirement in the PRD, and use Base+Delta mode for modified pages. See [workflow-prd.md](workflow-prd.md).
+Analyze codebase → Extract Five Elements from code → Produce PRD (with wireframes) → User confirms understanding
 
 ## File Structure Convention
 
@@ -50,25 +43,18 @@ When a new feature builds on existing requirements: create a new requirement fol
 
 ## Version Management
 
-- Requirement change: modify the current file, move old version to archive/ (Strategy C: single file + archive)
-- Incremental feature: create new requirement folder, declare Base Requirement in PRD
+- All changes (new or modification) are handled as new requirements
+- When modifying existing features: only describe changed parts, notes show before→after
+- Existing page structure inferred from code when available
 - All PRDs contain a Changelog at the top
 
 ## Red Lines
 
 1. Never generate SVG (handled by the editor application)
-2. Never use hallucinated attributes (multiline, truncate, stroke, strokeWidth)
-3. Use `b=` for border color, `s=` for border width
-4. Never skip user confirmation gates
-5. Never write visual details or technical implementation in notes
-6. Never add i18n without user confirmation
-7. Notes must use triple quotes `note="""..."""`, never use `note="..."` or `note='...'`
-8. SolarWire code blocks must start with ` ```solarwire ` and end with ` ``` `, never use HTML tags like `</solarwire>`
-9. Table cells and table rows must never specify @(x,y), w, h
-10. Use `("text")` for circles, not `(("text"))`; use `["text"] r=N` for rounded rectangles, not `("text")`
-11. After generating wireframes, must validate via renderer: `node sw-skills/solarwire/validate-sw.js <path>`; if validation fails, fix syntax and re-validate; only proceed when all pass
-12. Plain text must use the text element `"text"`, never wrap plain text in a rectangle `["text"]`
-13. Text in rectangle elements must be vertically centered `vertical-align=m` and horizontally left-aligned `align=l`
+2. Never skip user confirmation gates
+3. Never add i18n without user confirmation
+4. Document language follows user's communication language; if unsure, ask the user
+5. Modified pages only describe changes — do not copy or re-describe unchanged parts from old PRDs
 
 ## Syntax Quick Reference
 
@@ -84,6 +70,7 @@ When a new feature builds on existing requirements: create a new requirement fol
 | Line | `-- "Label" -- @(x1,y1)->(x2,y2)` | `-- @(50,200)->(450,200) c=#E5E7EB` |
 | Table | `## @(x,y)` | `## @(50,50) w=500` |
 | Table Row | `  #` (indented) | `  # bg=#F3F4F6` |
+| Table Cell | `  ["Text"]` (recommended) | `  ["Value"] bold c=#111827` |
 
 ## Forbidden Attributes
 
@@ -96,15 +83,6 @@ When a new feature builds on existing requirements: create a new requirement fol
 | `(())` | Circles should use `("text")` |
 | `("text")` as rounded rectangle | Rounded rectangles should use `["text"] r=N` |
 
-## Base+Delta Change Markers
-
-| Change Type | Border Color | Background | Note Prefix | Opacity |
-|---------|--------|--------|----------|---------|
-| NEW | `b=#22C55E` | `bg=#F0FDF4` | `[NEW]` | 1.0 |
-| MODIFIED | `b=#F59E0B` | `bg=#FFFBEB` | `[MODIFIED]` + change description | 1.0 |
-| REMOVED | `b=#EF4444` | `bg=#FEF2F2` | `[REMOVED]` + reason | 0.4 |
-| UNCHANGED | As-is | As-is | No marker | 1.0 |
-
 ## Supporting Files
 
 | File | Content | When to Load |
@@ -112,10 +90,9 @@ When a new feature builds on existing requirements: create a new requirement fol
 | [syntax.md](syntax.md) | Full syntax rules + attribute reference | When needing full attribute list or validation rules |
 | [note-guide.md](note-guide.md) | Note writing guide | When writing notes |
 | [standards.md](standards.md) | Color/spacing/scene/modal standards | When needing visual standards |
-| [workflow-prd.md](workflow-prd.md) | PRD workflow + template | When creating PRD |
-| [workflow-code-to-prd.md](workflow-code-to-prd.md) | Reverse engineering workflow | When generating PRD from code |
+| [workflow-prd.md](workflow-prd.md) | PRD workflow (new feature + code reverse engineering + modifications) | When creating PRD or generating PRD from code; also load standards.md |
 | [workflow-test.md](workflow-test.md) | Test case workflow + xlsx conversion | When generating test cases |
 | [workflow-dev-design.md](workflow-dev-design.md) | Dev design workflow | When doing technical design |
-| [workflow-change.md](workflow-change.md) | Requirement change workflow | When modifying PRD |
+| [workflow-implementation.md](workflow-implementation.md) | Implementation plan workflow | When creating implementation plan |
 | [workflow-component.md](workflow-component.md) | Component library workflow | When managing component library |
 | [lib/generate-excel.js](lib/generate-excel.js) | Markdown test cases to xlsx converter | When converting test cases to Excel |

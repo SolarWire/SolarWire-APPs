@@ -7,6 +7,7 @@
 - Border color uses `b=`, border width uses `s=`
 - Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
 - Table cells and rows cannot specify @(x,y), w, h
+- Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
 - Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
 - All elements must have coordinates @(x,y)
 - Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
@@ -15,6 +16,21 @@
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
 - See [standards.md](standards.md) for color/spacing/scenario standards
+
+## Inlined Note Writing Rules (CRITICAL)
+
+- Note first line: functional description (e.g., "Login button"), NOT element type (e.g., "[Primary Button]")
+- Note structure: First line = element definition; First level = numbered (1. 2. 3.); Second level = dash (-); Third level = double dash (--)
+- EARS description style: Use condition-action patterns
+  - Always [behavior] - for always-true behaviors
+  - When [event], [behavior] - for event-triggered behaviors
+  - While [condition], [behavior] - for state-dependent behaviors
+  - If [condition], [behavior] - for exception/boundary handling
+- Avoid bare enumerations (BAD: "Status: 1=Active, 0=Disabled"; GOOD: "While status is Active, show green tag 'Active'")
+- Error messages MUST be quoted exactly as user sees them
+- Forbidden in notes: visual details, technical implementation, API endpoints, CSS properties
+- For modified elements: note must describe before→after change (e.g., "Was: [old behavior]. Now: [new behavior]")
+- See [note-guide.md](note-guide.md) for complete note writing reference
 
 ---
 
@@ -30,6 +46,70 @@ This skill generates complete Product Requirements Documents (PRD), including:
 1. **Complete PRD Document** (.md format)
 2. **Mermaid Flowcharts/Sequence Diagrams**
 3. **SolarWire Wireframes** (embedded in .md, each page with complete element descriptions)
+
+---
+
+## Scenario Detection
+
+Before starting the workflow, determine which scenario applies:
+
+### Scenario A: New Requirement
+- User has a new requirement (may include new pages AND modifications to existing pages)
+- Follow full Five Elements confirmation with user
+- New pages: write complete wireframe
+- Modified pages: only describe changed parts (Delta Only), do not copy unchanged content from old PRDs
+- Existing page structure inferred from current code when available
+
+### Scenario B: Code Reverse Engineering
+- User provides existing codebase
+- All pages inferred from code
+- Five Elements answered from code analysis (no user questioning needed)
+- Generate PRD following same template
+
+**Detection Method:**
+1. Ask user: "Do you have a new requirement, or do you want me to analyze existing code?"
+2. Based on answer, select scenario and adjust workflow accordingly
+
+---
+
+## Code Reverse Engineering Sub-flow (Scenario B)
+
+When user wants to generate PRD from existing code:
+
+### Phase C1: Codebase Discovery
+1. Ask user for codebase location
+2. Scan project structure (frontend/backend)
+3. Identify tech stack
+4. Determine analysis scope
+
+### Phase C2: Five Elements from Code
+Extract the five UX layers from code analysis:
+
+1. **Strategy Layer**: Infer from codebase structure, comments, business logic
+2. **Scope Layer**: Identify all pages, features, and their relationships from code
+3. **Structure Layer**: Extract navigation hierarchy and page organization from routes/menus
+4. **Framework Layer**: Extract page layouts and interaction patterns from components
+5. **Presentation Layer**: Infer visual hierarchy from component structure and styling
+
+### Phase C3: Frontend Analysis
+- Resolve full component tree (CRITICAL: never stop at page level)
+- Extract UI elements, state, data flow
+- Map frontend code to SolarWire elements
+
+### Phase C4: Backend Analysis
+- Extract API endpoints and data models
+- Extract business logic and validation rules
+
+### Phase C5: PRD Generation
+- Generate PRD following the same template
+- Include all five elements layers in document
+- Run renderer validation
+
+**Key Rules for Code Reverse Engineering:**
+- Notes describe user-visible behavior ONLY, never API endpoints or technical implementation
+- Resolve full component tree recursively - NEVER stop at page level
+- Generate realistic mock data, never leave fields empty
+- Use EARS style for all note descriptions
 
 ---
 
@@ -60,35 +140,73 @@ This skill generates complete Product Requirements Documents (PRD), including:
 
 ---
 
-### Phase 1: Requirements Collection
+### Phase 1: Five Elements Confirmation (CRITICAL)
 
-**Goal: Confirm user requirements step by step, don't rush to generate**
+**Goal: Systematically confirm requirements through 5 UX layers. Do NOT proceed to next layer until current layer is fully understood. Ask probing questions, follow first principles.**
 
-**Step 3: Product Type Confirmation**
+**Step 3: Strategy Layer (战略层)**
 ```
-What type of application is this?
-- Mobile App
-- Web Client
-- Admin Dashboard
-- Other (please describe)
+Let me understand the business context:
 
-Please select or describe your product type.
-```
-
-**Step 4: Core Features Confirmation**
-```
-What core features/pages does this product need?
-
-For example:
-- User Login/Register
-- Home Page
-- Profile Center
-- Product List
-- Order Management
-...
+1. What business problem are we trying to solve?
+2. What is the business background that led to this need?
+3. Who are the target users? What are their pain points?
+4. What is the expected outcome / success criteria?
+5. Why now? What triggered this requirement?
 ```
 
-**Step 5: Multi-language Confirmation**
+**Step 4: Scope Layer (范围层)**
+```
+Based on the strategy, let's define the scope:
+
+1. What changes are involved?
+   - New pages/modals/features to ADD
+   - Existing pages/modals/features to MODIFY
+   - Features to REMOVE
+2. Which existing pages are affected? (If modifying existing features)
+3. What is explicitly OUT OF SCOPE?
+4. Are there any dependencies on other systems/features?
+```
+
+**Step 5: Structure Layer (结构层)**
+```
+Based on the scope, let's define the structure:
+
+1. How should pages be organized? (Navigation hierarchy)
+2. For NEW pages: What features should each page have?
+3. For MODIFIED pages: What features need to change?
+4. What are the user flows between pages?
+5. Are there any shared components across pages?
+```
+
+**Step 6: Framework Layer (框架层)**
+```
+Based on the structure, let's define the framework:
+
+1. What is the page layout for each page?
+2. What are the main interaction patterns?
+3. How should information be organized within each page?
+4. What are the key user interactions?
+```
+
+**Step 7: Presentation Layer (表现层)**
+```
+Based on the framework, let's define the presentation:
+
+1. What is the visual hierarchy? (Primary vs secondary information)
+2. How should information be grouped/partitioned?
+3. Are there any UX design preferences?
+4. What is the overall visual tone?
+```
+
+**Five Elements Rules:**
+- MUST complete each layer before moving to the next
+- If user cannot answer a question, probe deeper - don't assume
+- If user seems uncertain, offer 2-3 options with trade-offs
+- All layers feed into the PRD document structure
+- For modifications to existing features: focus on what CHANGES, not re-describing what stays the same
+
+**Step 8: Multi-language Confirmation**
 ```
 Does this project require multi-language support?
 
@@ -129,7 +247,7 @@ If no:
 
 ### Phase 2: Requirements Validation
 
-**Step 6: Requirements Summary**
+**Step 9: Requirements Summary**
 ```
 Here's my understanding of requirements:
 
@@ -148,7 +266,7 @@ Here's my understanding of requirements:
 Is this understanding correct? Any adjustments or additions needed?
 ```
 
-**Step 7: Requirements Confirmation Gate**
+**Step 10: Requirements Confirmation Gate**
 - User MUST confirm requirements
 - If adjustments needed, go back to Phase 1
 
@@ -156,11 +274,11 @@ Is this understanding correct? Any adjustments or additions needed?
 
 ### Phase 3: Generate & Quality
 
-**Step 8: Generate PRD**
+**Step 11: Generate PRD**
 - Generate complete PRD document
 - Save to `.solarwire/[requirement-name]/solarwire-prd.md`
 
-**Step 9: Spec Self-Review**
+**Step 12: Spec Self-Review**
 
 #### Check 1: Placeholder Scan
 ```
@@ -241,14 +359,14 @@ If errors found:
   - Pure text in ["text"] → "text"
   - Rectangle without vertical-align=m → add vertical-align=m
 
-MUST pass validation before proceeding to Step 10
+MUST pass validation before proceeding to Step 13
 ```
 
 **Fix Principle:**
 - Fix all issues immediately, no need to re-review
-- Proceed to Step 10 after fixing
+- Proceed to Step 13 after fixing
 
-**Step 10: User Review Gate**
+**Step 13: User Review Gate**
 ```
 PRD generated and passed self-review
 
@@ -257,10 +375,11 @@ PRD generated and passed self-review
 **Includes:**
 - Product Overview (1.1-1.4)
 - Feature Scope (2.1-2.2)
-- Business Flow (3.1-3.2)
-- Page Design (4.1-5.x)
-- Non-functional Requirements (6.1-6.3)
-- Appendix (7.1-7.2)
+- Expected Outcome (3.1-3.3)
+- Business Flow (4.1-4.2)
+- Page Design (5.1-6.x)
+- Non-functional Requirements (7.1-7.3)
+- Appendix (8.1-8.2)
 
 **Please review:**
 1. Completeness - Any missing features?
@@ -277,14 +396,14 @@ Please start reviewing, let me know if you have any questions.
 
 **User Review Gate Rules:**
 - MUST wait for user to explicitly confirm "ok" or "no problem"
-- If user requests changes, go back to Step 8 to regenerate PRD
-- If user only needs minor adjustments, can fix before Step 11
+- If user requests changes, go back to Step 11 to regenerate PRD
+- If user only needs minor adjustments, can fix before Step 14
 
 ---
 
 ### Phase 4: Output
 
-**Step 11: Save PRD**
+**Step 14: Save PRD**
 - Save to `.solarwire/[requirement-name]/solarwire-prd.md`
 - No SVG generation (handled by editor application)
 
@@ -299,23 +418,26 @@ You MUST complete each step in order:
 2. [ ] Scope check (needs decomposition?)
 3. [ ] Multiple approaches comparison (optional)
 
-**Phase 1: Requirements Collection**
-4. [ ] Product type confirmation
-5. [ ] Core features confirmation
-6. [ ] Multi-language confirmation
+**Phase 1: Five Elements Confirmation**
+4. [ ] Strategy Layer - business context and goals
+5. [ ] Scope Layer - changes, affected pages, out-of-scope
+6. [ ] Structure Layer - page organization and user flows
+7. [ ] Framework Layer - page layouts and interaction patterns
+8. [ ] Presentation Layer - visual hierarchy and design preferences
+9. [ ] Multi-language confirmation
 
 **Phase 2: Requirements Validation**
-7. [ ] Requirements summary
-8. [ ] Requirements confirmation gate (user MUST confirm)
+10. [ ] Requirements summary
+11. [ ] Requirements confirmation gate (user MUST confirm)
 
 **Phase 3: Generate & Quality**
-9. [ ] Generate PRD
-10. [ ] Spec self-review (4 checks)
-11. [ ] Renderer validation: `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
-12. [ ] User review gate (user MUST review)
+12. [ ] Generate PRD
+13. [ ] Spec self-review (4 checks)
+14. [ ] Renderer validation: `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
+15. [ ] User review gate (user MUST review)
 
 **Phase 4: Output**
-13. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
+16. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
 
 ---
 
@@ -328,7 +450,6 @@ You MUST complete each step in order:
 | Project Name | [Project Name] |
 | Version | v1.0 |
 | Type | New Feature / Incremental Feature |
-| Base Requirement | (fill in only for incremental features) |
 | Created Date | [Date] |
 
 ## Change Log
@@ -380,8 +501,23 @@ You MUST complete each step in order:
 
 ---
 
-## 3. Business Flow
-### 3.1 Core Business Flowchart
+## 3. Expected Outcome
+
+### 3.1 Success Metrics
+| Metric | Target | Measurement Method |
+|--------|--------|-------------------|
+| [Metric 1] | [Target value] | [How to measure] |
+
+### 3.2 Expected User Behavior Changes
+- [Before → After description]
+
+### 3.3 Business Impact
+- [Expected business impact]
+
+---
+
+## 4. Business Flow
+### 4.1 Core Business Flowchart
 ```mermaid
 flowchart TD
     A[Start] --> B[Step 1]
@@ -393,7 +529,7 @@ flowchart TD
     F --> G
 ```
 
-### 3.2 Interaction Sequence Diagram
+### 4.2 Interaction Sequence Diagram
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -411,22 +547,22 @@ sequenceDiagram
 
 ---
 
-## 4. Page Design
-### 4.1 Page List
+## 5. Page Design
+### 5.1 Page List
 | Page Name | Page Type | Change Type | Description |
 |-----------|-----------|-------------|-------------|
 | [Page 1] | Main Page | New | [Description] |
 | [Page 2] | Modal | New | [Description] |
 
-(For incremental features, Change Type column is New/Modified)
+(Change Type: New = new page, Modified = modified existing page)
 
 ---
 
-## 5. Page Details
+## 6. Page Details
 
 > **Core Principle: All element descriptions are integrated into the SolarWire wireframe notes for "what you see is what you read"**
 
-### 5.1 [Page Name] (New)
+### 6.1 [Page Name] (New)
 
 **Page Overview**: [One sentence describing core functionality of page]
 
@@ -476,54 +612,48 @@ sequenceDiagram
 
 ---
 
-## 6. Non-functional Requirements
-### 6.1 Performance Requirements
+## 7. Non-functional Requirements
+### 7.1 Performance Requirements
 - Page load time: < 2 seconds
 - API response time: < 500ms
 
-### 6.2 Security Requirements
+### 7.2 Security Requirements
 - [List security requirements]
 
-### 6.3 Compatibility Requirements
+### 7.3 Compatibility Requirements
 - Browsers: Chrome 90+, Safari 14+
 - Mobile: iOS 14+, Android 10+
 
 ---
 
-## 7. Appendix
-### 7.1 Glossary
+## 8. Appendix
+### 8.1 Glossary
 | Term | Description |
 |------|-------------|
 | [Term 1] | [Description] |
 
-### 7.2 References
+### 8.2 References
 - [Reference links]
 ```
 
 ---
 
-## Incremental Feature PRD Rules
+## Modification & Incremental Rules
 
-When creating a PRD for an incremental feature (new feature based on existing requirement):
+When the requirement involves modifications to existing pages (which is common in most new requirements):
 
 ### Document Information
 - Declare `Type: Incremental Feature`
-- Declare `Base Requirement: [base-req-name] (vX.X)`
 
 ### Change Summary Chapter
-Add a chapter listing affected/unaffected pages:
+Add a chapter listing affected pages:
 ```markdown
 ## Change Summary
 ### Affected Pages
-| Page | Change Type | Base Section |
+| Page | Change Type | Description |
 |------|-------------|-------------|
-| [Page 1] | Modified | .solarwire/[base-req]/solarwire-prd.md - Section 5.1 |
-| [Page 2] | New | - |
-
-### Unaffected Pages
-| Page | Base Section |
-|------|-------------|
-| [Page 3] | .solarwire/[base-req]/solarwire-prd.md - Section 5.3 |
+| [Page 1] | Modified | [Brief description of what changed] |
+| [Page 2] | New | [Brief description] |
 ```
 
 ### Content Rules
@@ -531,61 +661,56 @@ Add a chapter listing affected/unaffected pages:
 - Feature List: Only write new features
 - Business Flow: Only write new flows
 - Page Details:
-  - Modified pages: Use Base+Delta mode (copy original wireframe, mark changes with color + note prefix)
+  - Modified pages: Only describe changed elements (Delta Only), do not copy unchanged content from old PRDs
   - New pages: Write complete wireframe
+- When modifying existing elements, notes must show before→after (Was: X. Now: Y)
+- Existing page structure inferred from code when available
 
-### Base+Delta Change Marking Rules
+### Delta Only Rules
 
-| Change Type | Border Color | Background | Note Prefix | Opacity |
-|-------------|-------------|------------|-------------|---------|
-| NEW | b=#22C55E | bg=#F0FDF4 | [NEW] | 1.0 |
-| MODIFIED | b=#F59E0B | bg=#FFFBEB | [MODIFIED] + change description | 1.0 |
-| REMOVED | b=#EF4444 | bg=#FEF2F2 | [REMOVED] + reason | opacity=0.4 |
-| UNCHANGED | Original | Original | No prefix | 1.0 |
+For modified pages, only draw and describe the changed elements. Do NOT copy or re-describe unchanged parts.
 
-**Base+Delta Example:**
+**Change Type Markers:**
+
+| Change Type | Note Prefix | Description |
+|-------------|-------------|-------------|
+| NEW | `[NEW]` | Brand new element added to the page |
+| MODIFIED | `[MODIFIED]` + change description | Existing element with changes |
+| REMOVED | `[REMOVED]` + reason | Element removed from the page |
+
+**Delta Only Example:**
 ```solarwire
-!title="User Profile (Modified)"
+!title="User Profile - Changes"
 !c=#111827
 !size=13
 !bg=#F9FAFB
 
 [] @(0,0) w=1440 h=900 bg=#FFFFFF
 
-// UNCHANGED: Original header
-["Logo"] @(50,50) w=120 h=60 note="""Logo
-1. Click action
-   - When clicked, return to homepage"""
+// Only changed elements are drawn below
 
-// NEW: Social login section
-["WeChat Login"] @(100,500) w=300 h=44 bg=#F0FDF4 b=#22C55E note="""[NEW] WeChat login button
+["WeChat Login"] @(100,500) w=300 h=44 note="""[NEW] WeChat login button
 1. Click action
    - When clicked, initiate WeChat authorization login
 2. Success handling
    - When WeChat authorization succeeds, bind WeChat account and redirect to homepage"""
 
-// MODIFIED: Login button now shows loading
-["Login"] @(100,450) w=300 h=48 bg=#FFFBEB b=#F59E0B size=16 note="""[MODIFIED] Login button
-1. Click action
+["Login"] @(100,450) w=300 h=48 note="""[MODIFIED] Login button
+1. NEW: Loading state
+   - While login is in progress, show loading spinner and disable button to prevent double-click
+2. Existing behavior unchanged
    - When clicked, validate username and password
-2. Success handling
-   - When login succeeds, save login state and redirect to homepage
-3. Failure handling
-   - If login fails, show modal 'Invalid username or password'
-4. NEW: Loading state
-   - While login is in progress, show loading spinner and disable button to prevent double-click"""
+   - When login succeeds, save login state and redirect to homepage"""
 
-// REMOVED: Old SMS login
-["SMS Login"] @(100,600) w=300 h=44 bg=#FEF2F2 b=#EF4444 opacity=0.4 note="""[REMOVED] SMS login button
-- Reason: Replaced by WeChat login for better UX"""
+// REMOVED elements are listed in note only, not drawn
 ```
 
 **Modified Page Annotation:**
 ```markdown
-### 5.x [Page Name] (Modified)
+### 6.x [Page Name] (Modified)
 
-**Page Overview**: [One sentence description]
-**Base**: .solarwire/[base-req]/solarwire-prd.md - Section 5.x
+**Page Overview**: [One sentence description of what changed]
+**Changes**: Only changed elements are shown below. Unchanged elements are not repeated.
 ```
 
 ---
@@ -661,64 +786,19 @@ Which approach would you like to choose?
 2. **Notes Describe Function and Business Logic** - Focus on behavior and logic, avoid visual details and technical implementation
 3. **Not Every Element Needs a Note** - Skip notes for visual elements; common sense exemption for back button, close button, page selector, number stepper
 4. **First Line Defines Element** - Note first line must describe what element is (e.g., "Login button"), not element type (e.g., "[Primary Button]")
-5. **Note Structure Required** - First line: element definition; First level: numbered (1. 2. 3.); Second level: dash (-); Third level: double dash (--)
-6. **Coordinates Must Be Complete** - Every element must have `@(x,y)`
-7. **No Brackets for Attributes** - Write directly `w=100 h=40`
-8. **Choose Elements Reasonably** - Buttons use rectangles, labels use text, only icons use placeholders
-9. **Layout Close to Reality** - Wireframes should reflect actual page structure with 10px spacing
-10. **Separate Modals/States/Tabs** - Each independent view in separate code block; all modals must have separate wireframe
-11. **Table Row Must Be Inside Table** - Row element `#` CANNOT exist independently, MUST be inside table container `##`
-12. **Table Child Element Restrictions** - Rows and cells CANNOT have coordinates `@(x,y)`, width `w`, height `h`; only support style attributes (`bg`, `b`, `c`, `size`, `bold`, `italic`, `align`, `colspan`, `rowspan`)
-13. **Container Rectangle Required** - First element of each page is white background container
-14. **Color Standards (Tailwind CSS)** - Use unified colors: #111827 (text), #6B7280 (secondary), #E5E7EB (border), #FFFFFF (bg), #F9FAFB (alternating row), #3B82F6 (primary), #EF4444 (error)
-15. **Font Standards** - Font size 13px, line height 22px
-16. **i18n Only When Confirmed** - Add multi-language support ONLY when user explicitly confirms; if not confirmed, absolutely NO i18n information; if confirmed, ALL meaningful elements MUST include i18n translations using full language names (English, Chinese, 日本語)
-17. **Incremental Feature Uses Base+Delta** - Modified pages use Base+Delta mode with color-coded change markers
-18. **PRD Includes Changelog** - All PRDs must have version tracking via Change Log table
-19. **NOTE MUST USE TRIPLE QUOTES** - Always use `note="""..."""`, NEVER use `note="..."` or `note='...'`. Single/double quotes for notes will cause parsing errors
-20. **Pure Text Uses Text Element** - Labels, headings, descriptions and other pure text MUST use `"text"`, NOT `["text"]` rectangle. Only buttons, inputs, cards and other interactive/container elements use `["text"]`
-21. **Rectangle Text Alignment** - Rectangle elements MUST have `vertical-align=m` (vertically centered) and `align=l` (horizontally left-aligned). Default vertical-align is top (t), must explicitly set to middle (m)
-22. **Renderer Validation Required** - After generating wireframes, MUST run `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` and fix all errors before proceeding
+5. **No Brackets for Attributes** - Write directly `w=100 h=40`
+6. **Choose Elements Reasonably** - Buttons use rectangles, labels use text, only icons use placeholders
+7. **Layout Close to Reality** - Wireframes should reflect actual page structure with 10px spacing
+8. **Separate Modals/States/Tabs** - Each independent view in separate code block; all modals must have separate wireframe
+9. **Table Row Must Be Inside Table** - Row element `#` CANNOT exist independently, MUST be inside table container `##`
+10. **Container Rectangle Required** - First element of each page is white background container
+11. **Color Standards (Tailwind CSS)** - Use unified colors: #111827 (text), #6B7280 (secondary), #E5E7EB (border), #FFFFFF (bg), #F9FAFB (alternating row), #3B82F6 (primary), #EF4444 (error)
+12. **Font Standards** - Font size 13px, line height 22px
+13. **i18n Only When Confirmed** - Add multi-language support ONLY when user explicitly confirms; if not confirmed, absolutely NO i18n information; if confirmed, ALL meaningful elements MUST include i18n translations using full language names (English, Chinese, 日本語)
+14. **Modified Pages Use Delta Only** - When modifying existing pages, only describe changed elements; do not copy or re-describe unchanged parts from old PRDs
+15. **PRD Includes Changelog** - All PRDs must have version tracking via Change Log table
+16. **Document Language** - Write documents in the user's communication language. If unsure, ask the user.
+17. **Interactive Floating Cards as Separate Pages** - Popovers, action cards from "More" buttons, actionable tooltips MUST be drawn as separate SolarWire code blocks (like modals). Simple text success/error messages should NOT be drawn separately - write them in the triggering element's note instead.
+18. **Modified Elements Show Before→After** - When describing modifications to existing elements, notes must describe the change: "Was: [old behavior]. Now: [new behavior]" or use [MODIFIED] prefix with change description. Do NOT just describe the new state without context of what changed.
 
 ---
-
-## Attribute Reference
-
-### Supported Attributes
-
-| Attribute | Description | Example |
-|-----------|-------------|---------|
-| `w` `h` | Width, Height | `w=100 h=40` |
-| `bg` | Background color | `bg=#3B82F6` |
-| `c` | Text color | `c=#FFFFFF` or `c=#111827` |
-| `b` | Border color | `b=#E5E7EB` |
-| `s` | Border width | `s=2` |
-| `r` | Border radius | `r=8` |
-| `size` | Font size | `size=16` |
-| `bold` | Bold text | `bold` |
-| `italic` | Italic text | `italic` |
-| `opacity` | Element opacity (0-1) | `opacity=0.5` |
-| `letter-spacing` | Letter spacing | `letter-spacing=2` |
-| `vertical-align` | Vertical alignment | `vertical-align=m` |
-| `padding-top` | Top padding | `padding-top=16` |
-| `padding-right` | Right padding | `padding-right=8` |
-| `padding-bottom` | Bottom padding | `padding-bottom=16` |
-| `padding-left` | Left padding (overrides padding) | `padding-left=8` |
-| `text-decoration` | Text decoration | `text-decoration=underline` |
-| `line-height` | Line height | `line-height=22` |
-| `style` | Border style | `style=dashed` or `style=dotted` |
-| `shadow-x` | Shadow X offset | `shadow-x=2` |
-| `shadow-y` | Shadow Y offset | `shadow-y=4` |
-| `shadow-blur` | Shadow blur radius | `shadow-blur=8` |
-| `shadow-color` | Shadow color | `shadow-color=#00000020` |
-| `colspan` | Column span for table cells | `colspan=2` |
-| `rowspan` | Row span for table cells | `rowspan=2` |
-| `note` | Functional description | `note="""Description"""` |
-
-### Forbidden Attributes (Hallucinated)
-
-These attributes do NOT exist in SolarWire syntax and must NEVER be used:
-- `multiline` - Does not exist
-- `truncate` - Does not exist
-- `stroke` - Use `b=` instead for border color
-- `strokeWidth` - Use `s=` instead for border width

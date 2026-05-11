@@ -1,5 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FileNode } from '../../../shared/types/file';
+import { useFileStore } from '../../stores/fileStore';
+import { SnippetInfo } from '../../../shared/types/file';
 import './FileTree.css';
 
 interface FileTreeProps {
@@ -38,6 +40,12 @@ const TreeItem: React.FC<TreeItemProps> = ({
   const itemRef = useRef<HTMLDivElement>(null);
   const isExpanded = expandedDirectories.has(node.path);
   const isSelected = selectedFile && selectedFile.path === node.path;
+
+  const snippetInfosByFile = useFileStore(state => state.snippetInfosByFile);
+  const isMarkdown = node.type === 'file' && /\.(md|markdown)$/i.test(node.name);
+  const snippetInfos = isMarkdown ? snippetInfosByFile[node.path] : undefined;
+  const snippetCount = snippetInfos ? snippetInfos.length : 0;
+  const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
     if (isSelected && itemRef.current) {
@@ -107,6 +115,20 @@ const TreeItem: React.FC<TreeItemProps> = ({
         {node.type === 'file' && <span className="tree-item-arrow"></span>}
         <span className="tree-item-icon">{getIcon()}</span>
         <span className="tree-item-name">{node.name}</span>
+        {snippetCount > 0 && (
+          <span
+            className="tree-item-badge"
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+          >
+            ⚡{snippetCount}
+            {showTooltip && (
+              <span className="tree-item-badge-tooltip">
+                {snippetCount} 个页面: {snippetInfos!.map(s => `#${s.snippetIndex} ${s.title || '未命名'}`).join(', ')}
+              </span>
+            )}
+          </span>
+        )}
       </div>
       {node.type === 'directory' && isExpanded && node.children && node.children.length > 0 && (
         <div className="tree-children">
