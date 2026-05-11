@@ -8,13 +8,10 @@ import { render } from '../renderer';
  * @param height - 缩略图高度
  * @returns SVG 格式的缩略图
  */
-export async function generateThumbnail(code: string, width: number = 150, height: number = 100): Promise<string> {
+export async function generateThumbnail(code: string, width: number = 150, height: number = 100, disableNotes: boolean = true): Promise<string> {
   try {
-    // 解析 SolarWire DSL 代码为 AST
     const ast = parse(code);
-
-    // 渲染 AST 为 SVG，第三个参数 true 表示返回包含元数据的对象
-    const result = render(ast, undefined, true);
+    const result = render(ast, { disableNotes }, true);
 
     let svgContent: string;
     let contentWidth = 400;

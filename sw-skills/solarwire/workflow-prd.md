@@ -9,9 +9,9 @@
 - Table cells and rows cannot specify @(x,y), w, h
 - Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
 - Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
-- All elements must have coordinates @(x,y)
+- All elements must have coordinates @(x,y) — top-left corner anchor
 - Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
-- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
 - After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
@@ -122,10 +122,49 @@ Extract the five UX layers from code analysis:
 **Step 0: Explore Project Context**
 - Check existing code files (if any)
 - Check existing documentation (if any)
+- Check existing PRD documents in `.solarwire/` directory (if any)
 - Check recent git commits (if any)
 - Understand project background and goals
 
-**Step 1: Scope Check**
+**Step 1: Related Feature Impact Analysis (CRITICAL)**
+- Scan existing codebase for features related to the new requirement
+- Scan existing PRDs in `.solarwire/` for features that may need modification
+- Identify frontend components that can be reused (see Component Reuse Rules below)
+- Produce an impact analysis report:
+
+```
+Based on the new requirement, I've analyzed the existing codebase and PRDs:
+
+**Directly Related Features (must modify):**
+1. [Feature A] - [Why it needs modification] - [Affected pages/components]
+2. [Feature B] - [Why it needs modification] - [Affected pages/components]
+
+**Indirectly Related Features (may need modification):**
+1. [Feature C] - [Potential impact] - [Needs confirmation]
+
+**Reusable Components:**
+1. [Component X] - [Can be used for] - [Location in codebase]
+
+**No Impact:**
+- [Feature D] - [Why no impact]
+
+Should I include the related feature modifications in this PRD?
+```
+
+**Related Feature Impact Analysis Rules:**
+- MUST scan codebase for: shared components, shared API endpoints, shared data models, shared utilities
+- MUST scan existing PRDs for: pages that reference the same data/entities, pages with shared navigation, pages with cross-references
+- MUST identify frontend components that match the new requirement's UI needs
+- If related features need modification, include them in the current PRD's Change Summary
+- If unsure about indirect impact, ask user to confirm
+
+**Component Reuse Rules:**
+- When generating wireframes, if existing frontend code has suitable components, use those components to draw the corresponding wireframe elements
+- Identify reusable components by scanning: component library files, shared component directories, UI framework components
+- In the wireframe note, document the component reference: `Component: [ComponentName] from [path]`
+- If no existing component matches, design new elements as usual
+
+**Step 2: Scope Check**
 - Determine if project needs to be decomposed into multiple sub-projects
 - If too large, help user decompose and select first sub-project
 - Decomposition criteria:
@@ -133,7 +172,7 @@ Extract the five UX layers from code analysis:
   - >10 pages → needs decomposition
   - Multiple independent business flows → needs decomposition
 
-**Step 2: Multiple Approaches Comparison (Optional)**
+**Step 3: Multiple Approaches Comparison (Optional)**
 - Provide 2-3 design approaches
 - Each with trade-off analysis
 - Recommend one approach
@@ -144,7 +183,7 @@ Extract the five UX layers from code analysis:
 
 **Goal: Systematically confirm requirements through 5 UX layers. Do NOT proceed to next layer until current layer is fully understood. Ask probing questions, follow first principles.**
 
-**Step 3: Strategy Layer (战略层)**
+**Step 4: Strategy Layer (战略层)**
 ```
 Let me understand the business context:
 
@@ -155,20 +194,20 @@ Let me understand the business context:
 5. Why now? What triggered this requirement?
 ```
 
-**Step 4: Scope Layer (范围层)**
+**Step 5: Scope Layer (范围层)**
 ```
-Based on the strategy, let's define the scope:
+Based on the strategy and impact analysis, let's define the scope:
 
 1. What changes are involved?
    - New pages/modals/features to ADD
-   - Existing pages/modals/features to MODIFY
+   - Existing pages/modals/features to MODIFY (including related features from impact analysis)
    - Features to REMOVE
-2. Which existing pages are affected? (If modifying existing features)
+2. Which existing pages are affected? (Including related features identified in Step 1)
 3. What is explicitly OUT OF SCOPE?
 4. Are there any dependencies on other systems/features?
 ```
 
-**Step 5: Structure Layer (结构层)**
+**Step 6: Structure Layer (结构层)**
 ```
 Based on the scope, let's define the structure:
 
@@ -179,7 +218,7 @@ Based on the scope, let's define the structure:
 5. Are there any shared components across pages?
 ```
 
-**Step 6: Framework Layer (框架层)**
+**Step 7: Framework Layer (框架层)**
 ```
 Based on the structure, let's define the framework:
 
@@ -189,7 +228,7 @@ Based on the structure, let's define the framework:
 4. What are the key user interactions?
 ```
 
-**Step 7: Presentation Layer (表现层)**
+**Step 8: Presentation Layer (表现层)**
 ```
 Based on the framework, let's define the presentation:
 
@@ -206,7 +245,7 @@ Based on the framework, let's define the presentation:
 - All layers feed into the PRD document structure
 - For modifications to existing features: focus on what CHANGES, not re-describing what stays the same
 
-**Step 8: Multi-language Confirmation**
+**Step 9: Multi-language Confirmation**
 ```
 Does this project require multi-language support?
 
@@ -247,7 +286,7 @@ If no:
 
 ### Phase 2: Requirements Validation
 
-**Step 9: Requirements Summary**
+**Step 10: Requirements Summary**
 ```
 Here's my understanding of requirements:
 
@@ -266,7 +305,7 @@ Here's my understanding of requirements:
 Is this understanding correct? Any adjustments or additions needed?
 ```
 
-**Step 10: Requirements Confirmation Gate**
+**Step 11: Requirements Confirmation Gate**
 - User MUST confirm requirements
 - If adjustments needed, go back to Phase 1
 
@@ -274,11 +313,11 @@ Is this understanding correct? Any adjustments or additions needed?
 
 ### Phase 3: Generate & Quality
 
-**Step 11: Generate PRD**
+**Step 12: Generate PRD**
 - Generate complete PRD document
 - Save to `.solarwire/[requirement-name]/solarwire-prd.md`
 
-**Step 12: Spec Self-Review**
+**Step 13: Spec Self-Review**
 
 #### Check 1: Placeholder Scan
 ```
@@ -359,14 +398,14 @@ If errors found:
   - Pure text in ["text"] → "text"
   - Rectangle without vertical-align=m → add vertical-align=m
 
-MUST pass validation before proceeding to Step 13
+MUST pass validation before proceeding to Step 14
 ```
 
 **Fix Principle:**
 - Fix all issues immediately, no need to re-review
-- Proceed to Step 13 after fixing
+- Proceed to Step 14 after fixing
 
-**Step 13: User Review Gate**
+**Step 14: User Review Gate**
 ```
 PRD generated and passed self-review
 
@@ -396,14 +435,14 @@ Please start reviewing, let me know if you have any questions.
 
 **User Review Gate Rules:**
 - MUST wait for user to explicitly confirm "ok" or "no problem"
-- If user requests changes, go back to Step 11 to regenerate PRD
-- If user only needs minor adjustments, can fix before Step 14
+- If user requests changes, go back to Step 12 to regenerate PRD
+- If user only needs minor adjustments, can fix before Step 15
 
 ---
 
 ### Phase 4: Output
 
-**Step 14: Save PRD**
+**Step 15: Save PRD**
 - Save to `.solarwire/[requirement-name]/solarwire-prd.md`
 - No SVG generation (handled by editor application)
 
@@ -414,30 +453,31 @@ Please start reviewing, let me know if you have any questions.
 You MUST complete each step in order:
 
 **Phase 0: Exploration & Preparation**
-1. [ ] Explore project context (code, docs, commits)
-2. [ ] Scope check (needs decomposition?)
-3. [ ] Multiple approaches comparison (optional)
+1. [ ] Explore project context (code, docs, existing PRDs, commits)
+2. [ ] Related feature impact analysis (scan codebase and existing PRDs for related features)
+3. [ ] Scope check (needs decomposition?)
+4. [ ] Multiple approaches comparison (optional)
 
 **Phase 1: Five Elements Confirmation**
-4. [ ] Strategy Layer - business context and goals
-5. [ ] Scope Layer - changes, affected pages, out-of-scope
-6. [ ] Structure Layer - page organization and user flows
-7. [ ] Framework Layer - page layouts and interaction patterns
-8. [ ] Presentation Layer - visual hierarchy and design preferences
-9. [ ] Multi-language confirmation
+5. [ ] Strategy Layer - business context and goals
+6. [ ] Scope Layer - changes, affected pages (including related features), out-of-scope
+7. [ ] Structure Layer - page organization and user flows
+8. [ ] Framework Layer - page layouts and interaction patterns
+9. [ ] Presentation Layer - visual hierarchy and design preferences
+10. [ ] Multi-language confirmation
 
 **Phase 2: Requirements Validation**
-10. [ ] Requirements summary
-11. [ ] Requirements confirmation gate (user MUST confirm)
+11. [ ] Requirements summary
+12. [ ] Requirements confirmation gate (user MUST confirm)
 
 **Phase 3: Generate & Quality**
-12. [ ] Generate PRD
-13. [ ] Spec self-review (4 checks)
-14. [ ] Renderer validation: `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
-15. [ ] User review gate (user MUST review)
+13. [ ] Generate PRD
+14. [ ] Spec self-review (4 checks)
+15. [ ] Renderer validation: `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
+16. [ ] User review gate (user MUST review)
 
 **Phase 4: Output**
-16. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
+17. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
 
 ---
 
@@ -575,14 +615,14 @@ sequenceDiagram
 [] @(0,0) w=1440 h=900 bg=#FFFFFF
 
 // Page Content - Each element has detailed note description
-["Logo"] @(50,50) w=120 h=60 note="""Logo
+["Logo"] @(50,50) w=120 h=60 align=l vertical-align=m note="""Logo
 1. Click action
    - When clicked, return to homepage"""
 
 "User Login" @(100,150) size=24 bold
 
 "Username" @(100,220)
-["Enter phone or email"] @(100,245) w=300 h=44 bg=#FFFFFF b=#E5E7EB note="""Username input
+["Enter phone or email"] @(100,245) w=300 h=44 bg=#FFFFFF b=#E5E7EB align=l vertical-align=m note="""Username input
 1. Input rules
    - Always supports phone number or email input
    - Always automatically trims leading/trailing spaces
@@ -591,7 +631,7 @@ sequenceDiagram
    - If format is invalid on blur, show 'Please enter a valid phone number or email'"""
 
 "Password" @(100,310)
-["Enter password"] @(100,335) w=300 h=44 bg=#FFFFFF b=#E5E7EB note="""Password input
+["Enter password"] @(100,335) w=300 h=44 bg=#FFFFFF b=#E5E7EB align=l vertical-align=m note="""Password input
 1. Input rules
    - Always display password as dots
    - If input is less than 6 or more than 32 characters, show validation error
@@ -599,7 +639,7 @@ sequenceDiagram
 2. Interaction
    - When eye icon is clicked, toggle password visibility"""
 
-["Login"] @(100,450) w=300 h=48 bg=#3B82F6 c=#FFFFFF size=16 note="""Login button
+["Login"] @(100,450) w=300 h=48 bg=#3B82F6 c=#FFFFFF size=16 align=c vertical-align=m note="""Login button
 1. Click action
    - When clicked, validate username and password
 2. Success handling
@@ -689,13 +729,13 @@ For modified pages, only draw and describe the changed elements. Do NOT copy or 
 
 // Only changed elements are drawn below
 
-["WeChat Login"] @(100,500) w=300 h=44 note="""[NEW] WeChat login button
+["WeChat Login"] @(100,500) w=300 h=44 align=c vertical-align=m note="""[NEW] WeChat login button
 1. Click action
    - When clicked, initiate WeChat authorization login
 2. Success handling
    - When WeChat authorization succeeds, bind WeChat account and redirect to homepage"""
 
-["Login"] @(100,450) w=300 h=48 note="""[MODIFIED] Login button
+["Login"] @(100,450) w=300 h=48 align=c vertical-align=m note="""[MODIFIED] Login button
 1. NEW: Loading state
    - While login is in progress, show loading spinner and disable button to prevent double-click
 2. Existing behavior unchanged
@@ -721,7 +761,7 @@ For modified pages, only draw and describe the changed elements. Do NOT copy or 
 .solarwire/
 ├── [requirement-name]/
 │   ├── solarwire-prd.md
-│   ├── test-cases.md
+│   ├── test-cases.xlsx
 │   ├── dev-design.md
 │   └── archive/
 │       └── solarwire-prd-v1.0.md

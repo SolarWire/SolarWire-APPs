@@ -40,13 +40,19 @@ const SnippetListPanel: React.FC<SnippetListPanelProps> = ({ sourceFilePath, fil
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
 
-  const [hoveredSnippetId, setHoveredSnippetId] = useState<string | null>(null);
+  const [tooltipState, setTooltipState] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    snippetId: string;
+  }>({ visible: false, x: 0, y: 0, snippetId: '' });
   const [thumbnailCache, setThumbnailCache] = useState<Record<string, string>>({});
   const thumbnailLoadingRef = useRef<Set<string>>(new Set());
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    if (!hoveredSnippetId) return;
-    const snippet = snippets.find(s => s.id === hoveredSnippetId);
+    if (!tooltipState.visible || !tooltipState.snippetId) return;
+    const snippet = snippets.find(s => s.id === tooltipState.snippetId);
     if (!snippet) return;
     if (thumbnailCache[snippet.id] || thumbnailLoadingRef.current.has(snippet.id)) return;
 
@@ -57,7 +63,23 @@ const SnippetListPanel: React.FC<SnippetListPanelProps> = ({ sourceFilePath, fil
     }).catch(() => {
       thumbnailLoadingRef.current.delete(snippet.id);
     });
-  }, [hoveredSnippetId, snippets]);
+  }, [tooltipState.visible, tooltipState.snippetId, snippets]);
+
+  const handleItemMouseEnter = useCallback((snippet: SolarWireSnippet) => {
+    const el = itemRefs.current[snippet.id];
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    setTooltipState({
+      visible: true,
+      x: rect.right + 8,
+      y: rect.top,
+      snippetId: snippet.id,
+    });
+  }, []);
+
+  const handleItemMouseLeave = useCallback(() => {
+    setTooltipState(prev => ({ ...prev, visible: false }));
+  }, []);
 
   const handleClick = useCallback(async (snippet: SolarWireSnippet) => {
     setSelection('file', snippet.sourceFile, snippet.id);
@@ -144,8 +166,12 @@ const SnippetListPanel: React.FC<SnippetListPanelProps> = ({ sourceFilePath, fil
     if (declarations['bg']) lines.push(`背景: ${declarations['bg']}`);
     if (declarations['w']) lines.push(`宽度: ${declarations['w']}`);
     if (declarations['h']) lines.push(`高度: ${declarations['h']}`);
-    return lines.join('\n');
+    return lines;
   };
+
+  const tooltipSnippet = tooltipState.visible
+    ? snippets.find(s => s.id === tooltipState.snippetId)
+    : null;
 
   if (snippets.length === 0) return null;
 
@@ -159,40 +185,19 @@ const SnippetListPanel: React.FC<SnippetListPanelProps> = ({ sourceFilePath, fil
           const title = getSnippetTitle(snippet);
           const index = snippet.snippetIndex || 1;
           const displayText = title ? `#${index} ${title}` : `#${index}`;
-          const isHovered = hoveredSnippetId === snippet.id;
-          const thumbnailSvg = thumbnailCache[snippet.id];
 
           return (
             <div
               key={snippet.id}
+              ref={el => { itemRefs.current[snippet.id] = el; }}
               className={`snippet-list-item ${isSelected(snippet) ? 'snippet-list-item-selected' : ''}`}
               onClick={() => handleClick(snippet)}
               onContextMenu={(e) => handleContextMenu(e, snippet)}
-              onMouseEnter={() => setHoveredSnippetId(snippet.id)}
-              onMouseLeave={() => setHoveredSnippetId(null)}
+              onMouseEnter={() => handleItemMouseEnter(snippet)}
+              onMouseLeave={handleItemMouseLeave}
             >
               <span className="snippet-list-item-icon">⚡</span>
               <span className="snippet-list-item-text">{displayText}</span>
-              {isHovered && (
-                <div className="snippet-item-tooltip">
-                  {thumbnailSvg && (
-                    <div
-                      className="snippet-tooltip-preview"
-                      dangerouslySetInnerHTML={{ __html: thumbnailSvg }}
-                    />
-                  )}
-                  {!thumbnailSvg && (
-                    <div className="snippet-tooltip-preview snippet-tooltip-preview-loading">
-                      <span>生成预览...</span>
-                    </div>
-                  )}
-                  <div className="snippet-tooltip-info">
-                    {getSnippetTooltipContent(snippet).split('\n').map((line, i) => (
-                      <div key={i} className="snippet-tooltip-info-line">{line}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           );
         })}
@@ -205,6 +210,35 @@ const SnippetListPanel: React.FC<SnippetListPanelProps> = ({ sourceFilePath, fil
         items={contextMenuItems}
         onClose={() => setContextMenuVisible(false)}
       />
+
+      {tooltipSnippet && createPortal(
+        <div
+          className="snippet-global-tooltip"
+          style={{
+            position: 'fixed',
+            left: tooltipState.x,
+            top: tooltipState.y,
+            zIndex: 10000,
+          }}
+        >
+          {thumbnailCache[tooltipSnippet.id] ? (
+            <div
+              className="snippet-tooltip-preview"
+              dangerouslySetInnerHTML={{ __html: thumbnailCache[tooltipSnippet.id] }}
+            />
+          ) : (
+            <div className="snippet-tooltip-preview snippet-tooltip-preview-loading">
+              <span>生成预览...</span>
+            </div>
+          )}
+          <div className="snippet-tooltip-info">
+            {getSnippetTooltipContent(tooltipSnippet).map((line, i) => (
+              <div key={i} className="snippet-tooltip-info-line">{line}</div>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
 
       {renaming && createPortal(
         <div className="snippet-rename-overlay" onClick={() => setRenaming(false)}>

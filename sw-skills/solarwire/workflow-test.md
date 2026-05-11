@@ -9,9 +9,9 @@
 - Table cells and rows cannot specify @(x,y), w, h
 - Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
 - Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
-- All elements must have coordinates @(x,y)
+- All elements must have coordinates @(x,y) — top-left corner anchor
 - Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
-- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
 - After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
@@ -240,7 +240,7 @@ flowchart TD
 
 "Login" @(720,50) c=#333333 size=24 bold
 
-["Enter phone or email"] @(100,200) w=280 h=40 bg=#FFFFFF b=#F2F2F2 note="""Username input
+["Enter phone or email"] @(100,200) w=280 h=40 bg=#FFFFFF b=#F2F2F2 align=l vertical-align=m note="""Username input
 1. Input rules
    - Always supports phone number or email input
    - Always automatically trims spaces
@@ -248,7 +248,7 @@ flowchart TD
 2. Validation
    - If format is invalid on blur, show 'Please enter valid phone or email'"""
 
-["Enter password"] @(100,260) w=280 h=40 bg=#FFFFFF b=#F2F2F2 note="""Password input
+["Enter password"] @(100,260) w=280 h=40 bg=#FFFFFF b=#F2F2F2 align=l vertical-align=m note="""Password input
 1. Input rules
    - Always display password as dots
    - If input is less than 6 or more than 32 characters, show validation error
@@ -258,7 +258,7 @@ flowchart TD
    - When input loses focus, validate format
    - If format is invalid on blur, show 'Invalid password format'"""
 
-["Login"] @(100,320) w=280 h=44 bg=#1890FF c=#FFFFFF note="""Login button
+["Login"] @(100,320) w=280 h=44 bg=#1890FF c=#FFFFFF align=c vertical-align=m note="""Login button
 1. Click action
    - When clicked, validate all inputs and submit login request
 2. Success handling

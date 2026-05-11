@@ -24,7 +24,7 @@ SolarWire is an AI-powered software development engineering toolkit that covers 
 ## Core Flows
 
 **Flow 1: New Feature Development**
-Five Elements confirmation (Strategy→Scope→Structure→Framework→Presentation) → Produce PRD (with wireframes) → User confirms PRD → Write test cases → Dev design → Implementation plan → Write code → Code review → Execute tests → Test report
+Explore context → Related feature impact analysis (scan codebase & existing PRDs) → Five Elements confirmation (Strategy→Scope→Structure→Framework→Presentation) → Produce PRD (with wireframes, including related feature modifications) → User confirms PRD → Write test cases → Dev design → Implementation plan → Write code → Code review → Execute tests → Test report
 
 **Flow 2: Understand Existing Project**
 Analyze codebase → Extract Five Elements from code → Produce PRD (with wireframes) → User confirms understanding
@@ -35,7 +35,7 @@ Analyze codebase → Extract Five Elements from code → Produce PRD (with wiref
 .solarwire/
 ├── [requirement-name]/
 │   ├── solarwire-prd.md          # PRD document (always latest version)
-│   ├── test-cases.md             # Test cases
+│   ├── test-cases.xlsx            # Test cases
 │   ├── dev-design.md             # Dev design
 │   └── archive/                  # Historical version archive
 │       └── solarwire-prd-v1.0.md
@@ -60,7 +60,7 @@ Analyze codebase → Extract Five Elements from code → Produce PRD (with wiref
 
 | Element | Syntax | Example |
 |------|------|------|
-| Rectangle | `["Text"] @(x,y)` | `["Button"] @(100,50) w=120 h=40 bg=#3B82F6 c=#FFFFFF` |
+| Rectangle | `["Text"] @(x,y)` | `["Button"] @(100,50) w=120 h=40 bg=#3B82F6 c=#FFFFFF align=c vertical-align=m` |
 | Rounded Rectangle | `["Text"] @(x,y) r=N` | `["Card"] @(50,100) w=300 h=200 r=8` |
 | Circle | `("Text") @(x,y)` | `("Avatar") @(300,50) w=60` |
 | Text | `"Text" @(x,y)` | `"Title" @(100,50) size=24 bold` |

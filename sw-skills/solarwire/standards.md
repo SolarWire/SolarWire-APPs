@@ -41,13 +41,13 @@ Choose appropriate element types based on actual UI components:
 
 | Scenario | Recommended Element | Example |
 |----------|---------------------|---------|
-| Primary Buttons | Rectangle `[]` with background color | `["Login"] @(100,50) w=100 h=40 bg=#3B82F6 c=#FFFFFF` |
-| Secondary Buttons | Rectangle `[]` with border | `["Cancel"] @(220,50) w=80 h=40 bg=#FFFFFF b=#E5E7EB` |
+| Primary Buttons | Rectangle `[]` with background color | `["Login"] @(100,50) w=100 h=40 bg=#3B82F6 c=#FFFFFF align=c vertical-align=m` |
+| Secondary Buttons | Rectangle `[]` with border | `["Cancel"] @(220,50) w=80 h=40 bg=#FFFFFF b=#E5E7EB align=c vertical-align=m` |
 | Cards/Containers | Rectangle with `r` attribute | `["User Info Card"] @(100,50) w=300 h=200 r=8` |
 | Avatars | Circle with placeholder | `("A") @(100,50) w=40 bg=#E5E7EB c=#6B7280` |
 | Icon Buttons | Circle with icon text | `("?") @(100,50) w=32 h=32 bg=#E5E7EB` |
 | Labels/Text | Plain Text `""` | `"Username" @(100,50)` |
-| Input Fields | Rectangle with placeholder | `["Enter username..."] @(100,50) w=280 h=40 bg=#FFFFFF b=#E5E7EB c=#9CA3AF` |
+| Input Fields | Rectangle with placeholder | `["Enter username..."] @(100,50) w=280 h=40 bg=#FFFFFF b=#E5E7EB c=#9CA3AF align=l vertical-align=m` |
 | Dividers | Line `--` | `-- @(0,100)->(400,100) b=#E5E7EB` |
 | Data Tables | Table `##` | `## @(100,50) w=500 border=1` |
 
@@ -55,6 +55,16 @@ Choose appropriate element types based on actual UI components:
 - Using placeholder `[?]` for buttons (use `["Button Text"]` instead)
 - Using rectangle `[]` for plain labels (use `"Label"` instead)
 - Overcrowding elements - use 10px spacing
+
+**Rectangle Alignment Rules:**
+- Input/Display rectangles: `align=l vertical-align=m` (text left-aligned, vertically centered)
+- Button rectangles: `align=c vertical-align=m` (text center-aligned, vertically centered)
+- Container rectangles (no text): alignment not needed
+
+**Component Reuse:**
+- When generating wireframes, if existing frontend code has suitable components, use those components to draw the corresponding wireframe elements
+- In the wireframe note, document the component reference: `Component: [ComponentName] from [path]`
+- If no existing component matches, design new elements as usual
 
 ---
 
@@ -440,7 +450,7 @@ Top-left anchor: (cx - r, cy - r)
 
 // Modal header
 "[Modal Title]" @(360,230) size=18 bold
-["X"] @(1080,230) w=32 h=32 bg=#FFFFFF note="""Close button
+["X"] @(1080,230) w=32 h=32 bg=#FFFFFF align=c vertical-align=m note="""Close button
 1. Click action
    - Close modal without action"""
 
@@ -448,10 +458,10 @@ Top-left anchor: (cx - r, cy - r)
 // ... form fields, information, etc.
 
 // Modal footer
-["Cancel"] @(720,640) w=80 h=36 bg=#FFFFFF b=#E5E7EB note="""Cancel button
+["Cancel"] @(720,640) w=80 h=36 bg=#FFFFFF b=#E5E7EB align=c vertical-align=m note="""Cancel button
 1. Click action
    - Close modal without saving"""
-["Confirm"] @(820,640) w=80 h=36 bg=#3B82F6 c=#FFFFFF note="""Confirm button
+["Confirm"] @(820,640) w=80 h=36 bg=#3B82F6 c=#FFFFFF align=c vertical-align=m note="""Confirm button
 1. Click action
    - Execute [action]
 2. Success handling
@@ -495,13 +505,13 @@ Top-left anchor: (cx - r, cy - r)
 
 // Only changed elements are drawn below
 
-["WeChat Login"] @(100,500) w=300 h=44 note="""[NEW] WeChat login button
+["WeChat Login"] @(100,500) w=300 h=44 align=c vertical-align=m note="""[NEW] WeChat login button
 1. Click action
    - When clicked, initiate WeChat authorization login
 2. Success handling
    - When WeChat authorization succeeds, bind WeChat account and redirect to homepage"""
 
-["Login"] @(100,450) w=300 h=48 note="""[MODIFIED] Login button
+["Login"] @(100,450) w=300 h=48 align=c vertical-align=m note="""[MODIFIED] Login button
 1. NEW: Loading state
    - While login is in progress, show loading spinner and disable button to prevent double-click
 2. Existing behavior unchanged

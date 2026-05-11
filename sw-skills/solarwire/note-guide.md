@@ -99,7 +99,7 @@ Must include:
 
 **Example:**
 ```solarwire
-["Delete"] @(100,50) w=80 h=36 note="""Delete button
+["Delete"] @(100,50) w=80 h=36 align=c vertical-align=m note="""Delete button
 1. Permission control
    - Visible: Users with 'delete_permission' role
    - Hidden: Users without permission (not just disabled)
@@ -551,7 +551,7 @@ Use compact format with language names declared once:
 ### Good Note (Functional behavior with EARS style)
 
 ```solarwire
-["Login"] @(100,50) w=100 h=40 note="""Login button
+["Login"] @(100,50) w=100 h=40 align=c vertical-align=m note="""Login button
 1. Click action
    - When clicked, validate username and password
 2. Success handling
@@ -634,7 +634,7 @@ Use compact format with language names declared once:
 ### Good Input Field Note
 
 ```solarwire
-["Enter email"] @(100,50) w=280 h=40 note="""Email input
+["Enter email"] @(100,50) w=280 h=40 align=l vertical-align=m note="""Email input
 1. Input rules
    - Always accept standard email format only
    - Always trim leading/trailing spaces on blur

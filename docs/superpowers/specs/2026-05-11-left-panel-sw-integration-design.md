@@ -54,9 +54,10 @@ md 文件行右侧新增 snippet 数量 badge，hover 时显示 tooltip。
 - badge 不影响点击 md 文件本身的行为（点击 md 仍打开 md 编辑模式）
 
 **tooltip 规格说明：**
-- 显示格式：`{count} 个页面: #1 {name1}, #2 {name2}, ...`
+- 显示格式（有条目的 md）：`{count} 个页面: #1 {name1}, #2 {name2}, ...`
+- 显示格式（无条目的 md）：`未检测到 SolarWire 页面`
 - 数据来源：解析 md 文件中的 SolarWire 代码块，提取 snippetIndex 和 title
-- 仅在 snippet 数量 > 0 时显示
+- 所有 md 文件 hover 都显示 tooltip
 
 **涉及文件：**
 - `FileTree.tsx`：TreeItem 组件增加 badge 和 tooltip 渲染
@@ -102,7 +103,7 @@ md 文件行右侧新增 snippet 数量 badge，hover 时显示 tooltip。
 - 鼠标悬停时 cursor 变为 `ns-resize`
 - 拖动时实时调整上下两栏高度
 - 设置最小高度限制（上栏最小 120px，下栏最小 80px）
-- 分隔线位置在组件状态中持久化（session 级别，不跨刷新持久化）
+- 分隔线位置在 localStorage 中持久化，跨刷新保持用户调整的比例
 
 ### 5. 数据流
 

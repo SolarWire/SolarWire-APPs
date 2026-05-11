@@ -288,6 +288,9 @@ body.theme-glass-dark {
   --ruler-text: #999;
   --ruler-tick: #555;
   --ruler-border: #333;
+
+  --scrollbar-thumb: rgba(255, 255, 255, 0.25);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.4);
 }
 
 body.theme-glass-light {
@@ -352,6 +355,9 @@ body.theme-glass-light {
   --ruler-text: #666;
   --ruler-tick: #bbb;
   --ruler-border: #ddd;
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.2);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.35);
 }
 
 body.theme-cyberpunk {
@@ -422,6 +428,9 @@ body.theme-cyberpunk {
   --ruler-text: #8888cc;
   --ruler-tick: rgba(0, 240, 255, 0.3);
   --ruler-border: rgba(0, 240, 255, 0.15);
+
+  --scrollbar-thumb: rgba(0, 240, 255, 0.3);
+  --scrollbar-thumb-hover: rgba(0, 240, 255, 0.5);
 }
 
 body.theme-paper {
@@ -489,6 +498,9 @@ body.theme-paper {
   --ruler-text: #8a7d68;
   --ruler-tick: #c4b8a4;
   --ruler-border: rgba(44, 36, 22, 0.2);
+
+  --scrollbar-thumb: rgba(44, 36, 22, 0.25);
+  --scrollbar-thumb-hover: rgba(44, 36, 22, 0.4);
 }
 
 body.theme-minimal {

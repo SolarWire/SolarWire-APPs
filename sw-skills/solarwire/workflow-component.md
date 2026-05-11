@@ -7,9 +7,9 @@
 - Table cells and rows cannot specify @(x,y), w, h
 - Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
 - Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
-- All elements must have coordinates @(x,y)
+- All elements must have coordinates @(x,y) — top-left corner anchor
 - Plain text must use text element `"text"`, NOT rectangle `["text"]` to wrap plain text
-- Rectangle element text must have `vertical-align=m` (vertically centered), `align=l` (horizontally left-aligned)
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
 - After generating component code must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
 - See [syntax.md](syntax.md) for complete syntax reference
 - See [note-guide.md](note-guide.md) for note writing rules
@@ -128,7 +128,7 @@ updatedAt: 2024-01-01T00:00:00.000Z
 - Use absolute coordinates
 - Avoid using image elements `<url>`
 - Pure text MUST use text element `"text"`, NOT rectangle `["text"]`
-- Rectangle elements MUST have `vertical-align=m` (vertically centered) and `align=l` (horizontally left-aligned)
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
 
 ### Allowed Syntax Elements
 

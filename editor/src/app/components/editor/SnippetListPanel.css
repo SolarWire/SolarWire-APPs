@@ -60,16 +60,11 @@
   color: var(--accent-color);
 }
 
-.snippet-item-tooltip {
-  position: absolute;
-  left: 100%;
-  top: 0;
-  margin-left: 8px;
+.snippet-global-tooltip {
   background: var(--bg-primary, #1e1e1e);
   border: 1px solid var(--border-color, #444);
   border-radius: 6px;
   padding: 8px;
-  z-index: 200;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
   pointer-events: none;
   min-width: 200px;
