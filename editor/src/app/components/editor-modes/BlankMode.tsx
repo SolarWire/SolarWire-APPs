@@ -41,7 +41,7 @@ const BlankMode: React.FC = () => {
     <div className="blank-mode">
       <div className="blank-mode-content">
         <div className="blank-mode-icon">
-          <img src="/logo.svg" alt="SolarWire" className="blank-mode-logo" />
+          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="SolarWire" className="blank-mode-logo" />
         </div>
         <div className="blank-mode-title">Welcome to SolarWire Editor</div>
         <div className="blank-mode-text">

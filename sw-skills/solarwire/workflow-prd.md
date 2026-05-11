@@ -82,14 +82,17 @@ When user wants to generate PRD from existing code:
 3. Identify tech stack
 4. Determine analysis scope
 
-### Phase C2: Five Elements from Code
-Extract the five UX layers from code analysis:
+### Phase C2: Five Elements from Code (Reverse: Presentation → Strategy)
 
-1. **Strategy Layer**: Infer from codebase structure, comments, business logic
-2. **Scope Layer**: Identify all pages, features, and their relationships from code
+When reverse-engineering from code, extract the five UX layers in reverse order — from the most concrete (what you can see) to the most abstract (why it exists):
+
+1. **Presentation Layer**: Infer visual hierarchy from component structure and styling
+2. **Framework Layer**: Extract page layouts and interaction patterns from components
 3. **Structure Layer**: Extract navigation hierarchy and page organization from routes/menus
-4. **Framework Layer**: Extract page layouts and interaction patterns from components
-5. **Presentation Layer**: Infer visual hierarchy from component structure and styling
+4. **Scope Layer**: Identify all pages, features, and their relationships from code
+5. **Strategy Layer**: Infer from codebase structure, comments, business logic
+
+**Why reverse?** Code is an already-implemented product. We start from what's visible and concrete (UI, layout), then work backward to understand the structure, scope, and ultimately the business strategy that drove the implementation.
 
 ### Phase C3: Frontend Analysis
 - Resolve full component tree (CRITICAL: never stop at page level)

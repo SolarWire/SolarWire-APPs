@@ -103,6 +103,8 @@ function createWindow(): void {
     height: 900,
     title: 'SolarWire Editor',
     icon: path.join(__dirname, '../../public/logo.png'),
+    backgroundColor: '#1e1e1e',
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -113,7 +115,11 @@ function createWindow(): void {
     }
   });
 
-  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+  });
+
+  const isDev = process.env.NODE_ENV === 'development';
 
   if (isDev) {
     findVitePort().then((port) => {

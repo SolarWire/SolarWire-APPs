@@ -2,7 +2,7 @@ import React from 'react';
 import BlankMode from '../editor-modes/BlankMode';
 import SolarWireMode from '../editor-modes/SolarWireMode';
 import MarkdownMode from '../editor-modes/MarkdownMode';
-import TableMode from '../editor-modes/TableMode';
+import UnsupportedMode from '../editor-modes/UnsupportedMode';
 import ComponentLibraryManagerMode from '../editor-modes/ComponentLibraryManagerMode';
 import ImagePreview from '../editor/ImagePreview';
 import { useEditorStore } from '../../stores/editorStore';
@@ -30,8 +30,8 @@ const RightPanel: React.FC = () => {
       return <MarkdownMode key={modeKey} />;
     case 'solarwire':
       return <SolarWireMode key={solarWireKey} />;
-    case 'table':
-      return <TableMode key={modeKey} />;
+    case 'unsupported':
+      return <UnsupportedMode key={modeKey} />;
     case 'componentLibraryManager':
       return <ComponentLibraryManagerMode key={componentLibraryKey} />;
     case 'blank':

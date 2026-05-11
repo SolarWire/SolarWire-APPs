@@ -7,7 +7,6 @@ import { useStatusStore } from './statusStore';
 import { feedback } from './feedbackStore';
 import { useEditorStore } from './editorStore';
 import { syntaxErrorService } from '../services/syntax-error-service';
-import { isTableFile } from '../../shared/utils/table-file-adapters';
 
 const AUTO_REFRESH_INTERVAL = 30000;
 
@@ -92,6 +91,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
   autoRefreshEnabled: true,
   autoRefreshTimer: null,
   refreshKey: 0,
+  isLoadingDirectory: false,
   snippetsByFile: {},
   snippetInfosByFile: {},
 
@@ -101,14 +101,13 @@ export const useFileStore = create<FileState>()((set, get) => ({
 
   setSnippetsByFile: (data: Record<string, SolarWireSnippet[]>) => set({ snippetsByFile: data }),
   setSnippetInfosByFile: (data: Record<string, SnippetInfo[]>) => set({ snippetInfosByFile: data }),
+  setTableSheetData: (data: any[] | null) => set({ tableSheetData: data }),
 
   setSelectedFile: (file: FileNode | null) => set({ selectedFile: file, currentSnippet: null, selectedImage: null }),
 
   setSelectedImage: (image) => set({ selectedImage: image, selectedFile: null, currentSnippet: null }),
 
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => set({ currentSnippet: snippet }),
-
-  setTableSheetData: (data: any[] | null) => set({ tableSheetData: data }),
 
   toggleDirectory: (dirPath: string) => {
     const expanded = new Set(get().expandedDirectories);
@@ -150,6 +149,25 @@ export const useFileStore = create<FileState>()((set, get) => ({
     const opId = feedback.operation.start('open', '打开文件中...');
 
     try {
+      const currentPath = get().currentPath;
+      const fileDir = filePath.replace(/[\\/][^\\/]+$/, '');
+      const normalizeForCompare = (p: string) => p.replace(/\\/g, '/').toLowerCase();
+      const needsSwitch = !currentPath || !normalizeForCompare(filePath).startsWith(normalizeForCompare(currentPath) + '/');
+
+      if (needsSwitch) {
+        set({ isLoadingDirectory: true });
+        const api = window.api;
+        if (api?.setAllowedRoot) {
+          await api.setAllowedRoot(fileDir);
+        }
+        try {
+          const tree = await getFileTree(fileDir);
+          set({ currentPath: fileDir, fileTree: tree, isLoadingDirectory: false });
+        } catch {
+          set({ isLoadingDirectory: false });
+        }
+      }
+
       statusStore.setCurrentFilePath(filePath);
 
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'start', filePath });
@@ -167,12 +185,17 @@ export const useFileStore = create<FileState>()((set, get) => ({
         return;
       }
 
-      if (isTableFile(filePath)) {
-        const node: FileNode = { name, path: filePath, type: 'file' };
+      const SUPPORTED_EXTENSIONS = new Set(['md', 'markdown', 'solarwire', 'sw', 'png', 'svg', 'jpg', 'jpeg', 'swc', 'txt', 'json', 'yml', 'yaml', 'toml', 'ini', 'env', 'gitignore', 'gitattributes', 'html', 'css', 'xml', 'log', 'csv', 'sh', 'bat']);
+      const ext = name.includes('.') ? name.split('.').pop()!.toLowerCase() : '';
+      const isSupported = SUPPORTED_EXTENSIONS.has(ext) || !ext || name.startsWith('.');
+
+      
+      if (!isSupported) {
+                const node: FileNode = { name, path: filePath, type: 'file' };
         set({ selectedFile: node, selectedImage: null, currentSnippet: null });
-        eventBus.emit(EditorEvents.MODE_CHANGED, 'table');
+        eventBus.emit(EditorEvents.MODE_CHANGED, 'unsupported');
         statusStore.setCurrentFilePath(filePath);
-        statusStore.updateEditorStatus({ mode: 'table' });
+        statusStore.updateEditorStatus({ mode: 'unsupported' });
         statusStore.updateFileStatus({ isModified: false, lineCount: 0, encoding: 'UTF-8' });
 
         eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: name });
@@ -205,12 +228,15 @@ export const useFileStore = create<FileState>()((set, get) => ({
         const parts = name.split('.');
         const ext = parts.length > 1 ? parts.pop()!.toLowerCase() : '';
         let mode: 'markdown' | 'solarwire' = 'markdown';
-        if (ext === 'md' || ext === 'markdown' || ext === 'txt') {
+        if (ext === 'md' || ext === 'markdown' || ext === 'txt' || ext === 'swc' || ext === 'json' || 
+            ext === 'yml' || ext === 'yaml' || ext === 'toml' || ext === 'ini' || ext === 'env' || 
+            ext === 'gitignore' || ext === 'gitattributes' || ext === 'html' || ext === 'css' || 
+            ext === 'xml' || ext === 'log' || ext === 'csv' || ext === 'sh' || ext === 'bat') {
           mode = 'markdown';
         } else if (ext === 'sw' || ext === 'solarwire') {
           mode = 'solarwire';
         }
-        eventBus.emit(EditorEvents.MODE_CHANGED, mode);
+                eventBus.emit(EditorEvents.MODE_CHANGED, mode);
         statusStore.updateEditorStatus({ mode });
       } catch (e) {
         // ignore
@@ -279,6 +305,8 @@ export const useFileStore = create<FileState>()((set, get) => ({
     const statusStore = useStatusStore.getState();
     const opId = feedback.operation.start('open', '打开目录中...');
 
+    set({ isLoadingDirectory: true });
+
     try {
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'start', filePath: dirPath });
 
@@ -288,13 +316,14 @@ export const useFileStore = create<FileState>()((set, get) => ({
       }
 
       const tree = await getFileTree(dirPath);
-      set({ currentPath: dirPath, fileTree: tree });
+      set({ currentPath: dirPath, fileTree: tree, isLoadingDirectory: false });
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'set-path', filePath: dirPath });
 
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'complete', fileName: dirPath });
       feedback.operation.complete(opId, `已打开目录: ${dirPath}`);
       feedback.toast.success(`目录已打开: ${dirPath}`);
     } catch (err) {
+      set({ isLoadingDirectory: false });
       const errorMessage = err instanceof Error ? err.message : '未知错误';
       eventBus.emit(EditorEvents.FILE_OPENED, { phase: 'error', error: errorMessage });
       console.error('Failed to open directory', err);
@@ -325,7 +354,7 @@ export const useFileStore = create<FileState>()((set, get) => ({
     try {
       eventBus.emit(EditorEvents.FILE_SAVED, { phase: 'start' });
 
-      if (currentMode === 'table' && tableSheetData) {
+      if (currentMode === 'unsupported' && tableSheetData) {
         const result = await fileSystemService.saveTableFile(selectedFile.path, tableSheetData);
         if (!result.success) throw new Error(result.error || '保存失败');
         editorStore.setModified(false);

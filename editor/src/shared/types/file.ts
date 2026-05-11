@@ -33,6 +33,7 @@ export interface FileState {
   autoRefreshEnabled: boolean;
   autoRefreshTimer: NodeJS.Timeout | null;
   refreshKey: number;
+  isLoadingDirectory: boolean;
   snippetsByFile: Record<string, SolarWireSnippet[]>;
   snippetInfosByFile: Record<string, SnippetInfo[]>;
   setCurrentPath: (path: string) => void;

@@ -27,7 +27,7 @@ SolarWire is an AI-powered software development engineering toolkit that covers 
 Explore context → Related feature impact analysis (scan codebase & existing PRDs) → Five Elements confirmation (Strategy→Scope→Structure→Framework→Presentation) → Produce PRD (with wireframes, including related feature modifications) → User confirms PRD → Write test cases → Dev design → Implementation plan → Write code → Code review → Execute tests → Test report
 
 **Flow 2: Understand Existing Project**
-Analyze codebase → Extract Five Elements from code → Produce PRD (with wireframes) → User confirms understanding
+Analyze codebase → Extract Five Elements from code (reverse: Presentation→Strategy) → Produce PRD (with wireframes) → User confirms understanding
 
 ## File Structure Convention
 

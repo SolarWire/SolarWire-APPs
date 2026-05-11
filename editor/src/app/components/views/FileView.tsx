@@ -44,6 +44,7 @@ const FileView: React.FC = () => {
     setSnippetsByFile,
     snippetInfosByFile,
     setSnippetInfosByFile,
+    isLoadingDirectory,
   } = useFileStore();
 
   const handleRefresh = async () => {
@@ -460,11 +461,18 @@ const FileView: React.FC = () => {
       </div>
       <div className="file-view-body" ref={bodyRef}>
         <div style={{ flex: hasSnippets ? splitRatio : 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
-          <Scrollbar className="file-view-scrollbar">
-            <div className="file-view">
-              {renderFileTree()}
+          {isLoadingDirectory ? (
+            <div className="file-view-loading">
+              <div className="file-view-loading-spinner" />
+              <div className="file-view-loading-text">加载中...</div>
             </div>
-          </Scrollbar>
+          ) : (
+            <Scrollbar className="file-view-scrollbar">
+              <div className="file-view">
+                {renderFileTree()}
+              </div>
+            </Scrollbar>
+          )}
         </div>
         {hasSnippets && (
           <>

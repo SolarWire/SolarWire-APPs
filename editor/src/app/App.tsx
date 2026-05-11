@@ -13,6 +13,7 @@ function App(): React.ReactElement {
   const { openDirectoryAtPath, openFileAtPath, currentPath } = useFileStore();
   const { loadSettings } = useSettingsStore();
   const { loadLanguage } = useI18nStore();
+  const pendingOpenPathRef = React.useRef<string | null>(null);
 
   useEffect(() => {
     loadSettings();
@@ -20,7 +21,28 @@ function App(): React.ReactElement {
   }, [loadSettings, loadLanguage]);
 
   useEffect(() => {
-    if (!currentPath) {
+    const api = (window as any).api;
+    if (!api || !api.onOpenPath) return;
+
+    const cleanup = api.onOpenPath(async (data: { filePath: string | null; dirPath: string | null }) => {
+      if (data.filePath) {
+        pendingOpenPathRef.current = data.filePath;
+        if (openFileAtPath) {
+          await openFileAtPath(data.filePath);
+        }
+      } else if (data.dirPath) {
+        pendingOpenPathRef.current = data.dirPath;
+        if (openDirectoryAtPath) {
+          await openDirectoryAtPath(data.dirPath);
+        }
+      }
+    });
+
+    return cleanup;
+  }, [openFileAtPath, openDirectoryAtPath]);
+
+  useEffect(() => {
+    if (!currentPath && !pendingOpenPathRef.current) {
       const lastPath = localStorage.getItem('solarwire-last-path');
       if (lastPath && openDirectoryAtPath) {
         openDirectoryAtPath(lastPath);
@@ -33,21 +55,6 @@ function App(): React.ReactElement {
       localStorage.setItem('solarwire-last-path', currentPath);
     }
   }, [currentPath]);
-
-  useEffect(() => {
-    const api = (window as any).api;
-    if (!api || !api.onOpenPath) return;
-
-    const cleanup = api.onOpenPath(async (data: { filePath: string | null; dirPath: string | null }) => {
-      if (data.filePath && openFileAtPath) {
-        await openFileAtPath(data.filePath);
-      } else if (data.dirPath && openDirectoryAtPath) {
-        await openDirectoryAtPath(data.dirPath);
-      }
-    });
-
-    return cleanup;
-  }, [openFileAtPath, openDirectoryAtPath]);
 
   return (
     <div className="app">

@@ -40,7 +40,7 @@ const LeftPanelHeader: React.FC = () => {
   return (
     <div className="left-panel-header">
       <div className="left-panel-header-left">
-        <img className="left-panel-logo" src="/logo.svg" alt="SolarWire" />
+        <img className="left-panel-logo" src={`${import.meta.env.BASE_URL}logo.svg`} alt="SolarWire" />
         <button
           className="left-panel-action-btn"
           onClick={handleOpen}
