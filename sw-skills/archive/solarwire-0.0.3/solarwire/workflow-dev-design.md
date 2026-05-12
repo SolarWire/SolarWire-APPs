@@ -457,6 +457,6 @@ For important design decisions, document the rationale:
 4. **Consistency Check** - Self-review against PRD after design
 5. **User Confirmation Required** - Must get user sign-off before implementation
 6. **No Placeholders** - All sections must be complete, no TBD or TODO
-7. **Notes in Design Must Follow note-guide.md** - Wireframe notes must NOT include API endpoints, database field names, or component library names (per note-guide.md Section 8)
+7. **Notes in Design Must Follow note-guide.md** - Wireframe notes must NOT include API endpoints, database field names, or component library names (per note-guide.md Section 9)
 
 > For common rules (document language, Mermaid format, incremental marking, UUID keys, soft delete, audit fields, pagination, etc.), follow the rules defined in each workflow step and SKILL.md Red Lines.

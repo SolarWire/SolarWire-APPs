@@ -1,444 +1,420 @@
 # 数据大屏行业模板 - Linear 风格
 id: industry-data-screen-linear
 $schema: solarwire-component-library-v1
-description: 数据大屏行业模板库，Linear风格，主色#5b6abf、暗色背景#1c1e2a、圆角r=8、科技感
+description: 数据大屏行业模板库，Linear 风格，主色#5b6abf、暗色背景#1a1b2e、线性极简
 version: 1.0.0
 author: SolarWire
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
+
+## Web
+id: cat-web
+parentId: null
 
 ## Web-行业组件
-id: web-industry-components
-platform: web
+id: cat-web-industry-components
+parentId: cat-web
 
 ### 数字翻牌器
 id: web-ds-flip-counter
 name: 数字翻牌器
-description: 大数字+动画效果+单位
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 大数字+趋势+同比
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=200 h=100 bg=#252836 s=1 r=8
-"今日订单" @(20, 20) c=#8b8fa3 size=12
-"12,856" @(20, 44) c=#5b6abf size=32 bold=true
-"↑ 12.5%" @(20, 80) c=#4ade80 size=12
-["较昨日"] @(80, 80) w=50 h=18 bg=#252836 c=#8b8fa3 size=10 r=4
+[""] @(0, 0) w=200 h=100 bg=#252836 s=1 r=8
+"总营收" @(10, 10) c=#8b8fa3 size=11
+"¥12,847,592" @(10, 30) c=#ffffff size=22 bold
+["较昨日"] @(70, 70) w=50 h=18 bg=#2a2d3e c=#5b6abf size=10 r=4 align=c vertical-align=m
+"+12.5%" @(130, 70) c=#4ade80 size=11
 ```
 
 ### 环形进度图
 id: web-ds-ring-progress
 name: 环形进度图
-description: 环形进度+百分比+标签
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 环形+百分比+标签
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=160 h=160 bg=#252836 s=1 r=8
-[""] @(40, 20) w=80 h=80 bg=#252836 s=4 c=#3a3d4e r=40
-[""] @(44, 24) w=72 h=72 bg=#1c1e2a r=36
-"78%" @(60, 50) c=#5b6abf size=20 bold=true
-"目标完成率" @(38, 110) c=#8b8fa3 size=11
-"实际: ¥780万 / 目标: ¥1,000万" @(20, 132) c=#6b7280 size=10
+[""] @(0, 0) w=160 h=160 bg=#252836 s=1 r=8
+[""] @(30, 10) w=80 h=80 bg=#3a3d4e r=40
+[""] @(34, 14) w=72 h=72 bg=#252836 r=36
+"78%" @(52, 38) c=#ffffff size=18 bold
+"完成率" @(48, 58) c=#8b8fa3 size=10
+"目标: ¥1,000,000" @(10, 100) c=#8b8fa3 size=10
+"已完成: ¥780,000" @(10, 116) c=#5b6abf size=10
 ```
 
 ### 地图热力层
 id: web-ds-map-heatmap
 name: 地图热力层
-description: 地图底图+热力点+数据标注
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 地图+热力点+区域标注
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=500 h=300 bg=#252836 s=1 r=8
-[""] @(20, 20) w=460 h=260 bg=#1e2030 s=1 r=4
-[""] @(120, 80) w=12 h=12 bg=#5b6abf r=6
-["上海 2,856"] @(136, 76) c=#ffffff size=10
-[""] @(200, 120) w=12 h=12 bg=#818cf8 r=6
-["北京 3,120"] @(216, 116) c=#ffffff size=10
-[""] @(300, 100) w=12 h=12 bg=#4ade80 r=6
-["广州 1,950"] @(316, 96) c=#ffffff size=10
-[""] @(350, 160) w=12 h=12 bg=#f97316 r=6
-["成都 1,280"] @(366, 156) c=#ffffff size=10
+[""] @(0, 0) w=500 h=300 bg=#252836 s=1 r=8
+[""] @(10, 10) w=460 h=260 bg=#1a1b2e s=1 r=4
+[""] @(110, 70) w=12 h=12 bg=#5b6abf r=6
+[""] @(230, 90) w=16 h=16 bg=#f97316 r=8
+[""] @(350, 110) w=10 h=10 bg=#4ade80 r=5
+[""] @(180, 180) w=14 h=14 bg=#5b6abf r=7
+[""] @(300, 200) w=10 h=10 bg=#f97316 r=5
+["上海"] @(100, 90) c=#8b8fa3 size=9
+["北京"] @(220, 110) c=#8b8fa3 size=9
+["广州"] @(340, 130) c=#8b8fa3 size=9
+["成都"] @(170, 200) c=#8b8fa3 size=9
+["武汉"] @(290, 220) c=#8b8fa3 size=9
 ```
 
 ### 实时数据流
 id: web-ds-realtime-stream
 name: 实时数据流
-description: 滚动数据+时间戳+状态
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 实时指标+趋势线+LIVE标记
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=350 h=200 bg=#252836 s=1 r=8
-"实时数据" @(20, 20) c=#ffffff size=13 bold=true
-["● LIVE"] @(280, 18) w=50 h=18 bg=#dc2626 c=#ffffff size=10 r=4
-"14:32:05 | 订单 #12856 已创建" @(20, 46) c=#4ade80 size=11
-"14:32:03 | 支付 ¥2,580.00 完成" @(20, 66) c=#8b8fa3 size=11
-"14:32:01 | 用户 U-8821 登录" @(20, 86) c=#8b8fa3 size=11
-"14:31:58 | 库存预警 SKU-1003" @(20, 106) c=#f97316 size=11
-"14:31:55 | 物流 SF1234 已签收" @(20, 126) c=#8b8fa3 size=11
-"14:31:52 | 退款 #RF-0089 已处理" @(20, 146) c=#8b8fa3 size=11
-"14:31:50 | 新用户注册 +1" @(20, 166) c=#8b8fa3 size=11
+[""] @(0, 0) w=350 h=200 bg=#252836 s=1 r=8
+"实时访问量" @(10, 10) c=#ffffff size=13 bold
+["● LIVE"] @(270, 6) w=50 h=18 bg=#2a2d3e c=#4ade80 size=10 r=4 align=c vertical-align=m
+"3,847" @(10, 34) c=#5b6abf size=28 bold
+"人/分钟" @(120, 46) c=#8b8fa3 size=11
+[""] @(10, 70) w=310 h=100 bg=#1a1b2e s=1 r=4
+"峰值: 5,200 (14:00)" @(10, 180) c=#8b8fa3 size=10
+"均值: 3,100" @(180, 180) c=#8b8fa3 size=10
 ```
 
 ### 大屏指标卡
 id: web-ds-metric-card
 name: 大屏指标卡
-description: 指标名+数值+趋势+对比
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 指标+趋势+迷你图
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=240 h=120 bg=#252836 s=1 r=8
-"GMV" @(20, 20) c=#8b8fa3 size=12
-"¥2,580万" @(20, 42) c=#ffffff size=22 bold=true
-"↑ 15.3%" @(20, 72) c=#4ade80 size=12
-"较昨日 +¥340万" @(20, 92) c=#6b7280 size=10
-[""] @(180, 72) w=40 h=30 bg=#252836 s=1 r=4
+[""] @(0, 0) w=240 h=120 bg=#252836 s=1 r=8
+"转化率" @(10, 10) c=#8b8fa3 size=11
+"24.8%" @(10, 30) c=#ffffff size=24 bold
+"↑ 3.2%" @(10, 60) c=#4ade80 size=12
+[""] @(170, 62) w=40 h=30 bg=#2a2d3e r=4
 ```
 
 ### 时间轴播放器
 id: web-ds-timeline-player
 name: 时间轴播放器
-description: 时间轴+播放控制+速度
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 时间轴+播放控制+进度
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=500 h=60 bg=#252836 s=1 r=8
-["◀"] @(20, 22) c=#8b8fa3 size=14
-["▶"] @(50, 18) w=28 h=28 bg=#5b6abf c=#ffffff size=12 r=14
-["▶▶"] @(88, 22) c=#8b8fa3 size=12
-[""] @(120, 28) w=320 h=4 bg=#3a3d4e r=2
-[""] @(120, 28) w=160 h=4 bg=#5b6abf r=2
-[""] @(276, 22) w=10 h=10 bg=#5b6abf r=5
-"00:00" @(120, 40) c=#6b7280 size=9
-"12:00" @(260, 40) c=#8b8fa3 size=9
-"24:00" @(420, 40) c=#6b7280 size=9
-["1x"] @(460, 20) c=#8b8fa3 size=11
+[""] @(0, 0) w=500 h=60 bg=#252836 s=1 r=8
+"◀" @(10, 12) c=#8b8fa3 size=14
+("▶") @(40, 8) w=28 h=28 bg=#5b6abf c=#ffffff size=12 align=c vertical-align=m
+"▶▶" @(78, 12) c=#8b8fa3 size=12
+[""] @(110, 18) w=320 h=4 bg=#3a3d4e r=2
+[""] @(110, 18) w=160 h=4 bg=#5b6abf r=2
+[""] @(266, 12) w=10 h=10 bg=#5b6abf r=5
+"1x" @(450, 10) c=#8b8fa3 size=11
+"2026-04-27 14:30" @(110, 30) c=#8b8fa3 size=9
 ```
 
 ### 告警闪烁标签
-id: web-ds-alert-tag
+id: web-ds-alert-badge
 name: 告警闪烁标签
-description: 告警级别+内容+时间
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 告警等级+颜色区分
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["🔴 严重"] @(10, 10) w=70 h=24 bg=#7f1d1d c=#fca5a5 size=11 r=4
-["🟡 警告"] @(90, 10) w=70 h=24 bg=#78350f c=#fcd34d size=11 r=4
-["🔵 提示"] @(170, 10) w=70 h=24 bg=#1e3a5f c=#93c5fd size=11 r=4
-["🟢 正常"] @(250, 10) w=70 h=24 bg=#14532d c=#86efac size=11 r=4
+["🔴 严重"] @(0, 0) w=70 h=24 bg=#3d1f1f c=#ef4444 size=11 r=4 align=c vertical-align=m
+["🟡 警告"] @(80, 0) w=70 h=24 bg=#3d351f c=#f59e0b size=11 r=4 align=c vertical-align=m
+["🔵 提示"] @(160, 0) w=70 h=24 bg=#1f2a3d c=#3b82f6 size=11 r=4 align=c vertical-align=m
+["🟢 正常"] @(240, 0) w=70 h=24 bg=#1f3d1f c=#22c55e size=11 r=4 align=c vertical-align=m
 ```
 
 ### 排行榜
-id: web-ds-ranking
+id: web-ds-ranking-list
 name: 排行榜
-description: 排名+名称+数值+进度条
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 排名+进度条+数值
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=220 bg=#252836 s=1 r=8
-"销售排行" @(20, 20) c=#ffffff size=13 bold=true
-["1"] @(20, 46) w=18 h=18 bg=#5b6abf c=#ffffff size=10 r=4
-"华东区" @(44, 46) c=#ffffff size=12
-"¥5,280万" @(220, 46) c=#5b6abf size=12 bold=true
-[""] @(44, 64) w=240 h=4 bg=#3a3d4e r=2
-[""] @(44, 64) w=240 h=4 bg=#5b6abf r=2
-["2"] @(20, 78) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4
-"华南区" @(44, 78) c=#c9cdd4 size=12
-"¥4,150万" @(220, 78) c=#818cf8 size=12
-[""] @(44, 96) w=240 h=4 bg=#3a3d4e r=2
-[""] @(44, 96) w=189 h=4 bg=#818cf8 r=2
-["3"] @(20, 110) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4
-"华北区" @(44, 110) c=#c9cdd4 size=12
-"¥3,820万" @(220, 110) c=#818cf8 size=12
-[""] @(44, 128) w=240 h=4 bg=#3a3d4e r=2
-[""] @(44, 128) w=174 h=4 bg=#818cf8 r=2
-["4"] @(20, 142) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4
-"西南区" @(44, 142) c=#8b8fa3 size=12
-"¥2,560万" @(220, 142) c=#6b7280 size=12
-[""] @(44, 160) w=240 h=4 bg=#3a3d4e r=2
-[""] @(44, 160) w=116 h=4 bg=#6b7280 r=2
-["5"] @(20, 174) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4
-"西北区" @(44, 174) c=#8b8fa3 size=12
-"¥1,890万" @(220, 174) c=#6b7280 size=12
-[""] @(44, 192) w=240 h=4 bg=#3a3d4e r=2
-[""] @(44, 192) w=86 h=4 bg=#6b7280 r=2
+[""] @(0, 0) w=300 h=220 bg=#252836 s=1 r=8
+"区域销售排行" @(10, 10) c=#ffffff size=13 bold
+["1"] @(10, 36) w=18 h=18 bg=#5b6abf c=#ffffff size=10 r=4 align=c vertical-align=m
+"华东区" @(34, 36) c=#ffffff size=12
+"¥3,280,000" @(210, 36) c=#5b6abf size=11
+[""] @(34, 54) w=240 h=4 bg=#3a3d4e r=2
+[""] @(34, 54) w=240 h=4 bg=#5b6abf r=2
+["2"] @(10, 68) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"华南区" @(34, 68) c=#ffffff size=12
+"¥2,150,000" @(210, 68) c=#8b8fa3 size=11
+[""] @(34, 86) w=240 h=4 bg=#3a3d4e r=2
+[""] @(34, 86) w=160 h=4 bg=#5b6abf r=2
+["3"] @(10, 100) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"华北区" @(34, 100) c=#ffffff size=12
+"¥1,890,000" @(210, 100) c=#8b8fa3 size=11
+[""] @(34, 118) w=240 h=4 bg=#3a3d4e r=2
+[""] @(34, 118) w=140 h=4 bg=#5b6abf r=2
+["4"] @(10, 132) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"西南区" @(34, 132) c=#ffffff size=12
+"¥1,230,000" @(210, 132) c=#8b8fa3 size=11
+[""] @(34, 150) w=240 h=4 bg=#3a3d4e r=2
+[""] @(34, 150) w=90 h=4 bg=#5b6abf r=2
+["5"] @(10, 164) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"西北区" @(34, 164) c=#ffffff size=12
+"¥890,000" @(210, 164) c=#8b8fa3 size=11
+[""] @(34, 182) w=240 h=4 bg=#3a3d4e r=2
+[""] @(34, 182) w=65 h=4 bg=#5b6abf r=2
 ```
 
 ### 设备状态矩阵
 id: web-ds-device-matrix
 name: 设备状态矩阵
-description: 设备网格+在线/离线/告警
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+description: 设备网格+状态色块+图例
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=200 bg=#252836 s=1 r=8
-"设备状态" @(20, 20) c=#ffffff size=13 bold=true
-"在线 48 | 告警 5 | 离线 3" @(140, 20) c=#8b8fa3 size=10
-[""] @(20, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(42, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(64, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(86, 40) w=16 h=16 bg=#f97316 r=3
-[""] @(108, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(130, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(152, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(174, 40) w=16 h=16 bg=#6b7280 r=3
-[""] @(196, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(218, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(240, 40) w=16 h=16 bg=#4ade80 r=3
-[""] @(262, 40) w=16 h=16 bg=#f97316 r=3
-[""] @(20, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(42, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(64, 62) w=16 h=16 bg=#6b7280 r=3
-[""] @(86, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(108, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(130, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(152, 62) w=16 h=16 bg=#f97316 r=3
-[""] @(174, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(196, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(218, 62) w=16 h=16 bg=#6b7280 r=3
-[""] @(240, 62) w=16 h=16 bg=#4ade80 r=3
-[""] @(262, 62) w=16 h=16 bg=#4ade80 r=3
-["● 在线"] @(20, 170) c=#4ade80 size=10
-["● 告警"] @(80, 170) c=#f97316 size=10
-["● 离线"] @(140, 170) c=#6b7280 size=10
-```
-
-### 拓扑图
-id: web-ds-topology
-name: 拓扑图
-description: 节点+连线+状态
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
-
-```solarwire
-[""] @(10, 10) w=400 h=250 bg=#252836 s=1 r=8
-["核心交换"] @(160, 20) w=80 h=30 bg=#5b6abf c=#ffffff size=11 r=8
-"│" @(196, 52) c=#5b6abf size=12
-"├──────────┼──────────┤" @(100, 66) c=#3a3d4e size=10
-["服务器A"] @(60, 80) w=70 h=26 bg=#4ade80 c=#1c1e2a size=10 r=6
-["服务器B"] @(170, 80) w=70 h=26 bg=#4ade80 c=#1c1e2a size=10 r=6
-["服务器C"] @(280, 80) w=70 h=26 bg=#f97316 c=#1c1e2a size=10 r=6
-"│" @(90, 108) c=#3a3d4e size=12
-"│" @(200, 108) c=#3a3d4e size=12
-"│" @(310, 108) c=#3a3d4e size=12
-["数据库"] @(60, 120) w=70 h=26 bg=#818cf8 c=#ffffff size=10 r=6
-["缓存"] @(170, 120) w=70 h=26 bg=#818cf8 c=#ffffff size=10 r=6
-["存储"] @(280, 120) w=70 h=26 bg=#6b7280 c=#ffffff size=10 r=6
-"│" @(90, 148) c=#3a3d4e size=12
-"│" @(200, 148) c=#3a3d4e size=12
-["网关-1"] @(50, 160) w=70 h=26 bg=#3a3d4e c=#8b8fa3 size=10 r=6
-["网关-2"] @(160, 160) w=70 h=26 bg=#3a3d4e c=#8b8fa3 size=10 r=6
-["网关-3"] @(270, 160) w=70 h=26 bg=#3a3d4e c=#8b8fa3 size=10 r=6
+[""] @(0, 0) w=300 h=200 bg=#252836 s=1 r=8
+"设备状态" @(10, 10) c=#ffffff size=13 bold
+[""] @(10, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(32, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(54, 36) w=16 h=16 bg=#f97316 r=2
+[""] @(76, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(98, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(120, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(142, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(164, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(186, 36) w=16 h=16 bg=#ef4444 r=2
+[""] @(208, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(230, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(252, 36) w=16 h=16 bg=#4ade80 r=2
+[""] @(10, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(32, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(54, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(76, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(98, 58) w=16 h=16 bg=#f97316 r=2
+[""] @(120, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(142, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(164, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(186, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(208, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(230, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(252, 58) w=16 h=16 bg=#4ade80 r=2
+[""] @(10, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(32, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(54, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(76, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(98, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(120, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(142, 80) w=16 h=16 bg=#ef4444 r=2
+[""] @(164, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(186, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(208, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(230, 80) w=16 h=16 bg=#4ade80 r=2
+[""] @(252, 80) w=16 h=16 bg=#4ade80 r=2
+["● 在线"] @(10, 160) c=#4ade80 size=10
+["● 告警"] @(70, 160) c=#f97316 size=10
+["● 离线"] @(130, 160) c=#ef4444 size=10
 ```
 
 ## Web-页面模板
-id: web-page-templates
-platform: web
+id: cat-web-page-templates
+parentId: cat-web
 
-### 电商大屏
-id: web-ds-ecommerce-screen
-name: 电商大屏
-description: 电商运营数据大屏
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
-
-```solarwire
-[""] @(0, 0) w=1920 h=1080 bg=#1c1e2a
-[""] @(0, 0) w=1920 h=50 bg=#252836 s=1 r=0
-"电商运营数据大屏" @(760, 14) c=#ffffff size=20 bold=true
-"2026-04-27 14:32:05" @(1700, 16) c=#8b8fa3 size=12
-[""] @(20, 70) w=460 h=100 bg=#252836 s=1 r=8
-"今日GMV" @(30, 80) c=#8b8fa3 size=12
-"¥2,580万" @(30, 102) c=#5b6abf size=28 bold=true
-"↑ 15.3%" @(220, 118) c=#4ade80 size=12
-[""] @(500, 70) w=460 h=100 bg=#252836 s=1 r=8
-"今日订单" @(510, 80) c=#8b8fa3 size=12
-"12,856" @(510, 102) c=#818cf8 size=28 bold=true
-"↑ 12.5%" @(700, 118) c=#4ade80 size=12
-[""] @(980, 70) w=460 h=100 bg=#252836 s=1 r=8
-"活跃用户" @(990, 80) c=#8b8fa3 size=12
-"86,432" @(990, 102) c=#4ade80 size=28 bold=true
-"↑ 8.2%" @(1180, 118) c=#4ade80 size=12
-[""] @(1460, 70) w=440 h=100 bg=#252836 s=1 r=8
-"转化率" @(1470, 80) c=#8b8fa3 size=12
-"4.8%" @(1470, 102) c=#f97316 size=28 bold=true
-"↓ 0.3%" @(1620, 118) c=#fca5a5 size=12
-[""] @(20, 190) w=600 h=420 bg=#252836 s=1 r=8
-"销售趋势" @(30, 200) c=#ffffff size=14 bold=true
-[""] @(30, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(640, 190) w=640 h=420 bg=#252836 s=1 r=8
-"全国订单分布" @(650, 200) c=#ffffff size=14 bold=true
-[""] @(650, 230) w=600 h=360 bg=#1e2030 s=1 r=4
-[""] @(1300, 190) w=600 h=420 bg=#252836 s=1 r=8
-"品类销售排行" @(1310, 200) c=#ffffff size=14 bold=true
-[""] @(1310, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(20, 630) w=460 h=420 bg=#252836 s=1 r=8
-"实时数据流" @(30, 640) c=#ffffff size=14 bold=true
-["● LIVE"] @(380, 638) w=50 h=18 bg=#dc2626 c=#ffffff size=10 r=4
-[""] @(500, 630) w=960 h=420 bg=#252836 s=1 r=8
-"用户行为分析" @(510, 640) c=#ffffff size=14 bold=true
-[""] @(1480, 630) w=420 h=420 bg=#252836 s=1 r=8
-"告警信息" @(1490, 640) c=#ffffff size=14 bold=true
-["🔴 库存预警 SKU-1003"] @(1490, 668) c=#fca5a5 size=11
-["🟡 支付超时 3笔"] @(1490, 688) c=#fcd34d size=11
-["🔵 新用户激增 +200"] @(1490, 708) c=#93c5fd size=11
-```
-
-### 社交大屏
-id: web-ds-social-screen
-name: 社交大屏
-description: 社交平台数据大屏
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
-
-```solarwire
-[""] @(0, 0) w=1920 h=1080 bg=#1c1e2a
-[""] @(0, 0) w=1920 h=50 bg=#252836 s=1 r=0
-"社交平台数据大屏" @(760, 14) c=#ffffff size=20 bold=true
-"2026-04-27 14:32:05" @(1700, 16) c=#8b8fa3 size=12
-[""] @(20, 70) w=460 h=100 bg=#252836 s=1 r=8
-"日活用户" @(30, 80) c=#8b8fa3 size=12
-"1,256万" @(30, 102) c=#5b6abf size=28 bold=true
-"↑ 5.8%" @(220, 118) c=#4ade80 size=12
-[""] @(500, 70) w=460 h=100 bg=#252836 s=1 r=8
-"今日发帖" @(510, 80) c=#8b8fa3 size=12
-"86,432" @(510, 102) c=#818cf8 size=28 bold=true
-"↑ 18.2%" @(700, 118) c=#4ade80 size=12
-[""] @(980, 70) w=460 h=100 bg=#252836 s=1 r=8
-"互动量" @(990, 80) c=#8b8fa3 size=12
-"328万" @(990, 102) c=#4ade80 size=28 bold=true
-"↑ 12.1%" @(1180, 118) c=#4ade80 size=12
-[""] @(1460, 70) w=440 h=100 bg=#252836 s=1 r=8
-"新增用户" @(1470, 80) c=#8b8fa3 size=12
-"12,580" @(1470, 102) c=#f97316 size=28 bold=true
-"↑ 22.5%" @(1620, 118) c=#4ade80 size=12
-[""] @(20, 190) w=600 h=420 bg=#252836 s=1 r=8
-"用户增长趋势" @(30, 200) c=#ffffff size=14 bold=true
-[""] @(30, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(640, 190) w=640 h=420 bg=#252836 s=1 r=8
-"内容热度分布" @(650, 200) c=#ffffff size=14 bold=true
-[""] @(650, 230) w=600 h=360 bg=#1e2030 s=1 r=4
-[""] @(1300, 190) w=600 h=420 bg=#252836 s=1 r=8
-"热门话题" @(1310, 200) c=#ffffff size=14 bold=true
-[""] @(1310, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(20, 630) w=460 h=420 bg=#252836 s=1 r=8
-"实时动态" @(30, 640) c=#ffffff size=14 bold=true
-[""] @(500, 630) w=960 h=420 bg=#252836 s=1 r=8
-"用户画像分析" @(510, 640) c=#ffffff size=14 bold=true
-[""] @(1480, 630) w=420 h=420 bg=#252836 s=1 r=8
-"内容审核" @(1490, 640) c=#ffffff size=14 bold=true
-["🔴 违规内容 3条待审"] @(1490, 668) c=#fca5a5 size=11
-["🟡 敏感词触发 12条"] @(1490, 688) c=#fcd34d size=11
-["🔵 举报处理 8条"] @(1490, 708) c=#93c5fd size=11
-```
-
-### 医疗大屏
-id: web-ds-medical-screen
-name: 医疗大屏
-description: 医疗机构数据大屏
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
-
-```solarwire
-[""] @(0, 0) w=1920 h=1080 bg=#1c1e2a
-[""] @(0, 0) w=1920 h=50 bg=#252836 s=1 r=0
-"智慧医疗数据大屏" @(760, 14) c=#ffffff size=20 bold=true
-"2026-04-27 14:32:05" @(1700, 16) c=#8b8fa3 size=12
-[""] @(20, 70) w=460 h=100 bg=#252836 s=1 r=8
-"今日就诊" @(30, 80) c=#8b8fa3 size=12
-"3,856" @(30, 102) c=#5b6abf size=28 bold=true
-"↑ 8.5%" @(150, 118) c=#4ade80 size=12
-[""] @(500, 70) w=460 h=100 bg=#252836 s=1 r=8
-"住院人数" @(510, 80) c=#8b8fa3 size=12
-"1,268" @(510, 102) c=#818cf8 size=28 bold=true
-[""] @(980, 70) w=460 h=100 bg=#252836 s=1 r=8
-"手术安排" @(990, 80) c=#8b8fa3 size=12
-"42台" @(990, 102) c=#4ade80 size=28 bold=true
-[""] @(1460, 70) w=440 h=100 bg=#252836 s=1 r=8
-"床位使用率" @(1470, 80) c=#8b8fa3 size=12
-"87.5%" @(1470, 102) c=#f97316 size=28 bold=true
-[""] @(20, 190) w=600 h=420 bg=#252836 s=1 r=8
-"就诊趋势" @(30, 200) c=#ffffff size=14 bold=true
-[""] @(30, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(640, 190) w=640 h=420 bg=#252836 s=1 r=8
-"科室分布" @(650, 200) c=#ffffff size=14 bold=true
-[""] @(650, 230) w=600 h=360 bg=#1e2030 s=1 r=4
-[""] @(1300, 190) w=600 h=420 bg=#252836 s=1 r=8
-"设备状态" @(1310, 200) c=#ffffff size=14 bold=true
-[""] @(1310, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(20, 630) w=460 h=420 bg=#252836 s=1 r=8
-"急诊实时" @(30, 640) c=#ffffff size=14 bold=true
-[""] @(500, 630) w=960 h=420 bg=#252836 s=1 r=8
-"医疗资源分析" @(510, 640) c=#ffffff size=14 bold=true
-[""] @(1480, 630) w=420 h=420 bg=#252836 s=1 r=8
-"告警信息" @(1490, 640) c=#ffffff size=14 bold=true
-["🔴 ICU床位紧张"] @(1490, 668) c=#fca5a5 size=11
-["🟡 药品库存预警"] @(1490, 688) c=#fcd34d size=11
-["🔵 设备维护提醒"] @(1490, 708) c=#93c5fd size=11
-```
-
-### 监控大屏
+### 运营监控大屏
 id: web-ds-monitor-screen
-name: 监控大屏
-description: IT运维监控大屏
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+name: 运营监控大屏
+description: 全局运营数据实时监控
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=1920 h=1080 bg=#1c1e2a
-[""] @(0, 0) w=1920 h=50 bg=#252836 s=1 r=0
-"运维监控大屏" @(760, 14) c=#ffffff size=20 bold=true
-"2026-04-27 14:32:05" @(1700, 16) c=#8b8fa3 size=12
-[""] @(20, 70) w=460 h=100 bg=#252836 s=1 r=8
-"服务器" @(30, 80) c=#8b8fa3 size=12
-"128台" @(30, 102) c=#5b6abf size=28 bold=true
-["在线 120 | 告警 5 | 离线 3"] @(30, 130) c=#8b8fa3 size=10
-[""] @(500, 70) w=460 h=100 bg=#252836 s=1 r=8
-"CPU平均" @(510, 80) c=#8b8fa3 size=12
-"62.5%" @(510, 102) c=#818cf8 size=28 bold=true
-[""] @(980, 70) w=460 h=100 bg=#252836 s=1 r=8
-"内存使用" @(990, 80) c=#8b8fa3 size=12
-"78.3%" @(990, 102) c=#f97316 size=28 bold=true
-[""] @(1460, 70) w=440 h=100 bg=#252836 s=1 r=8
-"网络流量" @(1470, 80) c=#8b8fa3 size=12
-"2.8Gbps" @(1470, 102) c=#4ade80 size=28 bold=true
-[""] @(20, 190) w=600 h=420 bg=#252836 s=1 r=8
-"流量趋势" @(30, 200) c=#ffffff size=14 bold=true
-[""] @(30, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(640, 190) w=640 h=420 bg=#252836 s=1 r=8
-"服务拓扑" @(650, 200) c=#ffffff size=14 bold=true
-[""] @(650, 230) w=600 h=360 bg=#1e2030 s=1 r=4
-[""] @(1300, 190) w=600 h=420 bg=#252836 s=1 r=8
-"资源使用率" @(1310, 200) c=#ffffff size=14 bold=true
-[""] @(1310, 230) w=560 h=360 bg=#1e2030 s=1 r=4
-[""] @(20, 630) w=460 h=420 bg=#252836 s=1 r=8
-"实时日志" @(30, 640) c=#ffffff size=14 bold=true
-[""] @(500, 630) w=960 h=420 bg=#252836 s=1 r=8
-"告警趋势" @(510, 640) c=#ffffff size=14 bold=true
-[""] @(1480, 630) w=420 h=420 bg=#252836 s=1 r=8
-"活跃告警" @(1490, 640) c=#ffffff size=14 bold=true
-["🔴 CPU > 95% 3台"] @(1490, 668) c=#fca5a5 size=11
-["🟡 磁盘 > 85% 8台"] @(1490, 688) c=#fcd34d size=11
-["🔵 服务重启 2次"] @(1490, 708) c=#93c5fd size=11
+[""] @(0, 0) w=1920 h=1080 bg=#1a1b2e
+[""] @(0, 0) w=1920 h=50 bg=#252836 s=1
+"运营监控中心" @(30, 14) c=#ffffff size=18 bold
+"2026-04-27 14:30:00" @(1600, 16) c=#8b8fa3 size=12
+[""] @(20, 70) w=460 h=120 bg=#252836 s=1 r=8
+"总营收" @(30, 80) c=#8b8fa3 size=11
+"¥12,847,592" @(30, 100) c=#ffffff size=24 bold
+"+12.5%" @(280, 108) c=#4ade80 size=12
+[""] @(500, 70) w=460 h=120 bg=#252836 s=1 r=8
+"订单量" @(510, 80) c=#8b8fa3 size=11
+"28,456" @(510, 100) c=#ffffff size=24 bold
+"+8.3%" @(760, 108) c=#4ade80 size=12
+[""] @(980, 70) w=460 h=120 bg=#252836 s=1 r=8
+"活跃用户" @(990, 80) c=#8b8fa3 size=11
+"156,789" @(990, 100) c=#ffffff size=24 bold
+"+5.1%" @(1240, 108) c=#4ade80 size=12
+[""] @(1460, 70) w=440 h=120 bg=#252836 s=1 r=8
+"转化率" @(1470, 80) c=#8b8fa3 size=11
+"24.8%" @(1470, 100) c=#5b6abf size=24 bold
+"↑ 3.2%" @(1700, 108) c=#4ade80 size=12
+[""] @(20, 210) w=920 h=400 bg=#252836 s=1 r=8
+"实时访问趋势" @(30, 220) c=#ffffff size=14 bold
+["● LIVE"] @(830, 216) w=50 h=18 bg=#2a2d3e c=#4ade80 size=10 r=4 align=c vertical-align=m
+[""] @(30, 250) w=880 h=340 bg=#1a1b2e s=1 r=4
+[""] @(960, 210) w=940 h=400 bg=#252836 s=1 r=8
+"区域分布" @(970, 220) c=#ffffff size=14 bold
+[""] @(970, 250) w=900 h=340 bg=#1a1b2e s=1 r=4
+[""] @(20, 630) w=620 h=420 bg=#252836 s=1 r=8
+"区域销售排行" @(30, 640) c=#ffffff size=14 bold
+["1"] @(30, 670) w=18 h=18 bg=#5b6abf c=#ffffff size=10 r=4 align=c vertical-align=m
+"华东区" @(54, 670) c=#ffffff size=12
+"¥3,280,000" @(460, 670) c=#5b6abf size=11
+[""] @(54, 690) w=540 h=4 bg=#3a3d4e r=2
+[""] @(54, 690) w=540 h=4 bg=#5b6abf r=2
+["2"] @(30, 704) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"华南区" @(54, 704) c=#ffffff size=12
+"¥2,150,000" @(460, 704) c=#8b8fa3 size=11
+[""] @(54, 724) w=540 h=4 bg=#3a3d4e r=2
+[""] @(54, 724) w=360 h=4 bg=#5b6abf r=2
+["3"] @(30, 738) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"华北区" @(54, 738) c=#ffffff size=12
+"¥1,890,000" @(460, 738) c=#8b8fa3 size=11
+[""] @(54, 758) w=540 h=4 bg=#3a3d4e r=2
+[""] @(54, 758) w=310 h=4 bg=#5b6abf r=2
+[""] @(660, 630) w=620 h=420 bg=#252836 s=1 r=8
+"设备状态" @(670, 640) c=#ffffff size=14 bold
+[""] @(670, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(692, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(714, 670) w=16 h=16 bg=#f97316 r=2
+[""] @(736, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(758, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(780, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(802, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(824, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(846, 670) w=16 h=16 bg=#ef4444 r=2
+[""] @(868, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(890, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(912, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(934, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(956, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(978, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1000, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1022, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1044, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1066, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1088, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1110, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1132, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1154, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1176, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1198, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1220, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(1242, 670) w=16 h=16 bg=#4ade80 r=2
+[""] @(670, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(692, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(714, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(736, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(758, 692) w=16 h=16 bg=#f97316 r=2
+[""] @(780, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(802, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(824, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(846, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(868, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(890, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(912, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(934, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(956, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(978, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1000, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1022, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1044, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1066, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1088, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1110, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1132, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1154, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1176, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1198, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1220, 692) w=16 h=16 bg=#4ade80 r=2
+[""] @(1242, 692) w=16 h=16 bg=#4ade80 r=2
+["在线 120 | 告警 5 | 离线 3"] @(670, 1020) c=#a5b4fc size=10
+[""] @(1300, 630) w=600 h=420 bg=#252836 s=1 r=8
+"告警信息" @(1310, 640) c=#ffffff size=14 bold
+["🔴 严重"] @(1310, 670) w=70 h=24 bg=#3d1f1f c=#ef4444 size=11 r=4 align=c vertical-align=m
+"服务器 Node-03 CPU > 95%" @(1390, 674) c=#ffffff size=11
+"2分钟前" @(1780, 674) c=#8b8fa3 size=10
+["🟡 警告"] @(1310, 704) w=70 h=24 bg=#3d351f c=#f59e0b size=11 r=4 align=c vertical-align=m
+"数据库连接池使用率 > 80%" @(1390, 708) c=#ffffff size=11
+"15分钟前" @(1780, 708) c=#8b8fa3 size=10
+["🔵 提示"] @(1310, 738) w=70 h=24 bg=#1f2a3d c=#3b82f6 size=11 r=4 align=c vertical-align=m
+"SSL证书将于30天后过期" @(1390, 742) c=#ffffff size=11
+"1小时前" @(1780, 742) c=#8b8fa3 size=10
+["🟢 正常"] @(1310, 772) w=70 h=24 bg=#1f3d1f c=#22c55e size=11 r=4 align=c vertical-align=m
+"系统备份已完成" @(1390, 776) c=#ffffff size=11
+"3小时前" @(1780, 776) c=#8b8fa3 size=10
+```
+
+### 销售分析大屏
+id: web-ds-sales-screen
+name: 销售分析大屏
+description: 销售数据+趋势+排行
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
+
+```solarwire
+[""] @(0, 0) w=1920 h=1080 bg=#1a1b2e
+[""] @(0, 0) w=1920 h=50 bg=#252836 s=1
+"销售分析中心" @(30, 14) c=#ffffff size=18 bold
+"2026-04-27" @(1780, 16) c=#8b8fa3 size=12
+[""] @(20, 70) w=460 h=120 bg=#252836 s=1 r=8
+"今日销售额" @(30, 80) c=#8b8fa3 size=11
+"¥2,847,592" @(30, 100) c=#ffffff size=24 bold
+"+15.2%" @(280, 108) c=#4ade80 size=12
+[""] @(500, 70) w=460 h=120 bg=#252836 s=1 r=8
+"今日订单" @(510, 80) c=#8b8fa3 size=11
+"3,456" @(510, 100) c=#ffffff size=24 bold
+"+8.7%" @(760, 108) c=#4ade80 size=12
+[""] @(980, 70) w=460 h=120 bg=#252836 s=1 r=8
+"客单价" @(990, 80) c=#8b8fa3 size=11
+"¥823" @(990, 100) c=#5b6abf size=24 bold
+"+2.1%" @(1240, 108) c=#4ade80 size=12
+[""] @(1460, 70) w=440 h=120 bg=#252836 s=1 r=8
+"退货率" @(1470, 80) c=#8b8fa3 size=11
+"2.3%" @(1470, 100) c=#ef4444 size=24 bold
+"↓ 0.5%" @(1700, 108) c=#4ade80 size=12
+[""] @(20, 210) w=920 h=400 bg=#252836 s=1 r=8
+"销售趋势" @(30, 220) c=#ffffff size=14 bold
+[""] @(30, 250) w=880 h=340 bg=#1a1b2e s=1 r=4
+[""] @(960, 210) w=940 h=400 bg=#252836 s=1 r=8
+"品类占比" @(970, 220) c=#ffffff size=14 bold
+[""] @(970, 250) w=900 h=340 bg=#1a1b2e s=1 r=4
+[""] @(20, 630) w=1880 h=420 bg=#252836 s=1 r=8
+"热销商品排行" @(30, 640) c=#ffffff size=14 bold
+["1"] @(30, 670) w=18 h=18 bg=#5b6abf c=#ffffff size=10 r=4 align=c vertical-align=m
+"蓝牙耳机Pro" @(54, 670) c=#ffffff size=12
+"¥580" @(400, 670) c=#5b6abf size=11
+"1,280件" @(500, 670) c=#8b8fa3 size=11
+[""] @(54, 690) w=1800 h=4 bg=#3a3d4e r=2
+[""] @(54, 690) w=1800 h=4 bg=#5b6abf r=2
+["2"] @(30, 704) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"智能手表S3" @(54, 704) c=#ffffff size=12
+"¥1,299" @(400, 704) c=#8b8fa3 size=11
+"890件" @(500, 704) c=#8b8fa3 size=11
+[""] @(54, 724) w=1800 h=4 bg=#3a3d4e r=2
+[""] @(54, 724) w=1250 h=4 bg=#5b6abf r=2
+["3"] @(30, 738) w=18 h=18 bg=#3a3d4e c=#8b8fa3 size=10 r=4 align=c vertical-align=m
+"无线充电器" @(54, 738) c=#ffffff size=12
+"¥199" @(400, 738) c=#8b8fa3 size=11
+"2,100件" @(500, 738) c=#8b8fa3 size=11
+[""] @(54, 758) w=1800 h=4 bg=#3a3d4e r=2
+[""] @(54, 758) w=980 h=4 bg=#5b6abf r=2
 ```

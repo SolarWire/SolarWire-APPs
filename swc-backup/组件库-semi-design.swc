@@ -4,1346 +4,1354 @@ $schema: solarwire-component-library-v1
 description: 抖音出品，轻量现代、柔和圆角、渐变色、Design Token 体系、中后台场景
 version: 1.0.0
 author: SolarWire
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
+
+## Web
+id: cat-web
+parentId: null
+
+## Mobile
+id: cat-mobile
+parentId: null
 
 ## Web-通用
-id: web-general
-platform: web
+id: cat-web-general
+parentId: cat-web
 
 ### 主按钮
 id: web-btn-primary
 name: 主按钮
 description: Semi 主按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["主按钮"] @(10, 10) w=120 h=36 bg=#0091ff c=#ffffff size=14 r=8
+["主按钮"] @(0,0) w=120 h=36 bg=#0091ff c=#ffffff size=14 r=8 align=c vertical-align=m
 ```
 
 ### 次要按钮
 id: web-btn-secondary
 name: 次要按钮
 description: Semi 次要按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["次要按钮"] @(10, 10) w=120 h=36 bg=#f0f4ff c=#0091ff size=14 r=8
+["次要按钮"] @(0,0) w=120 h=36 bg=#f0f4ff c=#0091ff size=14 r=8 align=c vertical-align=m
 ```
 
 ### 轮廓按钮
 id: web-btn-outline
 name: 轮廓按钮
 description: Semi 轮廓按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["轮廓按钮"] @(10, 10) w=120 h=36 bg=#ffffff c=#0091ff size=14 s=1 r=8
+["轮廓按钮"] @(0,0) w=120 h=36 bg=#ffffff c=#0091ff size=14 s=1 r=8 align=c vertical-align=m
 ```
 
 ### 警告按钮
 id: web-btn-warning
 name: 警告按钮
 description: Semi 警告按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["警告"] @(10, 10) w=100 h=36 bg=#ff9300 c=#ffffff size=14 r=8
+["警告"] @(0,0) w=100 h=36 bg=#ff9300 c=#ffffff size=14 r=8 align=c vertical-align=m
 ```
 
 ### 危险按钮
 id: web-btn-danger
 name: 危险按钮
 description: Semi 危险按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["删除"] @(10, 10) w=100 h=36 bg=#f82c55 c=#ffffff size=14 r=8
+["删除"] @(0,0) w=100 h=36 bg=#f82c55 c=#ffffff size=14 r=8 align=c vertical-align=m
 ```
 
 ### 文字按钮
 id: web-btn-text
 name: 文字按钮
 description: Semi 文字按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-"文字按钮" @(10, 15) c=#0091ff size=14
+"文字按钮" @(0,0) c=#0091ff size=14
 ```
 
 ### 图标按钮
 id: web-btn-icon
 name: 图标按钮
 description: Semi 图标按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("+") @(10, 10) w=36 h=36 bg=#f0f4ff c=#0091ff size=16 r=8
+("+") @(0,0) w=36 bg=#f0f4ff c=#0091ff size=16
 ```
 
 ### 尺寸按钮组
 id: web-btn-sizes
 name: 尺寸按钮组
 description: 不同尺寸的按钮
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["大按钮"] @(10, 10) w=100 h=40 bg=#0091ff c=#ffffff size=14 r=8
-["中按钮"] @(120, 12) w=80 h=36 bg=#0091ff c=#ffffff size=13 r=6
-["小按钮"] @(210, 14) w=60 h=28 bg=#0091ff c=#ffffff size=12 r=4
+["大按钮"] @(0,0) w=100 h=40 bg=#0091ff c=#ffffff size=14 r=8 align=c vertical-align=m
+["中按钮"] @(110,2) w=80 h=36 bg=#0091ff c=#ffffff size=13 r=6 align=c vertical-align=m
+["小按钮"] @(200,4) w=60 h=28 bg=#0091ff c=#ffffff size=12 r=4 align=c vertical-align=m
 ```
 
 ### 头像
 id: web-avatar
 name: 头像
 description: Semi 头像组件
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["张"] @(10, 10) w=40 h=40 bg=#0091ff c=#ffffff size=16
+("张") @(0,0) w=40 bg=#0091ff c=#ffffff size=16
 ```
 
 ### 头像组
 id: web-avatar-group
 name: 头像组
 description: 多个头像叠加
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["张"] @(10, 10) w=36 h=36 bg=#0091ff c=#ffffff size=14
-("李") @(28, 10) w=36 h=36 bg=#00d68f c=#ffffff size=14
-("王") @(46, 10) w=36 h=36 bg=#ff9300 c=#ffffff size=14
-("+2") @(64, 10) w=36 h=36 bg=#e8e8e8 c=#666666 size=12
+("张") @(0,0) w=36 bg=#0091ff c=#ffffff size=14
+("李") @(18,0) w=36 bg=#00d68f c=#ffffff size=14
+("王") @(36,0) w=36 bg=#ff9300 c=#ffffff size=14
+("+2") @(54,0) w=36 bg=#e8e8e8 c=#666666 size=12
 ```
 
 ### 徽标
 id: web-badge
 name: 徽标
 description: Semi 数字徽标
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["9"] @(10, 10) w=40 h=40 bg=#f0f4ff c=#666666 size=14 r=8
-("9") @(38, 2) w=20 h=20 bg=#f82c55 c=#ffffff size=10
+["9"] @(0,0) w=40 h=40 bg=#f0f4ff c=#666666 size=14 r=8 align=c vertical-align=m
+("9") @(28,-8) w=20 bg=#f82c55 c=#ffffff size=10
 ```
 
 ### 标签
 id: web-tag
 name: 标签
 description: Semi 标签组件
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["标签"] @(10, 10) w=60 h=24 bg=#f0f4ff c=#0091ff size=11 r=12
+["标签"] @(0,0) w=60 h=24 bg=#f0f4ff c=#0091ff size=11 r=12 align=c vertical-align=m
 ```
 
 ### 分割线
 id: web-divider
 name: 分割线
 description: Semi 分割线
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
--- @(10, 20)->(290, 20) b=#e8e8e8 s=1
+-- @(0,10)->(280,10) b=#e8e8e8 s=1
 ```
 
 ### 工具提示
 id: web-tooltip
 name: 工具提示
 description: Semi Tooltip
-categoryId: web-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["提示内容"] @(10, 10) w=100 h=28 bg=#1c1f23 c=#ffffff size=12 r=6
+["提示内容"] @(0,0) w=100 h=28 bg=#1c1f23 c=#ffffff size=12 r=6 align=c vertical-align=m
 ```
 
 ---
 
 ## Web-表单
-id: web-form
-platform: web
+id: cat-web-form
+parentId: cat-web
 
 ### 输入框
 id: web-input
 name: 输入框
 description: Semi 基础输入框
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请输入内容..."] @(10, 10) w=240 h=36 bg=#ffffff c=#b2b5bd size=14 s=1 r=8
+["请输入内容..."] @(0,0) w=240 h=36 bg=#ffffff c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
 ```
 
 ### 带前缀输入框
 id: web-input-prefix
 name: 带前缀输入框
 description: 带前缀图标的输入框
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请输入内容..."] @(10, 10) w=240 h=36 bg=#ffffff c=#b2b5bd size=14 s=1 r=8
-"🔍" @(15, 18) c=#b2b5bd size=14
+["请输入内容..."] @(0,0) w=240 h=36 bg=#ffffff c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
+"🔍" @(5,8) c=#b2b5bd size=14
 ```
 
 ### 多行文本
 id: web-textarea
 name: 多行文本
 description: Semi 多行文本
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请输入备注..."] @(10, 10) w=300 h=100 bg=#ffffff c=#b2b5bd size=14 s=1 r=8
+["请输入备注..."] @(0,0) w=300 h=100 bg=#ffffff c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
 ```
 
 ### 下拉选择
 id: web-select
 name: 下拉选择
 description: Semi Select
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请选择"] @(10, 10) w=240 h=36 bg=#ffffff c=#1c1f23 size=14 s=1 r=8
-"▼" @(220, 18) c=#b2b5bd size=10
+["请选择"] @(0,0) w=240 h=36 bg=#ffffff c=#1c1f23 size=14 s=1 r=8 align=l vertical-align=m
+"▼" @(210,8) c=#b2b5bd size=10
 ```
 
 ### 日期选择器
 id: web-date-picker
 name: 日期选择器
 description: Semi DatePicker
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["2026-04-24"] @(10, 10) w=240 h=36 bg=#ffffff c=#1c1f23 size=14 s=1 r=8
-"📅" @(220, 18) c=#b2b5bd size=14
+["2026-05-12"] @(0,0) w=240 h=36 bg=#ffffff c=#1c1f23 size=14 s=1 r=8 align=l vertical-align=m
+"📅" @(210,8) c=#b2b5bd size=14
 ```
 
 ### 单选框
 id: web-radio
 name: 单选框
 description: Semi Radio
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("●") @(10, 10) w=16 h=16 bg=#0091ff c=#ffffff size=8
-"选项A" @(32, 12) c=#1c1f23 size=14
-("○") @(100, 10) w=16 h=16 bg=#ffffff c=#d3d5da size=8 s=1
-"选项B" @(122, 12) c=#1c1f23 size=14
+("●") @(0,0) w=16 bg=#0091ff c=#ffffff size=8
+"选项A" @(22,2) c=#1c1f23 size=14
+("○") @(90,0) w=16 bg=#ffffff c=#d3d5da size=8 s=1
+"选项B" @(112,2) c=#1c1f23 size=14
 ```
 
 ### 复选框
 id: web-checkbox
 name: 复选框
 description: Semi Checkbox
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("✓") @(10, 10) w=16 h=16 bg=#0091ff c=#ffffff size=10
-"选项一" @(32, 12) c=#1c1f23 size=14
-(" ") @(100, 10) w=16 h=16 bg=#ffffff c=#d3d5da size=10 s=1
-"选项二" @(122, 12) c=#1c1f23 size=14
+("✓") @(0,0) w=16 bg=#0091ff c=#ffffff size=10
+"选项一" @(22,2) c=#1c1f23 size=14
+(" ") @(90,0) w=16 bg=#ffffff c=#d3d5da size=10 s=1
+"选项二" @(112,2) c=#1c1f23 size=14
 ```
 
 ### 开关
 id: web-switch
 name: 开关
 description: Semi Switch
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=44 h=24 bg=#0091ff r=12
-("●") @(36, 14) w=16 h=16 bg=#ffffff size=8
+[""] @(0,0) w=44 h=24 bg=#0091ff r=12
+("●") @(26,4) w=16 bg=#ffffff size=8
 ```
 
 ### 滑块
 id: web-slider
 name: 滑块
 description: Semi Slider
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 18) w=200 h=4 bg=#e8e8e8 r=2
-[""] @(10, 18) w=100 h=4 bg=#0091ff r=2
-("●") @(100, 12) w=14 h=14 bg=#0091ff c=#ffffff size=6
+[""] @(0,8) w=200 h=4 bg=#e8e8e8 r=2
+[""] @(0,8) w=100 h=4 bg=#0091ff r=2
+("●") @(90,2) w=14 bg=#0091ff c=#ffffff size=6
 ```
 
 ### 评分
 id: web-rate
 name: 评分
 description: Semi 评分组件
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("★") @(10, 10) w=20 h=20 bg=transparent c=#ff9300 size=16
-("★") @(35, 10) w=20 h=20 bg=transparent c=#ff9300 size=16
-("★") @(60, 10) w=20 h=20 bg=transparent c=#ff9300 size=16
-("★") @(85, 10) w=20 h=20 bg=transparent c=#ff9300 size=16
-("☆") @(110, 10) w=20 h=20 bg=transparent c=#d3d5da size=16
+("★") @(0,0) w=20 bg=transparent c=#ff9300 size=16
+("★") @(25,0) w=20 bg=transparent c=#ff9300 size=16
+("★") @(50,0) w=20 bg=transparent c=#ff9300 size=16
+("★") @(75,0) w=20 bg=transparent c=#ff9300 size=16
+("☆") @(100,0) w=20 bg=transparent c=#d3d5da size=16
 ```
 
 ### 文件上传
 id: web-upload
 name: 文件上传
 description: Semi 文件上传
-categoryId: web-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=240 h=120 bg=#fafafa s=1 r=8
-"📁" @(105, 35) c=#d3d5da size=28
-"点击或拖拽上传文件" @(70, 70) c=#b2b5bd size=13
-["上传文件"] @(80, 90) w=80 h=28 bg=#0091ff c=#ffffff size=12 r=6
+[""] @(0,0) w=240 h=120 bg=#fafafa s=1 r=8
+"📁" @(95,25) c=#d3d5da size=28
+"点击或拖拽上传文件" @(60,60) c=#b2b5bd size=13
+["上传文件"] @(70,80) w=80 h=28 bg=#0091ff c=#ffffff size=12 r=6 align=c vertical-align=m
 ```
 
 ---
 
 ## Web-表格
-id: web-table
-platform: web
+id: cat-web-table
+parentId: cat-web
 
 ### 基础表格
 id: web-table-basic
 name: 基础表格
 description: Semi 基础表格
-categoryId: web-table
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-table
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-## @(10, 10) w=400
+## @(0,0) w=400
   # bg=#f7f8fa bold
-    "姓名"
-    "年龄"
-    "城市"
+    ["姓名"]
+    ["年龄"]
+    ["城市"]
   #
-    "张三"
-    "28"
-    "北京"
+    ["张三"]
+    ["28"]
+    ["北京"]
   # bg=#f7f8fa
-    "李四"
-    "32"
-    "上海"
+    ["李四"]
+    ["32"]
+    ["上海"]
   #
-    "王五"
-    "25"
-    "广州"
+    ["王五"]
+    ["25"]
+    ["广州"]
 ```
 
 ### 分页表格
 id: web-table-pagination
 name: 分页表格
 description: 带分页的表格
-categoryId: web-table
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-table
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-## @(10, 10) w=400
+## @(0,0) w=400
   # bg=#f7f8fa bold
-    "姓名"
-    "年龄"
-    "城市"
+    ["姓名"]
+    ["年龄"]
+    ["城市"]
   #
-    "张三"
-    "28"
-    "北京"
+    ["张三"]
+    ["28"]
+    ["北京"]
   # bg=#f7f8fa
-    "李四"
-    "32"
-    "上海"
-["<"] @(10, 110) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
-["1"] @(48, 110) w=32 h=28 bg=#0091ff c=#ffffff size=11 r=6
-["2"] @(86, 110) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
-["3"] @(124, 110) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
-[">"] @(162, 110) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
+    ["李四"]
+    ["32"]
+    ["上海"]
+["<"] @(0,100) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
+["1"] @(38,100) w=32 h=28 bg=#0091ff c=#ffffff size=11 r=6 align=c vertical-align=m
+["2"] @(76,100) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
+["3"] @(114,100) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
+[">"] @(152,100) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
 ```
 
 ---
 
 ## Web-列表
-id: web-list
-platform: web
+id: cat-web-list
+parentId: cat-web
 
 ### 基础列表
 id: web-list-basic
 name: 基础列表
 description: Semi 基础列表
-categoryId: web-list
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-list
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-"列表项1" @(10, 15) c=#1c1f23 size=14
--- @(10, 35)->(290, 35) b=#e8e8e8 s=1
-"列表项2" @(10, 50) c=#1c1f23 size=14
--- @(10, 70)->(290, 70) b=#e8e8e8 s=1
-"列表项3" @(10, 85) c=#1c1f23 size=14
+"列表项1" @(0,5) c=#1c1f23 size=14
+-- @(0,25)->(280,25) b=#e8e8e8 s=1
+"列表项2" @(0,40) c=#1c1f23 size=14
+-- @(0,60)->(280,60) b=#e8e8e8 s=1
+"列表项3" @(0,75) c=#1c1f23 size=14
 ```
 
 ### 图文列表
 id: web-list-image-text
 name: 图文列表
 description: 左侧图片+文字列表
-categoryId: web-list
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-list
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=56 h=56 bg=#f0f4ff r=8
-"文章标题" @(76, 15) c=#1c1f23 size=14 bold=true
-"文章描述内容..." @(76, 35) c=#b2b5bd size=12
+[""] @(0,0) w=56 h=56 bg=#f0f4ff r=8
+"文章标题" @(66,5) c=#1c1f23 size=14 bold
+"文章描述内容..." @(66,25) c=#b2b5bd size=12
 ```
 
 ### 消息列表
 id: web-list-message
 name: 消息列表
 description: 消息通知列表
-categoryId: web-list
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-list
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("🔔") @(10, 10) w=36 h=36 bg=#f0f4ff c=#0091ff size=14
-"新消息通知" @(55, 10) c=#1c1f23 size=13 bold=true
-"5分钟前" @(55, 28) c=#b2b5bd size=12
-("1") @(42, 4) w=16 h=16 bg=#f82c55 c=#ffffff size=10
+("🔔") @(0,0) w=36 bg=#f0f4ff c=#0091ff size=14
+"新消息通知" @(45,0) c=#1c1f23 size=13 bold
+"5分钟前" @(45,18) c=#b2b5bd size=12
+("1") @(32,-6) w=16 bg=#f82c55 c=#ffffff size=10
 ```
 
 ---
 
 ## Web-卡片
-id: web-card
-platform: web
+id: cat-web-card
+parentId: cat-web
 
 ### 基础卡片
 id: web-card-basic
 name: 基础卡片
 description: Semi 基础卡片
-categoryId: web-card
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-card
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=150 bg=#ffffff s=1 r=12
-"卡片标题" @(20, 20) c=#1c1f23 size=16 bold=true
-"卡片内容描述..." @(20, 45) c=#b2b5bd size=13
+[""] @(0,0) w=300 h=150 bg=#ffffff s=1 r=12
+"卡片标题" @(10,10) c=#1c1f23 size=16 bold
+"卡片内容描述..." @(10,35) c=#b2b5bd size=13
 ```
 
 ### 图文卡片
 id: web-card-image
 name: 图文卡片
 description: 顶部图片+内容卡片
-categoryId: web-card
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-card
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=200 bg=#ffffff s=1 r=12
-[""] @(10, 10) w=300 h=110 bg=#f0f4ff r=12
-"图片" @(135, 55) c=#b2b5bd size=14
-"卡片标题" @(20, 125) c=#1c1f23 size=14 bold=true
-"描述文本内容" @(20, 148) c=#b2b5bd size=12
+[""] @(0,0) w=300 h=200 bg=#ffffff s=1 r=12
+[""] @(0,0) w=300 h=110 bg=#f0f4ff r=12
+"图片" @(125,45) c=#b2b5bd size=14
+"卡片标题" @(10,115) c=#1c1f23 size=14 bold
+"描述文本内容" @(10,138) c=#b2b5bd size=12
 ```
 
 ### 带操作卡片
 id: web-card-action
 name: 带操作卡片
 description: 带底部按钮的卡片
-categoryId: web-card
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-card
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=160 bg=#ffffff s=1 r=12
-"卡片标题" @(20, 20) c=#1c1f23 size=14 bold=true
-"卡片内容" @(20, 45) c=#b2b5bd size=13
--- @(20, 120)->(280, 120) b=#e8e8e8 s=1
-["取消"] @(160, 130) w=60 h=28 bg=#ffffff c=#666666 size=12 s=1 r=6
-["确认"] @(230, 130) w=60 h=28 bg=#0091ff c=#ffffff size=12 r=6
+[""] @(0,0) w=300 h=160 bg=#ffffff s=1 r=12
+"卡片标题" @(10,10) c=#1c1f23 size=14 bold
+"卡片内容" @(10,35) c=#b2b5bd size=13
+-- @(10,110)->(270,110) b=#e8e8e8 s=1
+["取消"] @(150,120) w=60 h=28 bg=#ffffff c=#666666 size=12 s=1 r=6 align=c vertical-align=m
+["确认"] @(220,120) w=60 h=28 bg=#0091ff c=#ffffff size=12 r=6 align=c vertical-align=m
 ```
 
 ### 统计卡片
 id: web-card-statistic
 name: 统计卡片
 description: 数据统计卡片
-categoryId: web-card
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-card
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=200 h=100 bg=#ffffff s=1 r=12
-"总用户数" @(20, 20) c=#b2b5bd size=12
-"1,234" @(20, 45) c=#1c1f23 size=28 bold=true
-"+12%" @(90, 55) c=#00d68f size=14
+[""] @(0,0) w=200 h=100 bg=#ffffff s=1 r=12
+"总用户数" @(10,10) c=#b2b5bd size=12
+"1,234" @(10,35) c=#1c1f23 size=28 bold
+"+12%" @(80,45) c=#00d68f size=14
 ```
 
 ---
 
 ## Web-图表
-id: web-chart
-platform: web
+id: cat-web-chart
+parentId: cat-web
 
 ### 折线图
 id: web-chart-line
 name: 折线图
 description: Semi 风格折线图
-categoryId: web-chart
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-chart
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
-"趋势图" @(20, 20) c=#1c1f23 size=14 bold=true
--- @(20, 150)->(280, 150) b=#e8e8e8 s=1
--- @(20, 50)->(20, 150) b=#e8e8e8 s=1
--- @(20, 100)->(280, 100) b=#f7f8fa s=1
--- @(20, 120)->(95, 70) b=#0091ff s=2
--- @(95, 70)->(170, 90) b=#0091ff s=2
--- @(170, 90)->(245, 50) b=#0091ff s=2
-("●") @(20, 120) w=6 h=6 bg=#0091ff c=#0091ff size=3
-("●") @(95, 70) w=6 h=6 bg=#0091ff c=#0091ff size=3
-("●") @(170, 90) w=6 h=6 bg=#0091ff c=#0091ff size=3
-("●") @(245, 50) w=6 h=6 bg=#0091ff c=#0091ff size=3
+[""] @(0,0) w=300 h=180 bg=#ffffff s=1 r=12
+"趋势图" @(10,10) c=#1c1f23 size=14 bold
+-- @(10,140)->(270,140) b=#e8e8e8 s=1
+-- @(10,40)->(10,140) b=#e8e8e8 s=1
+-- @(10,90)->(270,90) b=#f7f8fa s=1
+-- @(10,110)->(85,60) b=#0091ff s=2
+-- @(85,60)->(160,80) b=#0091ff s=2
+-- @(160,80)->(235,40) b=#0091ff s=2
+("●") @(10,110) w=6 bg=#0091ff c=#0091ff size=3
+("●") @(85,60) w=6 bg=#0091ff c=#0091ff size=3
+("●") @(160,80) w=6 bg=#0091ff c=#0091ff size=3
+("●") @(235,40) w=6 bg=#0091ff c=#0091ff size=3
 ```
 
 ### 柱状图
 id: web-chart-bar
 name: 柱状图
 description: Semi 风格柱状图
-categoryId: web-chart
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-chart
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
-"柱状图" @(20, 20) c=#1c1f23 size=14 bold=true
--- @(20, 150)->(280, 150) b=#e8e8e8 s=1
-[""] @(40, 100) w=30 h=50 bg=#0091ff r=4
-[""] @(90, 80) w=30 h=70 bg=#0091ff r=4
-[""] @(140, 60) w=30 h=90 bg=#0091ff r=4
-[""] @(190, 90) w=30 h=60 bg=#00d68f r=4
-[""] @(240, 70) w=30 h=80 bg=#00d68f r=4
+[""] @(0,0) w=300 h=180 bg=#ffffff s=1 r=12
+"柱状图" @(10,10) c=#1c1f23 size=14 bold
+-- @(10,140)->(270,140) b=#e8e8e8 s=1
+[""] @(30,90) w=30 h=50 bg=#0091ff r=4
+[""] @(80,70) w=30 h=70 bg=#0091ff r=4
+[""] @(130,50) w=30 h=90 bg=#0091ff r=4
+[""] @(180,80) w=30 h=60 bg=#00d68f r=4
+[""] @(230,60) w=30 h=80 bg=#00d68f r=4
 ```
 
 ---
 
 ## Web-搜索
-id: web-search
-platform: web
+id: cat-web-search
+parentId: cat-web
 
 ### 搜索框
 id: web-search-input
 name: 搜索框
 description: Semi 搜索框
-categoryId: web-search
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-search
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["搜索关键词..."] @(10, 10) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 r=20
-"🔍" @(15, 20) c=#b2b5bd size=14
+["搜索关键词..."] @(0,0) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 r=20 align=l vertical-align=m
+"🔍" @(5,10) c=#b2b5bd size=14
 ```
 
 ### 筛选面板
 id: web-search-filter
 name: 筛选面板
 description: 侧边筛选面板
-categoryId: web-search
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-search
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=200 h=300 bg=#ffffff s=1 r=12
-"筛选" @(20, 20) c=#1c1f23 size=14 bold=true
-"分类" @(20, 50) c=#b2b5bd size=12
-["全部"] @(20, 70) w=60 h=24 bg=#0091ff c=#ffffff size=11 r=12
-["选项A"] @(90, 70) w=60 h=24 bg=#f7f8fa c=#666666 size=11 r=12
-["选项B"] @(20, 100) w=60 h=24 bg=#f7f8fa c=#666666 size=11 r=12
-"价格" @(20, 140) c=#b2b5bd size=12
-["¥0-100"] @(20, 160) w=80 h=24 bg=#f7f8fa c=#666666 size=11 r=12
-["¥100-500"] @(110, 160) w=80 h=24 bg=#f7f8fa c=#666666 size=11 r=12
+[""] @(0,0) w=200 h=300 bg=#ffffff s=1 r=12
+"筛选" @(10,10) c=#1c1f23 size=14 bold
+"分类" @(10,40) c=#b2b5bd size=12
+["全部"] @(10,60) w=60 h=24 bg=#0091ff c=#ffffff size=11 r=12 align=c vertical-align=m
+["选项A"] @(80,60) w=60 h=24 bg=#f7f8fa c=#666666 size=11 r=12 align=c vertical-align=m
+["选项B"] @(10,90) w=60 h=24 bg=#f7f8fa c=#666666 size=11 r=12 align=c vertical-align=m
+"价格" @(10,130) c=#b2b5bd size=12
+["¥0-100"] @(10,150) w=80 h=24 bg=#f7f8fa c=#666666 size=11 r=12 align=c vertical-align=m
+["¥100-500"] @(100,150) w=80 h=24 bg=#f7f8fa c=#666666 size=11 r=12 align=c vertical-align=m
 ```
 
 ---
 
 ## Web-导航
-id: web-navigation
-platform: web
+id: cat-web-navigation
+parentId: cat-web
 
 ### 面包屑
 id: web-breadcrumb
 name: 面包屑
 description: Semi 面包屑
-categoryId: web-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-"首页" @(10, 15) c=#0091ff size=12
-"/" @(40, 15) c=#b2b5bd size=12
-"列表" @(55, 15) c=#0091ff size=12
-"/" @(85, 15) c=#b2b5bd size=12
-"详情" @(100, 15) c=#b2b5bd size=12
+"首页" @(0,0) c=#0091ff size=12
+"/" @(30,0) c=#b2b5bd size=12
+"列表" @(45,0) c=#0091ff size=12
+"/" @(75,0) c=#b2b5bd size=12
+"详情" @(90,0) c=#b2b5bd size=12
 ```
 
 ### 分页器
 id: web-pagination
 name: 分页器
 description: Semi Pagination
-categoryId: web-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["<"] @(10, 10) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
-["1"] @(48, 10) w=32 h=28 bg=#0091ff c=#ffffff size=11 r=6
-["2"] @(86, 10) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
-["3"] @(124, 10) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
-[">"] @(162, 10) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6
+["<"] @(0,0) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
+["1"] @(38,0) w=32 h=28 bg=#0091ff c=#ffffff size=11 r=6 align=c vertical-align=m
+["2"] @(76,0) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
+["3"] @(114,0) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
+[">"] @(152,0) w=32 h=28 bg=#ffffff c=#666666 size=11 s=1 r=6 align=c vertical-align=m
 ```
 
 ### 顶部导航
 id: web-top-nav
 name: 顶部导航
 description: Semi 顶部导航
-categoryId: web-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=320 h=48 bg=#ffffff s=1
-"Logo" @(15, 14) c=#0091ff size=16 bold=true
-"首页" @(90, 16) c=#1c1f23 size=13
-"产品" @(140, 16) c=#1c1f23 size=13
-"关于" @(190, 16) c=#1c1f23 size=13
-["张"] @(270, 8) w=32 h=32 bg=#0091ff c=#ffffff size=12
+[""] @(0,0) w=320 h=48 bg=#ffffff s=1
+"Logo" @(15,14) c=#0091ff size=16 bold
+"首页" @(90,16) c=#1c1f23 size=13
+"产品" @(140,16) c=#1c1f23 size=13
+"关于" @(190,16) c=#1c1f23 size=13
+("张") @(270,8) w=32 bg=#0091ff c=#ffffff size=12
 ```
 
 ### 侧边导航
 id: web-side-nav
 name: 侧边导航
 description: Semi 侧边导航
-categoryId: web-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=200 h=400 bg=#1c1f23
-"导航菜单" @(15, 20) c=#ffffff size=14 bold=true
-["仪表盘"] @(10, 50) w=180 h=36 bg=#0091ff c=#ffffff size=13 r=8
-"用户管理" @(20, 95) c=#ffffff size=13
-"数据统计" @(20, 130) c=#ffffff size=13
-"系统设置" @(20, 165) c=#ffffff size=13
+[""] @(0,0) w=200 h=400 bg=#1c1f23
+"导航菜单" @(15,20) c=#ffffff size=14 bold
+["仪表盘"] @(10,50) w=180 h=36 bg=#0091ff c=#ffffff size=13 r=8 align=c vertical-align=m
+"用户管理" @(20,95) c=#ffffff size=13
+"数据统计" @(20,130) c=#ffffff size=13
+"系统设置" @(20,165) c=#ffffff size=13
 ```
 
 ### Tab 切换
 id: web-tabs
 name: Tab 切换
 description: Semi Tabs
-categoryId: web-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-"基本信息" @(10, 10) c=#0091ff size=13 bold=true
--- @(10, 28)->(80, 28) b=#0091ff s=2
-"详细信息" @(90, 10) c=#b2b5bd size=13
-"设置" @(170, 10) c=#b2b5bd size=13
--- @(10, 40)->(290, 40) b=#e8e8e8 s=1
-"基本信息内容" @(10, 55) c=#b2b5bd size=12
+"基本信息" @(0,0) c=#0091ff size=13 bold
+-- @(0,18)->(70,18) b=#0091ff s=2
+"详细信息" @(80,0) c=#b2b5bd size=13
+"设置" @(160,0) c=#b2b5bd size=13
+-- @(0,30)->(280,30) b=#e8e8e8 s=1
+"基本信息内容" @(0,45) c=#b2b5bd size=12
 ```
 
 ### 下拉菜单
 id: web-dropdown
 name: 下拉菜单
 description: Semi Dropdown
-categoryId: web-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=160 h=120 bg=#ffffff s=1 r=8
-"菜单项1" @(20, 25) c=#1c1f23 size=13
--- @(10, 45)->(160, 45) b=#e8e8e8 s=1
-"菜单项2" @(20, 55) c=#1c1f23 size=13
--- @(10, 75)->(160, 75) b=#e8e8e8 s=1
-"菜单项3" @(20, 85) c=#1c1f23 size=13
+[""] @(0,0) w=160 h=120 bg=#ffffff s=1 r=8
+"菜单项1" @(10,15) c=#1c1f23 size=13
+-- @(0,35)->(150,35) b=#e8e8e8 s=1
+"菜单项2" @(10,45) c=#1c1f23 size=13
+-- @(0,65)->(150,65) b=#e8e8e8 s=1
+"菜单项3" @(10,75) c=#1c1f23 size=13
 ```
 
 ---
 
 ## Web-认证
-id: web-auth
-platform: web
+id: cat-web-auth
+parentId: cat-web
 
 ### 登录页
 id: web-login
 name: 登录页
 description: Semi 风格登录页
-categoryId: web-auth
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-auth
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=400 h=600 bg=#ffffff
-"登录" @(170, 80) c=#1c1f23 size=24 bold=true
-"用户名" @(50, 150) c=#b2b5bd size=13
-["请输入用户名..."] @(50, 175) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8
-"密码" @(50, 240) c=#b2b5bd size=13
-["请输入密码..."] @(50, 265) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8
-["登 录"] @(50, 340) w=300 h=40 bg=#0091ff c=#ffffff size=14 r=8
-"忘记密码？" @(280, 295) c=#0091ff size=12
+[""] @(0,0) w=400 h=600 bg=#ffffff
+"登录" @(170,80) c=#1c1f23 size=24 bold
+"用户名" @(50,150) c=#b2b5bd size=13
+["请输入用户名..."] @(50,175) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
+"密码" @(50,240) c=#b2b5bd size=13
+["请输入密码..."] @(50,265) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
+["登 录"] @(50,340) w=300 h=40 bg=#0091ff c=#ffffff size=14 r=8 align=c vertical-align=m
+"忘记密码？" @(280,295) c=#0091ff size=12
 ```
 
 ### 注册页
 id: web-register
 name: 注册页
 description: Semi 风格注册页
-categoryId: web-auth
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-auth
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=400 h=600 bg=#ffffff
-"注册" @(170, 60) c=#1c1f23 size=24 bold=true
-"手机号" @(50, 120) c=#b2b5bd size=13
-["请输入手机号..."] @(50, 145) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8
-"验证码" @(50, 210) c=#b2b5bd size=13
-["请输入验证码..."] @(50, 235) w=180 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8
-["获取验证码"] @(240, 235) w=110 h=40 bg=#0091ff c=#ffffff size=12 r=8
-["立即注册"] @(50, 340) w=300 h=40 bg=#0091ff c=#ffffff size=14 r=8
+[""] @(0,0) w=400 h=600 bg=#ffffff
+"注册" @(170,60) c=#1c1f23 size=24 bold
+"手机号" @(50,120) c=#b2b5bd size=13
+["请输入手机号..."] @(50,145) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
+"验证码" @(50,210) c=#b2b5bd size=13
+["请输入验证码..."] @(50,235) w=180 h=40 bg=#f7f8fa c=#b2b5bd size=14 s=1 r=8 align=l vertical-align=m
+["获取验证码"] @(240,235) w=110 h=40 bg=#0091ff c=#ffffff size=12 r=8 align=c vertical-align=m
+["立即注册"] @(50,340) w=300 h=40 bg=#0091ff c=#ffffff size=14 r=8 align=c vertical-align=m
 ```
 
 ---
 
 ## Web-反馈
-id: web-feedback
-platform: web
+id: cat-web-feedback
+parentId: cat-web
 
 ### 成功提示
 id: web-toast-success
 name: 成功提示
 description: Semi Toast 成功
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["✓ 操作成功！"] @(10, 10) w=280 h=40 bg=#f0fff4 c=#00d68f size=14 r=8
+["✓ 操作成功！"] @(0,0) w=280 h=40 bg=#f0fff4 c=#00d68f size=14 r=8 align=c vertical-align=m
 ```
 
 ### 错误提示
 id: web-toast-error
 name: 错误提示
 description: Semi Toast 错误
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["✕ 操作失败"] @(10, 10) w=280 h=40 bg=#fff0f2 c=#f82c55 size=14 r=8
+["✕ 操作失败"] @(0,0) w=280 h=40 bg=#fff0f2 c=#f82c55 size=14 r=8 align=c vertical-align=m
 ```
 
 ### 警告提示
 id: web-toast-warning
 name: 警告提示
 description: Semi Toast 警告
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["⚠ 警告提示"] @(10, 10) w=280 h=40 bg=#fff8e6 c=#ff9300 size=14 r=8
+["⚠ 警告提示"] @(0,0) w=280 h=40 bg=#fff8e6 c=#ff9300 size=14 r=8 align=c vertical-align=m
 ```
 
 ### 对话框
 id: web-modal
 name: 对话框
 description: Semi Modal
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=180 bg=#ffffff s=1 r=12
-"确认删除" @(20, 25) c=#1c1f23 size=16 bold=true
--- @(10, 55)->(290, 55) b=#e8e8e8 s=1
-"确定要删除此项吗？此操作不可恢复。" @(20, 70) c=#b2b5bd size=13
-["取消"] @(100, 130) w=80 h=32 bg=#ffffff c=#666666 size=13 s=1 r=8
-["确定"] @(190, 130) w=80 h=32 bg=#f82c55 c=#ffffff size=13 r=8
+[""] @(0,0) w=300 h=180 bg=#ffffff s=1 r=12
+"确认删除" @(10,15) c=#1c1f23 size=16 bold
+-- @(0,45)->(280,45) b=#e8e8e8 s=1
+"确定要删除此项吗？此操作不可恢复。" @(10,60) c=#b2b5bd size=13
+["取消"] @(90,120) w=80 h=32 bg=#ffffff c=#666666 size=13 s=1 r=8 align=c vertical-align=m
+["确定"] @(180,120) w=80 h=32 bg=#f82c55 c=#ffffff size=13 r=8 align=c vertical-align=m
 ```
 
 ### 抽屉
 id: web-drawer
 name: 抽屉
 description: Semi 侧边抽屉
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=300 h=400 bg=#ffffff s=1
-"抽屉标题" @(20, 20) c=#1c1f23 size=16 bold=true
-"✕" @(260, 18) c=#b2b5bd size=16
--- @(0, 50)->(300, 50) b=#e8e8e8 s=1
-"抽屉内容区域..." @(20, 70) c=#b2b5bd size=13
+[""] @(0,0) w=300 h=400 bg=#ffffff s=1
+"抽屉标题" @(20,20) c=#1c1f23 size=16 bold
+"✕" @(260,18) c=#b2b5bd size=16
+-- @(0,50)->(300,50) b=#e8e8e8 s=1
+"抽屉内容区域..." @(20,70) c=#b2b5bd size=13
 ```
 
 ### 加载状态
 id: web-loading
 name: 加载状态
 description: Semi 加载指示器
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("加载中...") @(100, 100) w=60 h=60 bg=#ffffff c=#0091ff size=12
+("加载中...") @(0,0) w=60 bg=#ffffff c=#0091ff size=12
 ```
 
 ### 骨架屏
 id: web-skeleton
 name: 骨架屏
 description: Semi Skeleton
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=150 bg=#ffffff s=1 r=12
-[""] @(20, 20) w=120 h=16 bg=#f7f8fa r=4
-[""] @(20, 50) w=280 h=12 bg=#f7f8fa r=3
-[""] @(20, 70) w=260 h=12 bg=#f7f8fa r=3
-[""] @(20, 90) w=200 h=12 bg=#f7f8fa r=3
+[""] @(0,0) w=300 h=150 bg=#ffffff s=1 r=12
+[""] @(10,10) w=120 h=16 bg=#f7f8fa r=4
+[""] @(10,40) w=280 h=12 bg=#f7f8fa r=3
+[""] @(10,60) w=260 h=12 bg=#f7f8fa r=3
+[""] @(10,80) w=200 h=12 bg=#f7f8fa r=3
 ```
 
 ### 空状态
 id: web-empty
 name: 空状态
 description: Semi 空状态
-categoryId: web-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(100, 50) w=80 h=80 bg=#f7f8fa r=40
-"📦" @(125, 70) c=#d3d5da size=24
-"暂无数据" @(110, 140) c=#b2b5bd size=14
-["创建数据"] @(100, 170) w=100 h=32 bg=#0091ff c=#ffffff size=13 r=8
+[""] @(0,0) w=80 h=80 bg=#f7f8fa r=40
+"📦" @(25,20) c=#d3d5da size=24
+"暂无数据" @(10,90) c=#b2b5bd size=14
+["创建数据"] @(0,120) w=100 h=32 bg=#0091ff c=#ffffff size=13 r=8 align=c vertical-align=m
 ```
 
 ---
 
 ## Web-媒体
-id: web-media
-platform: web
+id: cat-web-media
+parentId: cat-web
 
 ### 图片展示
 id: web-image-basic
 name: 图片展示
 description: Semi 图片展示
-categoryId: web-media
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-media
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=200 h=150 bg=#f7f8fa r=8
-"图片" @(85, 70) c=#d3d5da size=14
+[""] @(0,0) w=200 h=150 bg=#f7f8fa r=8
+"图片" @(75,60) c=#d3d5da size=14
 ```
 
 ### 视频播放
 id: web-video-player
 name: 视频播放
 description: Semi 视频播放器
-categoryId: web-media
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-media
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=180 bg=#1c1f23 r=12
-"▶" @(135, 75) c=#ffffff size=28
-"00:00 / 03:24" @(120, 155) c=#ffffff size=12
+[""] @(0,0) w=300 h=180 bg=#1c1f23 r=12
+"▶" @(125,65) c=#ffffff size=28
+"00:00 / 03:24" @(110,145) c=#ffffff size=12
 ```
 
 ---
 
 ## Web-电商
-id: web-commerce
-platform: web
+id: cat-web-commerce
+parentId: cat-web
 
 ### 商品卡片
 id: web-product-card
 name: 商品卡片
 description: Semi 商品卡片
-categoryId: web-commerce
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-commerce
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=200 h=260 bg=#ffffff s=1 r=12
-[""] @(10, 10) w=200 h=150 bg=#f7f8fa r=12
-"商品图片" @(70, 75) c=#d3d5da size=12
-"商品标题" @(20, 170) c=#1c1f23 size=13 bold=true
-"¥299.00" @(20, 190) c=#f82c55 size=16 bold=true
-["加入购物车"] @(20, 220) w=160 h=32 bg=#0091ff c=#ffffff size=12 r=8
+[""] @(0,0) w=200 h=260 bg=#ffffff s=1 r=12
+[""] @(0,0) w=200 h=150 bg=#f7f8fa r=12
+"商品图片" @(60,65) c=#d3d5da size=12
+"商品标题" @(10,160) c=#1c1f23 size=13 bold
+"¥299.00" @(10,180) c=#f82c55 size=16 bold
+["加入购物车"] @(10,210) w=160 h=32 bg=#0091ff c=#ffffff size=12 r=8 align=c vertical-align=m
 ```
 
 ### 购物车
 id: web-shopping-cart
 name: 购物车
 description: Semi 购物车
-categoryId: web-commerce
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-commerce
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=80 bg=#ffffff s=1 r=12
-("✓") @(20, 30) w=20 h=20 bg=#0091ff c=#ffffff size=12
-[""] @(50, 15) w=60 h=60 bg=#f7f8fa r=8
-"商品名称" @(120, 25) c=#1c1f23 size=13 bold=true
-"¥199.00" @(120, 48) c=#f82c55 size=14
-["+"] @(230, 30) w=24 h=24 bg=#f7f8fa c=#666666 size=14 r=6
-"1" @(244, 35) c=#1c1f23 size=12
-["-"] @(268, 30) w=24 h=24 bg=#f7f8fa c=#666666 size=14 r=6
+[""] @(0,0) w=300 h=80 bg=#ffffff s=1 r=12
+("✓") @(10,20) w=20 bg=#0091ff c=#ffffff size=12
+[""] @(40,5) w=60 h=60 bg=#f7f8fa r=8
+"商品名称" @(110,15) c=#1c1f23 size=13 bold
+"¥199.00" @(110,38) c=#f82c55 size=14
+("+") @(220,20) w=24 bg=#f7f8fa c=#666666 size=14
+"1" @(234,25) c=#1c1f23 size=12
+("-") @(258,20) w=24 bg=#f7f8fa c=#666666 size=14
 ```
 
 ---
 
 ## Web-布局
-id: web-layout
-platform: web
+id: cat-web-layout
+parentId: cat-web
 
 ### 页面布局
 id: web-page-layout
 name: 页面布局
 description: Semi 后台页面布局
-categoryId: web-layout
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-layout
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=320 h=48 bg=#ffffff s=1
-"Logo" @(10, 14) c=#0091ff size=16 bold=true
-[""] @(0, 48) w=80 h=352 bg=#1c1f23
-"菜单" @(10, 63) c=#ffffff size=12 bold=true
-["仪表盘"] @(5, 83) w=70 h=32 bg=#0091ff c=#ffffff size=11 r=8
-"用户管理" @(15, 120) c=#ffffff size=11
-["内容区域"] @(90, 58) w=230 h=342 bg=#f7f8fa c=#d3d5da size=12 r=4
+[""] @(0,0) w=320 h=48 bg=#ffffff s=1
+"Logo" @(10,14) c=#0091ff size=16 bold
+[""] @(0,48) w=80 h=352 bg=#1c1f23
+"菜单" @(10,63) c=#ffffff size=12 bold
+["仪表盘"] @(5,83) w=70 h=32 bg=#0091ff c=#ffffff size=11 r=8 align=c vertical-align=m
+"用户管理" @(15,120) c=#ffffff size=11
+["内容区域"] @(90,58) w=230 h=342 bg=#f7f8fa c=#d3d5da size=12 r=4 align=c vertical-align=m
 ```
 
 ### 仪表盘布局
 id: web-dashboard-layout
 name: 仪表盘布局
 description: Semi 仪表盘布局
-categoryId: web-layout
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-web-layout
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=180 h=100 bg=#ffffff s=1 r=12
-"卡片1" @(70, 50) c=#d3d5da size=12
-[""] @(200, 10) w=180 h=100 bg=#ffffff s=1 r=12
-"卡片2" @(260, 50) c=#d3d5da size=12
-[""] @(10, 120) w=370 h=180 bg=#ffffff s=1 r=12
-"图表区域" @(160, 200) c=#d3d5da size=12
+[""] @(0,0) w=180 h=100 bg=#ffffff s=1 r=12
+"卡片1" @(60,40) c=#d3d5da size=12
+[""] @(190,0) w=180 h=100 bg=#ffffff s=1 r=12
+"卡片2" @(250,40) c=#d3d5da size=12
+[""] @(0,110) w=370 h=180 bg=#ffffff s=1 r=12
+"图表区域" @(150,190) c=#d3d5da size=12
 ```
 
 ---
 
 ## Mobile-通用
-id: mobile-general
-platform: mobile
+id: cat-mobile-general
+parentId: cat-mobile
 
 ### 主按钮
 id: mobile-btn-primary
 name: 主按钮
 description: Semi 移动端主按钮
-categoryId: mobile-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["主按钮"] @(10, 10) w=300 h=44 bg=#0091ff c=#ffffff size=14 r=22
+["主按钮"] @(0,0) w=300 h=44 bg=#0091ff c=#ffffff size=14 r=22 align=c vertical-align=m
 ```
 
 ### 次要按钮
 id: mobile-btn-secondary
 name: 次要按钮
 description: Semi 移动端次要按钮
-categoryId: mobile-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["次要按钮"] @(10, 10) w=300 h=44 bg=#f0f4ff c=#0091ff size=14 r=22
+["次要按钮"] @(0,0) w=300 h=44 bg=#f0f4ff c=#0091ff size=14 r=22 align=c vertical-align=m
 ```
 
 ### 危险按钮
 id: mobile-btn-danger
 name: 危险按钮
 description: Semi 移动端危险按钮
-categoryId: mobile-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["删除"] @(10, 10) w=300 h=44 bg=#f82c55 c=#ffffff size=14 r=22
+["删除"] @(0,0) w=300 h=44 bg=#f82c55 c=#ffffff size=14 r=22 align=c vertical-align=m
 ```
 
 ### 头像
 id: mobile-avatar
 name: 头像
 description: Semi 移动端头像
-categoryId: mobile-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["张"] @(10, 10) w=48 h=48 bg=#0091ff c=#ffffff size=18
+("张") @(0,0) w=48 bg=#0091ff c=#ffffff size=18
 ```
 
 ### 标签
 id: mobile-tag
 name: 标签
 description: Semi 移动端标签
-categoryId: mobile-general
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-general
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["标签"] @(10, 10) w=60 h=24 bg=#f0f4ff c=#0091ff size=11 r=12
+["标签"] @(0,0) w=60 h=24 bg=#f0f4ff c=#0091ff size=11 r=12 align=c vertical-align=m
 ```
 
 ---
 
 ## Mobile-表单
-id: mobile-form
-platform: mobile
+id: cat-mobile-form
+parentId: cat-mobile
 
 ### 输入框
 id: mobile-input
 name: 输入框
 description: Semi 移动端输入框
-categoryId: mobile-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请输入内容..."] @(10, 10) w=300 h=44 bg=#f7f8fa c=#b2b5bd size=14 r=22
+["请输入内容..."] @(0,0) w=300 h=44 bg=#f7f8fa c=#b2b5bd size=14 r=22 align=l vertical-align=m
 ```
 
 ### 下拉选择
 id: mobile-select
 name: 下拉选择
 description: Semi 移动端选择器
-categoryId: mobile-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请选择"] @(10, 10) w=300 h=44 bg=#f7f8fa c=#1c1f23 size=14 r=22
-"▼" @(270, 22) c=#b2b5bd size=12
+["请选择"] @(0,0) w=300 h=44 bg=#f7f8fa c=#1c1f23 size=14 r=22 align=l vertical-align=m
+"▼" @(260,12) c=#b2b5bd size=12
 ```
 
 ### 开关
 id: mobile-switch
 name: 开关
 description: Semi 移动端开关
-categoryId: mobile-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=48 h=28 bg=#0091ff r=14
-("●") @(38, 14) w=20 h=20 bg=#ffffff size=10
+[""] @(0,0) w=48 h=28 bg=#0091ff r=14
+("●") @(28,4) w=20 bg=#ffffff size=10
 ```
 
 ### 验证码
 id: mobile-verification
 name: 验证码
 description: 短信验证码输入
-categoryId: mobile-form
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-form
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["请输入验证码"] @(10, 10) w=180 h=44 bg=#f7f8fa c=#b2b5bd size=14 r=22
-["获取验证码"] @(200, 10) w=110 h=44 bg=#0091ff c=#ffffff size=13 r=22
+["请输入验证码"] @(0,0) w=180 h=44 bg=#f7f8fa c=#b2b5bd size=14 r=22 align=l vertical-align=m
+["获取验证码"] @(190,0) w=110 h=44 bg=#0091ff c=#ffffff size=13 r=22 align=c vertical-align=m
 ```
 
 ---
 
 ## Mobile-列表
-id: mobile-list
-platform: mobile
+id: cat-mobile-list
+parentId: cat-mobile
 
 ### 列表项
 id: mobile-list-item
 name: 列表项
 description: Semi 移动端列表项
-categoryId: mobile-list
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-list
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["列表项内容"] @(10, 10) w=300 h=48 bg=#ffffff c=#1c1f23 size=14 r=8
-">" @(280, 22) c=#d3d5da size=14
+["列表项内容"] @(0,0) w=300 h=48 bg=#ffffff c=#1c1f23 size=14 r=8 align=l vertical-align=m
+">" @(270,12) c=#d3d5da size=14
 ```
 
 ### 消息列表
 id: mobile-message-list
 name: 消息列表
 description: 消息通知列表
-categoryId: mobile-list
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-list
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("🔔") @(10, 10) w=44 h=44 bg=#f0f4ff c=#0091ff size=16
-"消息标题" @(64, 12) c=#1c1f23 size=14 bold=true
-"消息摘要..." @(64, 34) c=#b2b5bd size=12
-"10:30" @(260, 18) c=#b2b5bd size=12
-("1") @(48, 4) w=18 h=18 bg=#f82c55 c=#ffffff size=10
+("🔔") @(0,0) w=44 bg=#f0f4ff c=#0091ff size=16
+"消息标题" @(54,2) c=#1c1f23 size=14 bold
+"消息摘要..." @(54,24) c=#b2b5bd size=12
+"10:30" @(250,8) c=#b2b5bd size=12
+("1") @(38,-6) w=18 bg=#f82c55 c=#ffffff size=10
 ```
 
 ---
 
 ## Mobile-卡片
-id: mobile-card
-platform: mobile
+id: cat-mobile-card
+parentId: cat-mobile
 
 ### 基础卡片
 id: mobile-card-basic
 name: 基础卡片
 description: Semi 移动端卡片
-categoryId: mobile-card
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-card
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=120 bg=#ffffff s=1 r=16
-"卡片标题" @(20, 20) c=#1c1f23 size=14 bold=true
-"卡片描述" @(20, 45) c=#b2b5bd size=13
+[""] @(0,0) w=300 h=120 bg=#ffffff s=1 r=16
+"卡片标题" @(10,10) c=#1c1f23 size=14 bold
+"卡片描述" @(10,35) c=#b2b5bd size=13
 ```
 
 ### 商品卡片
 id: mobile-product-card
 name: 商品卡片
 description: Semi 移动端商品卡片
-categoryId: mobile-card
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-card
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=160 h=220 bg=#ffffff s=1 r=16
-[""] @(10, 10) w=160 h=120 bg=#f7f8fa r=16
-"¥199" @(20, 135) c=#f82c55 size=15 bold=true
-"商品名称" @(20, 160) c=#1c1f23 size=12
+[""] @(0,0) w=160 h=220 bg=#ffffff s=1 r=16
+[""] @(0,0) w=160 h=120 bg=#f7f8fa r=16
+"¥199" @(10,125) c=#f82c55 size=15 bold
+"商品名称" @(10,150) c=#1c1f23 size=12
 ```
 
 ---
 
 ## Mobile-导航
-id: mobile-navigation
-platform: mobile
+id: cat-mobile-navigation
+parentId: cat-mobile
 
 ### 底部导航
 id: mobile-bottom-nav
 name: 底部导航
 description: Semi 移动端底部导航
-categoryId: mobile-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=320 h=50 bg=#ffffff s=1
-"🏠" @(40, 8) c=#0091ff size=18
-"首页" @(35, 30) c=#0091ff size=10
-"📋" @(130, 8) c=#b2b5bd size=18
-"分类" @(125, 30) c=#b2b5bd size=10
-"🛒" @(220, 8) c=#b2b5bd size=18
-"购物车" @(213, 30) c=#b2b5bd size=10
-"👤" @(290, 8) c=#b2b5bd size=18
-"我的" @(285, 30) c=#b2b5bd size=10
+[""] @(0,0) w=320 h=50 bg=#ffffff s=1
+"🏠" @(40,8) c=#0091ff size=18
+"首页" @(35,30) c=#0091ff size=10
+"📋" @(130,8) c=#b2b5bd size=18
+"分类" @(125,30) c=#b2b5bd size=10
+"🛒" @(220,8) c=#b2b5bd size=18
+"购物车" @(213,30) c=#b2b5bd size=10
+"👤" @(290,8) c=#b2b5bd size=18
+"我的" @(285,30) c=#b2b5bd size=10
 ```
 
 ### 顶部导航
 id: mobile-top-nav
 name: 顶部导航
 description: Semi 移动端顶部导航
-categoryId: mobile-navigation
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-navigation
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=320 h=44 bg=#ffffff s=1
-"< 返回" @(10, 14) c=#0091ff size=14
-"页面标题" @(120, 14) c=#1c1f23 size=16 bold=true
+[""] @(0,0) w=320 h=44 bg=#ffffff s=1
+"< 返回" @(10,14) c=#0091ff size=14
+"页面标题" @(120,14) c=#1c1f23 size=16 bold
 ```
 
 ---
 
 ## Mobile-搜索
-id: mobile-search
-platform: mobile
+id: cat-mobile-search
+parentId: cat-mobile
 
 ### 搜索框
 id: mobile-search-input
 name: 搜索框
 description: Semi 移动端搜索框
-categoryId: mobile-search
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-search
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["搜索关键词..."] @(10, 10) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 r=20
-"🔍" @(15, 20) c=#b2b5bd size=14
+["搜索关键词..."] @(0,0) w=300 h=40 bg=#f7f8fa c=#b2b5bd size=14 r=20 align=l vertical-align=m
+"🔍" @(5,10) c=#b2b5bd size=14
 ```
 
 ---
 
 ## Mobile-反馈
-id: mobile-feedback
-platform: mobile
+id: cat-mobile-feedback
+parentId: cat-mobile
 
 ### 成功提示
 id: mobile-toast-success
 name: 成功提示
 description: Semi 移动端成功提示
-categoryId: mobile-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["✓ 操作成功"] @(70, 200) w=180 h=40 bg=#00d68f c=#ffffff size=14 r=20
+["✓ 操作成功"] @(0,0) w=180 h=40 bg=#00d68f c=#ffffff size=14 r=20 align=c vertical-align=m
 ```
 
 ### 加载状态
 id: mobile-loading
 name: 加载状态
 description: Semi 移动端加载
-categoryId: mobile-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-("加载中...") @(100, 200) w=80 h=80 bg=#000000 opacity=0.7 c=#ffffff size=12
+("加载中...") @(0,0) w=80 bg=#000000 opacity=0.7 c=#ffffff size=12
 ```
 
 ### 操作菜单
 id: mobile-action-sheet
 name: 操作菜单
 description: Semi 移动端底部菜单
-categoryId: mobile-feedback
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-feedback
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 300) w=300 h=180 bg=#ffffff r=16
-"拍照" @(130, 320) c=#1c1f23 size=15
--- @(10, 355)->(310, 355) b=#e8e8e8 s=1
-"从相册选择" @(115, 365) c=#1c1f23 size=15
--- @(10, 400)->(310, 400) b=#e8e8e8 s=1
-"取消" @(135, 410) c=#b2b5bd size=15
+[""] @(0,0) w=300 h=180 bg=#ffffff r=16
+"拍照" @(120,20) c=#1c1f23 size=15
+-- @(0,55)->(300,55) b=#e8e8e8 s=1
+"从相册选择" @(105,65) c=#1c1f23 size=15
+-- @(0,100)->(300,100) b=#e8e8e8 s=1
+"取消" @(125,110) c=#b2b5bd size=15
 ```
 
 ---
 
 ## Mobile-电商
-id: mobile-commerce
-platform: mobile
+id: cat-mobile-commerce
+parentId: cat-mobile
 
 ### 商品详情
 id: mobile-product-detail
 name: 商品详情
 description: Semi 移动端商品详情
-categoryId: mobile-commerce
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-commerce
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=300 h=200 bg=#f7f8fa r=16
-"商品图片" @(115, 100) c=#d3d5da size=14
-[""] @(10, 220) w=300 h=80 bg=#ffffff s=1 r=16
-"商品标题" @(20, 230) c=#1c1f23 size=15 bold=true
-"¥299.00" @(20, 255) c=#f82c55 size=18 bold=true
-["立即购买"] @(20, 310) w=130 h=44 bg=#f82c55 c=#ffffff size=14 r=22
-["加入购物车"] @(160, 310) w=130 h=44 bg=#ff9300 c=#ffffff size=14 r=22
+[""] @(0,0) w=300 h=200 bg=#f7f8fa r=16
+"商品图片" @(105,90) c=#d3d5da size=14
+[""] @(0,210) w=300 h=80 bg=#ffffff s=1 r=16
+"商品标题" @(10,220) c=#1c1f23 size=15 bold
+"¥299.00" @(10,245) c=#f82c55 size=18 bold
+["立即购买"] @(0,300) w=130 h=44 bg=#f82c55 c=#ffffff size=14 r=22 align=c vertical-align=m
+["加入购物车"] @(140,300) w=130 h=44 bg=#ff9300 c=#ffffff size=14 r=22 align=c vertical-align=m
 ```
 
 ---
 
 ## Mobile-布局
-id: mobile-layout
-platform: mobile
+id: cat-mobile-layout
+parentId: cat-mobile
 
 ### 页面布局
 id: mobile-page-layout
 name: 页面布局
 description: Semi 移动端页面布局
-categoryId: mobile-layout
-createdAt: 2026-04-24T00:00:00Z
-updatedAt: 2026-04-24T00:00:00Z
+categoryId: cat-mobile-layout
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(0, 0) w=320 h=44 bg=#ffffff s=1
-"页面标题" @(110, 14) c=#1c1f23 size=16 bold=true
-[""] @(0, 44) w=320 h=560 bg=#f7f8fa
-"内容区域" @(120, 320) c=#d3d5da size=14
-[""] @(0, 604) w=320 h=50 bg=#ffffff s=1
-"🏠" @(40, 612) c=#0091ff size=18
-"📋" @(130, 612) c=#b2b5bd size=18
-"🛒" @(220, 612) c=#b2b5bd size=18
-"👤" @(290, 612) c=#b2b5bd size=18
+[""] @(0,0) w=320 h=44 bg=#ffffff s=1
+"页面标题" @(110,14) c=#1c1f23 size=16 bold
+[""] @(0,44) w=320 h=560 bg=#f7f8fa
+"内容区域" @(120,320) c=#d3d5da size=14
+[""] @(0,604) w=320 h=50 bg=#ffffff s=1
+"🏠" @(40,612) c=#0091ff size=18
+"📋" @(130,612) c=#b2b5bd size=18
+"🛒" @(220,612) c=#b2b5bd size=18
+"👤" @(290,612) c=#b2b5bd size=18
 ```
 
 ---
 
-*组件库完成 - Semi Design Web+Mobile 组件库，共 28 个分类，约 220 个组件*
+*组件库完成 - Semi Design Web+Mobile 组件库，共 24 个分类，81 个组件*

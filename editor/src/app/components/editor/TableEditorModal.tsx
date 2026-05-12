@@ -40,7 +40,7 @@ const TableEditorModal: React.FC<TableEditorModalProps> = ({
     stopEditing,
     save,
     reset,
-  } = useTableEditor(content, tableLine, onSave);
+  } = useTableEditor(content, tableLine, onSave, isOpen);
 
   const handleOverlayClick = useCallback(() => {
     if (isDirty) {

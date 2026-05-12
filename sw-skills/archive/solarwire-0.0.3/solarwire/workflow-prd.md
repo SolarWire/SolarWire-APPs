@@ -243,7 +243,7 @@ Based on the framework, let's define the presentation:
   - Scope Layer → Feature Scope (2.1-2.2), Feature Boundary
   - Structure Layer → Business Flow (4.1-4.2), Page Design (5.1)
   - Framework Layer → Page Details (6.1-x), Wireframes
-  - Presentation Layer → Wireframe attributes (bg, c, b, size, r, etc.) — NEVER in notes (per note-guide.md Section 8)
+  - Presentation Layer → Wireframes, visual specifications within notes
 - If AI attempts to add Five Elements headings to the PRD, it is a violation of this rule
 
 **Step 10: Multi-language Confirmation**
@@ -480,7 +480,7 @@ Please start reviewing, let me know if you have any questions.
 | Issue Type | Recovery Action |
 |-----------|-----------------|
 | User rejects business direction | Return to rejected Five Elements layer, re-discuss |
-| User rejects terminal type | Return to Step 5, re-confirm. All layout-dependent decisions (Framework, Presentation) must be re-validated |
+| User rejects terminal type | Return to Step 5, re-confirm |
 | User rejects scope | Return to Step 6, re-define scope (may re-run Step 1) |
 | User rejects page structure | Return to Step 7, re-organize pages |
 | User rejects layout | Return to Step 8, re-design framework |
@@ -702,9 +702,9 @@ When the requirement involves modifications to existing pages:
 
 ### Change Summary Chapter
 ```markdown
-## Change Summary [translate to user language]
-### Affected Pages [translate to user language]
-| Page [translate] | Change Type [translate] | Description [translate] |
+## Change Summary
+### Affected Pages
+| Page | Change Type | Description |
 |------|-------------|-------------|
 | [Page 1] | Modified | [Brief description of what changed] |
 | [Page 2] | New | [Brief description] |

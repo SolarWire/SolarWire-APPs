@@ -123,10 +123,10 @@ const TableGrid: React.FC<TableGridProps> = ({
               const cellAlign = cell.attrs.align || row.attrs.align;
               const cellVAlign = cell.attrs['vertical-align'] || row.attrs['vertical-align'];
               const cellTextDecoration = cell.attrs['text-decoration'] || row.attrs['text-decoration'];
-              const cellPt = cell.attrs.pt || row.attrs.pt;
-              const cellPr = cell.attrs.pr || row.attrs.pr;
-              const cellPb = cell.attrs.pb || row.attrs.pb;
-              const cellPl = cell.attrs.pl || row.attrs.pl;
+              const cellPt = cell.attrs['padding-top'] || row.attrs['padding-top'];
+              const cellPr = cell.attrs['padding-right'] || row.attrs['padding-right'];
+              const cellPb = cell.attrs['padding-bottom'] || row.attrs['padding-bottom'];
+              const cellPl = cell.attrs['padding-left'] || row.attrs['padding-left'];
 
               const textStyle: React.CSSProperties = {
                 color: cellColor,

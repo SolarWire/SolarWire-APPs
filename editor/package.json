@@ -1,13 +1,13 @@
 {
   "name": "solarwire-editor",
-  "version": "0.1.15",
+  "version": "0.1.17",
   "description": "SolarWire Editor - A complete document workspace",
   "main": "dist/main/index.js",
   "scripts": {
     "dev": "concurrently --kill-others-on-fail --prefix-colors green,blue --prefix \"[{name}]\" --names \"vite,electron\" \"npm run vite\" \"npm run electron:dev\"",
     "dev:win": "concurrently --kill-others-on-fail --prefix-colors green,blue --prefix \"[{name}]\" --names \"vite,electron\" \"npm run vite\" \"npm run electron:dev\" ",
     "vite": "vite",
-    "electron:dev": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && node src/main/wait-for-vite.js && electron --disable-gpu dist/main/index.js",
+    "electron:dev": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && node src/main/wait-for-vite.js && cross-env NODE_ENV=development electron --disable-gpu dist/main/index.js",
     "build": "tsc -p tsconfig.main.json && tsc -p tsconfig.preload.json && tsc -p tsconfig.app.json && vite build && electron-builder",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.tsx",
@@ -56,6 +56,7 @@
     "@vitest/coverage-v8": "^4.1.4",
     "@vitest/ui": "^4.1.4",
     "concurrently": "^8.2.0",
+    "cross-env": "^10.1.0",
     "electron": "^27.0.0",
     "electron-builder": "^24.6.0",
     "eslint": "^8.57.0",

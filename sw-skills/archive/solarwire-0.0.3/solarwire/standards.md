@@ -56,15 +56,15 @@ Choose appropriate element types based on actual UI components:
 
 | Scenario | Recommended Element | Example |
 |----------|---------------------|---------|
-| Primary Buttons | Rectangle `[]` with background color | `["Login"] @(x,y) w=100 h=40 bg=#3B82F6 c=#FFFFFF align=c vertical-align=m` |
-| Secondary Buttons | Rectangle `[]` with border | `["Cancel"] @(x,y) w=80 h=40 bg=#FFFFFF b=#E5E7EB align=c vertical-align=m` |
-| Cards/Containers | Rectangle with `r` attribute | `["User Info Card"] @(x,y) w=300 h=200 r=8` |
-| Avatars | Circle with placeholder | `("A") @(x,y) w=40 bg=#E5E7EB c=#6B7280` |
-| Icon Buttons | Circle with icon text | `("?") @(x,y) w=32 h=32 bg=#E5E7EB` |
-| Labels/Text | Plain Text `""` | `"Username" @(x,y)` |
-| Input Fields | Rectangle with placeholder | `["Enter username..."] @(x,y) w=280 h=40 bg=#FFFFFF b=#E5E7EB c=#9CA3AF align=l vertical-align=m` |
-| Dividers | Line `--` / `-"label"-` | `-- @(x1,y1)->(x2,y2) b=#E5E7EB` |
-| Data Tables | Table `##` | `## @(x,y) w=500 border=1` |
+| Primary Buttons | Rectangle `[]` with background color | `["Login"] @(100,50) w=100 h=40 bg=#3B82F6 c=#FFFFFF align=c vertical-align=m` |
+| Secondary Buttons | Rectangle `[]` with border | `["Cancel"] @(220,50) w=80 h=40 bg=#FFFFFF b=#E5E7EB align=c vertical-align=m` |
+| Cards/Containers | Rectangle with `r` attribute | `["User Info Card"] @(100,50) w=300 h=200 r=8` |
+| Avatars | Circle with placeholder | `("A") @(100,50) w=40 bg=#E5E7EB c=#6B7280` |
+| Icon Buttons | Circle with icon text | `("?") @(100,50) w=32 h=32 bg=#E5E7EB` |
+| Labels/Text | Plain Text `""` | `"Username" @(100,50)` |
+| Input Fields | Rectangle with placeholder | `["Enter username..."] @(100,50) w=280 h=40 bg=#FFFFFF b=#E5E7EB c=#9CA3AF align=l vertical-align=m` |
+| Dividers | Line `--` / `-"label"-` | `-- @(0,100)->(400,100) b=#E5E7EB` |
+| Data Tables | Table `##` | `## @(100,50) w=500 border=1` |
 
 **Common Mistakes to Avoid:**
 - Using placeholder `[?]` for buttons (use `["Button Text"]` instead)
@@ -243,7 +243,7 @@ Top-left anchor: (cx - r, cy - r)
 - Vertical layout, bottom navigation
 - Touch-friendly large buttons (min 44x44px)
 
-**Container Size:** `w=390 h=844` // See Section 11 Page Structure table for definitive values
+**Container Size:** `w=390 h=844`
 
 **Element Sizes:**
 - Button height: 44-56px
@@ -262,7 +262,7 @@ Top-left anchor: (cx - r, cy - r)
 - Horizontal layout, top navigation
 - Moderate button/input sizes
 
-**Container Size:** `w=1440 h=900` // See Section 11 Page Structure table for definitive values
+**Container Size:** `w=1440 h=900`
 
 **Element Sizes:**
 - Button height: 36-48px, width: min 80px
@@ -282,7 +282,7 @@ Top-left anchor: (cx - r, cy - r)
 - Data-intensive (tables, charts, cards)
 - Many action buttons
 
-**Container Size:** `w=1440 h=900` // See Section 11 Page Structure table for definitive values
+**Container Size:** `w=1440 h=900`
 
 **Element Sizes:**
 - Button height: 32-40px
@@ -363,9 +363,9 @@ When drawing incremental pages:
 ### Change Summary Table
 
 ```markdown
-## Change Summary [translate to user language]
-### Affected Pages [translate to user language]
-| Page [translate] | Change Type [translate] | Description [translate] |
+## Change Summary
+### Affected Pages
+| Page | Change Type | Description |
 |------|-------------|-------------|
 | [Page 1] | Modified | [Brief description of what changed] |
 | [Page 2] | New | [Brief description] |

@@ -4,15 +4,15 @@
 
 | Element | Syntax | Example |
 |------|------|------|
-| Rectangle | `["text"] @(x,y)` | `["Button"] @(x,y) w=120 h=40 bg=#3B82F6 c=#FFFFFF` |
-| Rounded Rectangle | `["text"] @(x,y) r=N` | `["Card"] @(x,y) w=300 h=200 r=8` |
-| Circle | `("text") @(x,y)` | `("Avatar") @(x,y) w=60` |
-| Text | `"text" @(x,y)` | `"Title" @(x,y) size=24 bold` |
-| Multi-line Text | `"""Line1\nLine2""" @(x,y)` | `"""Line 1\nLine 2""" @(x,y)` |
-| Placeholder | `[?"text"] @(x,y)` | `[?"Image"] @(x,y) w=150 h=100` |
-| Image | `<URL> @(x,y)` | `<https://example.com/logo.png> @(x,y) w=100 h=100` |
-| Line | `-- @(x1,y1)->(x2,y2)` / `-"label"- @(x1,y1)->(x2,y2)` | `-- @(x1,y1)->(x2,y2) b=#E5E7EB` |
-| Table | `## @(x,y)` | `## @(x,y) w=500` |
+| Rectangle | `["text"] @(x,y)` | `["Button"] @(100,50) w=120 h=40 bg=#3B82F6 c=#FFFFFF` |
+| Rounded Rectangle | `["text"] @(x,y) r=N` | `["Card"] @(50,100) w=300 h=200 r=8` |
+| Circle | `("text") @(x,y)` | `("Avatar") @(300,50) w=60` |
+| Text | `"text" @(x,y)` | `"Title" @(100,50) size=24 bold` |
+| Multi-line Text | `"""Line1\nLine2""" @(x,y)` | `"""Line 1\nLine 2""" @(100,50)` |
+| Placeholder | `[?"text"] @(x,y)` | `[?"Image"] @(200,200) w=150 h=100` |
+| Image | `<URL> @(x,y)` | `<https://example.com/logo.png> @(50,50) w=100 h=100` |
+| Line | `-- @(x1,y1)->(x2,y2)` / `-"label"- @(x1,y1)->(x2,y2)` | `-- @(50,200)->(450,200) b=#E5E7EB` |
+| Table | `## @(x,y)` | `## @(50,50) w=500` |
 | Table Row | `  #` (indented) | `  # bg=#F3F4F6` |
 
 ## Document Declarations
@@ -78,30 +78,30 @@ All elements use top-left corner as anchor. `@(x,y)` specifies the element's top
 
 | Attribute | Type | Default | Description | Applicable Elements | Example |
 |------|------|--------|------|---------|---------|
-| `w=N` | number | Element-specific | Width | Rectangle, Circle, Placeholder, Image, Table | `["Btn"] @(x,y) w=120` |
-| `h=N` | number | Element-specific | Height | Rectangle, Circle, Placeholder, Image, Table, Table Row | `["Btn"] @(x,y) h=40` |
-| `bg=#hex` | color | Element-specific | Background color | Rectangle, Circle, Placeholder, Image, Table Row | `["Btn"] @(x,y) bg=#3B82F6` |
-| `c=#hex` | color | #000000 | Text color | Rectangle, Circle, Text, Placeholder, Image, Line | `["Btn"] @(x,y) c=#FFFFFF` |
-| `b=#hex` | color | #333333 | Border color / Line color | Rectangle, Circle, Placeholder, Image, Table, Line | `["Btn"] @(x,y) b=#E5E7EB` |
-| `s=N` | number | 1 | Border width | Rectangle, Circle, Placeholder, Image, Line | `["Btn"] @(x,y) s=1` |
-| `r=N` | number | 0 | Border radius | Rectangle | `["Btn"] @(x,y) r=8` |
-| `size=N` | number | 12 | Font size | Rectangle, Circle, Text, Placeholder, Image, Line | `"Title" @(x,y) size=24` |
+| `w=N` | number | Element-specific | Width | Rectangle, Circle, Placeholder, Image, Table | `["Btn"] @(100,50) w=120` |
+| `h=N` | number | Element-specific | Height | Rectangle, Circle, Placeholder, Image, Table, Table Row | `["Btn"] @(100,50) h=40` |
+| `bg=#hex` | color | Element-specific | Background color | Rectangle, Circle, Placeholder, Image, Table Row | `["Btn"] @(100,50) bg=#3B82F6` |
+| `c=#hex` | color | #000000 | Text color | Rectangle, Circle, Text, Placeholder, Image, Line | `["Btn"] @(100,50) c=#FFFFFF` |
+| `b=#hex` | color | #333333 | Border color / Line color | Rectangle, Circle, Placeholder, Image, Table, Line | `["Btn"] @(100,50) b=#E5E7EB` |
+| `s=N` | number | 1 | Border width | Rectangle, Circle, Placeholder, Image, Line | `["Btn"] @(100,50) s=1` |
+| `r=N` | number | 0 | Border radius | Rectangle | `["Btn"] @(100,50) r=8` |
+| `size=N` | number | 12 | Font size | Rectangle, Circle, Text, Placeholder, Image, Line | `"Title" @(100,50) size=24` |
 | `text-size=N` | number | — | Font size (alternative, prefer size) | Same as size | |
-| `bold` | boolean | false | Bold | Rectangle, Circle, Text, Placeholder | `"Title" @(x,y) bold` |
-| `italic` | boolean | false | Italic | Rectangle, Circle, Text, Placeholder | `"Text" @(x,y) italic` |
-| `align=l\|c\|r` | enum | l | Horizontal alignment | Rectangle, Circle, Text, Placeholder | `["Btn"] @(x,y) align=c` |
-| `opacity=0~1` | number | 1 | Opacity | Rectangle, Circle, Text, Image | `[] @(x,y) opacity=0.5` |
-| `line-height=N` | number | 22 | Line height | Rectangle, Circle, Text, Placeholder | `"Text" @(x,y) line-height=22` |
-| `note="""..."""` | string | — | Functional description (supports triple-quote multiline) | Rectangle, Circle, Text, Placeholder, Image, Line, Table | `["Btn"] @(x,y) note="""desc"""` |
-| `letter-spacing=N` | number | 0 | Letter spacing | Rectangle, Circle, Text, Placeholder | `"Text" @(x,y) letter-spacing=1` |
-| `vertical-align=t\|m\|b` | enum | t | Vertical alignment (top/middle/bottom) | Rectangle, Circle, Placeholder | `["Btn"] @(x,y) vertical-align=m` |
-| `padding-top=N` | number | — | Top padding | Rectangle, Circle, Placeholder | `["Btn"] @(x,y) padding-top=8` |
+| `bold` | boolean | false | Bold | Rectangle, Circle, Text, Placeholder | `"Title" @(100,50) bold` |
+| `italic` | boolean | false | Italic | Rectangle, Circle, Text, Placeholder | `"Text" @(100,50) italic` |
+| `align=l\|c\|r` | enum | l | Horizontal alignment | Rectangle, Circle, Text, Placeholder | `["Btn"] @(100,50) align=c` |
+| `opacity=0~1` | number | 1 | Opacity | Rectangle, Circle, Text, Image | `[] @(100,50) opacity=0.5` |
+| `line-height=N` | number | 22 | Line height | Rectangle, Circle, Text, Placeholder | `"Text" @(100,50) line-height=22` |
+| `note="""..."""` | string | — | Functional description (supports triple-quote multiline) | Rectangle, Circle, Text, Placeholder, Image, Line, Table | `["Btn"] @(100,50) note="""desc"""` |
+| `letter-spacing=N` | number | 0 | Letter spacing | Rectangle, Circle, Text, Placeholder | `"Text" @(100,50) letter-spacing=1` |
+| `vertical-align=t\|m\|b` | enum | t | Vertical alignment (top/middle/bottom) | Rectangle, Circle, Placeholder | `["Btn"] @(100,50) vertical-align=m` |
+| `padding-top=N` | number | — | Top padding | Rectangle, Circle, Placeholder | `["Btn"] @(100,50) padding-top=8` |
 | `padding-right=N` | number | — | Right padding | Rectangle, Circle, Placeholder | |
 | `padding-bottom=N` | number | — | Bottom padding | Rectangle, Circle, Placeholder | |
 | `padding-left=N` | number | — | Left padding | Rectangle, Circle, Placeholder | |
-| `text-decoration=underline\|line-through` | enum | — | Text decoration (underline/line-through) | Rectangle, Circle, Text, Placeholder | `"Text" @(x,y) text-decoration=underline` |
-| `style=dashed\|dotted` | enum | — | Line style | Line | `-- @(x1,y1)->(x2,y2) style=dashed` |
-| `shadow-x=N` | number | 0 | Shadow X offset | Rectangle, Circle, Text, Image | `["Card"] @(x,y) shadow-x=2` |
+| `text-decoration=underline\|line-through` | enum | — | Text decoration (underline/line-through) | Rectangle, Circle, Text, Placeholder | `"Text" @(100,50) text-decoration=underline` |
+| `style=dashed\|dotted` | enum | — | Line style | Line | `-- @(100,50)->(300,50) style=dashed` |
+| `shadow-x=N` | number | 0 | Shadow X offset | Rectangle, Circle, Text, Image | `["Card"] @(100,50) shadow-x=2` |
 | `shadow-y=N` | number | 0 | Shadow Y offset | Rectangle, Circle, Text, Image | |
 | `shadow-blur=N` | number | 0 | Shadow blur | Rectangle, Circle, Text, Image | |
 | `shadow-color=#hex` | color | transparent | Shadow color | Rectangle, Circle, Text, Image | |

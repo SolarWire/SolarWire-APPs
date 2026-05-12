@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { parse } from '../../lib/parser';
 import {
   parseTableFromSource,
@@ -7,29 +7,48 @@ import {
 import type { TableData, TableCell, TableRow } from '../utils/table-source-utils';
 import type { TableElement } from '../../lib/parser/types';
 
+function parseTableData(content: string, tableLine: number): TableData | null {
+  try {
+    const ast = parse(content);
+    const tableEl = ast.elements.find(
+      el => el.type === 'table' && el.location?.line === tableLine
+    ) as TableElement | undefined;
+    if (!tableEl) return null;
+    return parseTableFromSource(tableEl);
+  } catch {
+    return null;
+  }
+}
+
 export function useTableEditor(
   content: string,
   tableLine: number,
-  onSave: (newContent: string) => void
+  onSave: (newContent: string) => void,
+  isOpen?: boolean
 ) {
-  const [tableData, setTableData] = useState<TableData | null>(() => {
-    try {
-      const ast = parse(content);
-      const tableEl = ast.elements.find(
-        el => el.type === 'table' && el.location?.line === tableLine
-      ) as TableElement | undefined;
-      if (!tableEl) return null;
-      return parseTableFromSource(tableEl);
-    } catch {
-      return null;
-    }
-  });
+  const [tableData, setTableData] = useState<TableData | null>(() =>
+    parseTableData(content, tableLine)
+  );
   const [selectedCells, setSelectedCells] = useState<Set<string>>(new Set());
   const [editingCell, setEditingCell] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
 
   const tableDataRef = useRef(tableData);
   tableDataRef.current = tableData;
+
+  const prevIsOpenRef = useRef(isOpen);
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      const newData = parseTableData(content, tableLine);
+      if (newData) {
+        setTableData(newData);
+        setSelectedCells(new Set());
+        setEditingCell(null);
+        setIsDirty(false);
+      }
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, content, tableLine]);
 
   const updateCell = useCallback((row: number, col: number, updates: Partial<TableCell>) => {
     setTableData(prev => {

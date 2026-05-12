@@ -4,161 +4,165 @@ $schema: solarwire-component-library-v1
 description: 供应链系统行业模板库，Ant Design 风格，主色#1890ff、圆角r=6、企业中后台风格
 version: 1.0.0
 author: SolarWire
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
+
+## Web
+id: cat-web
+parentId: null
 
 ## Web-行业组件
-id: web-industry-components
-platform: web
+id: cat-web-industry-components
+parentId: cat-web
 
 ### 供应商评分卡
 id: web-sc-supplier-score
 name: 供应商评分卡
 description: 供应商名称+综合评分+等级
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=280 h=120 bg=#ffffff s=1 r=6
-"华东材料有限公司" @(20, 20) c=#262626 size=13 bold=true
-["A级"] @(200, 16) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4
-"综合评分" @(20, 46) c=#8c8c8c size=11
-"92.5" @(20, 64) c=#1890ff size=24 bold=true
-"分" @(72, 76) c=#8c8c8c size=12
-"质量: 95  交付: 90  价格: 92  服务: 93" @(20, 96) c=#595959 size=11
+[""] @(0, 0) w=280 h=120 bg=#ffffff s=1 r=6
+"华东材料有限公司" @(10, 10) c=#262626 size=13 bold
+["A级"] @(190, 6) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4 align=c vertical-align=m
+"综合评分" @(10, 36) c=#8c8c8c size=11
+"92.5" @(10, 54) c=#1890ff size=24 bold
+"分" @(62, 66) c=#8c8c8c size=12
+"质量: 95  交付: 90  价格: 92  服务: 93" @(10, 86) c=#595959 size=11
 ```
 
 ### 采购进度条
 id: web-sc-purchase-progress
 name: 采购进度条
 description: 采购单号+阶段+进度
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=500 h=80 bg=#ffffff s=1 r=6
-"PO-20260427-0089" @(20, 20) c=#262626 size=13 bold=true
-["生产中"] @(180, 16) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
-[""] @(20, 46) w=460 h=8 bg=#f0f0f0 r=4
-[""] @(20, 46) w=322 h=8 bg=#1890ff r=4
-"下单 → 确认 → 生产 → 发货 → 到货" @(20, 64) c=#8c8c8c size=10
-"70%" @(460, 38) c=#1890ff size=11
+[""] @(0, 0) w=500 h=80 bg=#ffffff s=1 r=6
+"PO-20260427-0089" @(10, 10) c=#262626 size=13 bold
+["生产中"] @(170, 6) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+[""] @(10, 36) w=460 h=8 bg=#f0f0f0 r=4
+[""] @(10, 36) w=322 h=8 bg=#1890ff r=4
+"下单 → 确认 → 生产 → 发货 → 到货" @(10, 54) c=#8c8c8c size=10
+"70%" @(450, 28) c=#1890ff size=11
 ```
 
 ### 物流路线图
 id: web-sc-logistics-route
 name: 物流路线图
 description: 起点→中转→终点+状态
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=500 h=100 bg=#ffffff s=1 r=6
-["上海"] @(20, 30) w=60 h=28 bg=#f6ffed c=#52c41a size=12 s=1 r=4
-"━━━" @(90, 36) c=#52c41a size=14
-["武汉"] @(140, 30) w=60 h=28 bg=#e6f7ff c=#1890ff size=12 s=1 r=4
-"━━━" @(210, 36) c=#1890ff size=14
-["成都"] @(260, 30) w=60 h=28 bg=#fffbe6 c=#faad14 size=12 s=1 r=4
-"- - -" @(330, 36) c=#d9d9d9 size=14
-["拉萨"] @(380, 30) w=60 h=28 bg=#f5f5f5 c=#bfbfbf size=12 s=1 r=4
-"预计到达: 2026-04-30" @(20, 72) c=#8c8c8c size=11
-"承运商: 顺丰速运  运单号: SF1234567890" @(200, 72) c=#595959 size=11
+[""] @(0, 0) w=500 h=100 bg=#ffffff s=1 r=6
+["上海"] @(10, 20) w=60 h=28 bg=#f6ffed c=#52c41a size=12 s=1 r=4 align=c vertical-align=m
+"━━━" @(80, 26) c=#52c41a size=14
+["武汉"] @(130, 20) w=60 h=28 bg=#e6f7ff c=#1890ff size=12 s=1 r=4 align=c vertical-align=m
+"━━━" @(200, 26) c=#1890ff size=14
+["成都"] @(250, 20) w=60 h=28 bg=#fffbe6 c=#faad14 size=12 s=1 r=4 align=c vertical-align=m
+"- - -" @(320, 26) c=#d9d9d9 size=14
+["拉萨"] @(370, 20) w=60 h=28 bg=#f5f5f5 c=#bfbfbf size=12 s=1 r=4 align=c vertical-align=m
+"预计到达: 2026-04-30" @(10, 62) c=#8c8c8c size=11
+"承运商: 顺丰速运  运单号: SF1234567890" @(190, 62) c=#595959 size=11
 ```
 
 ### 需求预测图表
 id: web-sc-demand-forecast
 name: 需求预测图表
 description: 历史数据+预测曲线
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=400 h=200 bg=#ffffff s=1 r=6
-"需求预测" @(20, 20) c=#262626 size=13 bold=true
-["月度"] @(300, 16) w=40 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
-["季度"] @(350, 16) w=40 h=22 bg=#f5f5f5 c=#8c8c8c size=11 r=4
-[""] @(20, 46) w=360 h=140 bg=#fafafa s=1 r=4
-"实际" @(30, 56) c=#1890ff size=10
-"预测" @(80, 56) c=#faad14 size=10
-"1月 2月 3月 4月 5月 6月" @(30, 174) c=#8c8c8c size=10
+[""] @(0, 0) w=400 h=200 bg=#ffffff s=1 r=6
+"需求预测" @(10, 10) c=#262626 size=13 bold
+["月度"] @(290, 6) w=40 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["季度"] @(340, 6) w=40 h=22 bg=#f5f5f5 c=#8c8c8c size=11 r=4 align=c vertical-align=m
+[""] @(10, 36) w=360 h=140 bg=#fafafa s=1 r=4
+"实际" @(20, 46) c=#1890ff size=10
+"预测" @(70, 46) c=#faad14 size=10
+"1月 2月 3月 4月 5月 6月" @(20, 164) c=#8c8c8c size=10
 ```
 
 ### 供应链节点图
 id: web-sc-node-graph
 name: 供应链节点图
 description: 供应商→工厂→仓库→客户
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=500 h=120 bg=#ffffff s=1 r=6
-["原料供应商"] @(20, 30) w=90 h=36 bg=#f6ffed c=#52c41a size=11 s=1 r=4
-"→" @(118, 38) c=#8c8c8c size=16
-["生产工厂"] @(140, 30) w=80 h=36 bg=#e6f7ff c=#1890ff size=11 s=1 r=4
-"→" @(228, 38) c=#8c8c8c size=16
-["区域仓库"] @(250, 30) w=80 h=36 bg=#fff7e6 c=#faad14 size=11 s=1 r=4
-"→" @(338, 38) c=#8c8c8c size=16
-["终端客户"] @(360, 30) w=80 h=36 bg=#f9f0ff c=#722ed1 size=11 s=1 r=4
-"3家  |  2家  |  5个  |  120+" @(20, 80) c=#8c8c8c size=11
-"产能利用率: 85%  |  库存周转: 12天  |  准时交付: 96%" @(20, 98) c=#595959 size=11
+[""] @(0, 0) w=500 h=120 bg=#ffffff s=1 r=6
+["原料供应商"] @(10, 20) w=90 h=36 bg=#f6ffed c=#52c41a size=11 s=1 r=4 align=c vertical-align=m
+"→" @(108, 28) c=#8c8c8c size=16
+["生产工厂"] @(130, 20) w=80 h=36 bg=#e6f7ff c=#1890ff size=11 s=1 r=4 align=c vertical-align=m
+"→" @(218, 28) c=#8c8c8c size=16
+["区域仓库"] @(240, 20) w=80 h=36 bg=#fff7e6 c=#faad14 size=11 s=1 r=4 align=c vertical-align=m
+"→" @(328, 28) c=#8c8c8c size=16
+["终端客户"] @(350, 20) w=80 h=36 bg=#f9f0ff c=#722ed1 size=11 s=1 r=4 align=c vertical-align=m
+"3家  |  2家  |  5个  |  120+" @(10, 70) c=#8c8c8c size=11
+"产能利用率: 85%  |  库存周转: 12天  |  准时交付: 96%" @(10, 88) c=#595959 size=11
 ```
 
 ### 合同状态标签
 id: web-sc-contract-status
 name: 合同状态标签
 description: 合同状态+到期提醒
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-["生效中"] @(10, 10) w=60 h=22 bg=#f6ffed c=#52c41a size=11 r=4
-["待签署"] @(80, 10) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
-["审批中"] @(150, 10) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
-["已到期"] @(220, 10) w=60 h=22 bg=#fff2f0 c=#ff4d4f size=11 r=4
-["即将到期"] @(290, 10) w=70 h=22 bg=#fff7e6 c=#fa8c16 size=11 r=4
+["生效中"] @(0, 0) w=60 h=22 bg=#f6ffed c=#52c41a size=11 r=4 align=c vertical-align=m
+["待签署"] @(70, 0) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["审批中"] @(140, 0) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4 align=c vertical-align=m
+["已到期"] @(210, 0) w=60 h=22 bg=#fff2f0 c=#ff4d4f size=11 r=4 align=c vertical-align=m
+["即将到期"] @(280, 0) w=70 h=22 bg=#fff7e6 c=#fa8c16 size=11 r=4 align=c vertical-align=m
 ```
 
 ### 价格对比表
 id: web-sc-price-compare
 name: 价格对比表
 description: 多供应商价格对比
-categoryId: web-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=500 h=140 bg=#ffffff s=1 r=6
-"蓝牙耳机Pro - 价格对比" @(20, 20) c=#262626 size=13 bold=true
-"供应商 | 报价 | 交期 | 最小起订 | 评分" @(20, 44) c=#8c8c8c size=11
-"华东材料 | ¥28.50 | 7天 | 500 | ★★★★★" @(20, 64) c=#262626 size=12
-"华南科技 | ¥26.80 | 10天 | 1000 | ★★★★☆" @(20, 84) c=#262626 size=12
-["最低价"] @(350, 64) w=50 h=18 bg=#fff7e6 c=#fa8c16 size=10 r=4
-"北方电子 | ¥30.20 | 5天 | 300 | ★★★★☆" @(20, 104) c=#262626 size=12
-["最快交期"] @(350, 104) w=60 h=18 bg=#e6f7ff c=#1890ff size=10 r=4
+[""] @(0, 0) w=500 h=140 bg=#ffffff s=1 r=6
+"蓝牙耳机Pro - 价格对比" @(10, 10) c=#262626 size=13 bold
+"供应商 | 报价 | 交期 | 最小起订 | 评分" @(10, 34) c=#8c8c8c size=11
+"华东材料 | ¥28.50 | 7天 | 500 | ★★★★★" @(10, 54) c=#262626 size=12
+"华南科技 | ¥26.80 | 10天 | 1000 | ★★★★☆" @(10, 74) c=#262626 size=12
+["最低价"] @(340, 54) w=50 h=18 bg=#fff7e6 c=#fa8c16 size=10 r=4 align=c vertical-align=m
+"北方电子 | ¥30.20 | 5天 | 300 | ★★★★☆" @(10, 94) c=#262626 size=12
+["最快交期"] @(340, 94) w=60 h=18 bg=#e6f7ff c=#1890ff size=10 r=4 align=c vertical-align=m
 ```
 
 ## Web-页面模板
-id: web-page-templates
-platform: web
+id: cat-web-page-templates
+parentId: cat-web
 
 ### 供应链看板
 id: web-sc-dashboard
 name: 供应链看板
 description: 供应链运营数据总览
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=1200 h=800 bg=#f0f2f5
 [""] @(0, 0) w=1200 h=48 bg=#001529
-"供应链管理系统" @(20, 14) c=#ffffff size=16 bold=true
+"供应链管理系统" @(20, 14) c=#ffffff size=16 bold
 ["首页"] @(200, 14) c=#ffffff size=14
 ["采购"] @(260, 14) c=#ffffffa6 size=14
 ["供应商"] @(320, 14) c=#ffffffa6 size=14
@@ -166,29 +170,29 @@ updatedAt: 2026-04-27T00:00:00Z
 ["合同"] @(440, 14) c=#ffffffa6 size=14
 [""] @(20, 68) w=280 h=90 bg=#ffffff s=1 r=6
 "待处理采购单" @(30, 78) c=#8c8c8c size=12
-"12" @(30, 100) c=#1890ff size=28 bold=true
+"12" @(30, 100) c=#1890ff size=28 bold
 "单" @(60, 112) c=#8c8c8c size=12
 "↑ 3" @(220, 112) c=#ff4d4f size=12
 [""] @(320, 68) w=280 h=90 bg=#ffffff s=1 r=6
 "在途物流" @(330, 78) c=#8c8c8c size=12
-"28" @(330, 100) c=#52c41a size=28 bold=true
+"28" @(330, 100) c=#52c41a size=28 bold
 "批" @(365, 112) c=#8c8c8c size=12
 [""] @(620, 68) w=280 h=90 bg=#ffffff s=1 r=6
 "活跃供应商" @(630, 78) c=#8c8c8c size=12
-"156" @(630, 100) c=#262626 size=28 bold=true
+"156" @(630, 100) c=#262626 size=28 bold
 "家" @(690, 112) c=#8c8c8c size=12
 [""] @(920, 68) w=260 h=90 bg=#ffffff s=1 r=6
 "即将到期合同" @(930, 78) c=#8c8c8c size=12
-"5" @(930, 100) c=#faad14 size=28 bold=true
+"5" @(930, 100) c=#faad14 size=28 bold
 "份" @(955, 112) c=#8c8c8c size=12
 [""] @(20, 178) w=580 h=280 bg=#ffffff s=1 r=6
-"采购趋势" @(30, 188) c=#262626 size=14 bold=true
+"采购趋势" @(30, 188) c=#262626 size=14 bold
 [""] @(30, 218) w=540 h=220 bg=#fafafa s=1 r=4
 [""] @(620, 178) w=560 h=280 bg=#ffffff s=1 r=6
-"供应商分布" @(630, 188) c=#262626 size=14 bold=true
+"供应商分布" @(630, 188) c=#262626 size=14 bold
 [""] @(630, 218) w=520 h=220 bg=#fafafa s=1 r=4
 [""] @(20, 478) w=1160 h=300 bg=#ffffff s=1 r=6
-"在途物流跟踪" @(30, 488) c=#262626 size=14 bold=true
+"在途物流跟踪" @(30, 488) c=#262626 size=14 bold
 ["查看全部"] @(1060, 488) c=#1890ff size=12
 ```
 
@@ -196,101 +200,101 @@ updatedAt: 2026-04-27T00:00:00Z
 id: web-sc-purchase-order-page
 name: 采购订单页
 description: 采购订单详情+明细
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=1200 h=800 bg=#f0f2f5
 [""] @(0, 0) w=1200 h=48 bg=#001529
-"供应链管理系统" @(20, 14) c=#ffffff size=16 bold=true
+"供应链管理系统" @(20, 14) c=#ffffff size=16 bold
 [""] @(20, 68) w=1160 h=120 bg=#ffffff s=1 r=6
-"采购订单 PO-20260427-0089" @(30, 78) c=#262626 size=16 bold=true
-["生产中"] @(280, 74) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"采购订单 PO-20260427-0089" @(30, 78) c=#262626 size=16 bold
+["生产中"] @(280, 74) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
 "供应商: 华东材料有限公司" @(30, 108) c=#595959 size=12
 "采购类型: 原材料采购" @(280, 108) c=#595959 size=12
 "创建时间: 2026-04-25" @(480, 108) c=#8c8c8c size=12
 "负责人: 王五" @(680, 108) c=#8c8c8c size=12
 [""] @(20, 208) w=1160 h=300 bg=#ffffff s=1 r=6
-"采购明细" @(30, 218) c=#262626 size=14 bold=true
+"采购明细" @(30, 218) c=#262626 size=14 bold
 "物料编码 | 物料名称 | 规格 | 数量 | 单价 | 交期" @(30, 252) c=#8c8c8c size=11
 "MAT-001 | 蓝牙芯片 | V5.3 | 10,000 | ¥8.50 | 2026-05-10" @(30, 276) c=#262626 size=12
 "MAT-002 | 锂电池 | 3.7V/500mAh | 10,000 | ¥5.20 | 2026-05-08" @(30, 300) c=#262626 size=12
 "MAT-003 | 充电IC | TP4056 | 10,000 | ¥1.80 | 2026-05-12" @(30, 324) c=#262626 size=12
 [""] @(20, 528) w=1160 h=60 bg=#ffffff s=1 r=6
-"合计: ¥155,000.00" @(30, 548) c=#262626 size=13 bold=true
-["提交审批"] @(920, 540) w=100 h=32 bg=#1890ff c=#ffffff size=13 r=4
-["保存草稿"] @(1030, 540) w=100 h=32 bg=#ffffff c=#1890ff size=13 s=1 r=4
+"合计: ¥155,000.00" @(30, 548) c=#262626 size=13 bold
+["提交审批"] @(920, 540) w=100 h=32 bg=#1890ff c=#ffffff size=13 r=4 align=c vertical-align=m
+["保存草稿"] @(1030, 540) w=100 h=32 bg=#ffffff c=#1890ff size=13 s=1 r=4 align=c vertical-align=m
 ```
 
 ### 供应商管理页
 id: web-sc-supplier-page
 name: 供应商管理页
 description: 供应商列表+评分+筛选
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=1200 h=800 bg=#f0f2f5
 [""] @(0, 0) w=1200 h=48 bg=#001529
-"供应链管理系统" @(20, 14) c=#ffffff size=16 bold=true
+"供应链管理系统" @(20, 14) c=#ffffff size=16 bold
 [""] @(20, 68) w=1160 h=50 bg=#ffffff s=1 r=6
-[""] @(30, 78) w=300 h=30 bg=#f5f5f5 s=1 r=4
+[""] @(30, 78) w=300 h=30 bg=#f5f5f5 s=1 r=4 align=l vertical-align=m
 "搜索供应商名称..." @(38, 84) c=#bfbfbf size=12
-["搜索"] @(340, 78) w=60 h=30 bg=#1890ff c=#ffffff size=12 r=4
-["新增供应商"] @(1060, 78) w=100 h=30 bg=#1890ff c=#ffffff size=12 r=4
+["搜索"] @(340, 78) w=60 h=30 bg=#1890ff c=#ffffff size=12 r=4 align=c vertical-align=m
+["新增供应商"] @(1060, 78) w=100 h=30 bg=#1890ff c=#ffffff size=12 r=4 align=c vertical-align=m
 [""] @(20, 138) w=280 h=140 bg=#ffffff s=1 r=6
-"华东材料有限公司" @(30, 148) c=#262626 size=13 bold=true
-["A级"] @(220, 144) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+"华东材料有限公司" @(30, 148) c=#262626 size=13 bold
+["A级"] @(220, 144) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4 align=c vertical-align=m
 "综合评分: 92.5" @(30, 174) c=#595959 size=12
 "合作年限: 3年" @(30, 194) c=#8c8c8c size=11
 "在执行合同: 5份" @(30, 214) c=#8c8c8c size=11
-["详情"] @(200, 238) w=60 h=24 bg=#1890ff c=#ffffff size=11 r=4
+["详情"] @(200, 238) w=60 h=24 bg=#1890ff c=#ffffff size=11 r=4 align=c vertical-align=m
 [""] @(320, 138) w=280 h=140 bg=#ffffff s=1 r=6
-"华南科技有限公司" @(330, 148) c=#262626 size=13 bold=true
-["B级"] @(520, 144) w=40 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
+"华南科技有限公司" @(330, 148) c=#262626 size=13 bold
+["B级"] @(520, 144) w=40 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
 "综合评分: 85.0" @(330, 174) c=#595959 size=12
 "合作年限: 1年" @(330, 194) c=#8c8c8c size=11
 "在执行合同: 2份" @(330, 214) c=#8c8c8c size=11
-["详情"] @(500, 238) w=60 h=24 bg=#1890ff c=#ffffff size=11 r=4
+["详情"] @(500, 238) w=60 h=24 bg=#1890ff c=#ffffff size=11 r=4 align=c vertical-align=m
 [""] @(620, 138) w=280 h=140 bg=#ffffff s=1 r=6
-"北方电子集团" @(630, 148) c=#262626 size=13 bold=true
-["A级"] @(820, 144) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4
+"北方电子集团" @(630, 148) c=#262626 size=13 bold
+["A级"] @(820, 144) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4 align=c vertical-align=m
 "综合评分: 90.2" @(630, 174) c=#595959 size=12
 "合作年限: 5年" @(630, 194) c=#8c8c8c size=11
 "在执行合同: 8份" @(630, 214) c=#8c8c8c size=11
-["详情"] @(800, 238) w=60 h=24 bg=#1890ff c=#ffffff size=11 r=4
+["详情"] @(800, 238) w=60 h=24 bg=#1890ff c=#ffffff size=11 r=4 align=c vertical-align=m
 ```
 
 ### 物流跟踪页
 id: web-sc-logistics-page
 name: 物流跟踪页
 description: 物流列表+路线+状态
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=1200 h=800 bg=#f0f2f5
 [""] @(0, 0) w=1200 h=48 bg=#001529
-"供应链管理系统" @(20, 14) c=#ffffff size=16 bold=true
+"供应链管理系统" @(20, 14) c=#ffffff size=16 bold
 [""] @(20, 68) w=760 h=710 bg=#ffffff s=1 r=6
-"物流地图" @(30, 78) c=#262626 size=14 bold=true
+"物流地图" @(30, 78) c=#262626 size=14 bold
 [""] @(30, 108) w=720 h=650 bg=#fafafa s=1 r=4
 [""] @(800, 68) w=380 h=710 bg=#ffffff s=1 r=6
-"在途物流" @(810, 78) c=#262626 size=14 bold=true
+"在途物流" @(810, 78) c=#262626 size=14 bold
 [""] @(810, 108) w=350 h=80 bg=#f0f5ff s=1 r=4
-"SF1234567890" @(820, 118) c=#1890ff size=12 bold=true
-["运输中"] @(1100, 114) w=50 h=22 bg=#e6f7ff c=#1890ff size=10 r=4
+"SF1234567890" @(820, 118) c=#1890ff size=12 bold
+["运输中"] @(1100, 114) w=50 h=22 bg=#e6f7ff c=#1890ff size=10 r=4 align=c vertical-align=m
 "上海→成都 | 预计04-30到达" @(820, 142) c=#595959 size=11
 [""] @(810, 198) w=350 h=80 bg=#ffffff s=1 r=4
-"YT9876543210" @(820, 208) c=#262626 size=12 bold=true
-["已发货"] @(1100, 204) w=50 h=22 bg=#f6ffed c=#52c41a size=10 r=4
+"YT9876543210" @(820, 208) c=#262626 size=12 bold
+["已发货"] @(1100, 204) w=50 h=22 bg=#f6ffed c=#52c41a size=10 r=4 align=c vertical-align=m
 "广州→武汉 | 预计04-28到达" @(820, 232) c=#595959 size=11
 [""] @(810, 288) w=350 h=80 bg=#ffffff s=1 r=4
-"ZT5678901234" @(820, 298) c=#262626 size=12 bold=true
-["待发货"] @(1100, 294) w=50 h=22 bg=#fffbe6 c=#faad14 size=10 r=4
+"ZT5678901234" @(820, 298) c=#262626 size=12 bold
+["待发货"] @(1100, 294) w=50 h=22 bg=#fffbe6 c=#faad14 size=10 r=4 align=c vertical-align=m
 "深圳→杭州 | 预计04-29发货" @(820, 322) c=#595959 size=11
 ```
 
@@ -298,34 +302,34 @@ updatedAt: 2026-04-27T00:00:00Z
 id: web-sc-forecast-page
 name: 需求预测页
 description: 预测图表+参数调整
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=1200 h=800 bg=#f0f2f5
 [""] @(0, 0) w=1200 h=48 bg=#001529
-"供应链管理系统" @(20, 14) c=#ffffff size=16 bold=true
+"供应链管理系统" @(20, 14) c=#ffffff size=16 bold
 [""] @(20, 68) w=860 h=400 bg=#ffffff s=1 r=6
-"需求预测分析" @(30, 78) c=#262626 size=14 bold=true
-["月度"] @(700, 74) w=40 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
-["季度"] @(750, 74) w=40 h=22 bg=#f5f5f5 c=#8c8c8c size=11 r=4
-["年度"] @(800, 74) w=40 h=22 bg=#f5f5f5 c=#8c8c8c size=11 r=4
+"需求预测分析" @(30, 78) c=#262626 size=14 bold
+["月度"] @(700, 74) w=40 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["季度"] @(750, 74) w=40 h=22 bg=#f5f5f5 c=#8c8c8c size=11 r=4 align=c vertical-align=m
+["年度"] @(800, 74) w=40 h=22 bg=#f5f5f5 c=#8c8c8c size=11 r=4 align=c vertical-align=m
 [""] @(30, 108) w=820 h=340 bg=#fafafa s=1 r=4
 [""] @(900, 68) w=280 h=400 bg=#ffffff s=1 r=6
-"预测参数" @(910, 78) c=#262626 size=14 bold=true
+"预测参数" @(910, 78) c=#262626 size=14 bold
 "预测模型" @(910, 108) c=#595959 size=12
-["ARIMA"] @(910, 126) w=80 h=26 bg=#e6f7ff c=#1890ff size=11 r=4
-["LSTM"] @(1000, 126) w=80 h=26 bg=#f5f5f5 c=#8c8c8c size=11 r=4
+["ARIMA"] @(910, 126) w=80 h=26 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["LSTM"] @(1000, 126) w=80 h=26 bg=#f5f5f5 c=#8c8c8c size=11 r=4 align=c vertical-align=m
 "置信区间" @(910, 166) c=#595959 size=12
-["95%"] @(910, 184) w=60 h=26 bg=#e6f7ff c=#1890ff size=11 r=4
-["90%"] @(980, 184) w=60 h=26 bg=#f5f5f5 c=#8c8c8c size=11 r=4
+["95%"] @(910, 184) w=60 h=26 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["90%"] @(980, 184) w=60 h=26 bg=#f5f5f5 c=#8c8c8c size=11 r=4 align=c vertical-align=m
 "预测周期" @(910, 224) c=#595959 size=12
-["6个月"] @(910, 242) w=80 h=26 bg=#e6f7ff c=#1890ff size=11 r=4
-["12个月"] @(1000, 242) w=80 h=26 bg=#f5f5f5 c=#8c8c8c size=11 r=4
-["运行预测"] @(910, 290) w=120 h=32 bg=#1890ff c=#ffffff size=12 r=4
+["6个月"] @(910, 242) w=80 h=26 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["12个月"] @(1000, 242) w=80 h=26 bg=#f5f5f5 c=#8c8c8c size=11 r=4 align=c vertical-align=m
+["运行预测"] @(910, 290) w=120 h=32 bg=#1890ff c=#ffffff size=12 r=4 align=c vertical-align=m
 [""] @(20, 488) w=1160 h=290 bg=#ffffff s=1 r=6
-"预测结果" @(30, 498) c=#262626 size=14 bold=true
+"预测结果" @(30, 498) c=#262626 size=14 bold
 "物料 | 历史均值 | 预测需求 | 变化率 | 建议采购量" @(30, 528) c=#8c8c8c size=11
 "蓝牙芯片 | 8,500/月 | 10,200/月 | +20% | 12,000" @(30, 552) c=#262626 size=12
 "锂电池 | 8,000/月 | 9,500/月 | +19% | 11,000" @(30, 576) c=#262626 size=12
@@ -335,20 +339,20 @@ updatedAt: 2026-04-27T00:00:00Z
 id: web-sc-contract-page
 name: 合同管理页
 description: 合同列表+状态+到期提醒
-categoryId: web-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-web-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=1200 h=800 bg=#f0f2f5
 [""] @(0, 0) w=1200 h=48 bg=#001529
-"供应链管理系统" @(20, 14) c=#ffffff size=16 bold=true
+"供应链管理系统" @(20, 14) c=#ffffff size=16 bold
 [""] @(20, 68) w=1160 h=50 bg=#ffffff s=1 r=6
-["全部"] @(30, 78) w=50 h=28 bg=#e6f7ff c=#1890ff size=12 r=4
-["生效中"] @(90, 78) w=60 h=28 bg=#f5f5f5 c=#595959 size=12 r=4
-["待签署"] @(160, 78) w=60 h=28 bg=#f5f5f5 c=#595959 size=12 r=4
-["已到期"] @(230, 78) w=60 h=28 bg=#f5f5f5 c=#595959 size=12 r=4
-["新建合同"] @(1060, 78) w=100 h=30 bg=#1890ff c=#ffffff size=12 r=4
+["全部"] @(30, 78) w=50 h=28 bg=#e6f7ff c=#1890ff size=12 r=4 align=c vertical-align=m
+["生效中"] @(90, 78) w=60 h=28 bg=#f5f5f5 c=#595959 size=12 r=4 align=c vertical-align=m
+["待签署"] @(160, 78) w=60 h=28 bg=#f5f5f5 c=#595959 size=12 r=4 align=c vertical-align=m
+["已到期"] @(230, 78) w=60 h=28 bg=#f5f5f5 c=#595959 size=12 r=4 align=c vertical-align=m
+["新建合同"] @(1060, 78) w=100 h=30 bg=#1890ff c=#ffffff size=12 r=4 align=c vertical-align=m
 [""] @(20, 138) w=1160 h=640 bg=#ffffff s=1 r=6
 "合同编号 | 合同名称 | 供应商 | 金额 | 状态 | 到期日" @(30, 148) c=#8c8c8c size=11
 "CT-2026-001 | 原材料采购框架协议 | 华东材料 | ¥500,000 | 生效中 | 2027-03-31" @(30, 172) c=#262626 size=12
@@ -356,131 +360,135 @@ updatedAt: 2026-04-27T00:00:00Z
 "CT-2025-018 | 包装材料采购合同 | 北方电子 | ¥150,000 | 即将到期 | 2026-05-15" @(30, 220) c=#262626 size=12
 ```
 
+## Mobile
+id: cat-mobile
+parentId: null
+
 ## Mobile-行业组件
-id: mobile-industry-components
-platform: mobile
+id: cat-mobile-industry-components
+parentId: cat-mobile
 
 ### 采购审批卡片
 id: mob-sc-purchase-approval
 name: 采购审批卡片
 description: 采购单摘要+审批操作
-categoryId: mobile-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-mobile-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=350 h=140 bg=#ffffff s=1 r=12
-"PO-20260427-0089" @(20, 24) c=#262626 size=14 bold=true
-["待审批"] @(270, 20) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4
-"华东材料有限公司" @(20, 48) c=#595959 size=12
-"¥155,000.00" @(20, 72) c=#1890ff size=16 bold=true
-"3项物料 | 交期: 2026-05-10" @(20, 96) c=#8c8c8c size=11
-["通过"] @(200, 108) w=60 h=28 bg=#52c41a c=#ffffff size=12 r=4
-["驳回"] @(270, 108) w=60 h=28 bg=#ffffff c=#ff4d4f size=12 s=1 r=4
+[""] @(0, 0) w=350 h=140 bg=#ffffff s=1 r=12
+"PO-20260427-0089" @(10, 14) c=#262626 size=14 bold
+["待审批"] @(260, 10) w=60 h=22 bg=#fffbe6 c=#faad14 size=11 r=4 align=c vertical-align=m
+"华东材料有限公司" @(10, 38) c=#595959 size=12
+"¥155,000.00" @(10, 62) c=#1890ff size=16 bold
+"3项物料 | 交期: 2026-05-10" @(10, 86) c=#8c8c8c size=11
+["通过"] @(190, 98) w=60 h=28 bg=#52c41a c=#ffffff size=12 r=4 align=c vertical-align=m
+["驳回"] @(260, 98) w=60 h=28 bg=#ffffff c=#ff4d4f size=12 s=1 r=4 align=c vertical-align=m
 ```
 
 ### 物流状态追踪
 id: mob-sc-logistics-track
 name: 物流状态追踪
 description: 运单号+路线+实时状态
-categoryId: mobile-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-mobile-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=350 h=160 bg=#ffffff s=1 r=12
-"SF1234567890" @(20, 24) c=#1890ff size=14 bold=true
-["运输中"] @(270, 20) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4
-["上海"] @(20, 52) w=50 h=24 bg=#f6ffed c=#52c41a size=11 s=1 r=4
-"━━" @(78, 58) c=#52c41a size=12
-["武汉"] @(110, 52) w=50 h=24 bg=#e6f7ff c=#1890ff size=11 s=1 r=4
-"- -" @(168, 58) c=#d9d9d9 size=12
-["成都"] @(200, 52) w=50 h=24 bg=#f5f5f5 c=#bfbfbf size=11 s=1 r=4
-"预计到达: 2026-04-30" @(20, 88) c=#595959 size=12
-"承运商: 顺丰速运" @(20, 108) c=#8c8c8c size=11
-["查看详情"] @(240, 128) w=80 h=28 bg=#1890ff c=#ffffff size=11 r=4
+[""] @(0, 0) w=350 h=160 bg=#ffffff s=1 r=12
+"SF1234567890" @(10, 14) c=#1890ff size=14 bold
+["运输中"] @(260, 10) w=60 h=22 bg=#e6f7ff c=#1890ff size=11 r=4 align=c vertical-align=m
+["上海"] @(10, 42) w=50 h=24 bg=#f6ffed c=#52c41a size=11 s=1 r=4 align=c vertical-align=m
+"━━" @(68, 48) c=#52c41a size=12
+["武汉"] @(100, 42) w=50 h=24 bg=#e6f7ff c=#1890ff size=11 s=1 r=4 align=c vertical-align=m
+"- -" @(158, 48) c=#d9d9d9 size=12
+["成都"] @(190, 42) w=50 h=24 bg=#f5f5f5 c=#bfbfbf size=11 s=1 r=4 align=c vertical-align=m
+"预计到达: 2026-04-30" @(10, 78) c=#595959 size=12
+"承运商: 顺丰速运" @(10, 98) c=#8c8c8c size=11
+["查看详情"] @(230, 118) w=80 h=28 bg=#1890ff c=#ffffff size=11 r=4 align=c vertical-align=m
 ```
 
 ### 供应商评分简版
 id: mob-sc-supplier-score
 name: 供应商评分简版
 description: 供应商名称+评分+等级
-categoryId: mobile-industry-components
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-mobile-industry-components
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
-[""] @(10, 10) w=350 h=80 bg=#ffffff s=1 r=12
-"华东材料有限公司" @(20, 24) c=#262626 size=14 bold=true
-["A级"] @(280, 20) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4
-"综合评分: 92.5 | 合作3年" @(20, 50) c=#8c8c8c size=12
+[""] @(0, 0) w=350 h=80 bg=#ffffff s=1 r=12
+"华东材料有限公司" @(10, 14) c=#262626 size=14 bold
+["A级"] @(270, 10) w=40 h=22 bg=#f6ffed c=#52c41a size=11 r=4 align=c vertical-align=m
+"综合评分: 92.5 | 合作3年" @(10, 40) c=#8c8c8c size=12
 ```
 
 ## Mobile-页面模板
-id: mobile-page-templates
-platform: mobile
+id: cat-mobile-page-templates
+parentId: cat-mobile
 
 ### 采购审批
 id: mob-sc-purchase-approval-page
 name: 采购审批
 description: 待审批列表+审批操作
-categoryId: mobile-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-mobile-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=375 h=812 bg=#f5f5f5
 [""] @(0, 0) w=375 h=44 bg=#ffffff
 ["←"] @(16, 12) c=#262626 size=18
-"采购审批" @(150, 12) c=#262626 size=16 bold=true
+"采购审批" @(150, 12) c=#262626 size=16 bold
 ["待审批(3)"] @(280, 14) c=#1890ff size=12
-[""] @(0, 54) w=375 h=130 bg=#ffffff s=1 r=0
-"PO-20260427-0089" @(20, 68) c=#262626 size=14 bold=true
-["待审批"] @(300, 64) w=50 h=22 bg=#fffbe6 c=#faad14 size=10 r=4
+[""] @(0, 54) w=375 h=130 bg=#ffffff s=1
+"PO-20260427-0089" @(20, 68) c=#262626 size=14 bold
+["待审批"] @(300, 64) w=50 h=22 bg=#fffbe6 c=#faad14 size=10 r=4 align=c vertical-align=m
 "华东材料 | ¥155,000" @(20, 92) c=#595959 size=12
 "3项物料 | 交期05-10" @(20, 112) c=#8c8c8c size=11
-["通过"] @(220, 132) w=60 h=28 bg=#52c41a c=#ffffff size=12 r=4
-["驳回"] @(290, 132) w=60 h=28 bg=#ffffff c=#ff4d4f size=12 s=1 r=4
-[""] @(0, 194) w=375 h=130 bg=#ffffff s=1 r=0
-"PO-20260426-0088" @(20, 208) c=#262626 size=14 bold=true
-["待审批"] @(300, 204) w=50 h=22 bg=#fffbe6 c=#faad14 size=10 r=4
+["通过"] @(220, 132) w=60 h=28 bg=#52c41a c=#ffffff size=12 r=4 align=c vertical-align=m
+["驳回"] @(290, 132) w=60 h=28 bg=#ffffff c=#ff4d4f size=12 s=1 r=4 align=c vertical-align=m
+[""] @(0, 194) w=375 h=130 bg=#ffffff s=1
+"PO-20260426-0088" @(20, 208) c=#262626 size=14 bold
+["待审批"] @(300, 204) w=50 h=22 bg=#fffbe6 c=#faad14 size=10 r=4 align=c vertical-align=m
 "华南科技 | ¥82,000" @(20, 232) c=#595959 size=12
 "2项物料 | 交期05-08" @(20, 252) c=#8c8c8c size=11
-["通过"] @(220, 272) w=60 h=28 bg=#52c41a c=#ffffff size=12 r=4
-["驳回"] @(290, 272) w=60 h=28 bg=#ffffff c=#ff4d4f size=12 s=1 r=4
+["通过"] @(220, 272) w=60 h=28 bg=#52c41a c=#ffffff size=12 r=4 align=c vertical-align=m
+["驳回"] @(290, 272) w=60 h=28 bg=#ffffff c=#ff4d4f size=12 s=1 r=4 align=c vertical-align=m
 ```
 
 ### 物流跟踪
 id: mob-sc-logistics-page
 name: 物流跟踪
 description: 物流列表+详情
-categoryId: mobile-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-mobile-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=375 h=812 bg=#f5f5f5
 [""] @(0, 0) w=375 h=44 bg=#ffffff
 ["←"] @(16, 12) c=#262626 size=18
-"物流跟踪" @(150, 12) c=#262626 size=16 bold=true
-[""] @(0, 54) w=375 h=100 bg=#ffffff s=1 r=0
-[""] @(16, 62) w=343 h=34 bg=#f5f5f5 c=#8c8c8c size=13 r=17
+"物流跟踪" @(150, 12) c=#262626 size=16 bold
+[""] @(0, 54) w=375 h=100 bg=#ffffff s=1
+[""] @(16, 62) w=343 h=34 bg=#f5f5f5 c=#8c8c8c size=13 r=17 align=l vertical-align=m
 "输入运单号查询..." @(30, 70) c=#bfbfbf size=13
-[""] @(0, 164) w=375 h=140 bg=#ffffff s=1 r=0
-"SF1234567890" @(20, 178) c=#1890ff size=14 bold=true
-["运输中"] @(300, 174) w=50 h=22 bg=#e6f7ff c=#1890ff size=10 r=4
-["上海"] @(20, 206) w=50 h=24 bg=#f6ffed c=#52c41a size=11 s=1 r=4
+[""] @(0, 164) w=375 h=140 bg=#ffffff s=1
+"SF1234567890" @(20, 178) c=#1890ff size=14 bold
+["运输中"] @(300, 174) w=50 h=22 bg=#e6f7ff c=#1890ff size=10 r=4 align=c vertical-align=m
+["上海"] @(20, 206) w=50 h=24 bg=#f6ffed c=#52c41a size=11 s=1 r=4 align=c vertical-align=m
 "→" @(78, 210) c=#8c8c8c size=12
-["武汉"] @(96, 206) w=50 h=24 bg=#e6f7ff c=#1890ff size=11 s=1 r=4
+["武汉"] @(96, 206) w=50 h=24 bg=#e6f7ff c=#1890ff size=11 s=1 r=4 align=c vertical-align=m
 "→" @(154, 210) c=#8c8c8c size=12
-["成都"] @(172, 206) w=50 h=24 bg=#f5f5f5 c=#bfbfbf size=11 s=1 r=4
+["成都"] @(172, 206) w=50 h=24 bg=#f5f5f5 c=#bfbfbf size=11 s=1 r=4 align=c vertical-align=m
 "预计04-30到达 | 顺丰速运" @(20, 244) c=#8c8c8c size=11
-[""] @(0, 314) w=375 h=140 bg=#ffffff s=1 r=0
-"YT9876543210" @(20, 328) c=#262626 size=14 bold=true
-["已发货"] @(300, 324) w=50 h=22 bg=#f6ffed c=#52c41a size=10 r=4
-["广州"] @(20, 356) w=50 h=24 bg=#f6ffed c=#52c41a size=11 s=1 r=4
+[""] @(0, 314) w=375 h=140 bg=#ffffff s=1
+"YT9876543210" @(20, 328) c=#262626 size=14 bold
+["已发货"] @(300, 324) w=50 h=22 bg=#f6ffed c=#52c41a size=10 r=4 align=c vertical-align=m
+["广州"] @(20, 356) w=50 h=24 bg=#f6ffed c=#52c41a size=11 s=1 r=4 align=c vertical-align=m
 "→" @(78, 360) c=#8c8c8c size=12
-["武汉"] @(96, 356) w=50 h=24 bg=#e6f7ff c=#1890ff size=11 s=1 r=4
+["武汉"] @(96, 356) w=50 h=24 bg=#e6f7ff c=#1890ff size=11 s=1 r=4 align=c vertical-align=m
 "预计04-28到达 | 圆通速递" @(20, 394) c=#8c8c8c size=11
 ```
 
@@ -488,28 +496,28 @@ updatedAt: 2026-04-27T00:00:00Z
 id: mob-sc-supplier-query
 name: 供应商查询
 description: 供应商搜索+详情
-categoryId: mobile-page-templates
-createdAt: 2026-04-27T00:00:00Z
-updatedAt: 2026-04-27T00:00:00Z
+categoryId: cat-mobile-page-templates
+createdAt: 2026-05-12T00:00:00Z
+updatedAt: 2026-05-12T00:00:00Z
 
 ```solarwire
 [""] @(0, 0) w=375 h=812 bg=#f5f5f5
 [""] @(0, 0) w=375 h=44 bg=#ffffff
 ["←"] @(16, 12) c=#262626 size=18
-"供应商" @(165, 12) c=#262626 size=16 bold=true
-[""] @(0, 54) w=375 h=50 bg=#ffffff s=1 r=0
-[""] @(16, 62) w=343 h=34 bg=#f5f5f5 c=#8c8c8c size=13 r=17
+"供应商" @(165, 12) c=#262626 size=16 bold
+[""] @(0, 54) w=375 h=50 bg=#ffffff s=1
+[""] @(16, 62) w=343 h=34 bg=#f5f5f5 c=#8c8c8c size=13 r=17 align=l vertical-align=m
 "搜索供应商..." @(30, 70) c=#bfbfbf size=13
-[""] @(0, 114) w=375 h=80 bg=#ffffff s=1 r=0
-"华东材料有限公司" @(20, 128) c=#262626 size=14 bold=true
-["A级"] @(320, 124) w=36 h=22 bg=#f6ffed c=#52c41a size=10 r=4
+[""] @(0, 114) w=375 h=80 bg=#ffffff s=1
+"华东材料有限公司" @(20, 128) c=#262626 size=14 bold
+["A级"] @(320, 124) w=36 h=22 bg=#f6ffed c=#52c41a size=10 r=4 align=c vertical-align=m
 "评分: 92.5 | 合作3年 | 5份合同" @(20, 154) c=#8c8c8c size=12
-[""] @(0, 204) w=375 h=80 bg=#ffffff s=1 r=0
-"华南科技有限公司" @(20, 218) c=#262626 size=14 bold=true
-["B级"] @(320, 214) w=36 h=22 bg=#e6f7ff c=#1890ff size=10 r=4
+[""] @(0, 204) w=375 h=80 bg=#ffffff s=1
+"华南科技有限公司" @(20, 218) c=#262626 size=14 bold
+["B级"] @(320, 214) w=36 h=22 bg=#e6f7ff c=#1890ff size=10 r=4 align=c vertical-align=m
 "评分: 85.0 | 合作1年 | 2份合同" @(20, 244) c=#8c8c8c size=12
-[""] @(0, 294) w=375 h=80 bg=#ffffff s=1 r=0
-"北方电子集团" @(20, 308) c=#262626 size=14 bold=true
-["A级"] @(320, 304) w=36 h=22 bg=#f6ffed c=#52c41a size=10 r=4
+[""] @(0, 294) w=375 h=80 bg=#ffffff s=1
+"北方电子集团" @(20, 308) c=#262626 size=14 bold
+["A级"] @(320, 304) w=36 h=22 bg=#f6ffed c=#52c41a size=10 r=4 align=c vertical-align=m
 "评分: 90.2 | 合作5年 | 8份合同" @(20, 334) c=#8c8c8c size=12
 ```

@@ -14,10 +14,10 @@ export interface TableCell {
     align?: 'l' | 'c' | 'r';
     'vertical-align'?: 't' | 'm' | 'b';
     'text-decoration'?: 'underline' | 'line-through';
-    pt?: string;
-    pr?: string;
-    pb?: string;
-    pl?: string;
+    'padding-top'?: string;
+    'padding-right'?: string;
+    'padding-bottom'?: string;
+    'padding-left'?: string;
   };
 }
 
@@ -33,10 +33,10 @@ export interface TableRow {
     align?: 'l' | 'c' | 'r';
     'vertical-align'?: 't' | 'm' | 'b';
     'text-decoration'?: 'underline' | 'line-through';
-    pt?: string;
-    pr?: string;
-    pb?: string;
-    pl?: string;
+    'padding-top'?: string;
+    'padding-right'?: string;
+    'padding-bottom'?: string;
+    'padding-left'?: string;
   };
   cells: TableCell[];
 }
@@ -84,10 +84,10 @@ export function parseTableFromSource(
             align: attrs.align as 'l' | 'c' | 'r' | undefined,
             'vertical-align': attrs['vertical-align'] as 't' | 'm' | 'b' | undefined,
             'text-decoration': attrs['text-decoration'] as 'underline' | 'line-through' | undefined,
-            pt: attrs.pt,
-            pr: attrs.pr,
-            pb: attrs.pb,
-            pl: attrs.pl,
+            'padding-top': attrs['padding-top'],
+            'padding-right': attrs['padding-right'],
+            'padding-bottom': attrs['padding-bottom'],
+            'padding-left': attrs['padding-left'],
           },
         });
       });
@@ -201,10 +201,10 @@ export function serializeTableToSource(
       if (cell.attrs.align && cell.attrs.align !== 'l') cellAttrParts.push(`align=${cell.attrs.align}`);
       if (cell.attrs['vertical-align'] && cell.attrs['vertical-align'] !== 't') cellAttrParts.push(`vertical-align=${cell.attrs['vertical-align']}`);
       if (cell.attrs['text-decoration']) cellAttrParts.push(`text-decoration=${cell.attrs['text-decoration']}`);
-      if (cell.attrs.pt) cellAttrParts.push(`pt=${cell.attrs.pt}`);
-      if (cell.attrs.pr) cellAttrParts.push(`pr=${cell.attrs.pr}`);
-      if (cell.attrs.pb) cellAttrParts.push(`pb=${cell.attrs.pb}`);
-      if (cell.attrs.pl) cellAttrParts.push(`pl=${cell.attrs.pl}`);
+      if (cell.attrs['padding-top']) cellAttrParts.push(`padding-top=${cell.attrs['padding-top']}`);
+      if (cell.attrs['padding-right']) cellAttrParts.push(`padding-right=${cell.attrs['padding-right']}`);
+      if (cell.attrs['padding-bottom']) cellAttrParts.push(`padding-bottom=${cell.attrs['padding-bottom']}`);
+      if (cell.attrs['padding-left']) cellAttrParts.push(`padding-left=${cell.attrs['padding-left']}`);
 
       const text = cell.text || '';
       const cellType = cell.type || 'text';

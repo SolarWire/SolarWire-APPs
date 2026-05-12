@@ -270,7 +270,7 @@ For each language, generate test verifying correct text display.
 ### Table Syntax
 
 ```solarwire
-## @(x,y) w=500 border=1 note="""User list table
+## @(100,50) w=500 border=1 note="""User list table
 1. Data source
    - Always shows user list data from User Management module
 2. Field descriptions
@@ -285,10 +285,10 @@ For each language, generate test verifying correct text display.
     "Status"
     "Actions"
   # bg=#FFFFFF
-    ["Value 1"] c=#111827
-    ["Value 2"] c=#111827
-    ["Value 3"] c=#111827
-    ["Action Link"] c=#3B82F6
+    "1"
+    "John Doe"
+    "Active"
+    "View | Edit"
 ```
 
 ### Generated Test Cases for Tables

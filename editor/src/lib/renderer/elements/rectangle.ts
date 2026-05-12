@@ -61,7 +61,8 @@ export function renderRectangle(
   
   if (element.text) {
     const lines = element.text.split('\n');
-    const lineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 22, vc);
+    const declaredLineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 0, vc);
+    const lineHeight = declaredLineHeight > 0 ? declaredLineHeight : fontSize * 1.5;
     
     let textX: number;
     let textAnchor: string;

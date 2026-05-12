@@ -142,7 +142,7 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
     const opacity = attrs.opacity || '1';
     const bold = !!attrs.bold;
     const italic = !!attrs.italic;
-    const lineHeight = attrs['line-height'] || '22';
+    const lineHeight = attrs['line-height'] || '';
     const letterSpacing = attrs['letter-spacing'] || '0';
     let note = attrs.note || '';
     if (typeof note === 'string') {

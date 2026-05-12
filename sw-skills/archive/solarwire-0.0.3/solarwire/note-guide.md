@@ -112,7 +112,7 @@ All notes follow the same structure. Use applicable sections based on element ty
 | Form | Pre-submission validation, Submission state, Success/Failure handling |
 | Tooltip/Toast | Describe in triggering element's note (no separate wireframe) |
 
-> See Section 10 for core Good/Bad examples; follow same pattern.
+// See Section 10 for core Good/Bad examples; follow same pattern.
 
 **Important**: When displaying multi-column structured data, always use the `##` table syntax. Do not simulate tables with aligned Rectangles.
 
@@ -184,7 +184,7 @@ Use condition-action patterns to describe element behavior. This makes notes una
 **Key Rules:**
 - Every behavior MUST have a trigger condition (When/While/If) or be always true (Always)
 - Avoid bare enumerations like "Status: 1=Active" — describe what happens in each state
-- Error messages MUST be quoted exactly as the user sees them (Error messages containing numbers or format descriptions like 'Minimum 6 characters' must be quoted verbatim — this is NOT Forbidden Content.)
+- Error messages MUST be quoted exactly as the user sees them
 - Conditions MUST be specific, not vague ("If format is invalid" not "If error")
 
 ---
@@ -238,8 +238,6 @@ When describing data display, specify format rules for:
 - Design decisions to be made later
 - Subject to change during implementation
 - Technical implementation details, not business requirements
-
-**唯一例外**：用户可见的错误/提示消息中自然包含的颜色、尺寸、格式描述（如 'Minimum 6 characters'、'Red indicator'）不属于禁止内容，必须原样引用。
 
 ---
 

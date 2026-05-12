@@ -154,7 +154,7 @@ export function useElementBounds({
       case 'text': {
         const lines = (elementData as any).text ? (elementData as any).text.split('\n') : [''];
         const fontSize = parseInt(attrs['text-size'] || attrs['size'] || '12');
-        const lineHeight = parseInt(attrs['line-height'] || '22');
+        const lineHeight = parseInt(attrs['line-height'] || '0') || fontSize * 1.5;
         const declaredWidth = parseInt(attrs.w || '0');
         const rawAlign = attrs.align || '';
         const align = rawAlign === 'l' || rawAlign === 'left' ? 'start' : rawAlign === 'c' || rawAlign === 'center' ? 'middle' : rawAlign === 'r' || rawAlign === 'right' || rawAlign === 'end' ? 'end' : 'start';

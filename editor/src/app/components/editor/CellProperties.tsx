@@ -142,10 +142,10 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const commonBold = getCommonAttr('bold');
   const commonItalic = getCommonAttr('italic');
   const commonTextDecoration = getCommonAttr('text-decoration');
-  const commonPl = getCommonAttr('pl');
-  const commonPt = getCommonAttr('pt');
-  const commonPr = getCommonAttr('pr');
-  const commonPb = getCommonAttr('pb');
+  const commonPl = getCommonAttr('padding-left');
+  const commonPt = getCommonAttr('padding-top');
+  const commonPr = getCommonAttr('padding-right');
+  const commonPb = getCommonAttr('padding-bottom');
 
   const effectiveBg = commonBg || '#ffffff';
   const effectiveBorderColor = commonBorderColor || '#333333';
@@ -166,10 +166,10 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const mixedBold = isMixed('bold');
   const mixedItalic = isMixed('italic');
   const mixedTextDecoration = isMixed('text-decoration');
-  const mixedPl = isMixed('pl');
-  const mixedPt = isMixed('pt');
-  const mixedPr = isMixed('pr');
-  const mixedPb = isMixed('pb');
+  const mixedPl = isMixed('padding-left');
+  const mixedPt = isMixed('padding-top');
+  const mixedPr = isMixed('padding-right');
+  const mixedPb = isMixed('padding-bottom');
 
   const effectiveTextDecoration = commonTextDecoration || '';
   const effectivePl = commonPl || '';
@@ -346,10 +346,10 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
       {showPadding && (
         <div className="padding-section">
           <div className="padding-grid">
-            <DraggableNumberInput label="左边距" codeAttr="pl" value={mixedPl ? '' : parseVal(effectivePl)} onChange={(v) => handleBatchChange('pl', v.toString())} placeholder={mixedPl ? '—' : undefined} />
-            <DraggableNumberInput label="上边距" codeAttr="pt" value={mixedPt ? '' : parseVal(effectivePt)} onChange={(v) => handleBatchChange('pt', v.toString())} placeholder={mixedPt ? '—' : undefined} />
-            <DraggableNumberInput label="右边距" codeAttr="pr" value={mixedPr ? '' : parseVal(effectivePr)} onChange={(v) => handleBatchChange('pr', v.toString())} placeholder={mixedPr ? '—' : undefined} />
-            <DraggableNumberInput label="下边距" codeAttr="pb" value={mixedPb ? '' : parseVal(effectivePb)} onChange={(v) => handleBatchChange('pb', v.toString())} placeholder={mixedPb ? '—' : undefined} />
+            <DraggableNumberInput label="左边距" codeAttr="padding-left" value={mixedPl ? '' : parseVal(effectivePl)} onChange={(v) => handleBatchChange('padding-left', v.toString())} placeholder={mixedPl ? '—' : undefined} />
+            <DraggableNumberInput label="上边距" codeAttr="padding-top" value={mixedPt ? '' : parseVal(effectivePt)} onChange={(v) => handleBatchChange('padding-top', v.toString())} placeholder={mixedPt ? '—' : undefined} />
+            <DraggableNumberInput label="右边距" codeAttr="padding-right" value={mixedPr ? '' : parseVal(effectivePr)} onChange={(v) => handleBatchChange('padding-right', v.toString())} placeholder={mixedPr ? '—' : undefined} />
+            <DraggableNumberInput label="下边距" codeAttr="padding-bottom" value={mixedPb ? '' : parseVal(effectivePb)} onChange={(v) => handleBatchChange('padding-bottom', v.toString())} placeholder={mixedPb ? '—' : undefined} />
           </div>
         </div>
       )}

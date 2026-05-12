@@ -723,7 +723,7 @@ describe('propertyMeta 完整性', () => {
   });
 
   it('表格属性都存在', () => {
-    const tableAttrs = ['border', 'cellspacing', 'colspan', 'rowspan', 'pt', 'pr', 'pb', 'pl'];
+    const tableAttrs = ['border', 'cellspacing', 'colspan', 'rowspan', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
     for (const attr of tableAttrs) {
       expect(PROPERTY_META[attr], `缺少表格属性 ${attr}`).toBeDefined();
     }

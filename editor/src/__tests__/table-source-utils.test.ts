@@ -194,17 +194,17 @@ describe('parseTableFromSource', () => {
       coordinates: undefined,
       children: [
         makeRowElement([
-          makeCellElement('Padded', { pt: '10', pr: '5', pb: '10', pl: '5' }),
+          makeCellElement('Padded', { 'padding-top': '10', 'padding-right': '5', 'padding-bottom': '10', 'padding-left': '5' }),
         ]),
       ],
     });
 
     const result = parseTableFromSource(table);
     expect(result).not.toBeNull();
-    expect(result!.rows[0].cells[0].attrs.pt).toBe('10');
-    expect(result!.rows[0].cells[0].attrs.pr).toBe('5');
-    expect(result!.rows[0].cells[0].attrs.pb).toBe('10');
-    expect(result!.rows[0].cells[0].attrs.pl).toBe('5');
+    expect(result!.rows[0].cells[0].attrs['padding-top']).toBe('10');
+    expect(result!.rows[0].cells[0].attrs['padding-right']).toBe('5');
+    expect(result!.rows[0].cells[0].attrs['padding-bottom']).toBe('10');
+    expect(result!.rows[0].cells[0].attrs['padding-left']).toBe('5');
   });
 });
 
@@ -336,17 +336,17 @@ describe('serializeTableToSource', () => {
       rows: [{
         attrs: {},
         cells: [
-          { text: 'Pad', colspan: 1, rowspan: 1, attrs: { pt: '10', pr: '5', pb: '10', pl: '5' } },
+          { text: 'Pad', colspan: 1, rowspan: 1, attrs: { 'padding-top': '10', 'padding-right': '5', 'padding-bottom': '10', 'padding-left': '5' } },
         ],
       }],
     });
     const original = '## @(0, 0) w=600\n  #\n    "Pad"';
 
     const result = serializeTableToSource(data, original);
-    expect(result).toContain('pt=10');
-    expect(result).toContain('pr=5');
-    expect(result).toContain('pb=10');
-    expect(result).toContain('pl=5');
+    expect(result).toContain('padding-top=10');
+    expect(result).toContain('padding-right=5');
+    expect(result).toContain('padding-bottom=10');
+    expect(result).toContain('padding-left=5');
   });
 
   it('序列化后不重复行属性到单元格', () => {
