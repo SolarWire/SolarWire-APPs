@@ -240,10 +240,10 @@ describe('updateLineAttribute - Line 专属属性', () => {
     expect(updateLineAttribute(src, 1, 'style', 'dotted')).toBe('-- @(0, 0)->(100, 50) style=dotted');
   });
 
-  it('新增 text-color', () => {
+  it('新增 c (文字色)', () => {
     const src = '-- @(0, 0)->(100, 50)';
-    const result = updateLineAttribute(src, 1, 'text-color', '#FF0000');
-    expect(result).toContain('text-color=#FF0000');
+    const result = updateLineAttribute(src, 1, 'c', '#FF0000');
+    expect(result).toContain('c=#FF0000');
   });
 });
 

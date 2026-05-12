@@ -119,7 +119,8 @@ function createWindow(): void {
     mainWindow?.show();
   });
 
-  const isDev = process.env.NODE_ENV === 'development';
+  const builtAppPath = path.join(__dirname, '../app/index.html');
+  const isDev = process.env.NODE_ENV === 'development' || !fs.existsSync(builtAppPath);
 
   if (isDev) {
     findVitePort().then((port) => {
@@ -129,7 +130,7 @@ function createWindow(): void {
       mainWindow?.loadURL('http://localhost:3000');
     });
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../app/index.html'));
+    mainWindow.loadFile(builtAppPath);
   }
 }
 

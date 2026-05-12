@@ -168,8 +168,6 @@ Must include ALL of the following sections:
    - Click column header to toggle ascending/descending"""
 ```
 
-**Important**: When displaying multi-column structured data, always use the `##` table syntax in SolarWire. Do not simulate tables with multiple aligned Rectangles or Text elements.
-
 ---
 
 ### Input Fields
@@ -220,8 +218,6 @@ Must include:
    - Default value for new customer: Normal
    - VIP level requires manager approval to assign"""
 ```
-
-**Note**: The dropdown options list itself must be drawn as a separate SolarWire code block when it is an independent interactive overlay (see [standards.md](standards.md) Section 11).
 
 ---
 
@@ -376,19 +372,55 @@ Use condition-action patterns to describe element behavior. This makes notes una
 | Visual Details in Note | "Blue background, 14px font" | Remove, these are shown in wireframe |
 | Technical Implementation | "API: POST /api/login" | Remove, this is technical detail |
 | Over-documenting | Notes on every element | Skip notes for visual/static elements |
-| Simulating tables with Rectangles | Multiple `[""]` aligned as columns | Use `##` table syntax instead |
 
 ---
 
 ## 8. Data Format Specifications
 
-When describing data display, specify format rules for:
+When describing data display, always specify format rules:
 
-- **Dates**: Always specify format (e.g., YYYY-MM-DD, YYYY-MM-DD HH:mm, relative time within X days)
-- **Numbers**: Specify decimal places, thousand separators, currency symbol, percentage format
-- **Sensitive text**: Specify masking rules (e.g., phone: 138****8000, ID: 110***********1234)
-- **Long text**: Specify truncation rule (e.g., truncate with ellipsis beyond 50 chars)
-- **Empty values**: Specify display for each field type (text: '-', number: '0' or '--', date: '-', list: 'No data')
+### Date/Time Formats
+
+| Type | Format | Example |
+|------|--------|---------|
+| Date only | YYYY-MM-DD | 2024-01-25 |
+| Date with time | YYYY-MM-DD HH:mm | 2024-01-25 14:30 |
+| Full datetime | YYYY-MM-DD HH:mm:ss | 2024-01-25 14:30:45 |
+| Relative time | Within X days show relative | "3 days ago", "Just now" |
+| Time only | HH:mm | 14:30 |
+
+### Number Formats
+
+| Type | Format | Example |
+|------|--------|---------|
+| Integer | With thousand separators | 1,234 |
+| Decimal | 2 decimal places | 1,234.56 |
+| Currency | With symbol and separators | ¥1,234.56 |
+| Percentage | With % symbol | 68.5% |
+| Large numbers | Abbreviated | 1.23M, 1.5B |
+
+### Text Formats
+
+| Type | Handling | Example |
+|------|----------|---------|
+| Long text | Truncate with ellipsis | "Long text content..." |
+| Phone | Mask sensitive digits | 138****8000 |
+| Email | Show full or truncate | zhang@example.com |
+| ID | Partial mask | 110***********1234 |
+
+### Status/Tag Display
+
+Always describe status values with their visual representation using condition-action style:
+
+```solarwire
+"Following" @(100,50) note="""Lead status
+1. Display rules
+   - While status is Unassigned, show gray tag with text 'Unassigned'
+   - While status is Following, show blue tag with text 'Following'
+   - While status is Converted, show green tag with text 'Converted'
+   - While status is Invalid, show red tag with text 'Invalid'
+   - All tags: White text, rounded corners"""
+```
 
 ---
 
@@ -540,14 +572,7 @@ Use compact format with language names declared once:
 ### No Note Needed (Visual element)
 
 ```solarwire
-[] @(0,0) w=400 h=120 bg=#FFFFFF b=#FFFFFF
-["Button"] @(16,40) w=120 h=40 bg=#3B82F6 c=#FFFFFF size=14 align=c vertical-align=m note="""Submit button
-1. Click action
-   - When clicked, submit form data to server
-2. Success handling
-   - When form submission succeeds, show success message
-3. Failure handling
-   - If form submission fails, show error message and keep form data"""
+-- @(0,100)->(400,100) b=#E5E7EB
 ```
 
 **Why no note:** Divider line is a pure visual element with no functional behavior.

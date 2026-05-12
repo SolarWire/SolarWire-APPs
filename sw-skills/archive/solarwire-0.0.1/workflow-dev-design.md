@@ -1,12 +1,34 @@
-# Workflow: PRD to Development Design
+## Inlined Syntax Rules (CRITICAL)
 
-## Prerequisites
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks start with ` ```solarwire ` and end with ` ``` `
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y) — top-left corner anchor
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
+- See [syntax.md](syntax.md) for complete syntax reference
+- See [note-guide.md](note-guide.md) for note writing rules
+- See [standards.md](standards.md) for color/spacing/scenario standards
 
-Load core rule files (syntax.md, note-guide.md, standards.md) as specified in SKILL.md before starting. Do not rely solely on summaries in this file.
+## Inlined Note Writing Rules (CRITICAL)
 
-**Special Note for Technical Design**: When writing or supplementing SolarWire notes in this design document, you must strictly follow `note-guide.md`. In particular, remove all API endpoints, database field names, and other technical implementation details from notes — these belong in the API definition and data model sections, not in wireframe notes.
-
----
+- Note first line: functional description (e.g., "Login button"), NOT element type (e.g., "[Primary Button]")
+- Note structure: First line = element definition; First level = numbered (1. 2. 3.); Second level = dash (-); Third level = double dash (--)
+- EARS description style: Use condition-action patterns
+  - Always [behavior] - for always-true behaviors
+  - When [event], [behavior] - for event-triggered behaviors
+  - While [condition], [behavior] - for state-dependent behaviors
+  - If [condition], [behavior] - for exception/boundary handling
+- Avoid bare enumerations (BAD: "Status: 1=Active"; GOOD: "While status is Active, show green tag 'Active'")
+- Error messages MUST be quoted exactly as user sees them
+- Forbidden in notes: visual details, technical implementation, API endpoints, CSS properties
+- For modified elements: note must describe before→after change
+- See [note-guide.md](note-guide.md) for complete note writing reference
 
 # Technical Design Document Generator
 
@@ -282,12 +304,29 @@ erDiagram
 
 **Data Model Rules:**
 
-- Every entity must have `id` (UUID), `created_at`, `updated_at`
-- Foreign keys named as `[entity]_id`
-- Status fields: use string enum, document all values
-- Amount fields: use decimal, specify precision
-- Soft delete: add `deleted_at` field if needed
-- Audit fields: add `created_by`, `updated_by` if needed
+| Rule | Description |
+|------|-------------|
+| Every entity | Must have `id` (UUID), `created_at`, `updated_at` |
+| Foreign keys | Named as `[entity]_id` |
+| Status fields | Use string enum, document all values |
+| Amount fields | Use decimal, specify precision |
+| Soft delete | Add `deleted_at` field if needed |
+| Audit fields | Add `created_by`, `updated_by` if needed |
+
+**Type Mapping Reference:**
+
+| Business Type | Database Type | Description |
+|---------------|---------------|-------------|
+| ID | VARCHAR(36) / UUID | Primary key |
+| Short text | VARCHAR(50-255) | Names, titles |
+| Long text | TEXT | Descriptions, content |
+| Integer | INT / BIGINT | Counts, quantities |
+| Decimal | DECIMAL(10,2) | Money, rates |
+| Boolean | TINYINT(1) | Flags |
+| Date | DATE | Birth date, event date |
+| DateTime | DATETIME / TIMESTAMP | Created at, updated at |
+| JSON | JSON | Flexible data, settings |
+| Enum | VARCHAR(20) | Status, type fields |
 
 ### Step 5: Database Schema
 
@@ -325,14 +364,16 @@ erDiagram
 
 **Database Schema Rules:**
 
-- Primary key: always UUID stored as VARCHAR(36)
-- Foreign key: always `[table]_id`, reference parent PK
-- All tables have `created_at`, `updated_at`
-- Soft delete: use `deleted_at` DATETIME NULL, never physical delete
-- Status: use VARCHAR(20) with CHECK constraint
-- Indexes: add for FK fields, frequently filtered fields, sort fields
-- Composite indexes: for common query combinations
-- Naming: table names snake_case plural; field names snake_case
+| Rule | Description |
+|------|-------------|
+| Primary key | Always UUID stored as VARCHAR(36) |
+| Foreign key | Always `[table]_id`, reference parent PK |
+| Timestamps | All tables have `created_at`, `updated_at` |
+| Soft delete | Use `deleted_at` DATETIME NULL, never physical delete |
+| Status | Use VARCHAR(20) with CHECK constraint |
+| Indexes | Add for: FK fields, frequently filtered fields, sort fields |
+| Composite indexes | For common query combinations |
+| Naming | Table names: snake_case plural; Field names: snake_case |
 
 ### Step 6: API Definition
 
@@ -389,11 +430,28 @@ Error (409):
 
 **API Design Rules:**
 
-- RESTful with `/api/v1/` prefix
-- All endpoints require auth unless explicitly public
-- List endpoints support pagination (`page`, `page_size`, `sort`, `order`) and field-based filters
-- Response format: always JSON with consistent structure; errors include `error` code and `message`
-- Standard status codes: 200, 201, 400, 401, 403, 404, 409, 500
+| Rule | Description |
+|------|-------------|
+| RESTful | Use standard HTTP methods (GET, POST, PUT, DELETE) |
+| Versioning | Prefix with `/api/v1/` |
+| Authentication | All endpoints require auth unless explicitly public |
+| Pagination | List endpoints support `page`, `page_size`, `sort`, `order` |
+| Filtering | List endpoints support field-based filters as query params |
+| Response format | Always JSON with consistent structure |
+| Error format | Always include `error` code and `message` |
+| Status codes | 200 (OK), 201 (Created), 400 (Bad Request), 401 (Unauthorized), 403 (Forbidden), 404 (Not Found), 409 (Conflict), 500 (Server Error) |
+
+**Pagination Response Template:**
+
+```
+{
+  "items": [...],
+  "total": 100,
+  "page": 1,
+  "page_size": 20,
+  "total_pages": 5
+}
+```
 
 **API-Page Mapping:**
 
@@ -685,7 +743,37 @@ Always include reference to the base PRD:
 
 ## Mermaid Diagram Standards
 
-Use Mermaid for all diagrams. Follow standard Mermaid syntax for flowcharts, sequence diagrams, and ER diagrams.
+### Flowchart Conventions
+
+| Element | Mermaid Syntax | Usage |
+|---------|---------------|-------|
+| Start/End | `([text])` | Rounded rectangle |
+| Process | `[text]` | Rectangle |
+| Decision | `{text}` | Diamond |
+| Sub-process | `[[text]]` | Double rectangle |
+| Data | `[(text)]` | Cylinder |
+| Comment | `>text]` | Flag shape |
+
+### Sequence Diagram Conventions
+
+| Element | Mermaid Syntax | Usage |
+|---------|---------------|-------|
+| Participant | `participant` | System component |
+| Message | `->>` | Synchronous call |
+| Return | `-->>` | Response |
+| Self-call | `->>+` / `-->>-` | Activation bar |
+| Note | `Note over` | Annotation |
+| Alt block | `alt` / `else` | Conditional |
+| Loop block | `loop` | Iteration |
+
+### ER Diagram Conventions
+
+| Relationship | Mermaid Syntax | Example |
+|-------------|---------------|---------|
+| One to One | `\|\|--\|\|` | USER \|\|--\|\| PROFILE |
+| One to Many | `\|\|--o{` | USER \|\|--o{ ORDER |
+| Many to One | `}o--\|\|` | ORDER }o--\|\| PRODUCT |
+| Many to Many | `}o--o{` | STUDENT }o--o{ COURSE |
 
 ---
 
@@ -735,4 +823,3 @@ For important design decisions, document the rationale:
 19. **UUID Primary Keys** - Use UUID for all primary keys
 20. **Audit Fields** - Include `created_at`, `updated_at` on all tables
 21. **Document Language** - Write documents in the user's communication language. If unsure, ask the user.
-22. **Notes in Design Must Follow note-guide.md** - When writing wireframe notes within dev design (e.g., for UI specifications), you must NOT include API endpoints, database field names, or component library names. These are strictly forbidden per `note-guide.md` Section 9.

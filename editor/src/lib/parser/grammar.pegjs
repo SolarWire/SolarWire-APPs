@@ -110,7 +110,7 @@ ImageElement
   }
 
 LineElement
-  = "--" label:QuotedString? "--"? _* lineCoords:LineCoordinates attrs:Attributes?
+  = "-" label:QuotedString? "-" _* lineCoords:LineCoordinates attrs:Attributes?
   {
     var result = {
       type: 'line',
@@ -243,10 +243,6 @@ QuotedString
   / "\"" content:DoubleQuotedContent "\""
   {
     return content;
-  }
-  / "([^"]*)" 
-  {
-    return text();
   }
 
 DoubleQuotedContent

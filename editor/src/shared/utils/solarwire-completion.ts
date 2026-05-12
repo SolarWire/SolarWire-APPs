@@ -71,7 +71,7 @@ const ELEMENT_ATTRIBUTES: Record<ElementType, string[]> = {
     'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
   ],
   line: [
-    'c', 's', 'style', 'size', 'text-color', 'note',
+    'b', 'c', 's', 'style', 'size', 'note',
   ],
   table: [
     'w', 'h', 'border', 'cellspacing', 'b', 'note',
@@ -106,7 +106,8 @@ const ELEMENT_TEMPLATES = [
   { label: '"text"', detail: 'Text', insertText: '"${1:text}" @(${2:100},${3:50}) size=${4:14}' },
   { label: '[?"text"]', detail: 'Placeholder', insertText: '[?"${1:image}"] @(${2:100},${3:50}) w=${4:150} h=${5:100}' },
   { label: '<url>', detail: 'Image', insertText: '<${1:https://example.com/image.png}> @(${2:100},${3:50}) w=${4:100} h=${5:100}' },
-  { label: '-- "label" --', detail: 'Line', insertText: '-- "${1:label}" -- @(${2:50},${3:200})->(${4:450},${5:200})' },
+  { label: '--', detail: 'Line (no label)', insertText: '-- @(${2:50},${3:200})->(${4:450},${5:200})' },
+  { label: '-"label"-', detail: 'Line (with label)', insertText: '-"${1:label}"- @(${2:50},${3:200})->(${4:450},${5:200})' },
   { label: '##', detail: 'Table', insertText: '## @(${1:50},${2:50}) w=${3:500}' },
 ];
 
@@ -157,7 +158,7 @@ function analyzeContext(model: any, position: any): CompletionContext {
   } else if (trimmedPrefix.startsWith('(')) {
     elementType = 'circle';
     contextPosition = detectPositionInElement(trimmedPrefix);
-  } else if (trimmedPrefix.startsWith('--')) {
+  } else if (trimmedPrefix.startsWith('--') || (trimmedPrefix.startsWith('-') && (trimmedPrefix.length === 1 || trimmedPrefix[1] === '"'))) {
     elementType = 'line';
     contextPosition = detectPositionInElement(trimmedPrefix);
   } else if (trimmedPrefix.startsWith('<')) {

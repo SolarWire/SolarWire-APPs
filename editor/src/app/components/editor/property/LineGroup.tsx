@@ -31,24 +31,22 @@ const LineGroup: React.FC<LineGroupProps> = ({ line, appearance, onChange }) => 
           <option value="dotted">点线</option>
         </select>
       </PropertyRow>
-      {line.label !== undefined && (
-        <PropertyRow label="标签" codeAttr="label">
-          <input type="text" value={line.label || ''} onChange={(e) => onChange('label', e.target.value)} />
-        </PropertyRow>
-      )}
     </PropertyGroupTitle>
     <PropertyGroupTitle title="外观">
-      <PropertyRow label="颜色" codeAttr="c">
-        <ColorPicker label="" value={appearance.textColor} onChange={(color) => onChange('c', color)} />
+      <PropertyRow label="线段色" codeAttr="b">
+        <ColorPicker label="" value={appearance.borderColor} onChange={(color) => onChange('b', color)} />
       </PropertyRow>
       <PropertyRow label="线宽" codeAttr="s">
         <DraggableNumberInput label="" value={appearance.borderSize} onChange={(v) => onChange('s', v)} />
       </PropertyRow>
-      {line.label !== undefined && (
-        <PropertyRow label="标签色" codeAttr="text-color">
-          <ColorPicker label="" value={line.labelColor} onChange={(color) => onChange('text-color', color)} />
-        </PropertyRow>
-      )}
+    </PropertyGroupTitle>
+    <PropertyGroupTitle title="文字">
+      <PropertyRow label="内容" codeAttr="label">
+        <input type="text" value={line.label || ''} onChange={(e) => onChange('label', e.target.value)} placeholder="输入线段文字内容" />
+      </PropertyRow>
+      <PropertyRow label="文字色" codeAttr="c">
+        <ColorPicker label="" value={line.labelColor} onChange={(color) => onChange('c', color)} />
+      </PropertyRow>
     </PropertyGroupTitle>
   </>
 );

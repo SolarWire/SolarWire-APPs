@@ -238,7 +238,7 @@ async function createModuleSheet(workbook, modules) {
     colHeaderRow.fill = {
       type: 'pattern',
       pattern: 'solid',
-      fgColor: { argb: 'FF3B82F6' }
+      fgColor: { argb: 'FF1890FF' }
     };
 
     for (const tc of cases) {

@@ -128,9 +128,9 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
     const h = attrs.h || '';
     const r = attrs.r || '';
     const bg = attrs.bg || (type === 'text' ? 'transparent' : '#ffffff');
-    const borderColor = attrs.b || '#333333';
+    const borderColor = type === 'line' ? (attrs.b || '#333333') : (attrs.b || '#333333');
     const borderSize = attrs.s || '1';
-    const textColor = attrs.c || '#000000';
+    const textColor = type === 'line' ? (attrs.c || '#333333') : (attrs.c || '#000000');
     const fontSize = attrs.size || attrs['text-size'] || '12';
     const align = attrs.align || '';
     const verticalAlign = attrs['vertical-align'] || '';
@@ -165,7 +165,7 @@ export function useElementProps({ element }: UseElementPropsOptions): ElementPro
       textContent = rawText.replace(/^"""|"""$/g, '');
     }
 
-    const lineLabelColor = attrs['text-color'] || '#333333';
+    const lineLabelColor = attrs.c || '#333333';
     const lineStyle = attrs.style || 'solid';
 
     const tableBorder = attrs.border || '1';

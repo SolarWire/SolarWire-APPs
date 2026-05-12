@@ -26,44 +26,10 @@ function extractSolarWireBlocks(content) {
 function validateBlock(block, source, blockIndex) {
   try {
     parse(block.content);
-    const warnings = semanticCheck(block.content, source, blockIndex);
-    if (warnings.length > 0) {
-      return { valid: true, source, blockIndex, warnings };
-    }
     return { valid: true, source, blockIndex };
   } catch (e) {
     return { valid: false, source, blockIndex, error: e.message };
   }
-}
-
-function semanticCheck(blockContent, source, blockIndex) {
-  const warnings = [];
-  const lines = blockContent.split('\n');
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-
-    if (line.startsWith('"') && line.includes('bg=')) {
-      warnings.push({
-        line: i + 1,
-        code: 'TEXT_BG',
-        message: 'Text element should not have bg= attribute'
-      });
-    }
-
-    const rectMatch = line.match(/^\["[^"]*"\]\s*@/);
-    if (rectMatch && !line.includes('w=') && !line.startsWith('[') === false) {
-      if (line.includes('note=') || line.includes('align=') || line.includes('vertical-align=')) {
-        warnings.push({
-          line: i + 1,
-          code: 'RECT_SIZE',
-          message: 'Rectangle with text content should have w= and h= attributes'
-        });
-      }
-    }
-  }
-
-  return warnings;
 }
 
 function validateFile(filePath) {
@@ -125,14 +91,7 @@ for (const result of results) {
   }
   
   if (result.valid) {
-    if (result.warnings && result.warnings.length > 0) {
-      console.log(`⚠ ${result.source} (block ${result.blockIndex + 1}): OK with ${result.warnings.length} semantic warning(s)`);
-      for (const w of result.warnings) {
-        console.log(`  Line ${w.line} [${w.code}]: ${w.message}`);
-      }
-    } else {
-      console.log(`✓ ${result.source} (block ${result.blockIndex + 1}): OK`);
-    }
+    console.log(`✓ ${result.source} (block ${result.blockIndex + 1}): OK`);
     validBlocks++;
   } else {
     hasErrors = true;

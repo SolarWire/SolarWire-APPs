@@ -48,7 +48,36 @@ const SnippetListPanel: React.FC<SnippetListPanelProps> = ({ sourceFilePath, fil
   }>({ visible: false, x: 0, y: 0, snippetId: '' });
   const [thumbnailCache, setThumbnailCache] = useState<Record<string, string>>({});
   const thumbnailLoadingRef = useRef<Set<string>>(new Set());
+  const prevSnippetCodesRef = useRef<Record<string, string>>({});
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const currentSnippetCodes: Record<string, string> = {};
+    let hasChanged = false;
+    for (const s of snippets) {
+      currentSnippetCodes[s.id] = s.code;
+    }
+
+    for (const id of Object.keys(prevSnippetCodesRef.current)) {
+      if (!currentSnippetCodes[id]) {
+        hasChanged = true;
+        break;
+      }
+      if (prevSnippetCodesRef.current[id] !== currentSnippetCodes[id]) {
+        hasChanged = true;
+        break;
+      }
+    }
+    if (Object.keys(prevSnippetCodesRef.current).length !== Object.keys(currentSnippetCodes).length) {
+      hasChanged = true;
+    }
+
+    if (hasChanged) {
+      setThumbnailCache({});
+      thumbnailLoadingRef.current.clear();
+    }
+    prevSnippetCodesRef.current = currentSnippetCodes;
+  }, [snippets]);
 
   useEffect(() => {
     if (!tooltipState.visible || !tooltipState.snippetId) return;

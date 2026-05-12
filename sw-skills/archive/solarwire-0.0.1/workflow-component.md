@@ -1,12 +1,34 @@
-# Workflow: Generate SolarWireComponent Library
+## Inlined Syntax Rules (CRITICAL)
 
-## Prerequisites
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks use ` ```solarwire ` to open, ` ``` ` to close
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y) — top-left corner anchor
+- Plain text must use text element `"text"`, NOT rectangle `["text"]` to wrap plain text
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
+- After generating component code must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
+- See [syntax.md](syntax.md) for complete syntax reference
+- See [note-guide.md](note-guide.md) for note writing rules
+- See [standards.md](standards.md) for color/spacing/scenario standards
 
-Load core rule files (syntax.md, note-guide.md, standards.md) as specified in SKILL.md before starting. Do not rely solely on summaries in this file.
+## Inlined Note Writing Rules (CRITICAL)
 
-**Special Note for Component Libraries**: If a component requires a note to describe interactive behavior (e.g., a dropdown menu, a tooltip trigger), you must strictly follow `note-guide.md`. Do not include API endpoints, database field names, or implementation details in component notes.
-
----
+- Note first line: functional description (e.g., "Login button"), NOT element type (e.g., "[Primary Button]")
+- Note structure: First line = element definition; First level = numbered (1. 2. 3.); Second level = dash (-); Third level = double dash (--)
+- EARS description style: Use condition-action patterns
+  - Always [behavior] - for always-true behaviors
+  - When [event], [behavior] - for event-triggered behaviors
+  - While [condition], [behavior] - for state-dependent behaviors
+  - If [condition], [behavior] - for exception/boundary handling
+- Avoid bare enumerations (BAD: "Status: 1=Active"; GOOD: "While status is Active, show green tag 'Active'")
+- Error messages MUST be quoted exactly as user sees them
+- Forbidden in notes: visual details, technical implementation, API endpoints, CSS properties
+- For modified elements: note must describe before→after change
+- See [note-guide.md](note-guide.md) for complete note writing reference
 
 # SolarWire Component Generator
 
@@ -20,7 +42,7 @@ Load core rule files (syntax.md, note-guide.md, standards.md) as specified in SK
 
 This skill generates or modifies .swc format SolarWire component library files.
 
-**Important**: This skill does not define SolarWire syntax rules. Refer to `syntax.md` for syntax.
+**Important**: This skill does not define SolarWire syntax rules. Refer to `solarwire-syntax` for syntax.
 
 ---
 
@@ -101,13 +123,25 @@ updatedAt: 2024-01-01T00:00:00.000Z
 
 ### Syntax Rules
 
-- Component `code` field MUST follow `syntax.md` rules
+- Component `code` field MUST follow `solarwire-syntax` rules
 - Coordinates are relative to component top-left corner, base point `@(0,0)`
 - Use absolute coordinates
 - Avoid using image elements `<url>`
 - Pure text MUST use text element `"text"`, NOT rectangle `["text"]`
 - Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
-- When generating component code, you must validate it using `node sw-skills/solarwire/validate-sw.js <path>` after creation or modification.
+
+### Allowed Syntax Elements
+
+| Element | Syntax | Example |
+|---------|--------|---------|
+| Rectangle | `["Text"]` | `["Button"] @(0,0) w=120 h=40` |
+| Rounded Rectangle | `["Text"] r=N` | `["Card"] @(0,0) w=300 h=200 r=8` |
+| Circle | `("Text")` | `("Avatar") @(0,0) w=60` |
+| Multi-line Text | `"""___"""` | `"""Line 1\nLine 2""" @(0,0) w=200` |
+| Plain Text | `"Text"` | `"Title" @(0,0) size=24 bold` |
+| Placeholder | `[?"Text"]` | `[?"Image"] @(0,0) w=150 h=100` |
+| Line | `--` | `-- @(0,100)->(400,100) b=#E5E7EB` |
+| Table | `##` | `## @(0,0) w=500 border=1` |
 
 ### Avoid Using
 
@@ -115,7 +149,27 @@ updatedAt: 2024-01-01T00:00:00.000Z
 |---------|--------|
 | Image `<url>` | Component libraries do not include image components |
 
-For all attribute rules and forbidden attributes, refer to [syntax.md](syntax.md).
+### Attribute Reference
+
+| Attribute | Description | Example |
+|-----------|-------------|---------|
+| `w` `h` | Width, Height | `w=120 h=40` |
+| `bg` | Background color | `bg=#3B82F6` |
+| `c` | Text color | `c=#FFFFFF` |
+| `b` | Border color | `b=#E5E7EB` |
+| `s` | Border width | `s=1` |
+| `r` | Border radius | `r=6` |
+| `size` | Font size | `size=16` |
+| `bold` | Bold text | `bold` |
+| `opacity` | Element opacity (0-1) | `opacity=0.5` |
+
+**Important**: Do NOT use the following hallucinated attributes:
+- ~~`multiline`~~ - Not a valid SolarWire attribute
+- ~~`truncate`~~ - Not a valid SolarWire attribute
+- ~~`stroke`~~ - Use `b=` for border color instead
+- ~~`strokeWidth`~~ - Use `s=` for border width instead
+
+**Note**: `padding-top`, `padding-right`, `padding-bottom`, `padding-left` are valid attributes (default: 8). Only use them when you need to override the default padding.
 
 ---
 
@@ -141,7 +195,13 @@ node sw-skills/solarwire/validate-sw.js temp-code.txt
 node sw-skills/solarwire/validate-sw.js path/to/component-library.swc
 ```
 
-For common validation fixes, see workflow-prd.md Check 5.
+**Common validation fixes:**
+- `note="..."` → `note="""..."""` (triple quotes)
+- `stroke`/`strokeWidth` → `b=`/`s=`
+- `(("text"))` → `("text")` (circle)
+- `("text")` as rounded rect → `["text"] r=N`
+- Pure text in `["text"]` → `"text"`
+- Rectangle without `vertical-align=m` → add `vertical-align=m`
 
 ---
 
@@ -161,7 +221,7 @@ Based on component types, define categories with hierarchy and sort order.
 ### Step 3: Generate Components
 
 1. Understand user requirements, determine component visual structure
-2. Write SolarWire code following `syntax.md` rules
+2. Write SolarWire code following `solarwire-syntax` rules
 3. Validate code using `node sw-skills/solarwire/validate-sw.js <file>`
 4. Set component id, name, description, categoryId
 
@@ -390,15 +450,7 @@ description: Horizontal divider
 categoryId: cat-layout
 
 ```solarwire
-!title="Divider Component"
-!c=#111827
-!size=13
-!bg=#F9FAFB
-
-[] @(0,0) w=300 h=20 bg=#FFFFFF b=#FFFFFF
-[] @(0,10) w=300 h=1 bg=#E5E7EB note="""Horizontal divider line
-1. Appearance
-   - Always displayed as a 1px solid line"""
+-- @(0,0)->(300,0) b=#E5E7EB s=1
 ```
 ```
 
@@ -446,13 +498,17 @@ Validate the entire .swc file:
 | Mistake | Reason | Solution |
 |---------|--------|----------|
 | Using .swc.json suffix | Wrong file extension | Use `.swc` suffix |
+| Component code using simplified syntax | Syntax error | Use solarwire-syntax PRD syntax |
 | Missing description field | Component lacks description | Every component must have description |
 | Missing categoryId field | Component not linked to category | Every component must have categoryId |
 | Using image element | Component libraries don't include images | Use placeholder `[?"Image"]` instead |
 | Component code not validated | Syntax may be incorrect | Use `node sw-skills/solarwire/validate-sw.js` to validate |
+| Using `stroke` or `strokeWidth` | Deprecated attributes | Use `b=` for border color, `s=` for border width |
+| Using `multiline` attribute | Hallucinated attribute | Remove, not a valid SolarWire attribute |
+| Using `truncate` attribute | Hallucinated attribute | Remove, not a valid SolarWire attribute |
+| Using `(())` for circle | Deprecated syntax | Use `("text")` for circle |
+| Using `("text")` for rounded rectangle | Wrong element type | Use `["text"] r=N` for rounded rectangle |
 | thumbnail field exists | Thumbnail not needed | Remove thumbnail field |
-
-For SolarWire syntax mistakes (stroke, multiline, circle syntax, etc.), see [syntax.md](syntax.md) Common Mistakes section.
 
 ---
 
@@ -462,4 +518,3 @@ For SolarWire syntax mistakes (stroke, multiline, circle syntax, etc.), see [syn
 2. **No Image Elements** - Component libraries do not include image components; use placeholder `[?"Image"]` instead
 3. **No Hallucinated Attributes** - Never use `multiline`, `truncate`, `stroke`, or `strokeWidth`
 4. **Document Language** - Write documents in the user's communication language. If unsure, ask the user.
-5. **Component Notes Follow note-guide.md** - If a component includes a note, it must adhere to `note-guide.md`, especially the forbidden content rules.

@@ -161,9 +161,8 @@ const TreeItem: React.FC<TreeItemProps> = ({
         <div className="tree-children">
           {node.children
             .filter((child) => {
-              if (child.type === 'directory') return true;
               if (child.name.startsWith('.')) return false;
-              return isSupportedFile(child.name);
+              return true;
             })
             .map((child) => (
               <TreeItem

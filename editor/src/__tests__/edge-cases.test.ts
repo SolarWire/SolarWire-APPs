@@ -730,7 +730,7 @@ describe('propertyMeta 完整性', () => {
   });
 
   it('线段属性都存在', () => {
-    const lineAttrs = ['x2', 'y2', 'style', 'label', 'text-color'];
+    const lineAttrs = ['x2', 'y2', 'style', 'label'];
     for (const attr of lineAttrs) {
       expect(PROPERTY_META[attr], `缺少线段属性 ${attr}`).toBeDefined();
     }

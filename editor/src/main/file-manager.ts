@@ -125,7 +125,7 @@ export async function listFiles(dirPath: string): Promise<string[]> {
   }
 }
 
-export async function getFileTree(dirPath: string, depth = 3): Promise<FileNode[]> {
+export async function getFileTree(dirPath: string, depth = -1): Promise<FileNode[]> {
   try {
     validatePath(dirPath);
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -142,9 +142,9 @@ export async function getFileTree(dirPath: string, depth = 3): Promise<FileNode[
         modifiedTime: stats.mtimeMs,
       };
 
-      if (entry.isDirectory() && depth > 0) {
+      if (entry.isDirectory() && (depth < 0 || depth > 0)) {
         try {
-          node.children = await getFileTree(fullPath, depth - 1);
+          node.children = await getFileTree(fullPath, depth < 0 ? -1 : depth - 1);
         } catch (err) {
           // Skip directories we can't access
         }

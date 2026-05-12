@@ -456,14 +456,20 @@ export function useElementInteraction({
             if (line.includes('->')) {
               line = line.replace(/\s+x2=[\d]+/g, '');
               line = line.replace(/\s+y2=[\d]+/g, '');
-              line = line.replace(/--\s*@\(-?[\d]+,\s*-?[\d]+\)->\(-?[\d]+,\s*-?[\d]+\)/, `-- @(${x1}, ${y1})->(${x2}, ${y2})`);
+              line = line.replace(
+                /(-("[^"]*"-)?|--)\s*@\(-?[\d]+,\s*-?[\d]+\)->\(-?[\d]+,\s*-?[\d]+\)/,
+                (_match: string, prefix: string) => `${prefix} @(${x1}, ${y1})->(${x2}, ${y2})`
+              );
             } else {
               line = line.replace(/\s+x=[\d]+/g, '');
               line = line.replace(/\s+y=[\d]+/g, '');
               line = line.replace(/\s+x2=[\d]+/g, '');
               line = line.replace(/\s+y2=[\d]+/g, '');
-              if (line.startsWith('--')) {
-                line = `-- @(${x1}, ${y1})->(${x2}, ${y2})` + line.substring(2);
+              const linePrefixMatch = line.match(/^(\s*)(-("[^"]*"-)?|--)/);
+              if (linePrefixMatch) {
+                const prefix = linePrefixMatch[2];
+                const rest = line.substring(linePrefixMatch[0].length);
+                line = `${linePrefixMatch[1]}${prefix} @(${x1}, ${y1})->(${x2}, ${y2})${rest}`;
               } else {
                 line = `-- @(${x1}, ${y1})->(${x2}, ${y2}) ` + line;
               }

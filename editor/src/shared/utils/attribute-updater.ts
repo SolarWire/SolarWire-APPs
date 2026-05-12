@@ -54,7 +54,9 @@ export function deleteLineAttribute(
     return content;
   }
 
-  if (['bold', 'italic', 'shadow-enabled'].includes(attributeName)) {
+  if (attributeName === 'label') {
+    line = line.replace(/-("[^"]*"-)/, '--');
+  } else if (['bold', 'italic', 'shadow-enabled'].includes(attributeName)) {
     const attrPattern = new RegExp(`\\s+${attributeName}(?:=[^\\s]+)?`);
     line = line.replace(attrPattern, '');
   } else {
@@ -185,6 +187,36 @@ function updateCoordAttribute(
   }
 
   return content;
+}
+
+function updateLabelAttribute(
+  content: string,
+  lineNum: number,
+  value: string | number | boolean
+): string {
+  const lines = content.split(/\r?\n/);
+  if (lineNum < 1 || lineNum > lines.length) {
+    return content;
+  }
+
+  const lineIndex = lineNum - 1;
+  let line = lines[lineIndex];
+
+  const labelValue = String(value);
+
+  if (!labelValue) {
+    line = line.replace(/-("[^"]*"-)/, '--');
+  } else {
+    const existingLabelMatch = line.match(/-("[^"]*"-)/);
+    if (existingLabelMatch) {
+      line = line.replace(/-("[^"]*"-)/, `-"${labelValue}"-`);
+    } else {
+      line = line.replace(/^--/, `-"${labelValue}"-`);
+    }
+  }
+
+  lines[lineIndex] = line;
+  return lines.join('\n');
 }
 
 function updateTextAttribute(
@@ -509,6 +541,9 @@ export function updateLineAttribute(
 
   if (isCoordAttribute) {
     return updateCoordAttribute(content, lineNum, attributeName, attributeValue);
+  }
+  if (attributeName === 'label') {
+    return updateLabelAttribute(content, lineNum, attributeValue);
   }
   if (attributeName === 'text') {
     return updateTextAttribute(content, lineNum, attributeValue);

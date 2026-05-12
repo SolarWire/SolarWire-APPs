@@ -1,8 +1,36 @@
 # PRD Workflow
 
-## Prerequisites
+## Inlined Syntax Rules (CRITICAL)
 
-Load core rule files (syntax.md, note-guide.md, standards.md) as specified in SKILL.md before starting. Do not rely solely on summaries in this file.
+- note must use triple quotes: `note="""..."""`, never use `note="..."` or `note='...'`
+- SolarWire code blocks start with ` ```solarwire ` and end with ` ``` `
+- Border color uses `b=`, border width uses `s=`
+- Circle uses `("text")`, rounded rectangle uses `["text"] r=N`
+- Table cells and rows cannot specify @(x,y), w, h
+- Table cell content should use `["text"]` (rectangle) instead of `"text"` — rectangles support more text formatting (bold, italic, size, color, alignment, etc.)
+- Hallucinated attributes forbidden: multiline, truncate, stroke, strokeWidth
+- All elements must have coordinates @(x,y) — top-left corner anchor
+- Plain text must use text element `"text"`, not rectangle `["text"]` to wrap plain text
+- Rectangle text alignment: `vertical-align=m` always; `align=l` for input/display, `align=c` for buttons
+- After generating wireframes must run `node sw-skills/solarwire/validate-sw.js <path>` validation, fix syntax and re-validate if failed
+- See [syntax.md](syntax.md) for complete syntax reference
+- See [note-guide.md](note-guide.md) for note writing rules
+- See [standards.md](standards.md) for color/spacing/scenario standards
+
+## Inlined Note Writing Rules (CRITICAL)
+
+- Note first line: functional description (e.g., "Login button"), NOT element type (e.g., "[Primary Button]")
+- Note structure: First line = element definition; First level = numbered (1. 2. 3.); Second level = dash (-); Third level = double dash (--)
+- EARS description style: Use condition-action patterns
+  - Always [behavior] - for always-true behaviors
+  - When [event], [behavior] - for event-triggered behaviors
+  - While [condition], [behavior] - for state-dependent behaviors
+  - If [condition], [behavior] - for exception/boundary handling
+- Avoid bare enumerations (BAD: "Status: 1=Active, 0=Disabled"; GOOD: "While status is Active, show green tag 'Active'")
+- Error messages MUST be quoted exactly as user sees them
+- Forbidden in notes: visual details, technical implementation, API endpoints, CSS properties
+- For modified elements: note must describe before→after change (e.g., "Was: [old behavior]. Now: [new behavior]")
+- See [note-guide.md](note-guide.md) for complete note writing reference
 
 ---
 
@@ -28,8 +56,9 @@ Before starting the workflow, determine which scenario applies:
 ### Scenario A: New Requirement
 - User has a new requirement (may include new pages AND modifications to existing pages)
 - Follow full Five Elements confirmation with user
-- New pages: write complete wireframe with full page framework
-- Modified pages: complete wireframe drawn from existing code or known PRD, changes marked with `[NEW]`/`[MODIFIED]`/`[REMOVED]`
+- New pages: write complete wireframe
+- Modified pages: only describe changed parts (Delta Only), do not copy unchanged content from old PRDs
+- Existing page structure inferred from current code when available
 
 ### Scenario B: Code Reverse Engineering
 - User provides existing codebase
@@ -145,7 +174,6 @@ Should I include the related feature modifications in this PRD?
   - >5 independent modules → needs decomposition
   - >10 pages → needs decomposition
   - Multiple independent business flows → needs decomposition
-- If decomposition required, follow the directory structure in SKILL.md File Structure Convention
 
 **Step 3: Multiple Approaches Comparison (Optional)**
 - Provide 2-3 design approaches
@@ -169,19 +197,7 @@ Let me understand the business context:
 5. Why now? What triggered this requirement?
 ```
 
-**Step 5: Terminal Type Confirmation (CRITICAL)**
-```
-Before proceeding, I need to confirm the target platform:
-
-What is the terminal type for this requirement?
-- Mobile App (iOS/Android, narrow canvas, touch-first)
-- Web Client (Desktop browser, wide canvas, mouse+keyboard)
-- Admin Dashboard (Data-intensive, sidebar layout, many actions)
-
-This will determine container sizes, element dimensions, and overall layout patterns.
-```
-
-**Step 6: Scope Layer (范围层)**
+**Step 5: Scope Layer (范围层)**
 ```
 Based on the strategy and impact analysis, let's define the scope:
 
@@ -194,7 +210,7 @@ Based on the strategy and impact analysis, let's define the scope:
 4. Are there any dependencies on other systems/features?
 ```
 
-**Step 7: Structure Layer (结构层)**
+**Step 6: Structure Layer (结构层)**
 ```
 Based on the scope, let's define the structure:
 
@@ -205,7 +221,7 @@ Based on the scope, let's define the structure:
 5. Are there any shared components across pages?
 ```
 
-**Step 8: Framework Layer (框架层)**
+**Step 7: Framework Layer (框架层)**
 ```
 Based on the structure, let's define the framework:
 
@@ -215,7 +231,7 @@ Based on the structure, let's define the framework:
 4. What are the key user interactions?
 ```
 
-**Step 9: Presentation Layer (表现层)**
+**Step 8: Presentation Layer (表现层)**
 ```
 Based on the framework, let's define the presentation:
 
@@ -229,19 +245,10 @@ Based on the framework, let's define the presentation:
 - MUST complete each layer before moving to the next
 - If user cannot answer a question, probe deeper - don't assume
 - If user seems uncertain, offer 2-3 options with trade-offs
+- All layers feed into the PRD document structure
+- For modifications to existing features: focus on what CHANGES, not re-describing what stays the same
 
-**CRITICAL — Five Elements Are a Working Method ONLY:**
-- The Five Elements (Strategy, Scope, Structure, Framework, Presentation) are a **requirement confirmation workflow tool**, NOT a PRD document structure
-- **NEVER** create any "Five Elements" section, chapter, or heading in the PRD document
-- Information gathered during Five Elements confirmation MUST be distributed into the standard PRD sections:
-  - Strategy Layer → Product Overview (1.1-1.3), User Stories (1.4), Expected Outcome (3.1-3.3)
-  - Scope Layer → Feature Scope (2.1-2.2), Feature Boundary
-  - Structure Layer → Business Flow (4.1-4.2), Page Design (5.1)
-  - Framework Layer → Page Details (6.1-x), Wireframes
-  - Presentation Layer → Wireframes, visual specifications within notes
-- If AI attempts to add Five Elements headings to the PRD, it is a violation of this rule
-
-**Step 10: Multi-language Confirmation**
+**Step 9: Multi-language Confirmation**
 ```
 Does this project require multi-language support?
 
@@ -282,12 +289,11 @@ If no:
 
 ### Phase 2: Requirements Validation
 
-**Step 11: Requirements Summary**
+**Step 10: Requirements Summary**
 ```
 Here's my understanding of requirements:
 
 **Product Type**: [Type]
-**Terminal Type**: [Mobile/Web/Admin]
 **Core Pages**:
 1. [Page 1] - [Brief description]
 2. [Page 2] - [Brief description]
@@ -302,26 +308,19 @@ Here's my understanding of requirements:
 Is this understanding correct? Any adjustments or additions needed?
 ```
 
-**Step 12: Requirements Confirmation Gate**
+**Step 11: Requirements Confirmation Gate**
 - User MUST confirm requirements
-- If adjustments needed, identify which layer needs revision:
-  - Business problem changed → go back to Step 4 (Strategy)
-  - Terminal type changed → go back to Step 5 (Terminal Type)
-  - Scope/pages changed → go back to Step 6 (Scope)
-  - Structure/navigation changed → go back to Step 7 (Structure)
-  - Layout/interaction changed → go back to Step 8 (Framework)
-  - Visual preferences changed → go back to Step 9 (Presentation)
-- After revision, re-run Step 11 (Requirements Summary) and re-confirm
+- If adjustments needed, go back to Phase 1
 
 ---
 
 ### Phase 3: Generate & Quality
 
-**Step 13: Generate PRD**
+**Step 12: Generate PRD**
 - Generate complete PRD document
 - Save to `.solarwire/[requirement-name]/solarwire-prd.md`
 
-**Step 14: Spec Self-Review**
+**Step 13: Spec Self-Review**
 
 #### Check 1: Placeholder Scan
 ```
@@ -363,24 +362,8 @@ Criteria:
 - If multiple independent business flows → needs decomposition
 
 If needs decomposition:
-- Go back to Phase 0 Step 2
+- Go back to Phase 0 Step 1
 - Help user decompose and select first sub-project
-```
-
-#### Check 3.5: PRD Structure Compliance (CRITICAL)
-```
-Check items:
-- PRD document has exactly 8 top-level sections: Product Overview, Feature Scope, Expected Outcome, Business Flow, Page Design, Page Details, Non-functional Requirements, Appendix
-- No "Five Elements", "UX Layers", "Strategy Analysis", or similar sections exist
-- Sections are in the correct order (1→2→3→4→5→6→7→8)
-- All section titles use the user's communication language (not English unless user communicates in English)
-- Section numbering is preserved (1.1, 1.2, 1.3, 1.4, 2.1, 2.2, etc.)
-
-If violations found:
-- Remove unauthorized sections
-- Reorder sections to match template
-- Translate section titles to user language
-- Fix numbering
 ```
 
 #### Check 4: Ambiguity Check
@@ -416,21 +399,16 @@ If errors found:
   - (("text")) → ("text")
   - ("text") as rounded rect → ["text"] r=N
   - Pure text in ["text"] → "text"
-  - Rectangle with text content but without vertical-align=m → add vertical-align=m (container rectangles without text do not need this)
+  - Rectangle without vertical-align=m → add vertical-align=m
 
-If validation fails more than 2 times:
-- Discard the current wireframe entirely
-- Regenerate from scratch using a different approach
-- Common causes of repeated failure: coordinate calculation errors, element type mismatches, attribute misuse
-
-MUST pass validation before proceeding to Step 15
+MUST pass validation before proceeding to Step 14
 ```
 
 **Fix Principle:**
 - Fix all issues immediately, no need to re-review
-- Proceed to Step 15 after fixing
+- Proceed to Step 14 after fixing
 
-**Step 15: User Review Gate**
+**Step 14: User Review Gate**
 ```
 PRD generated and passed self-review
 
@@ -460,52 +438,14 @@ Please start reviewing, let me know if you have any questions.
 
 **User Review Gate Rules:**
 - MUST wait for user to explicitly confirm "ok" or "no problem"
-- If user requests changes, categorize the change type and follow the recovery path:
-  - **Minor text/label changes** → fix directly in the file, no regeneration needed
-  - **Missing features on existing pages** → go back to Step 13, regenerate only the affected page's wireframe
-  - **Business logic changes** → go back to Step 6 (Scope) or Step 7 (Structure), re-confirm affected areas, then regenerate PRD from Step 13
-  - **Major redesign (layout, flow, architecture)** → go back to Step 4 (Strategy), re-run Five Elements for the affected scope, then regenerate full PRD
-- After any regeneration, MUST re-run Check 1-5 before presenting to user again
-- Track changes in Change Log with version bump
-
----
-
-### Error Recovery Map
-
-Use this table to determine the correct recovery path for any issue encountered during workflow execution:
-
-| Issue Type | Detected At | Recovery Action | Notes |
-|-----------|------------|-----------------|-------|
-| User rejects business direction | Phase 1 Step 4-9 | Return to the rejected layer, re-discuss | Record what was rejected and why |
-| User rejects terminal type | Phase 1 Step 5 | Return to Step 5, re-confirm | May affect all subsequent layout decisions |
-| User rejects scope | Phase 1 Step 6 or Phase 2 Step 12 | Return to Step 6, re-define scope | May need to re-run Step 1 (impact analysis) |
-| User rejects page structure | Phase 1 Step 7 | Return to Step 7, re-organize pages | Affects all downstream pages |
-| User rejects layout | Phase 1 Step 8 or Phase 3 user review | Return to Step 8, re-design framework | Keep strategy and scope unchanged |
-| User rejects visual style | Phase 1 Step 9 or Phase 3 user review | Return to Step 9, adjust presentation | Keep strategy, scope, structure, framework unchanged |
-| Contradictory requirements | Phase 2 Step 11-12 | Ask user to clarify the contradiction | Do not proceed until resolved |
-| Too many independent modules | Phase 3 Check 3 | Return to Phase 0 Step 2, decompose | May need to create sub-projects |
-| PRD structure violations | Phase 3 Check 3.5 | Fix directly (add/remove/reorder sections) | Always retry Check 3.5 after fixing |
-| Placeholder/vague text | Phase 3 Check 1 | Fix directly, fill in missing content | Must have zero placeholders before proceeding |
-| Internal inconsistency | Phase 3 Check 2 | Fix directly, apply priority rules | Page details take highest priority |
-| Ambiguous requirements | Phase 3 Check 4 | Fix directly by choosing one interpretation | Document the choice in Appendix |
-| SolarWire syntax errors | Phase 3 Check 5 | Fix directly using common fixes list | Re-run validation after each fix |
-| Validation fails >2 times | Phase 3 Check 5 | Discard wireframe, regenerate from scratch | Likely a fundamental layout approach error |
-| User requests feature addition | Phase 3 Step 15 (user review) | Go to Step 13, regenerate affected pages | Do not modify other pages unless impacted |
-| User requests logic change | Phase 3 Step 15 (user review) | Go to Step 6-7, re-confirm, then Step 13 | Re-run all checks after regeneration |
-| User requests major redesign | Phase 3 Step 15 (user review) | Go to Step 4, re-run Five Elements | Treat as a new requirement cycle |
-
-**Recovery Rules:**
-- After any recovery, re-run the workflow from the recovery point forward
-- Do NOT skip steps during recovery — the full sequence must execute
-- Record what caused the recovery in the PRD's Change Log
-- If the same issue causes recovery more than twice, escalate to the user with options
-- Never silently ignore or auto-fix issues without user awareness
+- If user requests changes, go back to Step 12 to regenerate PRD
+- If user only needs minor adjustments, can fix before Step 15
 
 ---
 
 ### Phase 4: Output
 
-**Step 16: Save PRD**
+**Step 15: Save PRD**
 - Save to `.solarwire/[requirement-name]/solarwire-prd.md`
 - No SVG generation (handled by editor application)
 
@@ -523,48 +463,36 @@ You MUST complete each step in order:
 
 **Phase 1: Five Elements Confirmation**
 5. [ ] Strategy Layer - business context and goals
-6. [ ] Terminal Type Confirmation - Mobile/Web/Admin
-7. [ ] Scope Layer - changes, affected pages (including related features), out-of-scope
-8. [ ] Structure Layer - page organization and user flows
-9. [ ] Framework Layer - page layouts and interaction patterns
-10. [ ] Presentation Layer - visual hierarchy and design preferences
-11. [ ] Multi-language confirmation
+6. [ ] Scope Layer - changes, affected pages (including related features), out-of-scope
+7. [ ] Structure Layer - page organization and user flows
+8. [ ] Framework Layer - page layouts and interaction patterns
+9. [ ] Presentation Layer - visual hierarchy and design preferences
+10. [ ] Multi-language confirmation
 
 **Phase 2: Requirements Validation**
-12. [ ] Requirements summary
-13. [ ] Requirements confirmation gate (user MUST confirm)
+11. [ ] Requirements summary
+12. [ ] Requirements confirmation gate (user MUST confirm)
 
 **Phase 3: Generate & Quality**
-14. [ ] Generate PRD
-15. [ ] Spec self-review (5 checks)
-16. [ ] Renderer validation (MUST pass)
-17. [ ] User review gate (user MUST review)
+13. [ ] Generate PRD
+14. [ ] Spec self-review (4 checks)
+15. [ ] Renderer validation: `node sw-skills/solarwire/validate-sw.js .solarwire/[requirement-name]/` (MUST pass)
+16. [ ] User review gate (user MUST review)
 
 **Phase 4: Output**
-18. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
+17. [ ] Save PRD to `.solarwire/[requirement-name]/solarwire-prd.md`
 
 ---
 
 ## PRD Document Structure
 
-> **STRUCTURE IS IMMUTABLE — DO NOT ADD, REMOVE, OR REORDER SECTIONS**
-> 
-> The following structure must be followed exactly. AI may NOT:
-> - Add new top-level sections (e.g., "Five Elements", "UX Layers", "Strategy Analysis")
-> - Remove any existing section
-> - Reorder sections
-> - Rename sections to synonyms (e.g., "Product Overview" → "Product Background")
->
-> **Language Rule: All section titles MUST use the user's communication language. The template below uses English placeholders for illustration — AI must translate every heading to the user's language before generating the document. Internal content (user stories, notes, descriptions) also follows the user's language.**
-
 ```markdown
-# [Product Requirements Document - Project Name translated to user language]
+# Product Requirements Document - [Project Name]
 
 ## Document Information
 | Project Name | [Project Name] |
 | Version | v1.0 |
 | Type | New Feature / Incremental Feature |
-| Terminal Type | Mobile App / Web Client / Admin Dashboard |
 | Created Date | [Date] |
 
 ## Change Log
@@ -574,24 +502,25 @@ You MUST complete each step in order:
 
 ---
 
-## 1. Product Overview [translate to user language]
-### 1.1 Product Background [translate to user language]
+## 1. Product Overview
+### 1.1 Product Background
 [Brief description of product background and goals]
 
-### 1.2 Target Users [translate to user language]
+### 1.2 Target Users
 [Description of target user groups]
 
-### 1.3 Core Value [translate to user language]
+### 1.3 Core Value
 [Core value provided to users by product]
 
-### 1.4 User Stories [translate to user language]
+### 1.4 User Stories
 
-**Format: As a [user role], I want to [action], so that [benefit] — translated to user language**
+**Format: As a [user role], I want to [action], so that [benefit]**
 
 | ID | User Story | Acceptance Criteria | Priority |
 |----|------------|---------------------|----------|
 | US-001 | As a [role], I want to [action], so that [benefit] | - Given [context], when [action], then [result] | P0 |
 | US-002 | As a [role], I want to [action], so that [benefit] | - Given [context], when [action], then [result] | P0 |
+| US-003 | As a [role], I want to [action], so that [benefit] | - Given [context], when [action], then [result] | P1 |
 
 **User Story Writing Guidelines:**
 - **User Role**: Identify who the user is (e.g., "As a registered user", "As an admin")
@@ -602,36 +531,36 @@ You MUST complete each step in order:
 
 ---
 
-## 2. Feature Scope [translate to user language]
-### 2.1 Feature List [translate to user language]
+## 2. Feature Scope
+### 2.1 Feature List
 | Module | Feature | Priority | Description |
 |--------|---------|----------|-------------|
 | [Module 1] | [Feature 1] | P0 | [Description] |
 | [Module 1] | [Feature 2] | P1 | [Description] |
 
-### 2.2 Feature Boundary [translate to user language]
+### 2.2 Feature Boundary
 - Included: [List included features]
 - Not Included: [List excluded features]
 
 ---
 
-## 3. Expected Outcome [translate to user language]
+## 3. Expected Outcome
 
-### 3.1 Success Metrics [translate to user language]
+### 3.1 Success Metrics
 | Metric | Target | Measurement Method |
 |--------|--------|-------------------|
 | [Metric 1] | [Target value] | [How to measure] |
 
-### 3.2 Expected User Behavior Changes [translate to user language]
+### 3.2 Expected User Behavior Changes
 - [Before → After description]
 
-### 3.3 Business Impact [translate to user language]
+### 3.3 Business Impact
 - [Expected business impact]
 
 ---
 
-## 4. Business Flow [translate to user language]
-### 4.1 Core Business Flowchart [translate to user language]
+## 4. Business Flow
+### 4.1 Core Business Flowchart
 ```mermaid
 flowchart TD
     A[Start] --> B[Step 1]
@@ -643,7 +572,7 @@ flowchart TD
     F --> G
 ```
 
-### 4.2 Interaction Sequence Diagram [translate to user language]
+### 4.2 Interaction Sequence Diagram
 ```mermaid
 sequenceDiagram
     participant U as User
@@ -661,8 +590,8 @@ sequenceDiagram
 
 ---
 
-## 5. Page Design [translate to user language]
-### 5.1 Page List [translate to user language]
+## 5. Page Design
+### 5.1 Page List
 | Page Name | Page Type | Change Type | Description |
 |-----------|-----------|-------------|-------------|
 | [Page 1] | Main Page | New | [Description] |
@@ -672,7 +601,7 @@ sequenceDiagram
 
 ---
 
-## 6. Page Details [translate to user language]
+## 6. Page Details
 
 > **Core Principle: All element descriptions are integrated into the SolarWire wireframe notes for "what you see is what you read"**
 
@@ -686,38 +615,67 @@ sequenceDiagram
 !size=13
 !bg=#F9FAFB
 
-[] @(0,0) w=[container_width] h=[container_height] bg=#FFFFFF b=#FFFFFF
+[] @(0,0) w=1440 h=900 bg=#FFFFFF
 
-// Global UI elements (navigation, sidebar, etc.) — derive from project code or standards.md Section 13
-// Page content — calculate coordinates using standards.md Section 13 Layout Calculation Rules
-// Each interactive element must have a note describing its behavior (see note-guide.md)
+// Page Content - Each element has detailed note description
+["Logo"] @(50,50) w=120 h=60 align=l vertical-align=m note="""Logo
+1. Click action
+   - When clicked, return to homepage"""
+
+"User Login" @(100,150) size=24 bold
+
+"Username" @(100,220)
+["Enter phone or email"] @(100,245) w=300 h=44 bg=#FFFFFF b=#E5E7EB align=l vertical-align=m note="""Username input
+1. Input rules
+   - Always supports phone number or email input
+   - Always automatically trims leading/trailing spaces
+   - If input exceeds 50 characters, truncate to 50
+2. Validation
+   - If format is invalid on blur, show 'Please enter a valid phone number or email'"""
+
+"Password" @(100,310)
+["Enter password"] @(100,335) w=300 h=44 bg=#FFFFFF b=#E5E7EB align=l vertical-align=m note="""Password input
+1. Input rules
+   - Always display password as dots
+   - If input is less than 6 or more than 32 characters, show validation error
+   - If password does not contain both letters and numbers, show validation error
+2. Interaction
+   - When eye icon is clicked, toggle password visibility"""
+
+["Login"] @(100,450) w=300 h=48 bg=#3B82F6 c=#FFFFFF size=16 align=c vertical-align=m note="""Login button
+1. Click action
+   - When clicked, validate username and password
+2. Success handling
+   - When login succeeds, save login state and redirect to homepage
+3. Failure handling
+   - If login fails, show modal 'Invalid username or password' and clear password field
+4. Disabled conditions
+   - While username or password is empty, disable button"""
 ```
-
-**Note**: The container `[] @(0,0)` uses `b=#FFFFFF` to prevent the default black border. Derive layout from project frontend code; use standards.md Section 13 for coordinate calculation rules when no code exists.
 
 ---
 
-## 7. Non-functional Requirements [translate to user language]
-### 7.1 Performance Requirements [translate to user language]
+## 7. Non-functional Requirements
+### 7.1 Performance Requirements
 - Page load time: < 2 seconds
 - API response time: < 500ms
 
-### 7.2 Security Requirements [translate to user language]
+### 7.2 Security Requirements
 - [List security requirements]
 
-### 7.3 Compatibility Requirements [translate to user language]
+### 7.3 Compatibility Requirements
 - Browsers: Chrome 90+, Safari 14+
 - Mobile: iOS 14+, Android 10+
 
 ---
 
-## 8. Appendix [translate to user language]
-### 8.1 Glossary [translate to user language]
+## 8. Appendix
+### 8.1 Glossary
 | Term | Description |
 |------|-------------|
 | [Term 1] | [Description] |
 
-### 8.2 References [translate to user language]
+### 8.2 References
 - [Reference links]
 ```
 
@@ -725,13 +683,13 @@ sequenceDiagram
 
 ## Modification & Incremental Rules
 
-When the requirement involves modifications to existing pages:
+When the requirement involves modifications to existing pages (which is common in most new requirements):
 
 ### Document Information
 - Declare `Type: Incremental Feature`
-- Include original PRD reference
 
 ### Change Summary Chapter
+Add a chapter listing affected pages:
 ```markdown
 ## Change Summary
 ### Affected Pages
@@ -746,19 +704,57 @@ When the requirement involves modifications to existing pages:
 - Feature List: Only write new features
 - Business Flow: Only write new flows
 - Page Details:
-  - Modified pages: Draw the **complete page** with all global UI elements. Page layout and unchanged elements are derived from existing frontend code or known PRD wireframes. Changes are marked with `[NEW]`, `[MODIFIED]`, `[REMOVED]`.
-  - New pages: Write complete wireframe with full page framework.
+  - Modified pages: Only describe changed elements (Delta Only), do not copy unchanged content from old PRDs
+  - New pages: Write complete wireframe
+- When modifying existing elements, notes must show before→after (Was: X. Now: Y)
+- Existing page structure inferred from code when available
 
-### Incremental Page Wireframe Rules
+### Delta Only Rules
 
-- Even if only one element is changed, the wireframe must show the complete page including navigation, sidebar, breadcrumbs, etc.
-- Page layout source priority:
-  1. Existing frontend code (parse component structure)
-  2. Known PRD wireframes (from `.solarwire/` directory)
-  3. Context inference based on terminal type
-- Change markers: `[NEW]`, `[MODIFIED]`, `[REMOVED]`
-- Unchanged elements kept but without detailed notes (optional `[UNCHANGED]` marker)
-- Refer to `standards.md` Section 12 for full incremental wireframe rules.
+For modified pages, only draw and describe the changed elements. Do NOT copy or re-describe unchanged parts.
+
+**Change Type Markers:**
+
+| Change Type | Note Prefix | Description |
+|-------------|-------------|-------------|
+| NEW | `[NEW]` | Brand new element added to the page |
+| MODIFIED | `[MODIFIED]` + change description | Existing element with changes |
+| REMOVED | `[REMOVED]` + reason | Element removed from the page |
+
+**Delta Only Example:**
+```solarwire
+!title="User Profile - Changes"
+!c=#111827
+!size=13
+!bg=#F9FAFB
+
+[] @(0,0) w=1440 h=900 bg=#FFFFFF
+
+// Only changed elements are drawn below
+
+["WeChat Login"] @(100,500) w=300 h=44 align=c vertical-align=m note="""[NEW] WeChat login button
+1. Click action
+   - When clicked, initiate WeChat authorization login
+2. Success handling
+   - When WeChat authorization succeeds, bind WeChat account and redirect to homepage"""
+
+["Login"] @(100,450) w=300 h=48 align=c vertical-align=m note="""[MODIFIED] Login button
+1. NEW: Loading state
+   - While login is in progress, show loading spinner and disable button to prevent double-click
+2. Existing behavior unchanged
+   - When clicked, validate username and password
+   - When login succeeds, save login state and redirect to homepage"""
+
+// REMOVED elements are listed in note only, not drawn
+```
+
+**Modified Page Annotation:**
+```markdown
+### 6.x [Page Name] (Modified)
+
+**Page Overview**: [One sentence description of what changed]
+**Changes**: Only changed elements are shown below. Unchanged elements are not repeated.
+```
 
 ---
 
@@ -766,24 +762,18 @@ When the requirement involves modifications to existing pages:
 
 ```
 .solarwire/
-├── [parent-requirement]/                # If split into sub-requirements
-│   ├── solarwire-prd.md                 # May contain overall overview chapter
-│   ├── [sub-requirement-1]/
-│   │   ├── solarwire-prd.md
-│   │   ├── dev-design.md
-│   │   ├── implementation-plan.md
-│   │   ├── test-cases.xlsx
-│   │   └── archive/
-│   ├── [sub-requirement-2]/
-│   │   └── ...
-│   └── ...
-├── [single-requirement]/
+├── [requirement-name]/
 │   ├── solarwire-prd.md
 │   ├── test-cases.xlsx
 │   ├── dev-design.md
 │   └── archive/
 │       └── solarwire-prd-v1.0.md
 ```
+
+**Naming Convention:**
+- Root directory: `.solarwire` (at project root)
+- Requirement folder: Based on requirement/project name (e.g., `user-login-system/`, `order-management/`)
+- PRD file: Always named `solarwire-prd.md`
 
 ---
 
@@ -836,14 +826,22 @@ Which approach would you like to choose?
 ## Important Reminders
 
 1. **Confirm Requirements Step by Step** - Don't rush to generate, fully understand requirements first
-2. **First Line Defines Element** - Note first line must describe what element is (e.g., "Login button"), not element type (e.g., "[Primary Button]")
-3. **Layout Close to Reality** - Wireframes should reflect actual page structure with 10px spacing
-4. **PRD Includes Changelog** - All PRDs must have version tracking via Change Log table
-5. **Document Language** - Write documents (including titles) in the user's communication language. If unsure, ask the user.
-6. **Modified Elements Show Before→After** - When describing modifications to existing elements, notes must describe the change: "Was: [old behavior]. Now: [new behavior]" or use [MODIFIED] prefix with change description.
-7. **PRD Structure Is Immutable** - The PRD must have exactly 8 top-level sections in fixed order: Product Overview, Feature Scope, Expected Outcome, Business Flow, Page Design, Page Details, Non-functional Requirements, Appendix. Never add, remove, or reorder sections. Never add "Five Elements", "UX Layers", or similar structural sections. All section titles must use the user's communication language.
-8. **Five Elements Are Internal Workflow Only** - The Five Elements (Strategy, Scope, Structure, Framework, Presentation) are used during requirement confirmation conversations. They must NEVER appear as headings or sections in the PRD document. Their content is distributed into the standard PRD sections as defined in the Five Elements Rules.
-
-> For all other rules (syntax, notes, colors, spacing, element selection, modals, tables, i18n, etc.), strictly follow syntax.md, note-guide.md, and standards.md.
+2. **Notes Describe Function and Business Logic** - Focus on behavior and logic, avoid visual details and technical implementation
+3. **Not Every Element Needs a Note** - Skip notes for visual elements; common sense exemption for back button, close button, page selector, number stepper
+4. **First Line Defines Element** - Note first line must describe what element is (e.g., "Login button"), not element type (e.g., "[Primary Button]")
+5. **No Brackets for Attributes** - Write directly `w=100 h=40`
+6. **Choose Elements Reasonably** - Buttons use rectangles, labels use text, only icons use placeholders
+7. **Layout Close to Reality** - Wireframes should reflect actual page structure with 10px spacing
+8. **Separate Modals/States/Tabs** - Each independent view in separate code block; all modals must have separate wireframe
+9. **Table Row Must Be Inside Table** - Row element `#` CANNOT exist independently, MUST be inside table container `##`
+10. **Container Rectangle Required** - First element of each page is white background container
+11. **Color Standards (Tailwind CSS)** - Use unified colors: #111827 (text), #6B7280 (secondary), #E5E7EB (border), #FFFFFF (bg), #F9FAFB (alternating row), #3B82F6 (primary), #EF4444 (error)
+12. **Font Standards** - Font size 13px, line height 22px
+13. **i18n Only When Confirmed** - Add multi-language support ONLY when user explicitly confirms; if not confirmed, absolutely NO i18n information; if confirmed, ALL meaningful elements MUST include i18n translations using full language names (English, Chinese, 日本語)
+14. **Modified Pages Use Delta Only** - When modifying existing pages, only describe changed elements; do not copy or re-describe unchanged parts from old PRDs
+15. **PRD Includes Changelog** - All PRDs must have version tracking via Change Log table
+16. **Document Language** - Write documents in the user's communication language. If unsure, ask the user.
+17. **Interactive Floating Cards as Separate Pages** - Popovers, action cards from "More" buttons, actionable tooltips MUST be drawn as separate SolarWire code blocks (like modals). Simple text success/error messages should NOT be drawn separately - write them in the triggering element's note instead.
+18. **Modified Elements Show Before→After** - When describing modifications to existing elements, notes must describe the change: "Was: [old behavior]. Now: [new behavior]" or use [MODIFIED] prefix with change description. Do NOT just describe the new state without context of what changed.
 
 ---
