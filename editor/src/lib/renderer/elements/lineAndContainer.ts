@@ -1,10 +1,10 @@
 import { LineElement, Element } from '../../parser';
-import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, calculateLineEnd, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
+import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
 import { RenderResult } from './rectangle';
 
 export function renderLine(element: LineElement, context: RenderContext): RenderResult {
   const start = calculatePosition(context, element.start);
-  const end = calculateLineEnd(context, start, element.end);
+  const end = calculatePosition(context, element.end);
   const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   
   const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333', vc);

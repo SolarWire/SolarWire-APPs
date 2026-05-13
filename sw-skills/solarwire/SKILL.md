@@ -1,102 +1,78 @@
 ---
 name: "solarwire"
-description: "Use for any SolarWire task including PRD creation, code reverse engineering, test case generation, dev design, implementation planning, or wireframe syntax validation"
+description: "SolarWire is an AI-powered toolkit for software development, covering PRD creation, code reverse engineering, test case generation, dev design, implementation planning, and wireframe syntax validation. All wireframes use SolarWire code blocks."
 ---
 
-# SolarWire
+# SolarWire AI Toolkit
 
-SolarWire is an AI-powered software development engineering toolkit that covers the full workflow from requirements to code. All deliverables are in .md format; wireframes use SolarWire code blocks, which can be viewed and fine-tuned by the editor application.
+SolarWire is a fully integrated software development engineering toolkit, bridging the gap from product requirements to implementation. It produces structured PRD documents with embedded SolarWire wireframes, which serve as a functional blueprint for development.
 
-## Core Rule Files (Always Load First)
+## How This Skill Works
 
-The following three files must be fully read and strictly followed at the start of **any** SolarWire task, regardless of the triggered intent:
-
-- `standards.md` — Colors, spacing, scenarios, page organization, modal and overlay rules, layout calculation rules
-- `syntax.md` — Full syntax reference, attribute rules, forbidden attributes list
-- `note-guide.md` — Note writing rules, EARS description style, forbidden content
-
-Before generating any SolarWire code or notes, confirm you have read these three files. Do NOT rely solely on workflow-specific summaries.
-
-**Attention Protection Protocol**
-
-These three files are lengthy. When reading them:
-1. Create a mental index from the table of contents first.
-2. Read "forbidden items", "mandatory rules", and "calculation formulas" with full attention.
-3. Treat all examples in these files as structural references only. Coordinates, sizes, and colors in examples are placeholders, not defaults.
-4. Before generating any output, return to the relevant rule section to verify compliance.
-5. If any rule is unclear after reading, re-read the specific section before proceeding.
+This skill employs **progressive disclosure**, loading information in three layers:
+1.  **Always Active**: This guide and the inline Syntax Quick Reference.
+2.  **Task-Specific**: A workflow file loaded based on your intent.
+3.  **Deep Dive**: Detailed reference files loaded by the workflow when generating a specific output.
 
 ## Intent Router
 
-| User Intent | Trigger Condition | Load File | Also Load |
-|---------|---------|---------|---------|
-| Create new PRD/Feature | User wants to write PRD, create requirements, new feature, modify existing features | [workflow-prd.md](workflow-prd.md) | standards.md, syntax.md, note-guide.md |
-| Modify existing PRD | User wants to extend or change an existing PRD | [workflow-prd.md](workflow-prd.md) (incremental mode) | standards.md, syntax.md, note-guide.md |
-| Generate PRD from code | User provides code/project, understand existing project | [workflow-prd.md](workflow-prd.md) (Scenario B) | standards.md, syntax.md, note-guide.md |
-| Generate test cases | PRD exists, needs test cases | [workflow-test.md](workflow-test.md) | standards.md, syntax.md, note-guide.md |
-| Technical design | PRD confirmed, needs architecture design | [workflow-dev-design.md](workflow-dev-design.md) | standards.md, syntax.md, note-guide.md |
-| Implementation plan | PRD + dev design confirmed, needs implementation plan | [workflow-implementation.md](workflow-implementation.md) | standards.md, syntax.md, note-guide.md |
-| Component library | Create/modify .swc components | [workflow-component.md](workflow-component.md) | standards.md, syntax.md, note-guide.md |
-| Syntax reference | Generate/validate SW code, syntax errors | [syntax.md](syntax.md) | — |
-| Note writing | Unsure how to write notes | [note-guide.md](note-guide.md) | — |
-| Color/Spacing/Scene | Unsure about visual standards | [standards.md](standards.md) | — |
+Your request will be matched to the correct workflow.
 
-## Core Flows
+| User Intent | Trigger Condition | Load Workflow |
+|-------------|-------------------|---------------|
+| Create/Modify PRD | Write PRD, create requirements, new feature, modify existing features, understand existing code | `workflows/prd.md` |
+| Generate Test Cases | A finalized PRD exists and needs test cases | `workflows/test.md` |
+| Create Technical Design | A confirmed PRD exists and needs an architecture/dev design | `workflows/dev-design.md` |
+| Create Implementation Plan | A confirmed PRD and dev design both exist | `workflows/implementation.md` |
+| Manage Component Library | Create or modify `.swc` component files | `workflows/component.md` |
 
-**Flow 1: New Feature Development**
-Explore context → Related feature impact analysis (scan codebase & existing PRDs) → Five Elements confirmation (Strategy→Scope→Structure→Framework→Presentation) → Terminal type confirmation → Produce PRD (with wireframes, including related feature modifications) → User confirms PRD → Write test cases → Dev design → Implementation plan → *(Code generation: not yet implemented)*
+## Inline Syntax Quick Reference
 
-**Flow 2: Understand Existing Project**
-Analyze codebase → Extract Five Elements from code (reverse: Presentation→Strategy) → Produce PRD (with wireframes) → User confirms understanding
+This is a quick lookup. Complete attribute references and rules are in `references/syntax.md`.
 
-**Flow 3: Modify Existing PRD**
-Load existing PRD from `.solarwire/` → Related feature impact analysis → Ancestor page structure from code or existing PRD → Delta page wireframes with complete containers → Proceed as incremental feature
+| Element | Syntax | Example |
+|---------|--------|---------|
+| Rectangle | `["text"] @(x,y)` | `["Button"] @(100,50) w=120 h=40 bg=#3B82F6 c=#FFFFFF` |
+| Rounded Rect| `["text"] @(x,y) r=N` | `["Card"] @(50,100) w=300 h=200 r=8` |
+| Circle | `("text") @(x,y)` | `("Avatar") @(300,50) w=60` |
+| Text | `"text" @(x,y)` | `"Title" @(100,50) size=24 bold` |
+| Multi-line Text | `"""Line1\nLine2""" @(x,y)` | `"""Line 1\nLine 2""" @(100,50)` |
+| Placeholder | `[?"text"] @(x,y)` | `[?"Image"] @(200,200) w=150 h=100` |
+| Image | `<URL> @(x,y)` | `<https://example.com/logo.png> @(50,50) w=100 h=100` |
+| Line | `-- @(x1,y1)->(x2,y2)` | `-- @(50,200)->(450,200) c=#E5E7EB` |
+| Table | `## @(x,y)` | `## @(50,50) w=500` |
+| Table Row | `  #` (indented) | `  # bg=#F3F4F6` |
+
+## Forbidden Attributes (NEVER use)
+
+| Hallucinated Attribute | Correct Replacement |
+|------------------------|----------------------|
+| `multiline` | Not a valid attribute |
+| `truncate` | Not a valid attribute |
+| `stroke` | `b` for border color |
+| `strokeWidth` | `s` for border width |
+| `(())` for circle | `("text")` for circle |
+
+## Red Lines (Always Enforced)
+
+1.  Never generate SVG.
+2.  Never skip a user confirmation gate.
+3.  Never add i18n without explicit user confirmation.
+4.  Document language follows the user's communication language.
+5.  Incremental PRDs must redraw complete pages, with changes marked.
+6.  Derive wireframe layouts/colors from project code first; use standards as fallback.
+7.  Every visual panel requiring code MUST have a separate wireframe (tooltips/toasts go in notes).
+
+## Standard Operating Procedure
+
+After a workflow is loaded, it will guide you. Here is the general outline:
+
+1.  **Initialization**: The loaded workflow will instruct you to read required `references/` files.
+2.  **Discovery & Confirmation**: You will be guided through a "Five Elements" confirmation process (Strategy, Scope, Structure, Framework, Presentation) and other critical checks.
+3.  **Execution**: You will generate the requested document, embedding SolarWire code blocks.
+4.  **Self-Review & Validation**: You will perform a structured self-review against a checklist and run a validation script on the output.
+5.  **Hand-off**: The finalized document is presented for user review.
 
 ## File Structure Convention
 
-```
-.solarwire/
-├── [parent-module-name]/                # If split into sub-requirements
-│   ├── [sub-requirement-1]/
-│   │   ├── solarwire-prd.md
-│   │   ├── dev-design.md
-│   │   ├── implementation-plan.md
-│   │   ├── test-cases.xlsx
-│   │   └── archive/
-│   ├── [sub-requirement-2]/
-│   │   └── ...
-│   └── ...
-├── [single-requirement]/                # Single, non-split requirement
-│   ├── solarwire-prd.md
-│   ├── test-cases.xlsx
-│   ├── dev-design.md
-│   └── archive/
-│       └── solarwire-prd-v1.0.md
-```
-
-## Version Management
-
-- All changes (new or modification) are handled as new requirements
-- When modifying existing features: only describe changed parts, notes show before→after
-- Existing page structure inferred from code when available
-- All PRDs contain a Changelog at the top
-
-## Red Lines
-
-1. Never generate SVG (handled by the editor application)
-2. Never skip user confirmation gates
-3. Never add i18n without user confirmation
-4. Document language follows user's communication language; if unsure, ask the user
-5. Modified pages must be redrawn completely based on existing code or known PRD, with changes marked
-6. Derive wireframe layouts and colors from project frontend code first; use standards.md defaults only when no code exists
-7. Any frontend presentation requiring coding MUST have a wireframe; visually separate panels MUST be separate wireframes (tooltips/toasts go in notes)
-
-## Syntax & Attribute Reference
-
-For complete syntax rules, attribute definitions, and forbidden attributes list, see [syntax.md](syntax.md).
-
-## Supporting Files
-
-See Intent Router above for which files to load per intent. All workflow files reference syntax.md, note-guide.md, and standards.md as prerequisites.
-
-
+Outputs are saved to a `.solarwire/` directory, organized by project.

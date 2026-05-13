@@ -1,4 +1,4 @@
-import { Coordinate, CoordinateExpression, RelativeEndCoordinate, Element, DocumentDeclaration, SourceLocation } from '../parser';
+import { Coordinate, CoordinateExpression, Element, DocumentDeclaration, SourceLocation } from '../parser';
 
 export function escapeHtml(text: string): string {
   return text
@@ -200,77 +200,18 @@ export interface AbsolutePosition {
 export function calculateCoordinate(
   context: RenderContext,
   coord: Coordinate,
-  isX: boolean,
-  lastBounds: ElementBounds | null
+  isX: boolean
 ): number {
-  let baseValue: number;
-
-  switch (coord.type) {
-    case 'absolute':
-      baseValue = coord.value;
-      break;
-    case 'relative':
-      baseValue = coord.value;
-      break;
-    case 'edge':
-      if (!lastBounds) {
-        baseValue = 0;
-      } else {
-        switch (coord.direction) {
-          case 'L':
-            baseValue = lastBounds.x;
-            break;
-          case 'R':
-            baseValue = lastBounds.x + lastBounds.width;
-            break;
-          case 'T':
-            baseValue = lastBounds.y;
-            break;
-          case 'B':
-            baseValue = lastBounds.y + lastBounds.height;
-            break;
-          case 'C':
-            baseValue = isX 
-              ? lastBounds.x + lastBounds.width / 2 
-              : lastBounds.y + lastBounds.height / 2;
-            break;
-          default:
-            baseValue = 0;
-        }
-      }
-      baseValue += coord.value;
-      break;
-    default: {
-      const exhaustiveCheck: never = coord;
-      throw new Error(`Internal error: Unknown coordinate type "${(exhaustiveCheck as any).type}". This is a renderer bug, not a user input error.`);
-    }
-  }
-
-  return baseValue + (isX ? context.offsetX : context.offsetY);
+  return coord.value + (isX ? context.offsetX : context.offsetY);
 }
 
 export function calculatePosition(
   context: RenderContext,
   coords: CoordinateExpression
 ): AbsolutePosition {
-  const x = calculateCoordinate(context, coords.x, true, context.lastElementBounds);
-  const y = calculateCoordinate(context, coords.y, false, context.lastElementBounds);
+  const x = calculateCoordinate(context, coords.x, true);
+  const y = calculateCoordinate(context, coords.y, false);
   return { x, y };
-}
-
-export function calculateLineEnd(
-  context: RenderContext,
-  start: AbsolutePosition,
-  end: CoordinateExpression | RelativeEndCoordinate
-): AbsolutePosition {
-  if ('dx' in end) {
-    return {
-      x: start.x + end.dx,
-      y: start.y + end.dy,
-    };
-  } else {
-    return calculatePosition(context, end);
-  }
 }
 
 export function getNumberAttribute(

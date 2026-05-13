@@ -16,10 +16,7 @@ export type {
   TableRowElement,
   Coordinate,
   AbsoluteCoordinate,
-  RelativeCoordinate,
-  EdgeCoordinate,
   CoordinateExpression,
-  RelativeEndCoordinate,
   SourceLocation,
 } from './types';
 

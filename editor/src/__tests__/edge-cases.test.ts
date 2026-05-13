@@ -18,7 +18,6 @@ import {
   getLetterSpacingAttribute,
   calculateCoordinate,
   calculatePosition,
-  calculateLineEnd,
   createRenderContext,
   createChildContext,
   escapeHtml,
@@ -311,46 +310,9 @@ describe('renderer-context 边缘场景', () => {
 
   describe('calculateCoordinate', () => {
     const ctx = createRenderContext();
-    const lastBounds = { x: 100, y: 200, width: 50, height: 30 };
 
     it('absolute 坐标', () => {
-      expect(calculateCoordinate(ctx, { type: 'absolute', value: 50 }, true, null)).toBe(50);
-    });
-
-    it('relative 坐标', () => {
-      expect(calculateCoordinate(ctx, { type: 'relative', value: 10 }, true, null)).toBe(10);
-    });
-
-    it('edge L 坐标', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'L', value: 0 }, true, lastBounds)).toBe(100);
-    });
-
-    it('edge R 坐标', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'R', value: 0 }, true, lastBounds)).toBe(150);
-    });
-
-    it('edge T 坐标', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'T', value: 0 }, false, lastBounds)).toBe(200);
-    });
-
-    it('edge B 坐标', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'B', value: 0 }, false, lastBounds)).toBe(230);
-    });
-
-    it('edge C 坐标（水平）', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'C', value: 0 }, true, lastBounds)).toBe(125);
-    });
-
-    it('edge C 坐标（垂直）', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'C', value: 0 }, false, lastBounds)).toBe(215);
-    });
-
-    it('edge 无 lastBounds 返回 0', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'L', value: 0 }, true, null)).toBe(0);
-    });
-
-    it('edge 有偏移', () => {
-      expect(calculateCoordinate(ctx, { type: 'edge', direction: 'R', value: 10 }, true, lastBounds)).toBe(160);
+      expect(calculateCoordinate(ctx, { type: 'absolute', value: 50 }, true)).toBe(50);
     });
   });
 
@@ -362,25 +324,6 @@ describe('renderer-context 边缘场景', () => {
         y: { type: 'absolute', value: 20 },
       });
       expect(pos).toEqual({ x: 10, y: 20 });
-    });
-  });
-
-  describe('calculateLineEnd', () => {
-    it('相对终点', () => {
-      const ctx = createRenderContext();
-      const start = { x: 10, y: 20 };
-      const end = calculateLineEnd(ctx, start, { dx: 100, dy: 50 });
-      expect(end).toEqual({ x: 110, y: 70 });
-    });
-
-    it('绝对终点', () => {
-      const ctx = createRenderContext();
-      const start = { x: 10, y: 20 };
-      const end = calculateLineEnd(ctx, start, {
-        x: { type: 'absolute', value: 200 },
-        y: { type: 'absolute', value: 300 },
-      });
-      expect(end).toEqual({ x: 200, y: 300 });
     });
   });
 
