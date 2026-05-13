@@ -16,7 +16,7 @@
 
 .toast-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   padding: 10px 14px;
   background: var(--bg-secondary);
@@ -28,6 +28,8 @@
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
   opacity: 1;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .toast-info {
@@ -53,9 +55,12 @@
 
 .toast-message {
   flex: 1;
+  min-width: 0;
   font-size: var(--font-size-base);
   color: var(--text-primary);
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .toast-close {
@@ -65,6 +70,7 @@
   cursor: pointer;
   font-size: 16px;
   padding: 0 2px;
+  flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.15s;
 }
