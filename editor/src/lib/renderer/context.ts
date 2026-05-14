@@ -266,7 +266,20 @@ export function getColorAttribute(
 ): string {
   const localValue = attributes[key];
   if (localValue !== undefined) {
-    if (localValue === '') return 'transparent';
+    if (localValue === '' || localValue === 'transparent' || localValue === 'none') return 'transparent';
+    if (!/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(localValue)) {
+      if (vc) {
+        throw new Error(formatRenderError({
+          title: `Invalid value for "${key}" attribute`,
+          expected: 'A valid hex color (#RGB, #RRGGBB, #RRGGBBAA) or "transparent"',
+          found: `"${localValue}"`,
+          location: getElementLocationInfo(vc.element),
+          reason: `"${localValue}" is not a valid color format.`,
+          solution: `Use a hex color value like #FF0000 or "transparent" for the "${key}" attribute.`
+        }, vc.sourceInput, vc.element.location));
+      }
+      return defaultValue;
+    }
     return localValue;
   }
   if (globalDefaults[key] !== undefined) {
@@ -280,7 +293,11 @@ export function getBooleanAttribute(
   globalDefaults: GlobalDefaults,
   key: string
 ): boolean {
-  if (key in attributes) return true;
+  if (key in attributes) {
+    const val = attributes[key];
+    if (val === 'false' || val === '0' || val === 'no') return false;
+    return true;
+  }
   if (globalDefaults[key] !== undefined) return !!globalDefaults[key];
   return false;
 }
@@ -509,4 +526,69 @@ export function generateShadowFilter(shadow: ShadowConfig, elementId: string): s
   return `  <filter id="shadow-${elementId}" x="-50%" y="-50%" width="200%" height="200%">
     <feDropShadow dx="${shadow.x}" dy="${shadow.y}" stdDeviation="${shadow.blur}" flood-color="${shadow.color}"/>
   </filter>`;
+}
+
+export type ElementTypeName = 'rectangle' | 'circle' | 'text' | 'placeholder' | 'image' | 'line' | 'table' | 'table-row';
+
+export const VALID_ATTRIBUTES: Record<ElementTypeName, Set<string>> = {
+  rectangle: new Set([
+    'r', 'w', 'h', 'bg', 'c', 'b', 's', 'size', 'text-size', 'align', 'bold', 'italic',
+    'note', 'opacity', 'shadow-enabled', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
+    'vertical-align', 'text-decoration', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'letter-spacing', 'line-height',
+  ]),
+  circle: new Set([
+    'w', 'h', 'bg', 'b', 's', 'c', 'size', 'text-size', 'bold', 'italic',
+    'note', 'opacity', 'shadow-enabled', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
+    'vertical-align', 'text-decoration', 'line-height', 'letter-spacing', 'align',
+    'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  ]),
+  text: new Set([
+    'c', 'size', 'text-size', 'bold', 'opacity', 'note',
+  ]),
+  placeholder: new Set([
+    'w', 'h', 'bg', 'b', 's', 'c', 'size', 'text-size',
+    'note', 'vertical-align', 'align', 'line-height', 'letter-spacing', 'text-decoration',
+    'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'bold', 'italic',
+  ]),
+  image: new Set([
+    'w', 'h', 'bg', 'c', 'b', 's', 'size', 'text-size',
+    'note', 'opacity', 'shadow-enabled', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
+  ]),
+  line: new Set([
+    'b', 's', 'style', 'size', 'text-size', 'c', 'note',
+  ]),
+  table: new Set([
+    'w', 'h', 'border', 'cellspacing', 'b', 'bg', 'note',
+  ]),
+  'table-row': new Set([
+    'bg', 'c', 'b', 's', 'size', 'bold', 'italic', 'align', 'note',
+    'line-height', 'letter-spacing', 'vertical-align', 'text-decoration',
+    'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+  ]),
+};
+
+export function validateElementAttributes(
+  element: Element,
+  vc?: ValidationContext,
+): void {
+  const type = element.type as ElementTypeName;
+  const whitelist = VALID_ATTRIBUTES[type];
+  if (!whitelist) return;
+
+  const attrs = Object.keys(element.attributes);
+  const unsupported = attrs.filter(a => !whitelist.has(a));
+
+  if (unsupported.length > 0) {
+    const first = unsupported[0];
+    const val = element.attributes[first];
+    throw new Error(formatRenderError({
+      title: `"${first}" is not a valid attribute for ${type} element`,
+      expected: `Valid attributes: ${[...whitelist].join(', ')}`,
+      found: `${first}=${val || ''}`,
+      location: getElementLocationInfo(element),
+      reason: `"${first}" is not supported on ${type} elements.`,
+      solution: `Remove the "${first}" attribute or check the correct attribute name.`,
+    }, vc?.sourceInput, vc?.element.location));
+  }
 }

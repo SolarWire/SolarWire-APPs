@@ -1,5 +1,5 @@
 import { Document, Element } from '../parser';
-import { createRenderContext, RenderContext, ElementBounds, escapeHtml, formatRenderError, getElementLocationInfo } from './context';
+import { createRenderContext, RenderContext, ElementBounds, escapeHtml, formatRenderError, getElementLocationInfo, validateElementAttributes, ValidationContext } from './context';
 import { renderRectangle, RenderResult } from './elements/rectangle';
 import { renderCircle, renderText, renderPlaceholder, renderImage, renderTable } from './elements/otherElements';
 import { renderLine } from './elements/lineAndContainer';
@@ -168,6 +168,11 @@ interface InternalRenderOptions {
 
 export function renderElement(element: Element, context: RenderContext, options?: InternalRenderOptions): RenderResult {
   const result = (() => {
+    const isTableCell = (element as any)._isTableCell;
+    if (!isTableCell) {
+      const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+      validateElementAttributes(element, vc);
+    }
     switch (element.type) {
       case 'rectangle':
         return renderRectangle(element, context);

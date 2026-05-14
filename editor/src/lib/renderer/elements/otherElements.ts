@@ -854,7 +854,7 @@ function renderTableRow(
   const cells = element.children || [];
   cells.forEach(cell => {
     const mergedAttributes = { ...rowDefaults, ...cell.attributes };
-    const modifiedCell = { ...cell, attributes: mergedAttributes };
+    const modifiedCell = { ...cell, attributes: mergedAttributes, _isTableCell: true };
     
     const cellContext = createChildContext(context, currentX, pos.y);
     const result = renderChild(modifiedCell as any, cellContext);

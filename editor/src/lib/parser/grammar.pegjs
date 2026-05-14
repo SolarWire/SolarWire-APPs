@@ -237,7 +237,7 @@ DoubleQuotedChar
   / !'"' . { return text(); }
 
 TripleQuotedContent
-  = (!"\"\"\"" .)*
+  = ( !( "\"\"\"" !"\"" ) . )*
   {
     return text();
   }
