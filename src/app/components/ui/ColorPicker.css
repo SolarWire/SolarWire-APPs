@@ -288,10 +288,6 @@
   background: var(--bg-hover);
 }
 
-.color-picker-transparent-placeholder {
-  opacity: 0.5;
-  pointer-events: none;
-}
 
 .color-picker-presets {
   display: grid;

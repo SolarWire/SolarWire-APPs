@@ -244,14 +244,10 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
       className="color-picker-popup"
       style={{ top: popupPosRef.current.top, left: popupPosRef.current.left }}
     >
-      {colorMode === 'hex' && !isTransparent ? (
+      {colorMode === 'hex' ? (
         <HexColorPicker color={localColor} onChange={handleColorChange} />
-      ) : colorMode === 'rgb' && !isTransparent ? (
-        <RgbColorPicker color={rgbValue} onChange={handleRgbChange} />
       ) : (
-        <div className="color-picker-transparent-placeholder">
-          <HexColorPicker color="#ffffff" onChange={handleColorChange} />
-        </div>
+        <RgbColorPicker color={rgbValue} onChange={handleRgbChange} />
       )}
 
       <div className="color-picker-input-section">
@@ -277,6 +273,12 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
               </svg>
             </button>
           )}
+          <button className="color-picker-transparent-btn" onClick={() => onChange('none')} title="Transparent (no color)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+          </button>
         </div>
         {colorMode === 'hex' ? (
           <HexColorInput
@@ -324,12 +326,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
       <div className="color-picker-presets-section">
         <div className="color-picker-presets-header">
           <span className="color-picker-presets-title">Presets</span>
-          <button className="color-picker-transparent-btn" onClick={() => onChange('none')} title="Transparent (no color)">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
-            </svg>
-          </button>
           <button className="color-picker-reset-btn" onClick={handleResetPresets}>Reset</button>
         </div>
         <div className="color-picker-presets">

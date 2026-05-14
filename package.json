@@ -1,6 +1,6 @@
 {
   "name": "solarwire-editor",
-  "version": "0.1.20",
+  "version": "0.1.21",
   "description": "SolarWire Editor - A complete document workspace",
   "main": "dist/main/index.js",
   "scripts": {
