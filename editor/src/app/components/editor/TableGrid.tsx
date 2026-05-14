@@ -174,12 +174,10 @@ const TableGrid: React.FC<TableGridProps> = ({
 
             {cellGrid[rowIdx]?.map((info, colIdx) => {
               if (!info || !info.visible) {
-                // 占位符，保持布局
-                return <div key={colIdx} className="grid-cell hidden-cell" style={{ display: 'none' }} />;
+                return <div key={colIdx} className="grid-cell-placeholder" style={{ flex: 1, minWidth: 0 }} />;
               }
               if (info.rowIdx !== rowIdx || info.colIdx !== colIdx) {
-                // 这个位置是被其他单元格的rowspan/colspan占用的
-                return <div key={colIdx} className="grid-cell hidden-cell" style={{ display: 'none' }} />;
+                return <div key={colIdx} className="grid-cell-placeholder" style={{ flex: info.colspan, minWidth: 0 }} />;
               }
 
               const cell = info.cell;

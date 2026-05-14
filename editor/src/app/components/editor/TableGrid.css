@@ -197,6 +197,17 @@ body.theme-minimal .row-label {
   align-items: center;
 }
 
+.grid-cell-placeholder {
+  flex: 1;
+  min-width: 100px;
+  min-height: 36px;
+  border-right: 1px solid var(--border-color);
+}
+
+.grid-cell-placeholder:last-child {
+  border-right: none;
+}
+
 .grid-cell:last-child {
   border-right: none;
 }
