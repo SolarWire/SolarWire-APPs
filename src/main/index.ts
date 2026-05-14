@@ -1,27 +1,50 @@
 import { app, BrowserWindow, net } from 'electron';
 import * as path from 'path';
+import * as fs from 'fs';
 import { setupIPC } from './ipc';
 
-// 设置应用名称
 app.setName('SolarWire Editor');
 
 let mainWindow: BrowserWindow | null = null;
 
-/**
- * 尝试连接到指定端口，检查是否有 Vite 开发服务器在运行
- */
+const SUPPORTED_FILE_EXTENSIONS = new Set(['md', 'markdown', 'solarwire', 'sw']);
+
+function isSupportedFilePath(filePath: string): boolean {
+  const ext = filePath.split('.').pop()?.toLowerCase() || '';
+  return SUPPORTED_FILE_EXTENSIONS.has(ext);
+}
+
+function extractPathFromArgv(argv: string[]): { filePath: string | null; dirPath: string | null } {
+  for (const arg of argv) {
+    if (arg.startsWith('-') || arg.startsWith('--') || arg.startsWith('/')) continue;
+    if (!path.isAbsolute(arg)) continue;
+
+    try {
+      const stat = fs.statSync(arg);
+      if (stat.isFile() && isSupportedFilePath(arg)) {
+        return { filePath: arg, dirPath: null };
+      }
+      if (stat.isDirectory()) {
+        return { filePath: null, dirPath: arg };
+      }
+    } catch {
+      // ignore invalid paths
+    }
+  }
+  return { filePath: null, dirPath: null };
+}
+
 async function checkPort(port: number): Promise<boolean> {
   return new Promise((resolve) => {
     let resolved = false;
-    
-    // 设置超时定时器
+
     const timeout = setTimeout(() => {
       if (!resolved) {
         resolved = true;
         resolve(false);
       }
     }, 500);
-    
+
     const request = net.request({
       method: 'GET',
       protocol: 'http:',
@@ -50,21 +73,28 @@ async function checkPort(port: number): Promise<boolean> {
   });
 }
 
-/**
- * 找到正在运行的 Vite 开发服务器端口
- * 从 3000 开始尝试，最多尝试到 3010
- */
 async function findVitePort(): Promise<number> {
   const portsToTry = [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010];
-  
+
   for (const port of portsToTry) {
     const isOpen = await checkPort(port);
     if (isOpen) {
       return port;
     }
   }
-  
-  return 3000; // 默认返回 3000
+
+  return 3000;
+}
+
+function sendOpenPathToRenderer(filePath: string | null, dirPath: string | null): void {
+  if (!mainWindow || (!filePath && !dirPath)) return;
+
+  mainWindow.webContents.send('open-path', { filePath, dirPath });
+
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.focus();
 }
 
 function createWindow(): void {
@@ -73,6 +103,8 @@ function createWindow(): void {
     height: 900,
     title: 'SolarWire Editor',
     icon: path.join(__dirname, '../../public/logo.png'),
+    backgroundColor: '#1e1e1e',
+    show: false,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -83,34 +115,55 @@ function createWindow(): void {
     }
   });
 
-  // 开发模式下使用 Vite 服务器
-  // 生产模式下使用打包后的文件
-  const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
-  
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+  });
+
+  const builtAppPath = path.join(__dirname, '../app/index.html');
+  const isDev = process.env.NODE_ENV === 'development' || !fs.existsSync(builtAppPath);
+
   if (isDev) {
-    // 先找到 Vite 实际运行的端口
     findVitePort().then((port) => {
       console.log(`Loading Vite server at http://localhost:${port}`);
       mainWindow?.loadURL(`http://localhost:${port}`);
     }).catch(() => {
-      // 如果找不到，默认尝试 3000
       mainWindow?.loadURL('http://localhost:3000');
     });
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../app/index.html'));
+    mainWindow.loadFile(builtAppPath);
   }
 }
 
-app.whenReady().then(() => {
-  setupIPC();
-  createWindow();
+const gotTheLock = app.requestSingleInstanceLock();
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (_event, argv) => {
+    if (mainWindow) {
+      const { filePath, dirPath } = extractPathFromArgv(argv);
+      sendOpenPathToRenderer(filePath, dirPath);
     }
   });
-});
+
+  app.whenReady().then(() => {
+    setupIPC();
+    createWindow();
+
+    const { filePath, dirPath } = extractPathFromArgv(process.argv);
+    if (filePath || dirPath) {
+      mainWindow?.webContents.on('did-finish-load', () => {
+        sendOpenPathToRenderer(filePath, dirPath);
+      });
+    }
+
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+      }
+    });
+  });
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

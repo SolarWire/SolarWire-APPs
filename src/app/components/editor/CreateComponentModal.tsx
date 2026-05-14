@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, ComponentCategory } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateComponentModal.css';
 
 interface CreateComponentModalProps {
@@ -19,13 +20,13 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
     description: string;
     code: string;
     libraryId: string;
-    categoryId: string | undefined;
+    categoryId: string | null;
   }>({
     name: '',
     description: '',
     code: '',
     libraryId: defaultLibraryId || '',
-    categoryId: defaultCategoryId || undefined
+    categoryId: defaultCategoryId ?? null
   });
   
   const [formErrors, setFormErrors] = useState<{ name?: string; libraryId?: string }>({});
@@ -84,11 +85,11 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
         code: componentData.code.trim() || '[]'
       });
       
-      showToast('组件创建成功', 'success');
+      feedback.toast.success('组件创建成功');
       handleClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };
@@ -134,8 +135,8 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
   }
 
   return (
-    <div className="create-component-modal-overlay">
-      <div className="create-component-modal">
+    <ModalPortal><div className="create-component-modal-overlay">
+      <div className="create-component-modal glass-panel">
         <div className="create-component-header">
           <h2>🧩 新建组件</h2>
           <button className="close-button" onClick={handleClose}>✕</button>
@@ -220,7 +221,7 @@ const CreateComponentModal: React.FC<CreateComponentModalProps> = ({ isOpen, onC
           <button className="btn-primary" onClick={handleCreate}>创建</button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

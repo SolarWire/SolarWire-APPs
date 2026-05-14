@@ -1,16 +1,14 @@
-/**
- * 坐标系统Hook
- * 提供统一的坐标转换功能
- */
-import { useCallback, useRef } from 'react';
-import { screenToWorld, worldToScreen, svgToWorld, worldToSvg, getTransformString } from '../utils/coordinate-utils';
+import { useCallback, useRef, useMemo } from 'react';
+import { ViewportManager, screenToWorld, worldToScreen } from '../utils/coordinate-utils';
 
 interface UseCoordinateSystemOptions {
   position: { x: number; y: number };
   scale: number;
+  viewBoxOffset?: { x: number; y: number };
 }
 
 interface UseCoordinateSystemReturn {
+  viewport: ViewportManager;
   getWorldCoords: (clientX: number, clientY: number) => { x: number; y: number };
   getScreenCoords: (worldX: number, worldY: number) => { x: number; y: number };
   getSvgCoords: (clientX: number, clientY: number) => { x: number; y: number };
@@ -20,9 +18,15 @@ interface UseCoordinateSystemReturn {
 
 export function useCoordinateSystem({
   position,
-  scale
+  scale,
+  viewBoxOffset = { x: 0, y: 0 }
 }: UseCoordinateSystemOptions): UseCoordinateSystemReturn {
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const viewport = useMemo(
+    () => new ViewportManager(position, scale, viewBoxOffset),
+    [position.x, position.y, scale, viewBoxOffset.x, viewBoxOffset.y]
+  );
 
   const getWorldCoords = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } => {
@@ -30,9 +34,9 @@ export function useCoordinateSystem({
         return { x: 0, y: 0 };
       }
       const rect = containerRef.current.getBoundingClientRect();
-      return screenToWorld(clientX, clientY, rect, position, scale);
+      return screenToWorld(clientX, clientY, rect, viewport);
     },
-    [position, scale]
+    [viewport]
   );
 
   const getScreenCoords = useCallback(
@@ -41,24 +45,24 @@ export function useCoordinateSystem({
         return { x: 0, y: 0 };
       }
       const rect = containerRef.current.getBoundingClientRect();
-      return worldToScreen(worldX, worldY, rect, position, scale);
+      return worldToScreen(worldX, worldY, rect, viewport);
     },
-    [position, scale]
+    [viewport]
   );
 
   const getSvgCoords = useCallback(
     (clientX: number, clientY: number): { x: number; y: number } => {
-      const worldCoords = getWorldCoords(clientX, clientY);
-      return worldToSvg(worldCoords.x, worldCoords.y);
+      return getWorldCoords(clientX, clientY);
     },
     [getWorldCoords]
   );
 
   const getTransform = useCallback((): string => {
-    return getTransformString(position, scale);
-  }, [position, scale]);
+    return viewport.getTransformString();
+  }, [viewport]);
 
   return {
+    viewport,
     getWorldCoords,
     getScreenCoords,
     getSvgCoords,

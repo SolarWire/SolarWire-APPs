@@ -1,16 +1,17 @@
 import { LineElement, Element } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, calculateLineEnd, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
+import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getStyleAttribute, updateLastElementBounds, escapeHtml } from '../context';
 import { RenderResult } from './rectangle';
 
 export function renderLine(element: LineElement, context: RenderContext): RenderResult {
   const start = calculatePosition(context, element.start);
-  const end = calculateLineEnd(context, start, element.end);
+  const end = calculatePosition(context, element.end);
+  const vc: ValidationContext = { sourceInput: context.sourceInput, element };
   
-  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#333333');
-  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1);
-  const style = getStyleAttribute(element.attributes);
-  const textSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
-  const textColor = getColorAttribute(element.attributes, context.globalDefaults, 'text-color', '#333333');
+  const b = getColorAttribute(element.attributes, context.globalDefaults, 'b', '#333333', vc);
+  const s = getNumberAttribute(element.attributes, context.globalDefaults, 's', 1, vc);
+  const style = getStyleAttribute(element.attributes, vc);
+  const textSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
+  const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#333333', vc);
   const note = element.attributes['note'];
   
   let svgParts: string[] = [];
@@ -27,7 +28,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
   svgParts.push(`<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="transparent" stroke-width="${hitAreaWidth}" pointer-events="stroke"/>`);
 
   // 实际显示的线段
-  svgParts.push(`<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${c}" stroke-width="${s}"${strokeDasharray}/>`);
+  svgParts.push(`<line x1="${start.x}" y1="${start.y}" x2="${end.x}" y2="${end.y}" stroke="${b}" stroke-width="${s}"${strokeDasharray}/>`);
   
   if (element.label) {
     const midX = (start.x + end.x) / 2;
@@ -37,7 +38,7 @@ export function renderLine(element: LineElement, context: RenderContext): Render
     const labelHeight = textSize + labelPadding * 2;
     
     svgParts.push(`<rect x="${midX - labelWidth / 2}" y="${midY - labelHeight / 2}" width="${labelWidth}" height="${labelHeight}" fill="white" stroke="none"/>`);
-    svgParts.push(`<text x="${midX}" y="${midY}" text-anchor="middle" dominant-baseline="middle" fill="${textColor}" font-size="${textSize}">${escapeHtml(element.label)}</text>`);
+    svgParts.push(`<text x="${midX}" y="${midY}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${textSize}">${escapeHtml(element.label)}</text>`);
   }
   
   const bounds: ElementBounds = {

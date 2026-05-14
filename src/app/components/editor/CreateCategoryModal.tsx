@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateCategoryModal.css';
 
 interface CreateCategoryModalProps {
@@ -52,11 +53,11 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
         name: categoryData.name.trim(),
       });
       
-      showToast('分类创建成功', 'success');
+      feedback.toast.success('分类创建成功');
       handleClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };
@@ -91,8 +92,8 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
   }
 
   return (
-    <div className="create-category-modal-overlay">
-      <div className="create-category-modal">
+    <ModalPortal><div className="create-category-modal-overlay">
+      <div className="create-category-modal glass-panel">
         <div className="create-category-header">
           <h2>📁 新建分类</h2>
           <button className="close-button" onClick={handleClose}>✕</button>
@@ -137,7 +138,7 @@ const CreateCategoryModal: React.FC<CreateCategoryModalProps> = ({ isOpen, onClo
           <button className="btn-primary" onClick={handleCreate}>创建</button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

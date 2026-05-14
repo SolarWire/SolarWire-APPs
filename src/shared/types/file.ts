@@ -15,29 +15,42 @@ export interface SolarWireSnippet {
   snippetIndex?: number;
 }
 
+export interface SnippetInfo {
+  id: string;
+  snippetIndex: number;
+  title: string;
+}
+
 export interface FileState {
   currentPath: string;
   fileTree: FileNode[];
   selectedFile: FileNode | null;
   selectedImage: { path: string } | null;
-  fileContent: string;
+  fullFileContent: string;
   expandedDirectories: Set<string>;
   currentSnippet: SolarWireSnippet | null;
+  tableSheetData: any[] | null;
   autoRefreshEnabled: boolean;
   autoRefreshTimer: NodeJS.Timeout | null;
   refreshKey: number;
+  isLoadingDirectory: boolean;
+  snippetsByFile: Record<string, SolarWireSnippet[]>;
+  snippetInfosByFile: Record<string, SnippetInfo[]>;
   setCurrentPath: (path: string) => void;
   setFileTree: (tree: FileNode[]) => void;
   setSelectedFile: (file: FileNode | null) => void;
   setSelectedImage: (image: { path: string } | null) => void;
   setCurrentSnippet: (snippet: SolarWireSnippet | null) => void;
-  setFileContent: (content: string) => void;
-  updateFileContent: (file: FileNode | string, content: string) => void;
+  setTableSheetData: (data: any[] | null) => void;
+  syncFullFileContent: (editorContent: string) => void;
   openFileAtPath?: (filePath: string) => Promise<void>;
   openSolarWireSnippet?: (snippet: SolarWireSnippet) => Promise<void>;
   openDirectoryAtPath?: (dirPath: string) => Promise<void>;
   toggleDirectory?: (dirPath: string) => void;
+  expandToPath?: (filePath: string) => void;
   saveFile: () => Promise<void>;
   refreshCurrentDirectory: () => Promise<void>;
   toggleAutoRefresh: () => void;
+  setSnippetsByFile: (data: Record<string, SolarWireSnippet[]>) => void;
+  setSnippetInfosByFile: (data: Record<string, SnippetInfo[]>) => void;
 }

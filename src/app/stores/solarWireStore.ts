@@ -1,50 +1,52 @@
 import { create } from 'zustand';
-import { eventBus, EditorEvents } from '../../shared/utils/EventBus';
 
 // 选择工具类型
 type SelectionTool = 'select' | 'box-include' | 'box-intersect';
 
-/**
- * SolarWire 状态接口
- */
+interface DragState {
+  elementId: string;
+  startX: number;
+  startY: number;
+  elementX: number;
+  elementY: number;
+  elementX2?: number;
+  elementY2?: number;
+  elementW?: number;
+  elementH?: number;
+  isLine?: boolean;
+}
+
+interface ResizeState {
+  elementId: string;
+  handle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w' | 'start' | 'end';
+  startX: number;
+  startY: number;
+  elementX: number;
+  elementY: number;
+  elementW?: number;
+  elementH?: number;
+  elementX2?: number;
+  elementY2?: number;
+  isLine?: boolean;
+}
+
 interface SolarWireState {
-  /** 选中的元素 ID 列表 */
   selectedElements: string[];
-  /** 当前选择工具 */
   selectionTool: SelectionTool;
-  /** 是否处于平移模式 */
   isPanMode: boolean;
-  /** 拖拽状态 */
-  dragState: any;
-  /** 调整大小状态 */
-  resizeState: any;
-  /** 是否显示备注 */
+  dragState: DragState | null;
+  resizeState: ResizeState | null;
   showNotes: boolean;
-  /** 缩放级别 */
-  zoomLevel: number;
-  /** 空格键是否按下 */
   isSpacePressed: boolean;
-  /** 预览是否聚焦 */
   isPreviewFocused: boolean;
-  /** 选择元素 */
   selectElements: (ids: string[]) => void;
-  /** 设置选中的元素 */
   setSelectedElements: (ids: string[]) => void;
-  /** 设置选择工具 */
   setSelectionTool: (tool: SelectionTool) => void;
-  /** 设置平移模式 */
   setIsPanMode: (isPanMode: boolean) => void;
-  /** 设置拖拽状态 */
-  setDragState: (state: any) => void;
-  /** 设置调整大小状态 */
-  setResizeState: (state: any) => void;
-  /** 设置是否显示备注 */
+  setDragState: (state: DragState | null) => void;
+  setResizeState: (state: ResizeState | null) => void;
   setShowNotes: (show: boolean) => void;
-  /** 设置缩放级别 */
-  setZoomLevel: (zoom: number) => void;
-  /** 设置空格键按下状态 */
   setIsSpacePressed: (pressed: boolean) => void;
-  /** 设置预览聚焦状态 */
   setIsPreviewFocused: (focused: boolean) => void;
 }
 
@@ -54,12 +56,20 @@ interface SolarWireState {
  */
 export const useSolarWireStore = create<SolarWireState>((set) => ({
   selectedElements: [],
-  selectionTool: 'select',
+  selectionTool: (() => {
+    try {
+      const saved = localStorage.getItem('solarwire-settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.selectionTool) return parsed.selectionTool;
+      }
+    } catch {}
+    return 'select';
+  })(),
   isPanMode: false,
   dragState: null,
   resizeState: null,
   showNotes: true,
-  zoomLevel: 100,
   isSpacePressed: false,
   isPreviewFocused: false,
 
@@ -78,7 +88,12 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
    */
   setSelectionTool: (tool: SelectionTool) => {
     set({ selectionTool: tool });
-    eventBus.emit(EditorEvents.SETTINGS_CHANGED, { selectionTool: tool });
+    try {
+      const saved = localStorage.getItem('solarwire-settings');
+      const parsed = saved ? JSON.parse(saved) : {};
+      parsed.selectionTool = tool;
+      localStorage.setItem('solarwire-settings', JSON.stringify(parsed));
+    } catch {}
   },
   
   /**
@@ -89,22 +104,13 @@ export const useSolarWireStore = create<SolarWireState>((set) => ({
   /**
    * 设置拖拽状态
    */
-  setDragState: (state: any) => set({ dragState: state }),
-  
-  /**
-   * 设置调整大小状态
-   */
-  setResizeState: (state: any) => set({ resizeState: state }),
+  setDragState: (state) => set({ dragState: state }),
+  setResizeState: (state) => set({ resizeState: state }),
   
   /**
    * 设置是否显示备注
    */
   setShowNotes: (show) => set({ showNotes: show }),
-  
-  /**
-   * 设置缩放级别
-   */
-  setZoomLevel: (zoom) => set({ zoomLevel: zoom }),
   
   /**
    * 设置空格键按下状态

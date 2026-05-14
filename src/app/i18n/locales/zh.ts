@@ -48,6 +48,13 @@ export const zh = {
     minimapDescription: '在编辑器中显示缩略图',
     lineNumbers: '行号',
     lineNumbersDescription: '在编辑器中显示行号',
+    skills: '技能包',
+    copySkillsButton: '复制 SolarWire 技能包',
+    copySkillsDescription: '将 SolarWire 技能包复制到指定目录，方便在其他项目中使用',
+    selectDirectory: '选择目录',
+    copyingSkills: '正在复制技能包...',
+    skillsCopiedSuccess: '技能包复制成功',
+    skillsCopyFailed: '技能包复制失败',
   },
   
   // Editor
@@ -110,5 +117,15 @@ export const zh = {
   languages: {
     en: 'English',
     zh: '简体中文',
+  },
+
+  themes: {
+    'solid-dark': '深色',
+    'solid-light': '浅色',
+    'glass-dark': '毛玻璃深色',
+    'glass-light': '毛玻璃浅色',
+    'cyberpunk': '赛博朋克',
+    'paper': '纸质',
+    'minimal': '极简',
   },
 };

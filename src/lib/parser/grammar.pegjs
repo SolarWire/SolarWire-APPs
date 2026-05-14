@@ -110,7 +110,7 @@ ImageElement
   }
 
 LineElement
-  = "--" label:QuotedString? "--"? _* lineCoords:LineCoordinates attrs:Attributes?
+  = "-" label:QuotedString? "-" _* lineCoords:LineCoordinates attrs:Attributes?
   {
     var result = {
       type: 'line',
@@ -121,14 +121,7 @@ LineElement
   }
 
 LineCoordinates
-  = "@(" startX:Coordinate _* "," _* startY:Coordinate _* ")->(+" dx:Number _* "," _* "+" dy:Number _* ")"
-  {
-    return {
-      start: { x: startX, y: startY },
-      end: { type: 'relative', dx: dx, dy: dy }
-    };
-  }
-  / "@(" startX:Coordinate _* "," _* startY:Coordinate _* ")->(" endX:Coordinate _* "," _* endY:Coordinate _* ")"
+  = "@(" startX:Coordinate _* "," _* startY:Coordinate _* ")->(" endX:Coordinate _* "," _* endY:Coordinate _* ")"
   {
     return {
       start: { x: startX, y: startY },
@@ -178,26 +171,15 @@ Coordinates
     return { x: x, y: y };
   }
 
+SignedNumber
+  = "-" n:Number { return -n; }
+  / n:Number { return n; }
+
 Coordinate
-  = n:Number
+  = n:SignedNumber
   {
     return { type: 'absolute', value: n };
   }
-  / d:Direction _* "+" _* n:Number
-  {
-    return { type: 'edge', direction: d, value: n };
-  }
-  / d:Direction _* "-" _* n:Number
-  {
-    return { type: 'edge', direction: d, value: -n };
-  }
-  / d:Direction
-  {
-    return { type: 'edge', direction: d, value: 0 };
-  }
-
-Direction
-  = "L" / "R" / "T" / "B" / "C"
 
 Attributes
   = _+ firstAttr:Attribute restAttrs:(_+ Attribute)*
@@ -240,10 +222,6 @@ QuotedString
   {
     return content;
   }
-  / "([^"]*)" 
-  {
-    return text();
-  }
 
 DoubleQuotedContent
   = chars:DoubleQuotedChar*
@@ -259,7 +237,7 @@ DoubleQuotedChar
   / !'"' . { return text(); }
 
 TripleQuotedContent
-  = (!"\"\"\"" .)*
+  = ( !( "\"\"\"" !"\"" ) . )*
   {
     return text();
   }

@@ -4,7 +4,7 @@
   cursor: col-resize;
   user-select: none;
   transition: background-color 0.2s;
-  z-index: 10;
+  z-index: var(--z-resizable-divider);
 }
 
 .resizable-divider.vertical {

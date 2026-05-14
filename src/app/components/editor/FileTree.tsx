@@ -1,5 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FileNode } from '../../../shared/types/file';
+import { useFileStore } from '../../stores/fileStore';
+import { SnippetInfo } from '../../../shared/types/file';
 import './FileTree.css';
 
 interface FileTreeProps {
@@ -20,7 +23,7 @@ interface TreeItemProps {
   onContextMenu?: (node: FileNode, x: number, y: number) => void;
 }
 
-const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico'];
+const SUPPORTED_EXTENSIONS = ['md', 'markdown', 'solarwire', 'sw', 'svg', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'csv', 'xlsx', 'xls'];
 
 const isSupportedFile = (filename: string): boolean => {
   const ext = filename.split('.').pop()?.toLowerCase() || '';
@@ -35,8 +38,21 @@ const TreeItem: React.FC<TreeItemProps> = ({
   onSelectFile,
   onContextMenu,
 }) => {
+  const itemRef = useRef<HTMLDivElement>(null);
   const isExpanded = expandedDirectories.has(node.path);
   const isSelected = selectedFile && selectedFile.path === node.path;
+
+  const snippetInfosByFile = useFileStore(state => state.snippetInfosByFile);
+  const isMarkdown = node.type === 'file' && /\.(md|markdown)$/i.test(node.name);
+  const snippetInfos = isMarkdown ? snippetInfosByFile[node.path] : undefined;
+  const snippetCount = snippetInfos ? snippetInfos.length : 0;
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+
+  useEffect(() => {
+    if (isSelected && itemRef.current) {
+      itemRef.current.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [isSelected]);
 
   const handleClick = () => {
     if (node.type === 'directory') {
@@ -52,6 +68,16 @@ const TreeItem: React.FC<TreeItemProps> = ({
     if (onContextMenu) {
       onContextMenu(node, e.clientX, e.clientY);
     }
+  };
+
+  const handleItemMouseEnter = () => {
+    if (!isMarkdown || !itemRef.current) return;
+    const rect = itemRef.current.getBoundingClientRect();
+    setTooltipPos({ x: rect.right + 8, y: rect.top });
+  };
+
+  const handleItemMouseLeave = () => {
+    setTooltipPos(null);
   };
 
   const getIcon = () => {
@@ -76,6 +102,11 @@ const TreeItem: React.FC<TreeItemProps> = ({
       case 'bmp':
       case 'ico':
         return '🖼️';
+      case 'csv':
+        return '📊';
+      case 'xlsx':
+      case 'xls':
+        return '📗';
       default:
         return '📄';
     }
@@ -84,9 +115,12 @@ const TreeItem: React.FC<TreeItemProps> = ({
   return (
     <>
       <div
+        ref={itemRef}
         className={`tree-item ${isSelected ? 'selected' : ''}`}
         onClick={handleClick}
         onContextMenu={handleContextMenu}
+        onMouseEnter={handleItemMouseEnter}
+        onMouseLeave={handleItemMouseLeave}
       >
         {node.type === 'directory' && (
           <span className="tree-item-arrow">{isExpanded ? '▼' : '▶'}</span>
@@ -94,14 +128,41 @@ const TreeItem: React.FC<TreeItemProps> = ({
         {node.type === 'file' && <span className="tree-item-arrow"></span>}
         <span className="tree-item-icon">{getIcon()}</span>
         <span className="tree-item-name">{node.name}</span>
+        {snippetCount > 0 && (
+          <span className="tree-item-badge">
+            ⚡{snippetCount}
+          </span>
+        )}
       </div>
+      {tooltipPos && isMarkdown && createPortal(
+        <div
+          className="tree-badge-global-tooltip"
+          style={{
+            position: 'fixed',
+            left: tooltipPos.x,
+            top: tooltipPos.y,
+            zIndex: 10000,
+          }}
+        >
+          {snippetCount > 0 ? (
+            <>
+              <div className="tree-tooltip-title">{snippetCount} 个 SolarWire 页面</div>
+              {snippetInfos!.map((s, i) => (
+                <div key={i} className="tree-tooltip-item">#{s.snippetIndex} {s.title || '未命名'}</div>
+              ))}
+            </>
+          ) : (
+            <div className="tree-tooltip-empty">未检测到 SolarWire 页面</div>
+          )}
+        </div>,
+        document.body
+      )}
       {node.type === 'directory' && isExpanded && node.children && node.children.length > 0 && (
         <div className="tree-children">
           {node.children
             .filter((child) => {
-              if (child.type === 'directory') return true;
               if (child.name.startsWith('.')) return false;
-              return isSupportedFile(child.name);
+              return true;
             })
             .map((child) => (
               <TreeItem

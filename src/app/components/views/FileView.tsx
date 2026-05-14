@@ -1,41 +1,61 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { useAppStore } from '../../stores/appStore';
 import FileTree from '../editor/FileTree';
+import SnippetListPanel from '../editor/SnippetListPanel';
 import { useSelectionStore } from '../../stores/selectionStore';
 import { Scrollbar } from '../ui/Scrollbar';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import CreateMarkdownModal from '../editor/CreateMarkdownModal';
 import CreateSolarWireModal from '../editor/CreateSolarWireModal';
 import CreateFolderModal from '../editor/CreateFolderModal';
 import RenameModal from '../editor/RenameModal';
-import DeleteConfirmModal from '../editor/DeleteConfirmModal';
 import ContextMenu, { ContextMenuItem, MenuItem, MenuSeparator } from '../ui/ContextMenu';
-import { FileNode } from '../../../shared/types/file';
+import { FileNode, SolarWireSnippet, SnippetInfo } from '../../../shared/types/file';
 import './FileView.css';
+
+function extractDeclarations(code: string): Record<string, string> {
+  const declarations: Record<string, string> = {};
+  const regex = /!(\w+)=(.+)/g;
+  let match;
+  while ((match = regex.exec(code)) !== null) {
+    let value = match[2].trim();
+    if (value.startsWith('"') && value.endsWith('"')) {
+      value = value.substring(1, value.length - 1);
+    }
+    declarations[match[1]] = value;
+  }
+  return declarations;
+}
 
 const FileView: React.FC = () => {
   const {
     fileTree,
+    setFileTree,
     selectedFile,
     currentPath,
     expandedDirectories,
     toggleDirectory,
     openFileAtPath,
     openDirectoryAtPath,
-    refreshCurrentDirectory
+    refreshCurrentDirectory,
+    refreshKey,
+    snippetsByFile,
+    setSnippetsByFile,
+    snippetInfosByFile,
+    setSnippetInfosByFile,
+    isLoadingDirectory,
   } = useFileStore();
-  
+
   const handleRefresh = async () => {
     await refreshCurrentDirectory();
   };
-  
+
   const { currentView } = useAppStore();
   const [showCreateMarkdownModal, setShowCreateMarkdownModal] = useState(false);
   const [showCreateSolarWireModal, setShowCreateSolarWireModal] = useState(false);
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const [showRenameModal, setShowRenameModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'modified'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -47,12 +67,89 @@ const FileView: React.FC = () => {
     targetPath: string;
   }>({ visible: false, x: 0, y: 0, targetNode: null, targetPath: '' });
 
+  const [splitRatio, setSplitRatio] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fileview-split-ratio');
+      return saved ? parseFloat(saved) : 0.55;
+    } catch { return 0.55; }
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const collectSnippets = async () => {
+      if (!currentPath) {
+        setSnippetsByFile({});
+        setSnippetInfosByFile({});
+        return;
+      }
+      try {
+        const api = (window as any).api;
+        if (api && typeof api.collectSolarWireSnippets === 'function') {
+          const snippets: SolarWireSnippet[] = await api.collectSolarWireSnippets(currentPath);
+          const byFile: Record<string, SolarWireSnippet[]> = {};
+          const infosByFile: Record<string, SnippetInfo[]> = {};
+          for (const snippet of snippets) {
+            if (!byFile[snippet.sourceFile]) {
+              byFile[snippet.sourceFile] = [];
+              infosByFile[snippet.sourceFile] = [];
+            }
+            byFile[snippet.sourceFile].push(snippet);
+            const declarations = extractDeclarations(snippet.code);
+            infosByFile[snippet.sourceFile].push({
+              id: snippet.id,
+              snippetIndex: snippet.snippetIndex || 1,
+              title: declarations['title'] || '',
+            });
+          }
+          setSnippetsByFile(byFile);
+          setSnippetInfosByFile(infosByFile);
+        }
+      } catch (err) {
+        console.error('Failed to collect solarwire snippets:', err);
+        setSnippetsByFile({});
+        setSnippetInfosByFile({});
+      }
+    };
+    collectSnippets();
+  }, [currentPath, refreshKey]);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isDragging) return;
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!bodyRef.current) return;
+      const rect = bodyRef.current.getBoundingClientRect();
+      const ratio = (e.clientY - rect.top) / rect.height;
+      const clamped = Math.min(0.85, Math.max(0.2, ratio));
+      setSplitRatio(clamped);
+      try { localStorage.setItem('fileview-split-ratio', String(clamped)); } catch {}
+    };
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging]);
+
+  const selectedMdPath = selectedFile?.path || '';
+  const hasSnippets = selectedMdPath && (snippetsByFile[selectedMdPath]?.length || 0) > 0;
+
   const handleOpen = async (): Promise<void> => {
     try {
       const api = (window as any).api;
       if (!api || !api.openFileDialog) {
         console.warn('File dialog not available in current environment');
-        showToast('File dialog is only available in the Electron app', 'error');
+        feedback.toast.error('File dialog is only available in the Electron app');
         return;
       }
 
@@ -84,25 +181,62 @@ const FileView: React.FC = () => {
 
   const { setSelection, getSelectionForView } = useSelectionStore();
 
+  const handleDeleteNode = async (targetNode: FileNode) => {
+    const typeText = targetNode.type === 'directory' ? '文件夹' : '文件';
+    const confirmed = await feedback.confirm({
+      title: '删除确认',
+      message: `确定要删除${typeText} "${targetNode.name}" 吗？此操作不可撤销。`,
+      type: 'danger',
+      confirmText: '删除',
+    });
+    if (!confirmed) return;
+
+    try {
+      const api = (window as any).api;
+      if (!api) {
+        throw new Error('文件系统API不可用');
+      }
+
+      if (targetNode.type === 'directory') {
+        if (!api.deleteDirectory) {
+          throw new Error('删除目录API不可用');
+        }
+        await api.deleteDirectory(targetNode.path);
+      } else {
+        if (!api.deleteFile) {
+          throw new Error('删除文件API不可用');
+        }
+        await api.deleteFile(targetNode.path);
+      }
+
+      feedback.toast.success('删除成功');
+
+      if (api && api.getFileTree && currentPath) {
+        const newTree = await api.getFileTree(currentPath);
+        setFileTree(newTree);
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        feedback.toast.error(`删除失败: ${err.message}`);
+      }
+    }
+  };
+
   const handleSelectFile = async (file: any) => {
     if (openFileAtPath) {
-      // 更新选中记录
       setSelection('file', file.path);
       await openFileAtPath(file.path);
     }
   };
 
-  // 获取目标目录
   const getTargetDirectory = (node: FileNode | null): string => {
     if (!node) return currentPath;
     if (node.type === 'directory') return node.path;
-    // 文件：返回父目录
     const pathParts = node.path.split(/[/\\]/);
     pathParts.pop();
     return pathParts.join('/');
   };
 
-  // 处理文件/文件夹右键
   const handleNodeContextMenu = (node: FileNode, x: number, y: number) => {
     const targetPath = getTargetDirectory(node);
     setContextMenu({
@@ -114,7 +248,6 @@ const FileView: React.FC = () => {
     });
   };
 
-  // 处理空白处右键
   const handleBlankContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
     setContextMenu({
@@ -126,12 +259,10 @@ const FileView: React.FC = () => {
     });
   };
 
-  // 关闭右键菜单
   const closeContextMenu = () => {
     setContextMenu(prev => ({ ...prev, visible: false }));
   };
 
-  // 在资源管理器中查看
   const handleShowInFolder = async () => {
     const { targetNode } = contextMenu;
     if (!targetNode) return;
@@ -142,28 +273,25 @@ const FileView: React.FC = () => {
         await api.showItemInFolder(targetNode.path);
       } else {
         console.warn('showItemInFolder not available in current environment');
-        showToast('此功能仅在Electron应用中可用', 'error');
+        feedback.toast.error('此功能仅在Electron应用中可用');
       }
     } catch (err) {
       console.error('Failed to show item in folder:', err);
-      showToast('打开资源管理器失败', 'error');
+      feedback.toast.error('打开资源管理器失败');
     }
     closeContextMenu();
   };
 
-  // 生成菜单项
   const getMenuItems = (): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
     const { targetNode, targetPath } = contextMenu;
 
     if (!targetNode) {
-      // 空白处
       items.push({ type: 'item', label: '新建.md', icon: '📄', onClick: () => setShowCreateMarkdownModal(true) });
       items.push({ type: 'item', label: '新建.solarwire', icon: '🎨', onClick: () => setShowCreateSolarWireModal(true) });
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '新建文件夹', icon: '📁', onClick: () => setShowCreateFolderModal(true) });
     } else if (targetNode.type === 'directory') {
-      // 文件夹
       items.push({ type: 'item', label: '新建.md', icon: '📄', onClick: () => setShowCreateMarkdownModal(true) });
       items.push({ type: 'item', label: '新建.solarwire', icon: '🎨', onClick: () => setShowCreateSolarWireModal(true) });
       items.push({ type: 'separator' });
@@ -173,24 +301,21 @@ const FileView: React.FC = () => {
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '在资源管理器中查看', icon: '📂', onClick: handleShowInFolder });
       items.push({ type: 'separator' });
-      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => setShowDeleteModal(true) });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => handleDeleteNode(targetNode) });
     } else {
-      // 文件
       items.push({ type: 'item', label: '重命名', icon: '✏️', onClick: () => setShowRenameModal(true) });
       items.push({ type: 'separator' });
       items.push({ type: 'item', label: '在资源管理器中查看', icon: '📂', onClick: handleShowInFolder });
       items.push({ type: 'separator' });
-      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => setShowDeleteModal(true) });
+      items.push({ type: 'item', label: '删除', icon: '🗑️', onClick: () => handleDeleteNode(targetNode) });
     }
 
     return items;
   };
 
-  // 搜索文件和文件夹
   const filteredFileTree = useMemo(() => {
     let result = fileTree;
 
-    // 搜索过滤
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       const filterNodes = (nodes: FileNode[]): FileNode[] => {
@@ -216,20 +341,16 @@ const FileView: React.FC = () => {
       result = filterNodes(result);
     }
 
-    // 排序
     const sortNodes = (nodes: FileNode[]): FileNode[] => {
       return [...nodes].sort((a, b) => {
-        // 目录始终排在文件前面
         if (a.type === 'directory' && b.type !== 'directory') return -1;
         if (a.type !== 'directory' && b.type === 'directory') return 1;
 
-        // 按名称排序
         if (sortBy === 'name') {
           const comparison = a.name.localeCompare(b.name);
           return sortOrder === 'asc' ? comparison : -comparison;
         }
 
-        // 按修改时间排序
         if (sortBy === 'modified') {
           const timeA = a.modifiedTime || 0;
           const timeB = b.modifiedTime || 0;
@@ -243,7 +364,6 @@ const FileView: React.FC = () => {
 
     result = sortNodes(result);
 
-    // 递归排序子节点
     const sortChildren = (nodes: FileNode[]): FileNode[] => {
       return nodes.map(node => {
         if (node.type === 'directory' && node.children) {
@@ -261,7 +381,7 @@ const FileView: React.FC = () => {
 
   const renderFileTree = () => {
     const treeToRender = filteredFileTree;
-    
+
     if (treeToRender.length === 0 && !selectedFile) {
       return (
         <div className="file-view-empty">
@@ -290,7 +410,7 @@ const FileView: React.FC = () => {
   };
 
   return (
-    <div className="file-view-container" onContextMenu={handleBlankContextMenu}>
+    <div className="file-view-container" onContextMenu={handleBlankContextMenu} ref={containerRef}>
       <div className="file-view-header">
         <div className="file-view-actions">
           <div className="tree-action-buttons-compact">
@@ -339,11 +459,38 @@ const FileView: React.FC = () => {
           </select>
         </div>
       </div>
-      <Scrollbar className="file-view-scrollbar">
-        <div className="file-view">
-          {renderFileTree()}
+      <div className="file-view-body" ref={bodyRef}>
+        <div style={{ flex: hasSnippets ? splitRatio : 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {isLoadingDirectory ? (
+            <div className="file-view-loading">
+              <div className="file-view-loading-spinner" />
+              <div className="file-view-loading-text">加载中...</div>
+            </div>
+          ) : (
+            <Scrollbar className="file-view-scrollbar">
+              <div className="file-view">
+                {renderFileTree()}
+              </div>
+            </Scrollbar>
+          )}
         </div>
-      </Scrollbar>
+        {hasSnippets && (
+          <>
+            <div
+              className="file-view-splitter"
+              onMouseDown={handleMouseDown}
+            >
+              <span className="file-view-splitter-handle">⋯</span>
+            </div>
+            <div className="file-view-snippet-panel" style={{ flex: 1 - splitRatio, minHeight: 80 }}>
+              <SnippetListPanel
+                sourceFilePath={selectedMdPath}
+                fileName={selectedFile?.name || ''}
+              />
+            </div>
+          </>
+        )}
+      </div>
       <CreateMarkdownModal
         isOpen={showCreateMarkdownModal}
         onClose={() => setShowCreateMarkdownModal(false)}
@@ -363,17 +510,6 @@ const FileView: React.FC = () => {
         <RenameModal
           isOpen={showRenameModal}
           onClose={() => setShowRenameModal(false)}
-          target={{
-            type: contextMenu.targetNode.type,
-            name: contextMenu.targetNode.name,
-            path: contextMenu.targetNode.path
-          }}
-        />
-      )}
-      {contextMenu.targetNode && (
-        <DeleteConfirmModal
-          isOpen={showDeleteModal}
-          onClose={() => setShowDeleteModal(false)}
           target={{
             type: contextMenu.targetNode.type,
             name: contextMenu.targetNode.name,

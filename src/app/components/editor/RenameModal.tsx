@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateFileModal.css';
 
 interface RenameModalProps {
@@ -67,7 +68,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
       // 重命名
       await api.rename(target.path, newPath);
 
-      showToast('重命名成功', 'success');
+      feedback.toast.success('重命名成功');
       onClose();
 
       // 刷新文件树
@@ -78,7 +79,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
-        showToast(`重命名失败: ${err.message}`, 'error');
+        feedback.toast.error(`重命名失败: ${err.message}`);
       }
     }
   };
@@ -86,8 +87,8 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
   if (!isOpen) return null;
 
   return (
-    <div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+    <ModalPortal><div className="create-file-modal-overlay">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>重命名</h3>
           <button className="close-button" onClick={onClose}>✕</button>
@@ -123,7 +124,7 @@ const RenameModal: React.FC<RenameModalProps> = ({ isOpen, onClose, target }) =>
           </div>
         </form>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

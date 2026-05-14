@@ -1,141 +1,389 @@
-/* ColorPicker 组件样式 */
-.color-picker-group {
-  margin-bottom: 16px;
-}
-
-.color-picker-group label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.color-picker-wrapper {
-  position: relative;
+.color-picker {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.color-picker-wrapper input[type="color"] {
-  width: 40px;
-  height: 32px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 2px;
-  background: var(--bg-tertiary);
-}
-
-.color-picker-hex-input {
+  gap: 6px;
   flex: 1;
-  height: 32px;
-  padding: 4px 8px;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  min-width: 0;
+}
+
+.color-picker-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 36px;
+}
+
+.color-picker-swatch {
+  width: 24px;
+  height: 24px;
   border-radius: 4px;
-  color: var(--text-primary);
-  font-size: 12px;
-  font-family: 'Menlo', 'Consolas', monospace;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.color-picker-hex-input:focus {
-  border-color: var(--accent-color);
-}
-
-.color-picker-dropdown {
-  position: relative;
-}
-
-.color-picker-toggle {
-  height: 32px;
-  width: 32px;
   border: 1px solid var(--border-color);
-  background: var(--bg-tertiary);
-  border-radius: 4px;
   cursor: pointer;
-  font-size: 10px;
+  flex-shrink: 0;
+  padding: 0;
+  position: relative;
+  background: none;
+  background-clip: content-box;
+}
+
+.color-picker-swatch.transparent {
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+}
+
+.color-picker-swatch-cross {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary);
-  transition: all 0.15s ease;
+  font-size: 10px;
+  color: #e53935;
+  font-weight: bold;
 }
 
-.color-picker-toggle:hover {
-  background: var(--border-color);
-  border-color: var(--text-muted);
+.color-picker-swatch:hover {
+  border-color: var(--accent-color);
 }
 
-.color-picker-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 4px;
+.color-picker-inline-hex {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  font-size: 11px;
+  font-family: monospace;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.color-picker-inline-hex:focus {
+  border-color: var(--accent-color);
+}
+
+.color-picker-popup {
+  position: fixed;
+  z-index: 10001;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 8px;
-  min-width: 200px;
-  z-index: 1000;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  width: 224px;
+  animation: color-picker-slide-down 0.15s ease;
 }
 
-.color-picker-section {
-  margin-bottom: 8px;
+.color-picker-popup .react-colorful {
+  width: 100% !important;
+  height: 160px !important;
+  border-radius: 6px !important;
 }
 
-.color-picker-section-title {
-  font-size: 11px;
+.color-picker-popup .react-colorful__saturation {
+  border-radius: 6px 6px 0 0 !important;
+}
+
+.color-picker-popup .react-colorful__hue {
+  height: 14px !important;
+  border-radius: 0 0 6px 6px !important;
+}
+
+.color-picker-popup .react-colorful__last-control {
+  border-radius: 0 0 6px 6px !important;
+}
+
+.color-picker-popup .react-colorful__hue-pointer,
+.color-picker-popup .react-colorful__saturation-pointer {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 0 2px rgba(0, 0, 0, 0.5) !important;
+}
+
+.color-picker-popup .react-colorful__saturation-pointer {
+  width: 16px !important;
+  height: 16px !important;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5) !important;
+}
+
+.color-picker-input-section {
+  margin-top: 10px;
+}
+
+.color-picker-mode-tabs {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.color-picker-mode-tab {
+  padding: 3px 10px;
+  font-size: 10px;
   font-weight: 600;
-  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.1s;
+}
+
+.color-picker-mode-tab:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.color-picker-mode-tab.active {
+  background: var(--accent-color);
+  color: var(--white, #fff);
+  border-color: var(--accent-color);
+}
+
+.color-picker-eyedropper-btn {
+  margin-left: auto;
+  padding: 3px 6px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+}
+
+.color-picker-eyedropper-btn:hover {
+  color: var(--accent-color);
+  background: var(--bg-hover);
+  border-color: var(--accent-color);
+}
+
+.color-picker-popup-hex-input {
+  width: 100%;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: monospace;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.color-picker-popup-hex-input:focus {
+  border-color: var(--accent-color);
+}
+
+.color-picker-rgb-inputs {
+  display: flex;
+  gap: 4px;
+}
+
+.color-picker-rgb-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.color-picker-rgb-field label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.color-picker-rgb-field input {
+  width: 100%;
+  padding: 4px 4px;
+  font-size: 11px;
+  font-family: monospace;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  color: var(--text-primary);
+  outline: none;
+  text-align: center;
+  box-sizing: border-box;
+  -moz-appearance: textfield;
+}
+
+.color-picker-rgb-field input::-webkit-outer-spin-button,
+.color-picker-rgb-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.color-picker-rgb-field input:focus {
+  border-color: var(--accent-color);
+}
+
+.color-picker-presets-section {
+  margin-top: 10px;
+}
+
+.color-picker-presets-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.color-picker-presets-title {
+  font-size: 10px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.color-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 4px;
-}
-
-.color-picker-swatch {
-  width: 28px;
-  height: 28px;
-  border: 2px solid transparent;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 0;
-  transition: all 0.15s ease;
-}
-
-.color-picker-swatch:hover {
-  border-color: var(--accent-color);
-  transform: scale(1.1);
-}
-
-.color-picker-divider {
-  height: 1px;
-  background: var(--border-color);
-  margin: 8px 0;
-}
-
-.color-picker-add {
-  width: 100%;
-  padding: 6px 8px;
+.color-picker-reset-btn {
+  margin-left: auto;
+  padding: 1px 6px;
+  font-size: 9px;
+  color: var(--text-muted);
+  background: transparent;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: var(--bg-tertiary);
+  border-radius: 3px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.1s;
+}
+
+.color-picker-reset-btn:hover {
   color: var(--text-primary);
+  border-color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
+.color-picker-transparent-btn {
+  padding: 2px 4px;
+  font-size: 9px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.1s;
+  margin-right: 4px;
+}
+
+.color-picker-transparent-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
+.color-picker-transparent-placeholder {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.color-picker-presets {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+}
+
+.color-picker-preset-item {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: transform 0.1s, border-color 0.1s;
+  padding: 0;
+}
+
+.color-picker-preset-item:hover {
+  transform: scale(1.2);
+  border-color: var(--accent-color);
+  z-index: 1;
+}
+
+.color-picker-preset-item.active {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.color-picker-preset-add {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  border: 1px dashed var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-muted);
   cursor: pointer;
   font-size: 12px;
-  transition: all 0.15s ease;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.1s;
 }
 
-.color-picker-add:hover {
-  background: var(--border-color);
+.color-picker-preset-add:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
+.color-picker-context-menu {
+  position: fixed;
+  z-index: 10002;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  padding: 4px;
+  min-width: 120px;
+  animation: color-picker-slide-down 0.1s ease;
+}
+
+.color-picker-context-item {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  font-size: 11px;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.color-picker-context-item:hover {
+  background: var(--bg-hover);
+}
+
+.color-picker-context-remove:hover {
+  color: var(--error-text, #e53935);
+}
+
+@keyframes color-picker-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

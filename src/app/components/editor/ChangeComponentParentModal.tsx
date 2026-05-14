@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { ComponentLibrary, ComponentCategory } from '../../../shared/types/component';
-import { showToast } from '../../services/toast-service';
+import { normalizeCategoryId } from '../../../shared/utils/component-utils';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './ChangeComponentParentModal.css';
 
 interface ChangeComponentParentModalProps {
@@ -71,11 +73,11 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
         'after'
       );
       
-      showToast('组件归属已更改', 'success');
+      feedback.toast.success('组件归属已更改');
       onClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };
@@ -91,8 +93,8 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
   }
 
   return (
-    <div className="change-component-parent-modal-overlay">
-      <div className="change-component-parent-modal">
+    <ModalPortal><div className="change-component-parent-modal-overlay">
+      <div className="change-component-parent-modal glass-panel">
         <div className="change-component-parent-header">
           <h2>🔄 改变组件归属</h2>
           <button className="close-button" onClick={handleClose}>✕</button>
@@ -155,7 +157,7 @@ const ChangeComponentParentModal: React.FC<ChangeComponentParentModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

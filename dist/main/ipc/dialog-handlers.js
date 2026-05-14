@@ -16,4 +16,14 @@ function registerDialogHandlers() {
         });
         return res;
     });
+    electron_1.ipcMain.handle('dialog:openDirectory', async (_event, options) => {
+        const res = await electron_1.dialog.showOpenDialog({
+            properties: ['openDirectory'],
+            ...options,
+        });
+        if (res.canceled || res.filePaths.length === 0) {
+            return null;
+        }
+        return res.filePaths[0];
+    });
 }

@@ -9,6 +9,7 @@
   cursor: default;
   user-select: none;
   -webkit-user-select: none;
+  isolation: isolate;
 }
 
 .solarwire-preview.pan-mode {
@@ -49,7 +50,7 @@
 
 .interaction-layer {
   pointer-events: none;
-  z-index: 10;
+  z-index: var(--z-dropdown);
 }
 
 .interaction-layer g {
@@ -92,7 +93,7 @@
   justify-content: flex-start;
   padding: 20px;
   background: rgba(0, 0, 0, 0.05);
-  z-index: 20;
+  z-index: var(--z-error-panel);
   overflow: auto;
 }
 
@@ -107,11 +108,47 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+.error-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 8px;
+}
+
 .error-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--error-bg-solid);
-  margin-bottom: 12px;
+}
+
+.error-fix-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px solid rgba(211, 47, 47, 0.3);
+  color: #d32f2f;
+  font-weight: 500;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.error-fix-btn:hover {
+  background: #d32f2f;
+  border-color: #d32f2f;
+  color: white;
+}
+
+.error-fix-btn:active {
+  background: #b71c1c;
+  border-color: #b71c1c;
+  color: white;
 }
 
 .error-message pre {
@@ -125,7 +162,9 @@
   padding: 12px;
   border-radius: 4px;
   max-height: 400px;
-  overflow: visible; /* 移除 auto，让错误信息完整显示 */
+  overflow: visible;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .empty-overlay {
@@ -137,7 +176,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 5;
+  z-index: var(--z-drag-area);
 }
 
 .empty-content {

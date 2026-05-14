@@ -1,11 +1,9 @@
-/* Tab 容器 */
 .tab-list {
   display: flex;
   background: var(--bg-tertiary);
   border-bottom: 1px solid var(--border-color);
 }
 
-/* 单个 Tab */
 .tab {
   display: flex;
   align-items: center;
@@ -16,9 +14,10 @@
   color: var(--text-muted);
   cursor: pointer;
   border-bottom: 2px solid transparent;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease, background 0.15s ease, border-color 0.2s ease;
   font-size: 12px;
   font-family: inherit;
+  position: relative;
 }
 
 .tab:hover:not(:disabled) {
@@ -37,19 +36,16 @@
   cursor: not-allowed;
 }
 
-/* Tab 图标 */
 .tab-icon {
   font-size: 14px;
   display: flex;
   align-items: center;
 }
 
-/* Tab 内容 */
 .tab-content {
   flex: 1;
 }
 
-/* Tab Badge */
 .tab-badge {
   background: var(--accent-color);
   color: var(--bg-primary);
@@ -59,18 +55,18 @@
   font-weight: 600;
 }
 
-/* Tab Panel */
 .tab-panel {
   flex: 1;
   height: 100%;
-  overflow: hidden; /* 移除 auto，让 Scrollbar 组件处理滚动 */
-  animation: fadeIn 0.2s ease-in-out;
+  min-width: 0;
+  overflow: hidden;
+  animation: tabPanelFadeIn 0.2s ease-out;
 }
 
-@keyframes fadeIn {
+@keyframes tabPanelFadeIn {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;

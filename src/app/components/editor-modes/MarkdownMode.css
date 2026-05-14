@@ -36,6 +36,7 @@
 /* Markdown标签页容器 */
 .markdown-tabs {
   display: flex;
+  justify-content: center;
   border-bottom: 1px solid var(--border-color);
   background: var(--bg-tertiary);
 }
@@ -299,7 +300,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 9999;
+  z-index: var(--z-toast);
   width: 240px;
   height: 50px;
   background: var(--bg-secondary);

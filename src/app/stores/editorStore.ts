@@ -35,7 +35,7 @@ export const useEditorStore = create<EditorState>()((set, get) => {
     
     // 当切换到非SolarWire模式时，清除语法错误状态
     if (mode !== 'solarwire') {
-      syntaxErrorService.clearErrors();
+      syntaxErrorService.clearAllErrors();
     }
   });
 
@@ -74,6 +74,26 @@ export const useEditorStore = create<EditorState>()((set, get) => {
           historyIndex: newHistory.length - 1
         });
       }
+    },
+    
+    commitContent: (content: string, snapshot: string) => {
+      const { history, historyIndex } = get();
+
+      if (content === snapshot) return;
+
+      const newHistory = history.slice(0, historyIndex + 1);
+      newHistory.push(snapshot);
+
+      if (newHistory.length > 50) {
+        newHistory.shift();
+      }
+
+      set({
+        content,
+        isModified: true,
+        history: newHistory,
+        historyIndex: newHistory.length - 1
+      });
     },
     
     /**

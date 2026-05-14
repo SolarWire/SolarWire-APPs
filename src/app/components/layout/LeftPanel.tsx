@@ -1,13 +1,12 @@
 import React from 'react';
 import ViewTabs from '../views/ViewTabs';
-import { useAppStore } from '../../stores/appStore';
+import LeftPanelHeader from './LeftPanelHeader';
 import './LeftPanel.css';
 
 const LeftPanel: React.FC = () => {
-  const { currentView } = useAppStore();
-
   return (
-    <div className="left-panel">
+    <div className="left-panel glass-panel">
+      <LeftPanelHeader />
       <ViewTabs />
     </div>
   );

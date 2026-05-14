@@ -78,6 +78,19 @@ export async function readFile(filePath: string): Promise<string> {
   }
 }
 
+export async function readFileAsBuffer(filePath: string): Promise<ArrayBuffer> {
+  try {
+    validatePath(filePath);
+    const buffer = await fs.readFile(filePath);
+    return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('Access denied')) {
+      throw error;
+    }
+    throw new Error(`Failed to read file as buffer: ${filePath}`);
+  }
+}
+
 export async function writeFile(filePath: string, content: string | ArrayBuffer | Uint8Array, allowOutsideProject: boolean = false): Promise<void> {
   try {
     if (!allowOutsideProject) {
@@ -112,7 +125,7 @@ export async function listFiles(dirPath: string): Promise<string[]> {
   }
 }
 
-export async function getFileTree(dirPath: string, depth = 3): Promise<FileNode[]> {
+export async function getFileTree(dirPath: string, depth = -1): Promise<FileNode[]> {
   try {
     validatePath(dirPath);
     const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -129,9 +142,9 @@ export async function getFileTree(dirPath: string, depth = 3): Promise<FileNode[
         modifiedTime: stats.mtimeMs,
       };
 
-      if (entry.isDirectory() && depth > 0) {
+      if (entry.isDirectory() && (depth < 0 || depth > 0)) {
         try {
-          node.children = await getFileTree(fullPath, depth - 1);
+          node.children = await getFileTree(fullPath, depth < 0 ? -1 : depth - 1);
         } catch (err) {
           // Skip directories we can't access
         }

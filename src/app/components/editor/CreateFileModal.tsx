@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { FileNode } from '../../../shared/types/file';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateFileModal.css';
 
 interface CreateFileModalProps {
@@ -96,7 +97,7 @@ const CreateFileModal: React.FC<CreateFileModalProps> = ({ isOpen, onClose, defa
       // 写入文件
       await api.writeFile(filePath, content);
 
-      showToast('文件创建成功', 'success');
+      feedback.toast.success('文件创建成功');
       onClose();
 
       // 刷新文件树
@@ -107,7 +108,7 @@ const CreateFileModal: React.FC<CreateFileModalProps> = ({ isOpen, onClose, defa
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
-        showToast(`创建文件失败: ${err.message}`, 'error');
+        feedback.toast.error(`创建文件失败: ${err.message}`);
       }
     }
   };
@@ -115,8 +116,8 @@ const CreateFileModal: React.FC<CreateFileModalProps> = ({ isOpen, onClose, defa
   if (!isOpen) return null;
 
   return (
-    <div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+    <ModalPortal><div className="create-file-modal-overlay">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>新建文件</h3>
           <button className="close-button" onClick={onClose}>✕</button>
@@ -194,7 +195,7 @@ const CreateFileModal: React.FC<CreateFileModalProps> = ({ isOpen, onClose, defa
           </div>
         </form>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

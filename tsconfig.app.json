@@ -5,14 +5,15 @@
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "outDir": "./dist/app"
+    "outDir": "./dist/app",
+    "types": ["vite/client"]
   },
-  "include": ["src/app/**/*", "src/shared/**/*"],
+  "include": ["src/app/**/*", "src/shared/**/*", "src/types/**/*"],
   "exclude": ["node_modules", "dist", "**/__tests__/**/*", "**/*.test.ts", "src/app/components/editor/SolarWireCanvas.tsx"]
 }

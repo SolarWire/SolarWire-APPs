@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateFileModal.css';
 
 interface DeleteConfirmModalProps {
@@ -46,7 +47,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
         await api.deleteFile(target.path);
       }
 
-      showToast('删除成功', 'success');
+      feedback.toast.success('删除成功');
       onClose();
 
       // 刷新文件树
@@ -56,7 +57,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
       }
     } catch (err) {
       if (err instanceof Error) {
-        showToast(`删除失败: ${err.message}`, 'error');
+        feedback.toast.error(`删除失败: ${err.message}`);
       }
     }
   };
@@ -68,8 +69,8 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
   const typeText = isDirectory ? '文件夹' : '文件';
 
   return (
-    <div className="create-file-modal-overlay">
-      <div className="create-file-modal">
+    <ModalPortal><div className="create-file-modal-overlay">
+      <div className="create-file-modal glass-panel">
         <div className="create-file-modal-header">
           <h3>确认删除</h3>
           <button className="close-button" onClick={onClose}>✕</button>
@@ -91,7 +92,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({ isOpen, onClose
           <button type="button" className="btn-danger" onClick={handleDelete}>确认删除</button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

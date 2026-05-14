@@ -1,16 +1,9 @@
 import { Document, Element } from '../parser';
-import { createRenderContext, RenderContext, ElementBounds, escapeHtml, formatRenderError, getElementLocationInfo } from './context';
+import { createRenderContext, RenderContext, ElementBounds, escapeHtml, formatRenderError, getElementLocationInfo, validateElementAttributes, ValidationContext } from './context';
 import { renderRectangle, RenderResult } from './elements/rectangle';
 import { renderCircle, renderText, renderPlaceholder, renderImage, renderTable } from './elements/otherElements';
 import { renderLine } from './elements/lineAndContainer';
 
-/**
- * 文本换行函数
- * @param text 文本内容
- * @param maxWidth 最大宽度
- * @param fontSize 字体大小
- * @returns 换行后的文本行数组
- */
 function wrapText(text: string, maxWidth: number, fontSize: number = 12): string[] {
   const lines: string[] = [];
   const avgCharWidth = fontSize * 0.65;
@@ -108,23 +101,56 @@ function wrapText(text: string, maxWidth: number, fontSize: number = 12): string
   return lines;
 }
 
-/**
- * 备注信息接口
- */
 interface NoteInfo {
-  /** 备注编号 */
   number: number;
-  /** 备注内容 */
   note: string;
-  /** 元素边界 */
   bounds: ElementBounds;
-  /** 元素索引 */
   elementIndex: number;
 }
 
-/**
- * 内部渲染选项接口
- */
+interface NoteLayoutResult {
+  notesAreaHeight: number;
+  cardHeights: number[];
+  rowMaxHeights: number[];
+  rowStartYs: number[];
+}
+
+function calculateNoteLayout(
+  notes: NoteInfo[],
+  viewBoxWidth: number,
+  margin: number
+): NoteLayoutResult {
+  const cardMargin = 10;
+  const cardsPerRow = 2;
+  const lineHeight = 22;
+  const cardPadding = 12;
+  const extraNoteSpacing = 20;
+  const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
+
+  const cardHeights = notes.map(note => {
+    const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
+    const contentHeight = lines.length * lineHeight;
+    return Math.max(60, contentHeight + cardPadding * 2);
+  });
+
+  const rowMaxHeights: number[] = [];
+  notes.forEach((_, index) => {
+    const row = Math.floor(index / cardsPerRow);
+    if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
+    rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
+  });
+
+  const rowStartYs: number[] = [0];
+  for (let row = 1; row < rowMaxHeights.length; row++) {
+    rowStartYs[row] = rowStartYs[row - 1] + rowMaxHeights[row - 1] + cardMargin;
+  }
+
+  const totalRowHeight = rowMaxHeights.reduce((sum, height) => sum + height, 0);
+  const notesAreaHeight = totalRowHeight + (rowMaxHeights.length + 1) * cardMargin + extraNoteSpacing;
+
+  return { notesAreaHeight, cardHeights, rowMaxHeights, rowStartYs };
+}
+
 interface InternalRenderOptions {
   /** 是否禁用备注 */
   disableNotes?: boolean;
@@ -140,15 +166,13 @@ interface InternalRenderOptions {
   imageUrlResolver?: (relativePath: string) => string;
 }
 
-/**
- * 渲染元素
- * @param element 元素
- * @param context 渲染上下文
- * @param options 渲染选项
- * @returns 渲染结果
- */
 export function renderElement(element: Element, context: RenderContext, options?: InternalRenderOptions): RenderResult {
   const result = (() => {
+    const isTableCell = (element as any)._isTableCell;
+    if (!isTableCell) {
+      const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+      validateElementAttributes(element, vc);
+    }
     switch (element.type) {
       case 'rectangle':
         return renderRectangle(element, context);
@@ -169,9 +193,11 @@ export function renderElement(element: Element, context: RenderContext, options?
         const elem = element as any;
         throw new Error(formatRenderError({
           title: `Unknown element type: "${elem.type}"`,
+          expected: 'rectangle, circle, text, placeholder, image, line, table, or table-row',
+          found: `"${elem.type}"`,
           location: getElementLocationInfo(elem),
           reason: 'The renderer does not recognize this element type.',
-          solution: 'Check if the element type is correct and supported.'
+          solution: 'Check if the element type is correct and supported. Supported types: [] (rectangle), () (circle), "" (text), [?] (placeholder), <> (image), -- (line), ## (table), # (table-row).'
         }, context.sourceInput, elem.location));
       }
     }
@@ -222,13 +248,6 @@ export interface RenderResultWithMeta {
 export function render(ast: Document, options?: RenderOptions): string;
 export function render(ast: Document, options?: RenderOptions, returnMeta?: false): string;
 export function render(ast: Document, options?: RenderOptions, returnMeta?: true): RenderResultWithMeta;
-/**
- * 渲染文档为 SVG
- * @param ast 文档 AST
- * @param options 渲染选项
- * @param returnMeta 是否返回元数据
- * @returns SVG 字符串或带元数据的渲染结果
- */
 export function render(ast: Document, options?: RenderOptions, returnMeta?: boolean): string | RenderResultWithMeta {
   const context = createRenderContext(ast.declarations, options?.sourceInput);
   const svgParts: string[] = [];
@@ -276,30 +295,10 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
   const viewBoxWidth = Math.max(minViewBoxWidth, maxX - minX + margin * 2);
   
   let notesAreaHeight = 0;
-  const extraNoteSpacing = 20;
+  let noteLayout: NoteLayoutResult | null = null;
   if (!disableNotes && notes.length > 0) {
-    const cardMargin = 10;
-    const cardsPerRow = 2;
-    const lineHeight = 22;
-    const cardPadding = 12;
-    const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
-    
-    const cardHeights = notes.map(note => {
-      const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
-      const contentHeight = lines.length * lineHeight;
-      return Math.max(60, contentHeight + cardPadding * 2);
-    });
-    
-    const rowMaxHeights: number[] = [];
-    notes.forEach((_, index) => {
-      const row = Math.floor(index / cardsPerRow);
-      if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
-      rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
-    });
-    
-    const totalRowHeight = rowMaxHeights.reduce((sum, height) => sum + height, 0);
-    const rows = rowMaxHeights.length;
-    notesAreaHeight = totalRowHeight + (rows + 1) * cardMargin + extraNoteSpacing;
+    noteLayout = calculateNoteLayout(notes, viewBoxWidth, margin);
+    notesAreaHeight = noteLayout.notesAreaHeight;
   }
   
   const viewBoxHeight = maxY - minY + margin * 2 + notesAreaHeight;
@@ -372,35 +371,16 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
     svgParts.push(svg);
   });
   
-  if (!disableNotes) {
-    
-    if (notes.length > 0) {
-      const notesY = maxY + margin + extraNoteSpacing;
-      const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
-      const cardMargin = 10;
-      const cardsPerRow = 2;
-      const lineHeight = 22;
-      const cardPadding = 12;
+  if (!disableNotes && noteLayout && notes.length > 0) {
+    const extraNoteSpacing = 20;
+    const cardMargin = 10;
+    const cardsPerRow = 2;
+    const cardPadding = 12;
+    const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
+    const notesY = maxY + margin + extraNoteSpacing;
+    const { cardHeights, rowStartYs } = noteLayout;
       
-      const cardHeights = notes.map(note => {
-        const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
-        const contentHeight = lines.length * lineHeight;
-        return Math.max(60, contentHeight + cardPadding * 2);
-      });
-      
-      const rowMaxHeights: number[] = [];
-      notes.forEach((_, index) => {
-        const row = Math.floor(index / cardsPerRow);
-        if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
-        rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
-      });
-      
-      const rowStartYs: number[] = [0];
-      for (let row = 1; row < rowMaxHeights.length; row++) {
-        rowStartYs[row] = rowStartYs[row - 1] + rowMaxHeights[row - 1] + cardMargin;
-      }
-      
-      notes.forEach((note, index) => {
+    notes.forEach((note, index) => {
         const col = index % cardsPerRow;
         const row = Math.floor(index / cardsPerRow);
         const cardX = viewBoxX + margin + col * (cardWidth + cardMargin);
@@ -456,7 +436,6 @@ export function render(ast: Document, options?: RenderOptions, returnMeta?: bool
         svgParts.push(`  </text>`);
         svgParts.push(`  </g>`);
       });
-    }
   }
   
   svgParts.push('</svg>');

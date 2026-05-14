@@ -1,7 +1,7 @@
 import React from 'react';
 import { ComponentLibrary, ComponentCategory, isPresetLibrary } from '../../../shared/types/component';
 import { TabProvider, TabList, Tab, TabPanel } from '../ui/Tab';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
 import MonacoEditor from '../editor/MonacoEditor';
 import './ComponentLibraryCategoryEditMode.css';
 
@@ -48,7 +48,7 @@ const ComponentLibraryCategoryEditMode: React.FC<ComponentLibraryCategoryEditMod
       onChangeLibrary(localLibraryId);
     }
     onUpdate({ name: localName });
-    showToast('保存成功', 'success');
+    feedback.toast.success('保存成功');
   };
 
   React.useEffect(() => {
@@ -108,7 +108,7 @@ const ComponentLibraryCategoryEditMode: React.FC<ComponentLibraryCategoryEditMod
                   <div className="action-group">
                     <button className="btn-compact" onClick={() => {
                       onCreateComponent();
-                      showToast('打开新建组件对话框', 'info');
+                      feedback.toast.info('打开新建组件对话框');
                     }}>
                       <span className="btn-icon">🧩</span>
                       <span className="btn-text">新建组件</span>
@@ -117,28 +117,28 @@ const ComponentLibraryCategoryEditMode: React.FC<ComponentLibraryCategoryEditMod
                   <div className="action-group">
                     <button className="btn-compact" onClick={() => {
                       onReorder('top');
-                      showToast('已置顶', 'success');
+                      feedback.toast.success('已置顶');
                     }}>
                       <span className="btn-icon">⬆️</span>
                       <span className="btn-text">置顶</span>
                     </button>
                     <button className="btn-compact" onClick={() => {
                       onReorder('up');
-                      showToast('已上移', 'success');
+                      feedback.toast.success('已上移');
                     }}>
                       <span className="btn-icon">🔼</span>
                       <span className="btn-text">上移</span>
                     </button>
                     <button className="btn-compact" onClick={() => {
                       onReorder('down');
-                      showToast('已下移', 'success');
+                      feedback.toast.success('已下移');
                     }}>
                       <span className="btn-icon">🔽</span>
                       <span className="btn-text">下移</span>
                     </button>
                     <button className="btn-compact" onClick={() => {
                       onReorder('bottom');
-                      showToast('已置底', 'success');
+                      feedback.toast.success('已置底');
                     }}>
                       <span className="btn-icon">⬇️</span>
                       <span className="btn-text">置底</span>

@@ -37,25 +37,6 @@
   gap: 8px;
   overflow-x: auto;
   padding: 8px 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-color) transparent;
-}
-
-.form-group.actions::-webkit-scrollbar {
-  height: 8px;
-}
-
-.form-group.actions::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.form-group.actions::-webkit-scrollbar-thumb {
-  background: var(--border-color);
-  border-radius: 4px;
-}
-
-.form-group.actions::-webkit-scrollbar-thumb:hover {
-  background: var(--text-muted);
 }
 
 .action-group {

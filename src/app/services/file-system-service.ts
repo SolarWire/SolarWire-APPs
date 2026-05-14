@@ -4,7 +4,10 @@
  */
 export interface IFileSystemService {
   readFile(filePath: string): Promise<string>;
+  readFileAsBuffer(filePath: string): Promise<ArrayBuffer>;
   writeFile(filePath: string, content: string | Uint8Array): Promise<void>;
+  parseTableFile(filePath: string): Promise<any[]>;
+  saveTableFile(filePath: string, sheets: any[]): Promise<{ success: boolean; error?: string }>;
   getFileTree(dirPath: string): Promise<FileNode[]>;
   ensureDir(dirPath: string): Promise<void>;
   exists(filePath: string): Promise<boolean>;
@@ -29,6 +32,30 @@ export class ElectronFileSystemService implements IFileSystemService {
     const api = (window as any).api;
     if (api && typeof api.readFile === 'function') {
       return await api.readFile(filePath);
+    }
+    throw new Error('File API not available');
+  }
+
+  async readFileAsBuffer(filePath: string): Promise<ArrayBuffer> {
+    const api = (window as any).api;
+    if (api && typeof api.readFileAsBuffer === 'function') {
+      return await api.readFileAsBuffer(filePath);
+    }
+    throw new Error('File API not available');
+  }
+
+  async parseTableFile(filePath: string): Promise<any[]> {
+    const api = (window as any).api;
+    if (api && typeof api.parseTableFile === 'function') {
+      return await api.parseTableFile(filePath);
+    }
+    throw new Error('File API not available');
+  }
+
+  async saveTableFile(filePath: string, sheets: any[]): Promise<{ success: boolean; error?: string }> {
+    const api = (window as any).api;
+    if (api && typeof api.saveTableFile === 'function') {
+      return await api.saveTableFile(filePath, sheets);
     }
     throw new Error('File API not available');
   }

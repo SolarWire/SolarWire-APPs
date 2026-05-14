@@ -1,7 +1,5 @@
 import type { Document, Element } from './types';
-// Peggy生成的解析器，类型在下面定义
-// @ts-ignore - 忽略 parser.js 的类型问题
-import parserJs from './parser';
+import { parse as peggyParse } from './parser';
 
 export type {
   Document,
@@ -18,10 +16,7 @@ export type {
   TableRowElement,
   Coordinate,
   AbsoluteCoordinate,
-  RelativeCoordinate,
-  EdgeCoordinate,
   CoordinateExpression,
-  RelativeEndCoordinate,
   SourceLocation,
 } from './types';
 
@@ -29,15 +24,10 @@ interface PeggyParser {
   parse(input: string, options?: { startRule?: string }): Document;
 }
 
-// 类型断言：Peggy生成的parser.js导出符合PeggyParser接口
-let parserInstance: PeggyParser | null = null;
-
-try {
-  parserInstance = parserJs as unknown as PeggyParser;
-} catch (e) {
-  console.error('Failed to initialize parser:', e);
-  parserInstance = null;
-}
+// 直接使用Peggy导出的parse函数
+const parserInstance: PeggyParser = {
+  parse: peggyParse
+};
 
 function getContextAroundPosition(input: string, lineNum: number, columnNum: number, contextLines: number = 3): string {
   const lines = input.split(/\r?\n/);

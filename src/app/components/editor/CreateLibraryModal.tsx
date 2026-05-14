@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateLibraryModal.css';
 
 interface CreateLibraryModalProps {
@@ -44,11 +45,11 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
         author: libraryData.author.trim(),
       });
       
-      showToast('组件库创建成功', 'success');
+      feedback.toast.success('组件库创建成功');
       handleClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };
@@ -83,8 +84,8 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
   }
 
   return (
-    <div className="create-library-modal-overlay">
-      <div className="create-library-modal">
+    <ModalPortal><div className="create-library-modal-overlay">
+      <div className="create-library-modal glass-panel">
         <div className="create-library-header">
           <h2>📦 新建组件库</h2>
           <button className="close-button" onClick={handleClose}>✕</button>
@@ -150,7 +151,7 @@ const CreateLibraryModal: React.FC<CreateLibraryModalProps> = ({ isOpen, onClose
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

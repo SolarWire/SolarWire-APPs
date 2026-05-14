@@ -2,9 +2,8 @@ import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react'
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
 import { useEditorStore } from '../../stores/editorStore';
 import { useAppStore } from '../../stores/appStore';
-import { Component, ComponentLibrary as ComponentLibraryType, isComponentUncategorized } from '../../../shared/types/component';
-import { componentLibraryManager } from '../../services/ComponentLibraryManager';
-import { generateThumbnailBatch } from '../../../lib/components/thumbnail-generator';
+import { Component, isComponentUncategorized } from '../../../shared/types/component';
+import { useComponentThumbnails } from './hooks/useComponentThumbnails';
 import './ComponentLibrary.css';
 
 function sanitizeSvg(svg: string): string {
@@ -78,10 +77,6 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
   const setMode = useEditorStore(s => s.setMode);
   const setCurrentView = useAppStore(s => s.setCurrentView);
 
-  const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingProgress, setLoadingProgress] = useState<{ current: number; total: number } | null>(null);
-  const [componentParseErrors, setComponentParseErrors] = useState<Map<string, string>>(new Map());
   const [categoriesExpanded, setCategoriesExpanded] = useState(false);
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -89,66 +84,16 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
     return libraries.find(lib => lib.metadata.id === activeLibraryId) || null;
   }, [libraries, activeLibraryId]);
 
-  const activeLibraryIdValue = activeLibrary?.metadata.id;
-  const activeLibraryComponentCount = activeLibrary?.components.length;
-  const activeLibraryComponentIds = useMemo(() => {
-    return activeLibrary?.components.map(c => c.internalId).join(',') || '';
-  }, [activeLibrary?.components]);
-
-  const generateThumbnails = useCallback(async (library: ComponentLibraryType) => {
-    const components = library.components.map((c: Component) => ({ internalId: c.internalId, code: c.code }));
-
-    try {
-      const results = await generateThumbnailBatch(components, (completed, total, componentInternalId, success) => {
-        setLoadingProgress({ current: completed, total });
-
-        if (!success) {
-          const component = library.components.find((c: Component) => c.internalId === componentInternalId);
-          if (component) {
-            setComponentParseErrors(prev => new Map(prev).set(componentInternalId, component.name));
-          }
-        }
-      }, 120, 80);
-
-      // 只缓存成功的缩略图
-      // 这样可以确保第二次打开时，失败的组件不会被误认为已有缓存，从而正确显示修复按钮
-      const successfulThumbnails = new Map<string, string>();
-      results.forEach((thumbnail, componentId) => {
-        if (!thumbnail.includes('&#10060;')) {
-          successfulThumbnails.set(componentId, thumbnail);
-        }
-      });
-
-      componentLibraryManager.setThumbnailCache(library.metadata.id, successfulThumbnails);
-      setThumbnails(results);
-    } catch (error) {
-      console.error('Failed to generate thumbnails:', error);
-    } finally {
-      setIsLoading(false);
-      setLoadingProgress(null);
-    }
-  }, [componentLibraryManager]);
-
-  useEffect(() => {
-    if (!activeLibrary) {
-      setThumbnails(new Map());
-      setComponentParseErrors(new Map());
-      return;
-    }
-
-    const cachedThumbnails = componentLibraryManager.getThumbnailCache(activeLibrary.metadata.id);
-    const hasAllThumbnails = activeLibrary.components.every(c => cachedThumbnails.has(c.internalId));
-
-    if (cachedThumbnails.size > 0 && hasAllThumbnails) {
-      setThumbnails(cachedThumbnails);
-      setComponentParseErrors(new Map());
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadingProgress({ current: 0, total: activeLibrary.components.length });
-    generateThumbnails(activeLibrary);
-  }, [activeLibraryIdValue, activeLibraryComponentIds, componentLibraryManager, generateThumbnails]);
+  const {
+    thumbnails,
+    parseErrors: componentParseErrors,
+    isLoading,
+    loadingProgress,
+    refresh: refreshThumbnails,
+  } = useComponentThumbnails({
+    libraryId: activeLibrary?.metadata.id,
+    components: activeLibrary?.components ?? [],
+  });
 
   const filteredComponents = useMemo(() => {
     if (!activeLibrary) return [];
@@ -165,7 +110,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
       }
     } else if (!searchQuery) {
       const categoryOrder = activeLibrary.categories.map(c => c.id);
-      const getCatOrder = (categoryId: string | undefined) => {
+      const getCatOrder = (categoryId: string | null | undefined) => {
         if (!categoryId) return categoryOrder.length;
         const idx = categoryOrder.indexOf(categoryId);
         return idx >= 0 ? idx : categoryOrder.length;
@@ -275,18 +220,7 @@ const ComponentLibrary: React.FC<ComponentLibraryProps> = ({ onDropToCanvas }) =
       <div className="component-library-header">
         <span>组件库</span>
         <div className="component-library-actions">
-          <button title="刷新组件库" onClick={() => {
-            if (activeLibrary) {
-              setThumbnails(new Map());
-              setComponentParseErrors(new Map());
-              componentLibraryManager.setThumbnailCache(activeLibrary.metadata.id, new Map());
-              setIsLoading(true);
-              setLoadingProgress({ current: 0, total: activeLibrary.components.length });
-              setTimeout(() => {
-                generateThumbnails(activeLibrary);
-              }, 100);
-            }
-          }}>🔄</button>
+          <button title="刷新组件库" onClick={refreshThumbnails}>🔄</button>
         </div>
       </div>
 

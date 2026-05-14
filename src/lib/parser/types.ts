@@ -6,36 +6,7 @@ export interface AbsoluteCoordinate {
   value: number;
 }
 
-/**
- * 相对坐标接口
- */
-export interface RelativeCoordinate {
-  type: 'relative';
-  value: number;
-}
-
-/**
- * 边缘坐标接口
- */
-export interface EdgeCoordinate {
-  type: 'edge';
-  direction: 'L' | 'R' | 'T' | 'B' | 'C';
-  value: number;
-}
-
-/**
- * 坐标类型
- */
-export type Coordinate = AbsoluteCoordinate | RelativeCoordinate | EdgeCoordinate;
-
-/**
- * 相对终点坐标接口
- */
-export interface RelativeEndCoordinate {
-  type: 'relative';
-  dx: number;
-  dy: number;
-}
+export type Coordinate = AbsoluteCoordinate;
 
 /**
  * 坐标表达式类型
@@ -108,7 +79,7 @@ export interface LineElement extends BaseElement {
   type: 'line';
   label?: string;
   start: CoordinateExpression;
-  end: CoordinateExpression | RelativeEndCoordinate;
+  end: CoordinateExpression;
 }
 
 /**

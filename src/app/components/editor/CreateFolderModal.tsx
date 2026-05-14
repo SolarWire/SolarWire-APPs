@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useFileStore } from '../../stores/fileStore';
 import { FileNode } from '../../../shared/types/file';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './CreateFileModal.css';
 
 interface CreateFolderModalProps {
@@ -101,7 +102,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({ isOpen, onClose, 
       // 创建文件夹
       await api.mkdir(folderPath);
 
-      showToast('文件夹创建成功', 'success');
+      feedback.toast.success('文件夹创建成功');
       onClose();
 
       // 刷新文件树
@@ -112,7 +113,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({ isOpen, onClose, 
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
-        showToast(`创建文件夹失败: ${err.message}`, 'error');
+        feedback.toast.error(`创建文件夹失败: ${err.message}`);
       }
     }
   };
@@ -120,7 +121,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({ isOpen, onClose, 
   if (!isOpen) return null;
 
   return (
-    <div className="create-file-modal-overlay">
+    <ModalPortal><div className="create-file-modal-overlay">
       <div className="create-file-modal">
         <div className="create-file-modal-header">
           <h3>新建文件夹</h3>
@@ -162,7 +163,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = ({ isOpen, onClose, 
           </div>
         </form>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

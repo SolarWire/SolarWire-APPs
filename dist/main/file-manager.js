@@ -37,6 +37,7 @@ exports.setAllowedRoot = setAllowedRoot;
 exports.getAllowedRoot = getAllowedRoot;
 exports.validatePath = validatePath;
 exports.readFile = readFile;
+exports.readFileAsBuffer = readFileAsBuffer;
 exports.writeFile = writeFile;
 exports.listFiles = listFiles;
 exports.getFileTree = getFileTree;
@@ -104,6 +105,19 @@ async function readFile(filePath) {
         throw new Error(`Failed to read file: ${filePath}`);
     }
 }
+async function readFileAsBuffer(filePath) {
+    try {
+        validatePath(filePath);
+        const buffer = await fs.readFile(filePath);
+        return buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+    }
+    catch (error) {
+        if (error instanceof Error && error.message.includes('Access denied')) {
+            throw error;
+        }
+        throw new Error(`Failed to read file as buffer: ${filePath}`);
+    }
+}
 async function writeFile(filePath, content, allowOutsideProject = false) {
     try {
         if (!allowOutsideProject) {
@@ -139,7 +153,7 @@ async function listFiles(dirPath) {
         throw new Error(`Failed to list files: ${dirPath}`);
     }
 }
-async function getFileTree(dirPath, depth = 3) {
+async function getFileTree(dirPath, depth = -1) {
     try {
         validatePath(dirPath);
         const entries = await fs.readdir(dirPath, { withFileTypes: true });
@@ -154,9 +168,9 @@ async function getFileTree(dirPath, depth = 3) {
                 children: [],
                 modifiedTime: stats.mtimeMs,
             };
-            if (entry.isDirectory() && depth > 0) {
+            if (entry.isDirectory() && (depth < 0 || depth > 0)) {
                 try {
-                    node.children = await getFileTree(fullPath, depth - 1);
+                    node.children = await getFileTree(fullPath, depth < 0 ? -1 : depth - 1);
                 }
                 catch (err) {
                     // Skip directories we can't access

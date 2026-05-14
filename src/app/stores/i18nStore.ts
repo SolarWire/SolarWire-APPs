@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Language, getTranslation, TranslationKeys, defaultLanguage } from '../i18n';
-import { showToast } from '../services/toast-service';
+import { feedback } from './feedbackStore';
 
 export interface I18nState {
   language: Language;
@@ -40,7 +40,7 @@ export const useI18nStore = create<I18nState>((set, get) => ({
       }
     } catch (error) {
       console.error('Failed to load language:', error);
-      showToast('Failed to load language', 'error');
+      feedback.toast.error('Failed to load language');
     }
   },
 
@@ -50,7 +50,7 @@ export const useI18nStore = create<I18nState>((set, get) => ({
       localStorage.setItem('solarwire-language', language);
     } catch (error) {
       console.error('Failed to save language:', error);
-      showToast('Failed to save language', 'error');
+      feedback.toast.error('Failed to save language');
     }
   }
 }));

@@ -1,8 +1,11 @@
 import React, { useRef, useCallback, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import { useAppStore } from '../../stores/appStore';
+import { isDarkTheme } from '../../../shared/types/app';
 import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
 import { useStatusStore } from '../../stores/statusStore';
+import { registerSolarWireLanguage, getThemeName } from '../../../shared/utils/solarwire-language';
+import { registerSolarWireCompletion } from '../../../shared/utils/solarwire-completion';
 import './MonacoEditor.css';
 
 // 全局保存的滚动位置记录
@@ -34,6 +37,8 @@ interface MonacoEditorProps {
   preserveScrollPosition?: boolean;
   /** 滚动位置键（用于区分不同的编辑器实例） */
   scrollKey?: string;
+  /** 错误来源标识，用于语法错误服务隔离 */
+  errorSourceId?: string;
 }
 
 /**
@@ -50,7 +55,8 @@ function MonacoEditor({
   scrollTrigger,
   highlightTrigger,
   preserveScrollPosition = false,
-  scrollKey
+  scrollKey,
+  errorSourceId
 }: MonacoEditorProps): React.ReactElement {
   // 主题
   const { theme } = useAppStore();
@@ -83,10 +89,9 @@ function MonacoEditor({
   // 监听语法错误变化
   useEffect(() => {
     const listener = {
+      sourceId: errorSourceId || 'main-editor',
       onErrorsChanged: (errors: SyntaxError[]) => {
-        // 更新错误行高亮
         const errorLines = errors.map(e => e.line);
-        // 这里可以触发错误行高亮更新
       }
     };
 
@@ -94,6 +99,11 @@ function MonacoEditor({
     return () => {
       syntaxErrorService.removeListener(listener);
     };
+  }, [errorSourceId]);
+
+  const handleBeforeMount = useCallback((monaco: any) => {
+    registerSolarWireLanguage(monaco);
+    registerSolarWireCompletion(monaco);
   }, []);
 
   /**
@@ -238,7 +248,7 @@ function MonacoEditor({
       targetLine = highlightLinesRef.current[0];
     } else {
       // 如果没有错误行或高亮行，尝试从语法错误服务获取最新的错误行
-      const currentErrors = syntaxErrorService.getErrors();
+      const currentErrors = syntaxErrorService.getErrors(errorSourceId);
       if (currentErrors.length > 0) {
         targetLine = currentErrors[0].line;
       }
@@ -279,96 +289,27 @@ function MonacoEditor({
     pendingHighlightRef.current = null;
   }, [highlightTrigger]);
 
-  // Effect 4: 注册 SolarWire 语言和设置
+  // Effect 4: 设置编辑器选项和语法错误服务
   useEffect(() => {
     if (!monacoRef.current) return;
     
     const monaco = monacoRef.current;
     const editor = editorRef.current;
-    
-    if (!monaco.languages.getLanguages().some((lang: any) => lang.id === 'solarwire')) {
-      monaco.languages.register({ id: 'solarwire' });
-      
-      monaco.languages.setMonarchTokensProvider('solarwire', {
-        tokenizer: {
-          root: [
-            [/\/\/.*$/, 'comment'],
-            [/\("[^"]*"\)/, 'type'],
-            [/\('[^']*'\)/, 'type'],
-            [/\["[^"]*"\]/, 'type'],
-            [/\[[^\]]*\]/, 'type'],
-            [/"[^"]*"/, 'string'],
-            [/'[^']*'/, 'string'],
-            [/--/, 'keyword'],
-            [/##/, 'namespace'],
-            [/\[\?"[^"]*"\]/, 'type'],
-            [/<[^>]+>/, 'type'],
-            [/@\([^)]+\)/, 'number'],
-            [/->\([^)]+\)/, 'number'],
-            [/->\(\+\s*\d+\s*,\s*\+\s*\d+\)/, 'number'],
-            [/\b\w+\s*=\s*"[^"]*"/, 'attribute'],
-            [/\b\w+\s*=\s*'[^']*'/, 'attribute'],
-            [/\b\w+\s*=\s*[^\s]+/, 'attribute'],
-            [/\bbold\b/, 'attribute'],
-            [/\bitalic\b/, 'attribute'],
-            [/\bnote\b/, 'attribute'],
-            [/\b\d+\b/, 'number'],
-            [/#([0-9a-fA-F]{3,8})/, 'string'],
-            [/"""/, 'string.delimiter']
-          ]
-        }
-      });
 
-      monaco.languages.setLanguageConfiguration('solarwire', {
-        comments: {
-          lineComment: '//',
-        },
-        brackets: [
-          ['(', ')'],
-          ['[', ']'],
-          ['{', '}']
-        ],
-        autoClosingPairs: [
-          { open: '(', close: ')' },
-          { open: '[', close: ']' },
-          { open: '"', close: '"' },
-          { open: "'", close: "'" },
-          { open: '"""', close: '"""' }
-        ]
-      });
-    }
+    registerSolarWireLanguage(monaco);
+    registerSolarWireCompletion(monaco);
 
-    // 设置编辑器选项
     if (editor) {
-      editor.updateOptions({
-        fontSize: 14,
-        fontFamily: 'Consolas, Monaco, "Courier New", monospace',
-        lineNumbers: 'on',
-        minimap: { enabled: false },
-        scrollBeyondLastLine: false,
-        wordWrap: 'off',
-        automaticLayout: true,
-        tabSize: 2,
-        insertSpaces: true,
-        renderWhitespace: 'selection',
-        renderLineHighlight: 'line',
-        cursorBlinking: 'blink',
-        cursorSmoothCaretAnimation: 'on',
-        smoothScrolling: true,
-        bracketPairColorization: { enabled: true }
-      });
-
-      // 如果已经有模型，立即设置语法错误服务
       if (editor.getModel()) {
         const model = editor.getModel();
         syntaxErrorService.setMonacoRef(monaco);
         
-        // 监听内容变化，只触发渲染器检测
         model.onDidChangeContent(() => {
+          syntaxErrorService.setCurrentSourceId(errorSourceId || 'main-editor');
           syntaxErrorService.runRendererCheck(model.getValue());
         });
         
-        // 初始运行渲染器检测
+        syntaxErrorService.setCurrentSourceId(errorSourceId || 'main-editor');
         syntaxErrorService.runRendererCheck(model.getValue());
       }
     }
@@ -391,7 +332,8 @@ function MonacoEditor({
       language={language}
       value={value}
       onChange={(value: string | undefined) => onChange(value || '')}
-      theme={theme === 'dark' ? 'vs-dark' : 'vs-light'}
+      theme={language === 'solarwire' ? getThemeName(isDarkTheme(theme)) : (isDarkTheme(theme) ? 'vs-dark' : 'vs-light')}
+      beforeMount={handleBeforeMount}
       onMount={handleEditorDidMount}
       options={{
         fontSize: 14,

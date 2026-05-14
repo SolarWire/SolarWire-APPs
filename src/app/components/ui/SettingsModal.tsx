@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useSettingsStore } from '../../stores/settingsStore';
 import { useI18nStore } from '../../stores/i18nStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Language } from '../../i18n';
-import { showToast } from '../../services/toast-service';
+import { useAppStore } from '../../stores/appStore';
+import { THEME_LIST } from '../../../shared/types/app';
+import ModalPortal from './ModalPortal';
 import './SettingsModal.css';
 
 interface SettingsModalProps {
@@ -12,19 +13,14 @@ interface SettingsModalProps {
 }
 
 function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElement | null {
-  const { primaryColor, setPrimaryColor } = useSettingsStore();
   const { language, setLanguage } = useI18nStore();
+  const { theme, setTheme } = useAppStore();
   const t = useTranslation();
-  const [tempPrimaryColor, setTempPrimaryColor] = useState(primaryColor);
   const [tempLanguage, setTempLanguage] = useState(language);
-  const [colorError, setColorError] = useState('');
-  const DEFAULT_PRIMARY_COLOR = '#FCA506';
 
   useEffect(() => {
-    setTempPrimaryColor(primaryColor);
     setTempLanguage(language);
-    setColorError('');
-  }, [primaryColor, language, isOpen]);
+  }, [language, isOpen]);
 
   // ESC键关闭模态窗
   useEffect(() => {
@@ -37,24 +33,9 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  const isValidColor = (color: string): boolean => {
-    const hexColorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-    return hexColorRegex.test(color);
-  };
-
   const handleSave = () => {
-    if (!isValidColor(tempPrimaryColor)) {
-      setColorError('Invalid color format. Use hex format like #FCA506');
-      showToast('Invalid color format', 'error');
-      return;
-    }
-    setPrimaryColor(tempPrimaryColor);
     setLanguage(tempLanguage);
     onClose();
-  };
-
-  const handleResetColor = () => {
-    setTempPrimaryColor(DEFAULT_PRIMARY_COLOR);
   };
 
   const handleOverlayClick = (e: React.MouseEvent) => {
@@ -66,8 +47,8 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
   if (!isOpen) return null;
 
   return (
-    <div className="settings-modal-overlay" onClick={handleOverlayClick}>
-      <div className="settings-modal">
+    <ModalPortal><div className="settings-modal-overlay" onClick={handleOverlayClick}>
+      <div className="settings-modal glass-panel">
         <div className="settings-modal-header">
           <h2>{t.settings.title}</h2>
           <button className="settings-close-button" onClick={onClose}>
@@ -96,34 +77,19 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
           <div className="settings-section">
             <h3>{t.settings.appearance}</h3>
             <div className="settings-field">
-              <label>{t.settings.accentColor}</label>
-              <div className="color-picker-row">
-                <input
-                  type="color"
-                  value={tempPrimaryColor}
-                  onChange={(e) => setTempPrimaryColor(e.target.value)}
-                />
-                <div className="color-input-wrapper">
-                  <input
-                    type="text"
-                    value={tempPrimaryColor}
-                    onChange={(e) => {
-                      setTempPrimaryColor(e.target.value);
-                      if (isValidColor(e.target.value)) {
-                        setColorError('');
-                      }
-                    }}
-                    className={`color-input ${colorError ? 'color-input-error' : ''}`}
-                  />
+              <label>{t.settings.theme}</label>
+              <div className="theme-selector">
+                {THEME_LIST.map((item) => (
                   <button
-                    className="color-reset-button"
-                    onClick={handleResetColor}
-                    title={t.common.reset}
+                    key={item.id}
+                    className={`theme-option ${theme === item.id ? 'theme-option-active' : ''}`}
+                    onClick={() => setTheme(item.id)}
+                    title={t.themes[item.id]}
                   >
-                    {t.common.reset}
+                    <span className="theme-option-icon">{item.icon}</span>
+                    <span className="theme-option-label">{t.themes[item.id]}</span>
                   </button>
-                </div>
-                {colorError && <div className="color-error-message">{colorError}</div>}
+                ))}
               </div>
             </div>
           </div>
@@ -138,7 +104,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 }
 

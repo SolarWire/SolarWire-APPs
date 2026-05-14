@@ -6,7 +6,7 @@
 }
 
 .main-content .resizable-divider {
-  z-index: 5;
+  z-index: var(--z-drag-area);
 }
 
 .left-panel-container {

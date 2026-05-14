@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useComponentLibraryStore } from '../../stores/componentLibraryStore';
-import { showToast } from '../../services/toast-service';
+import { feedback } from '../../stores/feedbackStore';
+import ModalPortal from '../ui/ModalPortal';
 import './ChangeCategoryParentModal.css';
 
 interface ChangeCategoryParentModalProps {
@@ -46,11 +47,11 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
         'after'
       );
       
-      showToast('分类归属已更改', 'success');
+      feedback.toast.success('分类归属已更改');
       onClose();
     } catch (err) {
       if (err instanceof Error) {
-        showToast(err.message, 'error');
+        feedback.toast.error(err.message);
       }
     }
   };
@@ -65,8 +66,8 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
   }
 
   return (
-    <div className="change-category-parent-modal-overlay">
-      <div className="change-category-parent-modal">
+    <ModalPortal><div className="change-category-parent-modal-overlay">
+      <div className="change-category-parent-modal glass-panel">
         <div className="change-category-parent-header">
           <h2>🔄 改变分类归属</h2>
           <button className="close-button" onClick={handleClose}>✕</button>
@@ -109,7 +110,7 @@ const ChangeCategoryParentModal: React.FC<ChangeCategoryParentModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 };
 

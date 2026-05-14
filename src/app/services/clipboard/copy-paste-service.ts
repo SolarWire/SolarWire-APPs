@@ -97,7 +97,7 @@ export function getElementType(content: string, lineNumber: number): ElementType
   const line = lines[lineNumber - 1].trim();
 
   if (line.startsWith('##')) return 'table';
-  if (line.startsWith('--')) return 'line';
+  if (line.startsWith('--') || (line.startsWith('-') && (line.length > 1 && line[1] === '"'))) return 'line';
   if (line.startsWith('<')) return 'image';
   if (line.startsWith('[?"')) return 'placeholder';
   if (line.startsWith('(')) return 'circle';

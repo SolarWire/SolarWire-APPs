@@ -1,38 +1,7 @@
 import { create } from 'zustand';
+import type { AlignmentGuide, DistanceLine } from '../components/editor/snap';
 
-export type GuideType =
-  | 'left' | 'right' | 'top' | 'bottom'
-  | 'centerX' | 'centerY'
-  | 'spacingX' | 'spacingY'
-  | 'canvasLeft' | 'canvasRight' | 'canvasTop' | 'canvasBottom' | 'canvasCenterX' | 'canvasCenterY'
-  | 'distributeX' | 'distributeY'
-  | 'userH' | 'userV';
-
-export interface AlignmentGuide {
-  type: GuideType;
-  position: number;
-  distance?: number;
-  sourceElementId?: string;
-  sourceBounds?: { x: number; y: number; w: number; h: number };
-  relatedElementIds?: string[];
-  priority: number;
-  isSnapped: boolean;
-  isNearby?: boolean;
-  targetBounds?: { x: number; y: number; w: number; h: number };
-  currentEdge?: number;
-  isHorizontal?: boolean;
-}
-
-export interface EdgeGap {
-  type: string;
-  targetBounds: { x: number; y: number; w: number; h: number };
-  distance: number;
-  currentEdge: number;
-  targetEdge: number;
-  hasOverlap: boolean;
-  overlapStart: number;
-  overlapEnd: number;
-}
+export type { AlignmentGuide, DistanceLine } from '../components/editor/snap';
 
 export interface BoxSelectionState {
   startX: number;
@@ -101,8 +70,11 @@ interface PreviewState {
   dropOverlay: boolean;
   error: string | null;
   alignmentGuides: AlignmentGuide[];
-  edgeGaps: EdgeGap[];
+  distanceLines: DistanceLine[];
   altKeyPressed: boolean;
+
+  draftContent: string | null;
+  markSnapshot: string | null;
 }
 
 interface PreviewActions {
@@ -122,8 +94,13 @@ interface PreviewActions {
   setDropOverlay: (show: boolean) => void;
   setError: (error: string | null) => void;
   setAlignmentGuides: (guides: AlignmentGuide[]) => void;
-  setEdgeGaps: (gaps: EdgeGap[]) => void;
+  setDistanceLines: (lines: DistanceLine[]) => void;
   setAltKeyPressed: (pressed: boolean) => void;
+
+  setDraftContent: (content: string) => void;
+  mark: (currentContent: string) => void;
+  commit: () => { content: string; snapshot: string } | null;
+  clearDraftContent: () => void;
 
   resetInteractionStates: () => void;
 }
@@ -137,10 +114,10 @@ const initialInteractionState = {
   resizeHandleState: null as ResizeHandleState | null,
   dragPreviewElement: null as DragPreviewElement | null,
   alignmentGuides: [] as AlignmentGuide[],
-  edgeGaps: [] as EdgeGap[],
+  distanceLines: [] as DistanceLine[],
 };
 
-export const usePreviewStore = create<PreviewStore>((set) => ({
+export const usePreviewStore = create<PreviewStore>((set, get) => ({
   scale: 1,
   position: { x: 0, y: 0 },
   isDraggingCanvas: false,
@@ -157,8 +134,10 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   dropOverlay: false,
   error: null,
   alignmentGuides: [],
-  edgeGaps: [],
+  distanceLines: [],
   altKeyPressed: false,
+  draftContent: null,
+  markSnapshot: null,
 
   setScale: (scale) => set({ scale }),
   setPosition: (position) => set({ position }),
@@ -182,8 +161,31 @@ export const usePreviewStore = create<PreviewStore>((set) => ({
   setDropOverlay: (show) => set({ dropOverlay: show }),
   setError: (error) => set({ error }),
   setAlignmentGuides: (guides) => set({ alignmentGuides: guides }),
-  setEdgeGaps: (gaps) => set({ edgeGaps: gaps }),
+  setDistanceLines: (lines) => set({ distanceLines: lines }),
   setAltKeyPressed: (pressed) => set({ altKeyPressed: pressed }),
+
+  setDraftContent: (content) => {
+    const { markSnapshot } = get();
+    if (markSnapshot !== null) {
+      set({ draftContent: content });
+    }
+  },
+  mark: (currentContent) => set({
+    markSnapshot: currentContent,
+    draftContent: currentContent,
+  }),
+  commit: () => {
+    const { draftContent, markSnapshot } = get();
+    if (draftContent !== null && markSnapshot !== null) {
+      set({ draftContent: null, markSnapshot: null });
+      return { content: draftContent, snapshot: markSnapshot };
+    }
+    return null;
+  },
+  clearDraftContent: () => set({
+    draftContent: null,
+    markSnapshot: null,
+  }),
 
   resetInteractionStates: () => set(initialInteractionState),
 }));

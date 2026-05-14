@@ -35,17 +35,39 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const electron_1 = require("electron");
 const path = __importStar(require("path"));
+const fs = __importStar(require("fs"));
 const ipc_1 = require("./ipc");
-// 设置应用名称
 electron_1.app.setName('SolarWire Editor');
 let mainWindow = null;
-/**
- * 尝试连接到指定端口，检查是否有 Vite 开发服务器在运行
- */
+const SUPPORTED_FILE_EXTENSIONS = new Set(['md', 'markdown', 'solarwire', 'sw']);
+function isSupportedFilePath(filePath) {
+    const ext = filePath.split('.').pop()?.toLowerCase() || '';
+    return SUPPORTED_FILE_EXTENSIONS.has(ext);
+}
+function extractPathFromArgv(argv) {
+    for (const arg of argv) {
+        if (arg.startsWith('-') || arg.startsWith('--') || arg.startsWith('/'))
+            continue;
+        if (!path.isAbsolute(arg))
+            continue;
+        try {
+            const stat = fs.statSync(arg);
+            if (stat.isFile() && isSupportedFilePath(arg)) {
+                return { filePath: arg, dirPath: null };
+            }
+            if (stat.isDirectory()) {
+                return { filePath: null, dirPath: arg };
+            }
+        }
+        catch {
+            // ignore invalid paths
+        }
+    }
+    return { filePath: null, dirPath: null };
+}
 async function checkPort(port) {
     return new Promise((resolve) => {
         let resolved = false;
-        // 设置超时定时器
         const timeout = setTimeout(() => {
             if (!resolved) {
                 resolved = true;
@@ -76,10 +98,6 @@ async function checkPort(port) {
         request.end();
     });
 }
-/**
- * 找到正在运行的 Vite 开发服务器端口
- * 从 3000 开始尝试，最多尝试到 3010
- */
 async function findVitePort() {
     const portsToTry = [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007, 3008, 3009, 3010];
     for (const port of portsToTry) {
@@ -88,7 +106,16 @@ async function findVitePort() {
             return port;
         }
     }
-    return 3000; // 默认返回 3000
+    return 3000;
+}
+function sendOpenPathToRenderer(filePath, dirPath) {
+    if (!mainWindow || (!filePath && !dirPath))
+        return;
+    mainWindow.webContents.send('open-path', { filePath, dirPath });
+    if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+    }
+    mainWindow.focus();
 }
 function createWindow() {
     mainWindow = new electron_1.BrowserWindow({
@@ -96,6 +123,8 @@ function createWindow() {
         height: 900,
         title: 'SolarWire Editor',
         icon: path.join(__dirname, '../../public/logo.png'),
+        backgroundColor: '#1e1e1e',
+        show: false,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -105,32 +134,50 @@ function createWindow() {
             allowRunningInsecureContent: false
         }
     });
-    // 开发模式下使用 Vite 服务器
-    // 生产模式下使用打包后的文件
-    const isDev = process.env.NODE_ENV === 'development' || !process.env.NODE_ENV;
+    mainWindow.once('ready-to-show', () => {
+        mainWindow?.show();
+    });
+    const builtAppPath = path.join(__dirname, '../app/index.html');
+    const isDev = process.env.NODE_ENV === 'development' || !fs.existsSync(builtAppPath);
     if (isDev) {
-        // 先找到 Vite 实际运行的端口
         findVitePort().then((port) => {
             console.log(`Loading Vite server at http://localhost:${port}`);
             mainWindow?.loadURL(`http://localhost:${port}`);
         }).catch(() => {
-            // 如果找不到，默认尝试 3000
             mainWindow?.loadURL('http://localhost:3000');
         });
     }
     else {
-        mainWindow.loadFile(path.join(__dirname, '../app/index.html'));
+        mainWindow.loadFile(builtAppPath);
     }
 }
-electron_1.app.whenReady().then(() => {
-    (0, ipc_1.setupIPC)();
-    createWindow();
-    electron_1.app.on('activate', () => {
-        if (electron_1.BrowserWindow.getAllWindows().length === 0) {
-            createWindow();
+const gotTheLock = electron_1.app.requestSingleInstanceLock();
+if (!gotTheLock) {
+    electron_1.app.quit();
+}
+else {
+    electron_1.app.on('second-instance', (_event, argv) => {
+        if (mainWindow) {
+            const { filePath, dirPath } = extractPathFromArgv(argv);
+            sendOpenPathToRenderer(filePath, dirPath);
         }
     });
-});
+    electron_1.app.whenReady().then(() => {
+        (0, ipc_1.setupIPC)();
+        createWindow();
+        const { filePath, dirPath } = extractPathFromArgv(process.argv);
+        if (filePath || dirPath) {
+            mainWindow?.webContents.on('did-finish-load', () => {
+                sendOpenPathToRenderer(filePath, dirPath);
+            });
+        }
+        electron_1.app.on('activate', () => {
+            if (electron_1.BrowserWindow.getAllWindows().length === 0) {
+                createWindow();
+            }
+        });
+    });
+}
 electron_1.app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         electron_1.app.quit();

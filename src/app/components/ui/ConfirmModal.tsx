@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
+import ModalPortal from './ModalPortal';
 import './ConfirmModal.css';
 
 interface ConfirmModalProps {
@@ -49,8 +50,8 @@ function ConfirmModal({
   };
 
   return (
-    <div className="confirm-modal-overlay" onClick={handleOverlayClick}>
-      <div className={`confirm-modal confirm-modal-${type}`}>
+    <ModalPortal><div className="confirm-modal-overlay" onClick={handleOverlayClick}>
+      <div className={`confirm-modal confirm-modal-${type} glass-panel`}>
         <div className="confirm-modal-header">
           <h3>{title}</h3>
           <button className="confirm-close-button" onClick={onCancel}>
@@ -74,7 +75,7 @@ function ConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </div></ModalPortal>
   );
 }
 

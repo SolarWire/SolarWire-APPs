@@ -86,7 +86,6 @@ const ResizableDivider: React.FC<ResizableDividerProps> = ({
       onMouseDown={handleMouseDown}
       style={{
         position: 'relative',
-        zIndex: 10,
       }}
     />
   );

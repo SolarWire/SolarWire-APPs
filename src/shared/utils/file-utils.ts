@@ -10,7 +10,7 @@ export async function writeFile(filePath: string, content: string): Promise<void
 
 // 选中状态管理
 export interface SelectedItem {
-  view: 'file' | 'requirement' | 'solarwire';
+  view: 'file';
   path: string;
   snippetId?: string;
 }
@@ -23,7 +23,7 @@ let selectedItem: SelectedItem | null = null;
  * @param path 文件路径
  * @param snippetId 可选的snippet ID
  */
-export function setSelectedItem(view: 'file' | 'requirement' | 'solarwire', path: string, snippetId?: string): void {
+export function setSelectedItem(view: 'file', path: string, snippetId?: string): void {
   selectedItem = {
     view,
     path,
@@ -51,7 +51,7 @@ export function clearSelectedItem(): void {
  * @param view 视图类型
  * @returns 该视图的选中项或null
  */
-export function getSelectedItemForView(view: 'file' | 'requirement' | 'solarwire'): SelectedItem | null {
+export function getSelectedItemForView(view: 'file'): SelectedItem | null {
   return selectedItem && selectedItem.view === view ? selectedItem : null;
 }
 

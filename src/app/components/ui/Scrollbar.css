@@ -1,40 +1,11 @@
 /* 滚动条组件样式 */
 .scrollbar {
   height: 100%;
+  width: 100%;
+  min-width: 0;
   overflow: auto;
   position: relative;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
-.scrollbar::-webkit-scrollbar {
-  width: var(--scrollbar-width);
-  height: var(--scrollbar-height);
-  z-index: 1;
-}
 
-.scrollbar::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
-  z-index: 1;
-}
-
-.scrollbar::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 0px;
-  z-index: 1;
-}
-
-.scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
-  z-index: 1;
-}
-
-.scrollbar::-webkit-scrollbar-corner {
-  background: var(--scrollbar-corner);
-  z-index: 1;
-}
-
-/* Firefox 滚动条支持 */
-.scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
