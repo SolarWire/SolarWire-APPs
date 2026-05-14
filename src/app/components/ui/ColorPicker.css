@@ -268,24 +268,22 @@
 }
 
 .color-picker-transparent-btn {
-  padding: 2px 4px;
-  font-size: 9px;
-  color: var(--text-muted);
-  background: transparent;
+  padding: 3px 6px;
+  background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   border-radius: 3px;
+  color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.1s;
-  margin-right: 4px;
 }
 
 .color-picker-transparent-btn:hover {
-  color: var(--text-primary);
-  border-color: var(--accent-color);
+  color: var(--accent-color);
   background: var(--bg-hover);
+  border-color: var(--accent-color);
 }
 
 

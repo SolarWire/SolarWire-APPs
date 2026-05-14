@@ -34,8 +34,12 @@ function buildCellGrid(rows: TableData['rows']): (CellInfo | null)[][] {
   );
 
   for (let r = 0; r < numRows; r++) {
-    for (let c = 0; c < numCols; c++) {
-      if (grid[r][c]) continue;
+    let colIndex = 0;
+    for (let c = 0; c < rows[r].cells.length; c++) {
+      while (colIndex < numCols && grid[r][colIndex]) {
+        colIndex++;
+      }
+      if (colIndex >= numCols) break;
 
       const cell = rows[r].cells[c];
       if (!cell) continue;
@@ -43,24 +47,29 @@ function buildCellGrid(rows: TableData['rows']): (CellInfo | null)[][] {
       const colspan = Math.max(1, cell.colspan || 1);
       const rowspan = Math.max(1, cell.rowspan || 1);
 
+      const actualColspan = Math.min(colspan, numCols - colIndex);
+      const actualRowspan = Math.min(rowspan, numRows - r);
+
       const info: CellInfo = {
         cell,
         rowIdx: r,
-        colIdx: c,
-        colspan,
-        rowspan,
+        colIdx: colIndex,
+        colspan: actualColspan,
+        rowspan: actualRowspan,
         visible: true,
       };
 
-      for (let dr = 0; dr < rowspan; dr++) {
-        for (let dc = 0; dc < colspan; dc++) {
+      for (let dr = 0; dr < actualRowspan; dr++) {
+        for (let dc = 0; dc < actualColspan; dc++) {
           const nr = r + dr;
-          const nc = c + dc;
+          const nc = colIndex + dc;
           if (nr < numRows && nc < numCols) {
             grid[nr][nc] = info;
           }
         }
       }
+
+      colIndex += actualColspan;
     }
   }
 

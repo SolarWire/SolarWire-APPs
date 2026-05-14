@@ -104,7 +104,12 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const fullySelectedRows = getFullySelectedRows();
 
   const handleBatchChange = (attr: string, value: any) => {
-    if (attr === 'line-height' || attr === 'letter-spacing') {
+    if (attr === 'colspan' || attr === 'rowspan') {
+      for (const key of cellKeys) {
+        const { r, c } = getCellInfo(key);
+        onUpdateCell(r, c, { [attr]: value });
+      }
+    } else if (attr === 'line-height' || attr === 'letter-spacing') {
       const rowIndices = [...new Set(cellKeys.map(key => Number(key.split('-')[0])))];
       for (const r of rowIndices) {
         onUpdateRow(r, { [attr]: value });
