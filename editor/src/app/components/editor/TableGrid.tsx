@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { TableData, TableCell } from '../../../shared/utils/table-source-utils';
 import './TableGrid.css';
 
@@ -17,6 +17,65 @@ interface TableGridProps {
   scale?: number;
 }
 
+interface CellInfo {
+  cell: TableCell;
+  rowIdx: number;
+  colIdx: number;
+  colspan: number;
+  rowspan: number;
+  visible: boolean;
+}
+
+function buildCellGrid(rows: TableData['rows']): (CellInfo | null)[][] {
+  const numRows = rows.length;
+  const numCols = rows[0]?.cells.length || 0;
+  const grid: (CellInfo | null)[][] = Array.from({ length: numRows }, () =>
+    Array.from({ length: numCols }, () => null)
+  );
+
+  for (let r = 0; r < numRows; r++) {
+    let colIndex = 0;
+    for (let c = 0; c < rows[r].cells.length; c++) {
+      while (colIndex < numCols && grid[r][colIndex]) {
+        colIndex++;
+      }
+      if (colIndex >= numCols) break;
+
+      const cell = rows[r].cells[c];
+      if (!cell) continue;
+
+      const colspan = Math.max(1, cell.colspan || 1);
+      const rowspan = Math.max(1, cell.rowspan || 1);
+
+      const actualColspan = Math.min(colspan, numCols - colIndex);
+      const actualRowspan = Math.min(rowspan, numRows - r);
+
+      const info: CellInfo = {
+        cell,
+        rowIdx: r,
+        colIdx: colIndex,
+        colspan: actualColspan,
+        rowspan: actualRowspan,
+        visible: true,
+      };
+
+      for (let dr = 0; dr < actualRowspan; dr++) {
+        for (let dc = 0; dc < actualColspan; dc++) {
+          const nr = r + dr;
+          const nc = colIndex + dc;
+          if (nr < numRows && nc < numCols) {
+            grid[nr][nc] = info;
+          }
+        }
+      }
+
+      colIndex += actualColspan;
+    }
+  }
+
+  return grid;
+}
+
 const TableGrid: React.FC<TableGridProps> = ({
   tableData,
   selectedCells,
@@ -33,6 +92,8 @@ const TableGrid: React.FC<TableGridProps> = ({
 }) => {
   const numCols = tableData.rows[0]?.cells.length || 0;
   const numRows = tableData.rows.length;
+
+  const cellGrid = useMemo<(CellInfo | null)[][]>(() => buildCellGrid(tableData.rows), [tableData.rows]);
 
   const isRowFullySelected = (rowIdx: number) => {
     return Array.from({ length: numCols }).every((_, colIdx) =>
@@ -111,11 +172,21 @@ const TableGrid: React.FC<TableGridProps> = ({
               </div>
             </div>
 
-            {row.cells.map((cell, colIdx) => {
+            {cellGrid[rowIdx]?.map((info, colIdx) => {
+              if (!info || !info.visible) {
+                // 占位符，保持布局
+                return <div key={colIdx} className="grid-cell hidden-cell" style={{ display: 'none' }} />;
+              }
+              if (info.rowIdx !== rowIdx || info.colIdx !== colIdx) {
+                // 这个位置是被其他单元格的rowspan/colspan占用的
+                return <div key={colIdx} className="grid-cell hidden-cell" style={{ display: 'none' }} />;
+              }
+
+              const cell = info.cell;
               const cellKey = `${rowIdx}-${colIdx}`;
               const isSelected = selectedCells.has(cellKey);
               const isEditing = editingCell === cellKey;
-              const cellBg = cell.attrs.bg || row.attrs.bg || '#ffffff';
+              const cellBg = cell.attrs.bg || row.attrs.bg || 'none';
               const cellColor = cell.attrs.c || row.attrs.c || '#000000';
               const cellBold = cell.attrs.bold || row.attrs.bold;
               const cellItalic = cell.attrs.italic || row.attrs.italic;
@@ -142,15 +213,21 @@ const TableGrid: React.FC<TableGridProps> = ({
               };
 
               const cellContainerStyle: React.CSSProperties = {
-                backgroundColor: cellBg,
+                backgroundColor: cellBg && cellBg !== 'none' ? cellBg : undefined,
                 alignItems: cellVAlign === 't' ? 'flex-start' : cellVAlign === 'm' ? 'center' : cellVAlign === 'b' ? 'flex-end' : undefined,
               };
+
+              const showSpan = info.colspan > 1 || info.rowspan > 1;
 
               return (
                 <div
                   key={colIdx}
-                  className={`grid-cell ${isSelected ? 'selected' : ''} ${isEditing ? 'editing' : ''}`}
-                  style={cellContainerStyle}
+                  className={`grid-cell ${isSelected ? 'selected' : ''} ${isEditing ? 'editing' : ''} ${showSpan ? 'span-cell' : ''}`}
+                  style={{
+                    ...cellContainerStyle,
+                    flex: info.colspan,
+                    minWidth: 0,
+                  }}
                   onClick={(e) => {
                     if (!isEditing) {
                       onSelectCell(cellKey, e.shiftKey || e.ctrlKey || e.metaKey);
@@ -195,6 +272,12 @@ const TableGrid: React.FC<TableGridProps> = ({
                     <div className="cell-text" style={textStyle}>
                       {cell.text || <span className="cell-placeholder">双击编辑</span>}
                     </div>
+                  )}
+                  {showSpan && (
+                    <span className="span-badge" title={`colspan=${info.colspan}, rowspan=${info.rowspan}`}>
+                      {info.colspan > 1 && <span className="span-badge-item">{info.colspan}×</span>}
+                      {info.rowspan > 1 && <span className="span-badge-item">↕{info.rowspan}</span>}
+                    </span>
                   )}
                 </div>
               );

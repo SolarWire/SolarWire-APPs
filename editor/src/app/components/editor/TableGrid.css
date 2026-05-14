@@ -242,3 +242,32 @@ body.theme-minimal .row-label {
   color: #000000;
   box-sizing: border-box;
 }
+
+.span-cell {
+  position: relative;
+}
+
+.span-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: flex;
+  gap: 2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.span-badge-item {
+  font-size: 9px;
+  font-weight: 700;
+  background: var(--accent-color);
+  color: #fff;
+  padding: 0 3px;
+  border-radius: 2px;
+  line-height: 14px;
+  opacity: 0.7;
+}
+
+.span-cell:hover .span-badge-item {
+  opacity: 1;
+}

@@ -104,7 +104,12 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const fullySelectedRows = getFullySelectedRows();
 
   const handleBatchChange = (attr: string, value: any) => {
-    if (attr === 'line-height' || attr === 'letter-spacing') {
+    if (attr === 'colspan' || attr === 'rowspan') {
+      for (const key of cellKeys) {
+        const { r, c } = getCellInfo(key);
+        onUpdateCell(r, c, { [attr]: value });
+      }
+    } else if (attr === 'line-height' || attr === 'letter-spacing') {
       const rowIndices = [...new Set(cellKeys.map(key => Number(key.split('-')[0])))];
       for (const r of rowIndices) {
         onUpdateRow(r, { [attr]: value });
@@ -147,7 +152,7 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const commonPr = getCommonAttr('padding-right');
   const commonPb = getCommonAttr('padding-bottom');
 
-  const effectiveBg = commonBg || '#ffffff';
+  const effectiveBg = commonBg || 'none';
   const effectiveBorderColor = commonBorderColor || '#333333';
   const effectiveBorderSize = commonBorderSize || '1';
   const effectiveColor = commonColor || '#000000';
@@ -234,12 +239,34 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
     }
   };
 
+  const isSingleCell = cellKeys.length === 1;
+  const firstCell = isSingleCell ? getCellInfo(firstKey).cell : null;
+  const commonColspan = firstCell ? firstCell.colspan || 1 : 1;
+  const commonRowspan = firstCell ? firstCell.rowspan || 1 : 1;
+
   return (
     <div className="cell-properties">
       <h4 className="properties-title">
         {title}
         {singleCellType && <span className="cell-type-tag">{TYPE_ZH_NAME[singleCellType] || singleCellType}</span>}
       </h4>
+
+      {isSingleCell && (
+         <div className="span-inputs">
+           <DraggableNumberInput
+             label="跨列"
+             codeAttr="colspan"
+             value={commonColspan}
+             onChange={(v) => handleBatchChange('colspan', Math.max(1, Math.round(v)))}
+           />
+           <DraggableNumberInput
+             label="跨行"
+             codeAttr="rowspan"
+             value={commonRowspan}
+             onChange={(v) => handleBatchChange('rowspan', Math.max(1, Math.round(v)))}
+           />
+         </div>
+       )}
 
       {showFill && (
         <ColorPicker

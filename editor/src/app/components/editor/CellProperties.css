@@ -181,3 +181,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 6px;
 }
+
+.cell-properties .span-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}

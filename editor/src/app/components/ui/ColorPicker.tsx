@@ -101,9 +101,9 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
   const [presets, setPresets] = useState<string[]>(loadPresets);
   const [showPopup, setShowPopup] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
-  const [localColor, setLocalColor] = useState(value);
+  const [localColor, setLocalColor] = useState(value && value !== 'none' ? value : '');
   const [colorMode, setColorMode] = useState<ColorMode>('hex');
-  const [rgbValue, setRgbValue] = useState(hexToRgb(value));
+  const [rgbValue, setRgbValue] = useState(value && value !== 'none' ? hexToRgb(value) : { r: 0, g: 0, b: 0 });
   const [contextMenu, setContextMenu] = useState<ContextMenuState>(INITIAL_CONTEXT_MENU);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -111,8 +111,8 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
   const popupPosRef = useRef({ top: 0, left: 0 });
 
   useEffect(() => {
-    setLocalColor(value);
-    setRgbValue(hexToRgb(value));
+    setLocalColor(value && value !== 'none' ? value : '');
+    setRgbValue(value && value !== 'none' ? hexToRgb(value) : { r: 0, g: 0, b: 0 });
   }, [value]);
 
   useEffect(() => {
@@ -196,6 +196,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
   }, [contextMenu.index]);
 
   const handleAddPreset = useCallback(() => {
+    if (isTransparent) return;
     const normalized = normalizeHex(value);
     setPresets(prev => {
       if (prev.includes(normalized)) return prev;
@@ -219,6 +220,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
     } catch {}
   }, [handleColorChange]);
 
+  const isTransparent = !value || value === 'none' || value === 'transparent';
   const supportsEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
 
   const contextMenuPortal = contextMenu.visible && createPortal(
@@ -271,6 +273,12 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
               </svg>
             </button>
           )}
+          <button className="color-picker-transparent-btn" onClick={() => onChange('none')} title="Transparent (no color)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
+            </svg>
+          </button>
         </div>
         {colorMode === 'hex' ? (
           <HexColorInput
@@ -348,17 +356,30 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
     <div className="color-picker" ref={containerRef}>
       <PropertyLabel codeAttr={codeAttr || ''} fallbackLabel={label} className="color-picker-label" />
       <button
-        className="color-picker-swatch"
-        style={{ backgroundColor: value }}
-        onClick={handleSwatchClick}
-        title={value}
-      />
-      <HexColorInput
-        color={value}
-        onChange={onChange}
-        prefixed
-        className="color-picker-inline-hex"
-      />
+          className={`color-picker-swatch${isTransparent ? ' transparent' : ''}`}
+          style={{ backgroundColor: isTransparent ? undefined : value }}
+          onClick={handleSwatchClick}
+          title={isTransparent ? 'none' : value}
+        >
+          {isTransparent && <span className="color-picker-swatch-cross">╳</span>}
+        </button>
+        {!isTransparent ? (
+          <HexColorInput
+            color={value}
+            onChange={onChange}
+            prefixed
+            className="color-picker-inline-hex"
+          />
+        ) : (
+          <input
+            type="text"
+            className="color-picker-inline-hex"
+            placeholder="none"
+            value=""
+            readOnly
+            onClick={handleSwatchClick}
+          />
+        )}
       {popup}
       {contextMenuPortal}
     </div>

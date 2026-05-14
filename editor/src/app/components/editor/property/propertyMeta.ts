@@ -34,7 +34,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'w=300',
     description: '元素宽度',
     zhDescription: '元素的宽度，以像素为单位。控制元素在水平方向上的大小，可通过拖拽调整或在代码中直接设置。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder', 'image', 'table'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder', 'image', 'table'],
   },
   h: {
     codeAttr: 'h',
@@ -43,7 +43,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'h=200',
     description: '元素高度',
     zhDescription: '元素的高度，以像素为单位。控制元素在垂直方向上的大小，可通过拖拽调整或在代码中直接设置。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder', 'image', 'table'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder', 'image', 'table'],
   },
   bg: {
     codeAttr: 'bg',
@@ -169,7 +169,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'align=l | c | r',
     description: '水平对齐方式：l=左, c=居中, r=右',
     zhDescription: '文字的水平对齐方式。l（left）= 左对齐，c（center）= 居中对齐，r（right）= 右对齐。默认为左对齐。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder'],
   },
   'vertical-align': {
     codeAttr: 'vertical-align',
@@ -196,7 +196,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'italic',
     description: '文字斜体',
     zhDescription: '文字斜体开关。启用后文字以斜体显示，常用于强调或引用。再次点击可取消斜体。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder'],
   },
   'text-decoration': {
     codeAttr: 'text-decoration',
@@ -205,7 +205,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'text-decoration=underline',
     description: '文字装饰线',
     zhDescription: '文字装饰线类型。underline = 下划线（文字下方添加线条），line-through = 删除线（文字中间添加线条）。两种装饰不可同时使用。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder'],
   },
   'line-height': {
     codeAttr: 'line-height',
@@ -214,7 +214,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'line-height=22',
     description: '文本行高',
     zhDescription: '文本行高，以像素为单位。控制多行文字之间的行间距，值越大行间距越大。建议设为字号的 1.4~1.8 倍以获得良好的阅读体验。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder'],
   },
   'letter-spacing': {
     codeAttr: 'letter-spacing',
@@ -223,7 +223,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'letter-spacing=1',
     description: '字符间距',
     zhDescription: '字符间距，以像素为单位。正值增大字符之间的间距，负值缩小间距。默认为 0，常用于标题文字的排版调整。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'placeholder'],
+    supportedTypes: ['rectangle', 'circle', 'placeholder'],
   },
   'shadow-enabled': {
     codeAttr: 'shadow-enabled',
@@ -232,7 +232,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'shadow-enabled',
     description: '启用阴影效果',
     zhDescription: '阴影效果开关。勾选后可为元素添加投影效果，使元素具有立体感。启用后需配合阴影偏移、模糊和颜色属性使用。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'image'],
+    supportedTypes: ['rectangle', 'circle', 'image'],
   },
   'shadow-x': {
     codeAttr: 'shadow-x',
@@ -241,7 +241,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'shadow-x=2',
     description: '阴影水平偏移',
     zhDescription: '阴影的水平偏移量，以像素为单位。正值向右偏移，负值向左偏移。默认为 0，表示阴影与元素水平对齐。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'image'],
+    supportedTypes: ['rectangle', 'circle', 'image'],
   },
   'shadow-y': {
     codeAttr: 'shadow-y',
@@ -250,7 +250,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'shadow-y=2',
     description: '阴影垂直偏移',
     zhDescription: '阴影的垂直偏移量，以像素为单位。正值向下偏移，负值向上偏移。默认为 0，表示阴影与元素垂直对齐。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'image'],
+    supportedTypes: ['rectangle', 'circle', 'image'],
   },
   'shadow-blur': {
     codeAttr: 'shadow-blur',
@@ -259,7 +259,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'shadow-blur=4',
     description: '阴影模糊半径',
     zhDescription: '阴影的模糊半径，以像素为单位。值越大阴影越模糊扩散，值越小阴影越锐利。默认为 3，设为 0 则阴影边缘完全清晰。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'image'],
+    supportedTypes: ['rectangle', 'circle', 'image'],
   },
   'shadow-color': {
     codeAttr: 'shadow-color',
@@ -268,7 +268,7 @@ export const PROPERTY_META: Record<string, PropertyMeta> = {
     syntax: 'shadow-color=#000000',
     description: '阴影颜色',
     zhDescription: '阴影的颜色。支持十六进制颜色值（如 #000000 表示黑色）。通常使用深色配合较低的透明度来模拟自然阴影效果。',
-    supportedTypes: ['rectangle', 'circle', 'text', 'image'],
+    supportedTypes: ['rectangle', 'circle', 'image'],
   },
   style: {
     codeAttr: 'style',
