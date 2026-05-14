@@ -137,7 +137,15 @@ export function useTableEditor(
     setTableData(prev => {
       if (!prev) return prev;
       const insertAt = index ?? prev.rows.length;
-      const numCols = prev.rows[0]?.cells.length || 1;
+      let gridColCount = 0;
+      prev.rows.forEach(row => {
+        let rowColCount = 0;
+        row.cells.forEach(cell => {
+          rowColCount += cell.colspan || 1;
+        });
+        gridColCount = Math.max(gridColCount, rowColCount);
+      });
+      const numCols = Math.max(gridColCount, 1);
       const newCells: TableCell[] = Array.from({ length: numCols }, () => ({
         type: 'rectangle',
         text: '',
