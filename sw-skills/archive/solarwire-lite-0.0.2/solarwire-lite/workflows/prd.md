@@ -14,7 +14,6 @@ Determine if this is a new requirement or code reverse engineering. Ask the user
 - **Scenario A (New)**: Conduct full Five Elements discovery.
 - **Scenario B (Code Reverse)**: Follow Phase C1-C5 to extract requirements from code.
   - **CRITICAL**: Reverse-engineered output must be a faithful 1:1 representation of the existing code. Do NOT add, remove, rename, restructure, or "improve" any element, field, label, flow, or behavior that is not explicitly requested by the user. Every text, every layout position, every color, every data field in the wireframe/PRD must have a direct corresponding source in the codebase. If the code shows 5 columns, the wireframe shows 5 columns. If the code labels something "代理名称", the wireframe uses exactly "代理名称", not a translated or rephrased version.
-  - **i18n Resolution**: When the codebase uses i18n (e.g. `t('key')`, `$t('key')`, `i18n.t('key')`), you MUST locate the corresponding locale/translation file and resolve the key to the actual displayed text. Never use the raw i18n key string in wireframes. If multiple locale files exist, use the project's default/primary locale. The wireframe must show the same text a real user would see on screen.
 
 ## 3. Phase 0: Exploration & Preparation
 
@@ -65,12 +64,12 @@ Do not move to the next layer until the current one is confirmed.
 
 ## 7. PRD Document Structure (Immutable)
 
-The generated PRD must follow this exact structure. All content — including titles, section body text, wireframe labels, element notes, Mermaid diagram labels, and appendix entries — must use the user's communication language. Translate the 8 section names below as appropriate.
+The generated PRD must follow this exact structure. Translate all titles into the user's language.
 1.  **Product Overview**: Background, Target Users, Core Value, User Stories.
 2.  **Feature Scope**: Feature List, Feature Boundary.
 3.  **Expected Outcome**: Success Metrics, User Behavior Changes, Business Impact.
 4.  **Business Flow**: Core Flowchart, Sequence Diagram. All flowcharts, swimlane diagrams, and sequence diagrams MUST use Mermaid syntax within ` ```mermaid ` code blocks. ASCII-art diagrams are forbidden.
 5.  **Page Design**: Page List.
-6.  **Page Details**: One subsection per page, containing only the SolarWire code block. All element behavior descriptions MUST be written in the corresponding element's `note` attribute within the code block. Do NOT write any explanatory prose or behavior descriptions outside the code block.
+6.  **Page Details**: One subsection per page with wireframes and notes.
 7.  **Non-functional Requirements**: Performance, Security, Compatibility.
 8.  **Appendix**: Glossary, References.

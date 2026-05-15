@@ -5,6 +5,7 @@ export interface TableCell {
   text: string;
   colspan: number;
   rowspan: number;
+  note?: string;
   attrs: {
     bg?: string;
     c?: string;
@@ -75,6 +76,7 @@ export function parseTableFromSource(
           text: (cellEl as BaseElement & { text?: string }).text || '',
           colspan: parseInt(attrs.colspan) || 1,
           rowspan: parseInt(attrs.rowspan) || 1,
+          note: attrs.note,
           attrs: {
             bg: attrs.bg,
             c: attrs.c,
@@ -224,7 +226,24 @@ export function serializeTableToSource(
       }
 
       const cellAttrsStr = cellAttrParts.length > 0 ? ` ${cellAttrParts.join(' ')}` : '';
-      newTableLines.push(`    ${quotedText}${cellAttrsStr}`);
+      let cellLine = `    ${quotedText}${cellAttrsStr}`;
+
+      if (cell.note) {
+        const noteLines = cell.note.split('\n');
+        if (noteLines.length <= 1) {
+          cellLine += ` note="""${cell.note}"""`;
+          newTableLines.push(cellLine);
+        } else {
+          cellLine += ` note="""${noteLines[0]}`;
+          newTableLines.push(cellLine);
+          for (let i = 1; i < noteLines.length - 1; i++) {
+            newTableLines.push(noteLines[i]);
+          }
+          newTableLines.push(`${noteLines[noteLines.length - 1]}"""`);
+        }
+      } else {
+        newTableLines.push(cellLine);
+      }
     });
   });
 
@@ -250,12 +269,19 @@ export function serializeTableToSource(
 
   // 第二步：从 note 尾行之后开始找到表格行的范围
   // 表格行格式：# 行以 "  #" 开头，单元格行以 "    " 开头（4个或更多空格）
+  let inCellNote = false;
   let tableRowsEndIdx = noteEndIdx + 1;
   while (tableRowsEndIdx < lines.length) {
     const lineContent = lines[tableRowsEndIdx];
     const trimmed = lineContent.trim();
-    // 空行结束表格
-    if (trimmed === '') break;
+    // 空行结束表格（但如果正在单元格 note 中，空行是 note 的一部分）
+    if (trimmed === '') {
+      if (inCellNote) {
+        tableRowsEndIdx++;
+        continue;
+      }
+      break;
+    }
     // # 行开始新的表格行
     if (/^  #/.test(lineContent)) {
       tableRowsEndIdx++;
@@ -263,6 +289,22 @@ export function serializeTableToSource(
     }
     // 单元格行：以4个或更多空格开头，紧跟在 # 行之后
     if (/^    \S/.test(lineContent)) {
+      // 检查是否开启了多行 note（note=""" 且同一行没有闭合 """）
+      const noteMatch = lineContent.match(/note="""/);
+      if (noteMatch) {
+        const afterNoteOpen = lineContent.substring(noteMatch.index! + noteMatch[0].length);
+        if (!afterNoteOpen.includes('"""')) {
+          inCellNote = true;
+        }
+      }
+      tableRowsEndIdx++;
+      continue;
+    }
+    // 如果正在单元格 note 中，继续扫描直到找到闭合 """
+    if (inCellNote) {
+      if (trimmed.includes('"""')) {
+        inCellNote = false;
+      }
       tableRowsEndIdx++;
       continue;
     }

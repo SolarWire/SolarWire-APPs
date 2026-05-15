@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 
+let globalNoteHeight: number | null = null;
+
 interface ResizableTextareaProps {
   value: string;
   placeholder?: string;
@@ -18,21 +20,22 @@ function ResizableTextarea({
   maxHeight = 500,
 }: ResizableTextareaProps) {
   const [localValue, setLocalValue] = useState(value);
-  const [textareaHeight, setTextareaHeight] = useState(minHeight);
+  const [textareaHeight, setTextareaHeight] = useState(() => globalNoteHeight ?? minHeight);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevValueRef = useRef(value);
 
   useEffect(() => {
     if (value !== prevValueRef.current) {
       setLocalValue(value);
-      setTextareaHeight(minHeight);
       prevValueRef.current = value;
     }
-  }, [value, minHeight]);
+  }, [value]);
 
   const handleResize = useCallback(() => {
     if (textareaRef.current) {
-      setTextareaHeight(textareaRef.current.offsetHeight);
+      const h = textareaRef.current.offsetHeight;
+      setTextareaHeight(h);
+      globalNoteHeight = h;
     }
   }, []);
 

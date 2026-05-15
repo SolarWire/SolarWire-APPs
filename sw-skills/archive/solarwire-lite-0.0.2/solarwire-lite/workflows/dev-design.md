@@ -16,20 +16,16 @@ Read the confirmed PRD at `.solarwire/[requirement-name]/solarwire-prd.md`. Extr
 - Define each module's responsibility, dependencies, interfaces, and communication patterns.
 - Generate a Mermaid architecture diagram using `graph TB` with subgraphs for layers.
 
-## 4. UML Class Diagram
-
-Generate a Mermaid `classDiagram` showing all domain classes, their key attributes, method signatures, and relationships (inheritance, composition, aggregation, association). Every class must include its essential fields and operations.
-
-## 5. Business Flow & Swimlane
+## 4. Business Flow & Swimlane
 
 - **Core Business Flow**: Expand PRD high-level steps into system-level operations using a Mermaid flowchart. Include all validation, processing, and error paths.
 - **Swimlane Diagram**: Generate a Mermaid flowchart with subgraphs showing actor responsibilities (User, Frontend, Backend, Database, External Service).
 
-## 6. Data Model
+## 5. Data Model
 
 Define all entities, fields, types, and relationships. Every entity must have `id` (UUID), `created_at`, `updated_at`. Foreign keys use the `[entity]_id` convention. Generate a Mermaid ER diagram.
 
-## 7. Database Schema
+## 6. Database Schema
 
 Design complete table structures with:
 - Fields (name, type, nullable, default, constraint).
@@ -37,7 +33,7 @@ Design complete table structures with:
 - Constraints (CHECK, FOREIGN KEY, UNIQUE).
 - Use VARCHAR(36) for UUID PKs, `deleted_at` for soft deletes, snake_case naming.
 
-## 8. API Definition
+## 7. API Definition
 
 Define every API endpoint:
 - Method, path (`/api/v1/...`), description, auth requirement.
@@ -47,7 +43,7 @@ Define every API endpoint:
 
 Derive APIs from PRD pages: List/Table → GET list, Create Form → POST, Edit Form → GET detail + PUT, Delete → DELETE, etc.
 
-## 9. Self-Review
+## 8. Self-Review
 
 Before presenting to the user, check:
 
@@ -56,15 +52,15 @@ Before presenting to the user, check:
 3.  **API Consistency**: All endpoints have full request/response schemas and documented error codes. No duplicates.
 4.  **Architecture Consistency**: No circular module dependencies. All communication is documented.
 
-## 10. Output & User Confirmation
+## 9. Output & User Confirmation
 
 Save to `.solarwire/[requirement-name]/dev-design.md`. Present for user review and do not proceed without explicit approval.
 
-## 11. Incremental Development Design
+## 10. Incremental Development Design
 
 When designing on top of an existing system, mark all changes with `[New]`, `[Modified]`, or `[Unchanged]`. Only document the changed parts; include a reference to the base design.
 
-## 12. Important Reminders
+## 11. Important Reminders
 
 - Never start without a confirmed PRD.
 - Design architecture first, then data model, then API.

@@ -41,10 +41,7 @@ This is a quick lookup. Complete attribute references and rules are in `referenc
 | Image | `<URL> @(x,y)` | `<https://example.com/logo.png> @(50,50) w=100 h=100` |
 | Line | `-- @(x1,y1)->(x2,y2)` | `-- @(50,200)->(450,200) c=#E5E7EB` |
 | Table | `## @(x,y)` | `## @(50,50) w=500` |
-| Table Row | `  #` (2-space indent) | `  # bg=#F3F4F6` |
-| Table Cell | `    "value"` (4-space indent) | `    "代理名称"` (one cell per line) |
-| Comment | `// text` | `// This is a comment` |
-| Title Directive | `!title="name"` (line 1) | `!title="用户列表页"` |
+| Table Row | `  #` (indented) | `  # bg=#F3F4F6` |
 
 ## Forbidden Attributes (NEVER use)
 
@@ -54,20 +51,17 @@ This is a quick lookup. Complete attribute references and rules are in `referenc
 | `truncate` | Not a valid attribute |
 | `stroke` | `b` for border color |
 | `strokeWidth` | `s` for border width |
+| `(())` for circle | `("text")` for circle |
 
 ## Red Lines (Always Enforced)
 
-1.  All output is for real production environments, real companies, and real workflows. Every piece of logic, information, and content must meet production-grade authenticity. Do not simplify, abbreviate, or omit any valid information to save tokens, reduce complexity, or increase speed. If something is inherently complex, it must remain complex — reducing complexity at the cost of correctness is forbidden. All output must contain complete, valid information covering every logical path, every data point, and every relevant detail without omission.
+1.  Never generate SVG.
 2.  Never skip a user confirmation gate.
 3.  Never add i18n without explicit user confirmation.
-4.  All document content, wireframe text, element notes, and Mermaid diagrams must use the user's communication language, unless the user explicitly specifies another language.
-5.  Incremental PRDs must redraw complete pages with ALL existing elements, then mark `[NEW]`/`[MODIFIED]`/`[REMOVED]`. Notes only for changed elements; do not re-describe unchanged parts.
+4.  Document language follows the user's communication language.
+5.  Incremental PRDs must redraw complete pages, with changes marked.
 6.  Derive wireframe layouts/colors from project code first; use standards as fallback.
 7.  Every visual panel requiring code MUST have a separate wireframe (tooltips/toasts go in notes).
-8.  Wireframes must be high-fidelity: realistic proportions, actual brand colors, proper visual hierarchy. They should resemble a styled screenshot, not abstract boxes.
-9.  Code reverse engineering output must be a 1:1 representation of the existing code. No additions, removals, renames, or "improvements" beyond what the user explicitly requests. When the code uses i18n keys, resolve them to the actual displayed text from locale files — never use raw i18n keys in wireframes.
-10. All flowcharts, swimlane diagrams, and sequence diagrams in PRDs must use Mermaid syntax. ASCII-art diagrams are forbidden.
-11. Every SolarWire code block MUST start with `!title="页面名称"` as its first line.
 
 ## Standard Operating Procedure
 
@@ -81,4 +75,4 @@ After a workflow is loaded, it will guide you. Here is the general outline:
 
 ## File Structure Convention
 
-Outputs MUST be saved under `.solarwire/[requirement-name]/`, NOT directly in `.solarwire/`. The requirement-name folder uses the format `日期【系统-模块】需求` (e.g. `2022-02-02【ERP-财务】应收款-2`), in the user's communication language.
+Outputs are saved to a `.solarwire/` directory, organized by project.

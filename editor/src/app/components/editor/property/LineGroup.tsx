@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import PropertyGroupTitle from './PropertyGroupTitle';
 import PropertyRow, { PropertyPair } from './PropertyRow';
 import ColorPicker from '../../ui/ColorPicker';
@@ -11,7 +11,35 @@ interface LineGroupProps {
   onChange: (property: string, value: string | number | boolean | undefined) => void;
 }
 
-const LineGroup: React.FC<LineGroupProps> = ({ line, appearance, onChange }) => (
+const LineGroup: React.FC<LineGroupProps> = ({ line, appearance, onChange }) => {
+  const [localLabel, setLocalLabel] = useState(line.label || '');
+  const [isComposing, setIsComposing] = useState(false);
+  const prevLabelRef = useRef(line.label || '');
+
+  if ((line.label || '') !== prevLabelRef.current && !isComposing) {
+    setLocalLabel(line.label || '');
+    prevLabelRef.current = line.label || '';
+  }
+
+  const handleLabelChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalLabel(e.target.value);
+    if (!isComposing) {
+      onChange('label', e.target.value);
+    }
+  }, [onChange, isComposing]);
+
+  const handleCompositionStart = useCallback(() => {
+    setIsComposing(true);
+  }, []);
+
+  const handleCompositionEnd = useCallback((e: React.CompositionEvent<HTMLInputElement>) => {
+    setIsComposing(false);
+    const value = (e.target as HTMLInputElement).value;
+    setLocalLabel(value);
+    onChange('label', value);
+  }, [onChange]);
+
+  return (
   <>
     <PropertyGroupTitle title="线段终点">
       <PropertyPair
@@ -42,13 +70,21 @@ const LineGroup: React.FC<LineGroupProps> = ({ line, appearance, onChange }) => 
     </PropertyGroupTitle>
     <PropertyGroupTitle title="文字">
       <PropertyRow label="内容" codeAttr="label">
-        <input type="text" value={line.label || ''} onChange={(e) => onChange('label', e.target.value)} placeholder="输入线段文字内容" />
+        <input
+          type="text"
+          value={isComposing ? localLabel : (line.label || '')}
+          onChange={handleLabelChange}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          placeholder="输入线段文字内容"
+        />
       </PropertyRow>
       <PropertyRow label="文字色" codeAttr="c">
         <ColorPicker label="" value={line.labelColor} onChange={(color) => onChange('c', color)} />
       </PropertyRow>
     </PropertyGroupTitle>
   </>
-);
+  );
+};
 
 export default LineGroup;

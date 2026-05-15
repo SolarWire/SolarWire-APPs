@@ -19,7 +19,7 @@ A `.swc` file is a Markdown-like format. It contains:
 - Code must be valid SolarWire syntax per `references/syntax.md`.
 - Coordinates are relative to the component's top-left corner; base point is `@(0,0)`.
 - Avoid `<url>` image elements; use `[?"Image"]` placeholders instead.
-- Text for labels must use `"text"` (not `["text"]`). Text supports ONLY `c`, `size`, `bold`, `opacity`; do not attach layout attributes.
+- Text for labels must use `"text"` (not `["text"]`).
 - For inputs/displays: `align=l vertical-align=m`.
 - For buttons: `align=c vertical-align=m`.
 

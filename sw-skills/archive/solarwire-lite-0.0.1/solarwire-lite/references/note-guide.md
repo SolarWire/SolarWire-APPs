@@ -4,9 +4,6 @@
 ## 1. Note Structure
 - **First line:** Functional description (e.g., `Login button`), NOT element type (e.g., `[Primary Button]`).
 - **Hierarchy:** Numbered list (1,2,3) -> dash (-) -> double dash (--).
-- **Language:** All note content must be in the user's communication language.
-- **Completeness over brevity:** Notes must describe behavior exhaustively. Do not trim or omit details to reduce output length. A note that is too short is worse than one that is slightly redundant.
-- **Incremental pages:** Only write notes for elements marked `[NEW]` or `[MODIFIED]`. Elements without these tags are unchanged and need no notes. Do not re-describe existing behavior of unchanged elements.
 
 ## 2. EARS Writing Style
 Every behavior must follow a condition-action pair. Use these patterns:

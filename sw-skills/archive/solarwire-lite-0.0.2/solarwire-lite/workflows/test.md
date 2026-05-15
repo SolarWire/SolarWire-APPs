@@ -20,18 +20,8 @@ Extract:
 
 ## 3. Test Case Quality Standards
 
-Every test case must be executable, verifiable, exhaustive, and complete. Test cases guide testers to perform thorough, objective, quantifiable black-box testing. Each test case requires:
+Every test case must be **executable, verifiable, specific, and complete**. Each test case requires:
 - ID, Module, Name, Type, Precondition, Steps, Test Data, Expected Result, Priority.
-
-**Preconditions**: Must describe all prerequisite states in detail — login status, role permissions, existing data, current page location, system configuration. Never use vague descriptions like "已登录" without specifying the exact role and permissions.
-
-**Test Data**: Must include ALL fields of the form, not only the fields under test. If test data depends on functionality not mentioned in the PRD, inspect the relevant code and derive test data from it.
-
-**Steps**: Every step must be a concrete, executable action. Never use placeholders like "fill in valid data" — specify exact values.
-
-**Expected Results**: Every field and every state must have a corresponding expected result that is observable and verifiable.
-
-Do not trim, abbreviate, or omit content to save space. In engineering testing, brevity creates ambiguity; deliberate, moderate redundancy is correct.
 
 ## 4. Generation Rules
 
