@@ -7,6 +7,8 @@ import { THEME_LIST } from '../../../shared/types/app';
 import ModalPortal from './ModalPortal';
 import './SettingsModal.css';
 
+declare const __APP_VERSION__: string;
+
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -91,6 +93,14 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps): React.ReactElem
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          <div className="settings-section settings-about">
+            <h3>{t.settings.about}</h3>
+            <div className="settings-about-content">
+              <span className="settings-app-name">SolarWire Editor</span>
+              <span className="settings-version">v{__APP_VERSION__}</span>
             </div>
           </div>
         </div>

@@ -55,6 +55,7 @@ export const en = {
     copyingSkills: 'Copying skills...',
     skillsCopiedSuccess: 'Skills copied successfully',
     skillsCopyFailed: 'Failed to copy skills',
+    about: 'About',
   },
   
   // Editor

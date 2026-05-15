@@ -219,3 +219,26 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.settings-about {
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+}
+
+.settings-about-content {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.settings-app-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-version {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+}

@@ -55,6 +55,7 @@ export const zh = {
     copyingSkills: '正在复制技能包...',
     skillsCopiedSuccess: '技能包复制成功',
     skillsCopyFailed: '技能包复制失败',
+    about: '关于',
   },
   
   // Editor
