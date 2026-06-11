@@ -7,13 +7,12 @@ SolarWire is a human-readable markup language for describing visual documents. A
 ```solarwire
 !title=Sample Document
 
-[Rectangle]          @(100, 100) width=200 height=100 color=blue
-(Rounded Rectangle)  @(400, 100) width=200 height=100 color=green
-((Circle))           @(700, 100) radius=50 color=red
-"Hello SolarWire"    @(400, 300) font-size=24 bold
--"Connect"-          @(200, 200)->(400, 200) color=black
+["Rectangle"]          @(100, 100) w=200 h=100 bg=blue r=6
+("Circle")           @(700, 100) bg=red
+"Hello SolarWire"    @(400, 300) size=24 bold
+-"Connect"-          @(200, 200)->(400, 200) bg=black
 
-## @(100, 400) width=800 height=300
+## @(100, 400) w=800 h=300
   #
     [Header 1]
     [Header 2]
@@ -167,11 +166,10 @@ Lines beginning with `!` set document properties:
 
 | Element | Syntax | Example |
 |---------|--------|---------|
-| Rectangle | `[text]` | `[Rectangle] @(100, 100) width=200 height=100` |
-| Rounded rectangle | `(text)` | `(Rounded) @(100, 100) width=200 height=100` |
-| Circle | `((text))` | `((Circle)) @(700, 100) radius=50` |
-| Text | `"text"` | `"Hello" @(400, 300) font-size=20` |
-| Placeholder | `[?text]` | `[?Placeholder] @(100, 100) width=200 height=100` |
+| Rectangle | `["text"]` | `[Rectangle] @(100, 100) w=200 h=100 r=6` |
+| Circle | `("text")` | `((Circle)) @(700, 100) w=200 h=200` |
+| Text | `"text"` | `"Hello" @(400, 300) size=20` |
+| Placeholder | `[?"text"]` | `[?"Placeholder"] @(100, 100) w=200 h=100` |
 | Image | `<url>` | `<https://example.com/x.png> @(100, 100) width=200` |
 | Line | `--` / `-"label"-` | `-"Connect"- @(200, 200)->(400, 200)` |
 
@@ -179,14 +177,14 @@ Lines beginning with `!` set document properties:
 
 | Element | Syntax |
 |---------|--------|
-| Table | `## @(x, y) width=W height=H` |
-| Row | `#  @(x, y) height=H` |
+| Table | `## @(x, y) w=W h=H` |
+| Row | `#` |
 
 ### Common attributes
 
 - **Position:** `@(x, y)`
-- **Size:** `width=200 height=100`
-- **Style:** `color=blue font-size=20 bold italic`
+- **Size:** `w=200 h=100`
+- **Style:** `bg=blue size=20 bold italic`
 - **Note:** `note="""Single line note"""` or multi-line via raw newlines inside `"""…"""`
 - **Boolean flags:** a bare key is treated as `key=true` (e.g. `bold`)
 
@@ -202,7 +200,7 @@ Single-line comments use `//`:
 
 ```solarwire
 // This is a comment
-[Rectangle] @(100, 100) width=200 height=100
+["Rectangle"] @(100, 100) w=200 h=100
 ```
 
 ---
