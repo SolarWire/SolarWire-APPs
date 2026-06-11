@@ -104,20 +104,9 @@ npm run generate   # peggy grammar.pegjs → parser.js
 npm run build      # tsc → dist/
 ```
 
-**Element types** (the discriminated union in `types.ts`):
-
-```
-Element
-├── RectangleElement       [text] @(x,y) width= height=
-├── RoundedRectangleElement (text) @(x,y) width= height= radius=
-├── CircleElement          ((text)) @(x,y) radius=
-├── TextElement            "text" @(x,y) font-size= …
-├── PlaceholderElement     [?text] @(x,y) width= height=
-├── ImageElement           <url> @(x,y) width= height=
-├── LineElement            -- / -"label"- @(x1,y1)->(x2,y2) color=
-├── TableElement           ## @(x,y) width= height= (contains RowElement[])
-└── RowElement             #  @(x,y) height= (contains CellElement[])
-```
+For the exact element / attribute shapes that this parser accepts, see
+[`README.md` § SolarWire language reference](./README.md#solarwire-language-reference)
+and the PEG source at `src/grammar.pegjs`.
 
 ### 2.2 `@solarwire/renderer-svg`
 
@@ -593,55 +582,7 @@ attribute updater, table utilities, and renderer context.
 
 ---
 
-## 8. SolarWire language specification
-
-The authoritative reference lives in [`README.md`](./README.md#solarwire-language-reference).
-The parser enforces the rules below; the renderer realizes them.
-
-### 8.1 Tokens
-
-| Token | Pattern |
-|-------|---------|
-| Identifier | `[A-Za-z_][A-Za-z0-9_-]*` |
-| Number | `[0-9]+(\.[0-9]+)?` |
-| Coordinate | `@(NUMBER, NUMBER)` |
-| Attribute | `IDENT (= STRING \| NUMBER \| true \| false)?` |
-| Declaration | `!IDENT (= STRING \| NUMBER)?` |
-| Comment | `// …` until end of line |
-| Whitespace | Ignored except as a row/cell separator |
-
-### 8.2 Element syntax
-
-| Element | Bracket shape |
-|---------|---------------|
-| Rectangle | `[text]` |
-| Rounded rectangle | `(text)` |
-| Circle | `((text))` |
-| Text | `"text"` (double-quoted) |
-| Multiline text | `"""text"""` (triple-quoted) |
-| Placeholder | `[?text]` |
-| Image | `<url>` |
-| Line | `--` (no label) / `-"label"-` (with label) |
-| Table | `## @(x,y) w=… h=…` |
-| Row | `# @(x,y) h=…` (2-space indent under a table) |
-| Cell | One cell per line, 4-space indent under a row |
-
-### 8.3 Reserved / forbidden attributes
-
-`skill/solarwire/references/standards.md` enumerates the full
-allow-list. The following **hallucinated** attribute names must never
-appear in user output (they will not render):
-
-| Hallucinated | Correct |
-|-------------|---------|
-| `multiline` | (use triple-quoted strings) |
-| `truncate`  | (no equivalent — emit a shorter string) |
-| `stroke`    | `b` (border color) |
-| `strokeWidth` | `s` (border width) |
-
----
-
-## 9. Glossary
+## 8. Glossary
 
 | Term | Definition |
 |------|------------|
@@ -653,6 +594,10 @@ appear in user output (they will not render):
 | **Renderer** | The React-renderer process of Electron, **not** the SVG renderer |
 | **Render engine** | `@solarwire/renderer-svg` (AST → SVG) |
 | **Skill** | A directory of prompts/workflows the AI assistant can load on demand |
+
+For SolarWire language tokens, element shapes, and reserved attributes,
+see the [language reference in `README.md`](./README.md#solarwire-language-reference)
+and `editor-server/packages/parser/src/grammar.pegjs`.
 
 ---
 
