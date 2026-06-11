@@ -1,0 +1,458 @@
+import { Document, Element } from '../parser';
+import { createRenderContext, RenderContext, ElementBounds, escapeHtml, formatRenderError, getElementLocationInfo, validateElementAttributes, ValidationContext } from './context';
+import { renderRectangle, RenderResult } from './elements/rectangle';
+import { renderCircle, renderText, renderPlaceholder, renderImage, renderTable } from './elements/otherElements';
+import { renderLine } from './elements/lineAndContainer';
+
+function wrapText(text: string, maxWidth: number, fontSize: number = 12): string[] {
+  const lines: string[] = [];
+  const avgCharWidth = fontSize * 0.65;
+  const cjkCharWidth = fontSize * 1.0;
+  const isCJK = (char: string) => /[\u4e00-\u9fa5\u3400-\u4dbf\u3040-\u30ff\u31f0-\u31ff\uac00-\ud7af]/.test(char);
+  
+  const getCharWidth = (char: string): number => {
+    return isCJK(char) ? cjkCharWidth : avgCharWidth;
+  };
+  
+  text.split('\n').forEach(paragraph => {
+    if (paragraph.trim() === '') {
+      lines.push('');
+      return;
+    }
+    
+    let currentLine = '';
+    let currentWidth = 0;
+    let i = 0;
+    
+    while (i < paragraph.length) {
+      const char = paragraph[i];
+      
+      if (char === ' ' || char === '\t') {
+        currentLine += char;
+        currentWidth += avgCharWidth;
+        i++;
+        continue;
+      }
+      
+      let token = '';
+      let tokenWidth = 0;
+      
+      if (isCJK(char)) {
+        token = char;
+        tokenWidth = cjkCharWidth;
+        i++;
+      } else {
+        let j = i;
+        while (j < paragraph.length && !isCJK(paragraph[j]) && paragraph[j] !== ' ' && paragraph[j] !== '\t') {
+          token += paragraph[j];
+          tokenWidth += avgCharWidth;
+          j++;
+        }
+        i = j;
+      }
+      
+      if (currentWidth + tokenWidth <= maxWidth || currentLine === '') {
+        currentLine += token;
+        currentWidth += tokenWidth;
+      } else {
+        if (tokenWidth > maxWidth) {
+          if (currentLine.trim() !== '') {
+            lines.push(currentLine.trim());
+          }
+          
+          let remainingToken = token;
+          while (remainingToken.length > 0) {
+            let part = '';
+            let partWidth = 0;
+            let k = 0;
+            
+            while (k < remainingToken.length) {
+              const charWidth = getCharWidth(remainingToken[k]);
+              if (partWidth + charWidth > maxWidth && part.length > 0) {
+                break;
+              }
+              part += remainingToken[k];
+              partWidth += charWidth;
+              k++;
+            }
+            
+            if (k >= remainingToken.length) {
+              currentLine = part;
+              currentWidth = partWidth;
+              remainingToken = '';
+            } else {
+              lines.push(part);
+              remainingToken = remainingToken.substring(k);
+            }
+          }
+        } else {
+          lines.push(currentLine.trim());
+          currentLine = token;
+          currentWidth = tokenWidth;
+        }
+      }
+    }
+    
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+  });
+  
+  return lines;
+}
+
+interface NoteInfo {
+  number: number;
+  note: string;
+  bounds: ElementBounds;
+  elementIndex: number;
+}
+
+interface NoteLayoutResult {
+  notesAreaHeight: number;
+  cardHeights: number[];
+  rowMaxHeights: number[];
+  rowStartYs: number[];
+}
+
+function calculateNoteLayout(
+  notes: NoteInfo[],
+  viewBoxWidth: number,
+  margin: number
+): NoteLayoutResult {
+  const cardMargin = 10;
+  const cardsPerRow = 2;
+  const lineHeight = 22;
+  const cardPadding = 12;
+  const extraNoteSpacing = 20;
+  const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
+
+  const cardHeights = notes.map(note => {
+    const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
+    const contentHeight = lines.length * lineHeight;
+    return Math.max(60, contentHeight + cardPadding * 2);
+  });
+
+  const rowMaxHeights: number[] = [];
+  notes.forEach((_, index) => {
+    const row = Math.floor(index / cardsPerRow);
+    if (!rowMaxHeights[row]) rowMaxHeights[row] = 0;
+    rowMaxHeights[row] = Math.max(rowMaxHeights[row], cardHeights[index]);
+  });
+
+  const rowStartYs: number[] = [0];
+  for (let row = 1; row < rowMaxHeights.length; row++) {
+    rowStartYs[row] = rowStartYs[row - 1] + rowMaxHeights[row - 1] + cardMargin;
+  }
+
+  const totalRowHeight = rowMaxHeights.reduce((sum, height) => sum + height, 0);
+  const notesAreaHeight = totalRowHeight + (rowMaxHeights.length + 1) * cardMargin + extraNoteSpacing;
+
+  return { notesAreaHeight, cardHeights, rowMaxHeights, rowStartYs };
+}
+
+interface InternalRenderOptions {
+  /** 是否禁用备注 */
+  disableNotes?: boolean;
+  /** 源输入 */
+  sourceInput?: string;
+  /** 备注列表 */
+  notes?: NoteInfo[];
+  /** 备注编号引用 */
+  noteNumberRef?: { current: number };
+  /** 元素索引 */
+  elementIndex?: number;
+  /** 图片 URL 解析器 */
+  imageUrlResolver?: (relativePath: string) => string;
+}
+
+export function renderElement(element: Element, context: RenderContext, options?: InternalRenderOptions): RenderResult {
+  const result = (() => {
+    const isTableCell = (element as any)._isTableCell;
+    if (!isTableCell) {
+      const vc: ValidationContext = { sourceInput: context.sourceInput, element };
+      validateElementAttributes(element, vc);
+    }
+    switch (element.type) {
+      case 'rectangle':
+        return renderRectangle(element, context);
+      case 'circle':
+        return renderCircle(element, context);
+      case 'text':
+        return renderText(element, context);
+      case 'placeholder':
+        return renderPlaceholder(element, context);
+      case 'image':
+        return renderImage(element, context, options?.imageUrlResolver);
+      case 'line':
+        return renderLine(element, context);
+      case 'table':
+      case 'table-row':
+        return renderTable(element, context, (child, ctx) => renderElement(child, ctx, options));
+      default: {
+        const elem = element as any;
+        throw new Error(formatRenderError({
+          title: `Unknown element type: "${elem.type}"`,
+          expected: 'rectangle, circle, text, placeholder, image, line, table, or table-row',
+          found: `"${elem.type}"`,
+          location: getElementLocationInfo(elem),
+          reason: 'The renderer does not recognize this element type.',
+          solution: 'Check if the element type is correct and supported. Supported types: [] (rectangle), () (circle), "" (text), [?] (placeholder), <> (image), -- (line), ## (table), # (table-row).'
+        }, context.sourceInput, elem.location));
+      }
+    }
+  })();
+  
+  const { notes, noteNumberRef, disableNotes, elementIndex } = options || {};
+  if (notes && noteNumberRef && !disableNotes && element.attributes && element.attributes.note) {
+    notes.push({
+      number: noteNumberRef.current,
+      note: element.attributes.note,
+      bounds: result.bounds,
+      elementIndex: elementIndex !== undefined ? elementIndex : -1
+    });
+    noteNumberRef.current++;
+  }
+  
+  return result;
+}
+
+export interface RenderOptions {
+  /** 是否禁用备注 */
+  disableNotes?: boolean;
+  /** 源输入 */
+  sourceInput?: string;
+  /** 选中的元素 ID 列表 */
+  selectedElementIds?: string[];
+  /** 主色调 */
+  primaryColor?: string;
+  /** 图片 URL 解析器 */
+  imageUrlResolver?: (relativePath: string) => string;
+}
+
+/**
+ * 带元数据的渲染结果接口
+ */
+export interface RenderResultWithMeta {
+  /** SVG 内容 */
+  svg: string;
+  /** 视口 */
+  viewBox: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+export function render(ast: Document, options?: RenderOptions): string;
+export function render(ast: Document, options?: RenderOptions, returnMeta?: false): string;
+export function render(ast: Document, options?: RenderOptions, returnMeta?: true): RenderResultWithMeta;
+export function render(ast: Document, options?: RenderOptions, returnMeta?: boolean): string | RenderResultWithMeta {
+  const context = createRenderContext(ast.declarations, options?.sourceInput);
+  const svgParts: string[] = [];
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = 0;
+  let maxY = 0;
+  const elementResults: Array<{ result: RenderResult; id: string }> = [];
+  const notes: NoteInfo[] = [];
+  const noteNumberRef = { current: 1 };
+  const disableNotes = options?.disableNotes ?? false;
+  const selectedElementIds = options?.selectedElementIds || [];
+  const primaryColor = options?.primaryColor || '#FCA506';
+  const imageUrlResolver = options?.imageUrlResolver;
+  
+  const renderOptions: InternalRenderOptions = {
+    disableNotes,
+    sourceInput: options?.sourceInput,
+    notes,
+    noteNumberRef,
+    imageUrlResolver
+  };
+  
+  // 渲染所有元素
+  ast.elements.forEach((element, index) => {
+    const result = renderElement(element, context, { ...renderOptions, elementIndex: index });
+    const id = (element as any).id || element.location?.line?.toString() || (index + 1).toString();
+    elementResults.push({ result, id });
+    minX = Math.min(minX, result.bounds.x);
+    minY = Math.min(minY, result.bounds.y);
+    maxX = Math.max(maxX, result.bounds.x + result.bounds.width);
+    maxY = Math.max(maxY, result.bounds.y + result.bounds.height);
+  });
+
+  // 收集所有阴影 filters
+  const shadowFilters = elementResults
+    .filter(({ result }) => result.shadowFilter)
+    .map(({ result }) => result.shadowFilter)
+    .filter((filter): filter is string => filter !== undefined);
+  
+  const margin = 20;
+  const minViewBoxWidth = 400;
+  const viewBoxX = minX - margin;
+  const viewBoxY = minY - margin;
+  const viewBoxWidth = Math.max(minViewBoxWidth, maxX - minX + margin * 2);
+  
+  let notesAreaHeight = 0;
+  let noteLayout: NoteLayoutResult | null = null;
+  if (!disableNotes && notes.length > 0) {
+    noteLayout = calculateNoteLayout(notes, viewBoxWidth, margin);
+    notesAreaHeight = noteLayout.notesAreaHeight;
+  }
+  
+  const viewBoxHeight = maxY - minY + margin * 2 + notesAreaHeight;
+  
+  svgParts.push(`<?xml version="1.0" encoding="UTF-8"?>`);
+  svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBoxX} ${viewBoxY} ${viewBoxWidth} ${viewBoxHeight}" width="${viewBoxWidth}" height="${viewBoxHeight}">`);
+  svgParts.push(`<defs>`);
+  svgParts.push(`  <filter id="card-badge-shadow" x="-50%" y="-50%" width="200%" height="200%">`);
+  svgParts.push(`    <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="black" flood-opacity="0.7"/>`);
+  svgParts.push(`  </filter>`);
+  // 添加所有元素的阴影 filters
+  shadowFilters.forEach(filter => {
+    svgParts.push(filter);
+  });
+  svgParts.push(`</defs>`);
+  svgParts.push(`<style>`);
+  svgParts.push(`  text { font-family: Arial, sans-serif; }`);
+  if (!disableNotes) {
+    svgParts.push(`  .note-badge { fill: #70B603; }`);
+    svgParts.push(`  .note-badge-text { fill: white; font-size: 12px; font-weight: bold; }`);
+    svgParts.push(`  .note-card { fill: #f8f9fa; stroke: #dee2e6; stroke-width: 1; }`);
+    svgParts.push(`  .note-card-selected { fill: #f8f9fa; stroke: ${primaryColor}; stroke-width: 2; filter: drop-shadow(0 0 2px ${primaryColor}8C) drop-shadow(0 0 4px ${primaryColor}8C); }`);
+    svgParts.push(`  .note-card-text { fill: #333; font-size: 12px; line-height: 22px; }`);
+    svgParts.push(`  .note-card-badge { fill: #70B603; }`);
+    svgParts.push(`  .note-card-badge-text { fill: white; font-size: 10px; font-weight: bold; }`);
+  }
+  svgParts.push(`  .selected-glow { filter: drop-shadow(0 0 2px ${primaryColor}8C) drop-shadow(0 0 4px ${primaryColor}8C); }`);
+  svgParts.push(`</style>`);
+  
+  elementResults.forEach(({ result, id }, index) => {
+    const element = ast.elements[index];
+    const lineNum = element.location?.line?.toString();
+    let svg = result.svg;
+
+    // 改进的SVG替换逻辑：只替换最外层的<g>标签
+    // 通过查找第一个<g>和对应的</g>来确定最外层
+    const gStartIndex = svg.indexOf('<g');
+    if (gStartIndex !== -1) {
+      const gEndIndex = svg.indexOf('>', gStartIndex);
+      if (gEndIndex !== -1) {
+        const beforeG = svg.substring(0, gStartIndex);
+        const gTag = svg.substring(gStartIndex, gEndIndex + 1);
+        const afterG = svg.substring(gEndIndex + 1);
+
+        const isSelected = selectedElementIds.includes(id) || (lineNum && selectedElementIds.includes(lineNum));
+        const isTableElement = element.type === 'table';
+
+        // 提取缩进
+        const indentMatch = beforeG.match(/(\s*)$/);
+        const indent = indentMatch ? indentMatch[1] : '';
+
+        // 构建新的<g>标签
+        let newGTag: string;
+        if (isSelected) {
+          if (isTableElement) {
+            // 表格元素不使用drop-shadow滤镜，只添加data属性
+            newGTag = `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`;
+          } else {
+            // 其他元素正常使用selected-glow
+            newGTag = `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}" class="selected-glow">`;
+          }
+        } else {
+          newGTag = `${indent}<g data-element-id="${id}" data-line="${lineNum || ''}">`;
+        }
+
+        svg = beforeG + newGTag + afterG;
+      }
+    }
+
+    svgParts.push(svg);
+  });
+  
+  if (!disableNotes && noteLayout && notes.length > 0) {
+    const extraNoteSpacing = 20;
+    const cardMargin = 10;
+    const cardsPerRow = 2;
+    const cardPadding = 12;
+    const cardWidth = (viewBoxWidth - margin * 2 - 10) / 2;
+    const notesY = maxY + margin + extraNoteSpacing;
+    const { cardHeights, rowStartYs } = noteLayout;
+      
+    notes.forEach((note, index) => {
+        const col = index % cardsPerRow;
+        const row = Math.floor(index / cardsPerRow);
+        const cardX = viewBoxX + margin + col * (cardWidth + cardMargin);
+        const cardY = notesY + cardMargin + rowStartYs[row];
+        const cardHeight = cardHeights[index];
+        
+        // 找到对应的元素ID
+        const elementIndex = note.elementIndex;
+        let elementId = '';
+        if (elementIndex !== undefined) {
+          const element = ast.elements[elementIndex];
+          elementId = (element as any).id || element.location?.line?.toString() || (elementIndex + 1).toString();
+        }
+        
+        // 检查元素是否被选中
+        const isSelected = elementId && selectedElementIds.includes(elementId);
+        const cardClass = isSelected ? 'note-card-selected' : 'note-card';
+        
+        // 为note的水滴型标记添加data-note-element-id属性
+        const badgeX = note.bounds.x + note.bounds.width - 8;
+        const badgeY = note.bounds.y - 8;
+        const badgeRadius = 10;
+        
+        svgParts.push(`  <g data-note-element-id="${elementId}" pointer-events="all">`);
+        svgParts.push(`    <path d="M${badgeX} ${badgeY - badgeRadius} C${badgeX + badgeRadius} ${badgeY - badgeRadius} ${badgeX + badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX} ${badgeY + badgeRadius * 1.5} C${badgeX - badgeRadius} ${badgeY + badgeRadius * 0.5} ${badgeX - badgeRadius} ${badgeY - badgeRadius} ${badgeX} ${badgeY - badgeRadius} Z" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow)"/>`);
+        svgParts.push(`    <text x="${badgeX}" y="${badgeY + 2}" text-anchor="middle" class="note-badge-text">${note.number}</text>`);
+        svgParts.push(`  </g>`);
+        
+        svgParts.push(`  <g data-note-element-id="${elementId}" pointer-events="all">`);
+        svgParts.push(`    <rect x="${cardX}" y="${cardY}" width="${cardWidth}" height="${cardHeight}" rx="8" class="${cardClass}"/>`);
+
+        const cardBadgeX = cardX + 12;
+        const cardBadgeY = cardY + 12;
+        const cardBadgeRadius = 8;
+
+        svgParts.push(`    <circle cx="${cardBadgeX}" cy="${cardBadgeY}" r="${cardBadgeRadius}" fill="#70B603" stroke="white" stroke-width="1" filter="url(#card-badge-shadow)"/>`);
+        svgParts.push(`    <text x="${cardBadgeX}" y="${cardBadgeY + 3}" text-anchor="middle" class="note-card-badge-text">${note.number}</text>`);
+        
+        const textX = cardX + 28;
+        const textY = cardY + cardPadding;
+        svgParts.push(`  <text x="${textX}" y="${textY}" fill="#333" font-size="12" dominant-baseline="hanging">`);
+        
+        const lines = wrapText(note.note, cardWidth - 28 - 12, 12);
+        
+        lines.forEach((line, lineIndex) => {
+          if (lineIndex === 0) {
+            svgParts.push(`    <tspan x="${textX}">${escapeHtml(line)}</tspan>`);
+          } else {
+            svgParts.push(`    <tspan x="${textX}" dy="22">${escapeHtml(line)}</tspan>`);
+          }
+        });
+        
+        svgParts.push(`  </text>`);
+        svgParts.push(`  </g>`);
+      });
+  }
+  
+  svgParts.push('</svg>');
+  
+  const svgString = svgParts.join('\n');
+  
+  if (returnMeta) {
+    return {
+      svg: svgString,
+      viewBox: {
+        x: viewBoxX,
+        y: viewBoxY,
+        width: viewBoxWidth,
+        height: viewBoxHeight
+      }
+    };
+  }
+  
+  return svgString;
+}

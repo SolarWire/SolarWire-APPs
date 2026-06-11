@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SolarWire Editor</title>
+    <link rel="icon" href="/logo.png" />
+    <link rel="stylesheet" href="/splash.css" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com blob:; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; img-src 'self' data: https: blob:; font-src 'self' data: https://cdn.jsdelivr.net https://unpkg.com; connect-src 'self' https: ws:;">
+  </head>
+  <body style="background:#1e1e1e">
+    <div id="splash-screen">
+      <img id="splash-logo" src="./logo.svg" alt="SolarWire" />
+      <div id="splash-text">SolarWire Editor</div>
+    </div>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('DOMContentLoaded', function() {
+        var check = setInterval(function() {
+          var root = document.getElementById('root');
+          if (root && root.children.length > 0) {
+            clearInterval(check);
+            var splash = document.getElementById('splash-screen');
+            if (splash) {
+              splash.classList.add('fade-out');
+              setTimeout(function() { splash.remove(); }, 300);
+            }
+          }
+        }, 50);
+      });
+    </script>
+    <script type="module" src="/src/app/main.tsx"></script>
+  </body>
+</html>

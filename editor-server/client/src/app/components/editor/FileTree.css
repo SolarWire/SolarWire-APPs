@@ -1,0 +1,95 @@
+.file-tree {
+  padding: 8px;
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+.tree-item:hover {
+  background: var(--accent-opacity-10);
+}
+
+.tree-item.selected {
+  background: var(--accent-opacity-35);
+  color: var(--accent-color);
+}
+
+.tree-item.selected .tree-item-name {
+  color: var(--accent-color);
+}
+
+.tree-item-icon {
+  width: 16px;
+  text-align: center;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.tree-item-arrow {
+  width: 16px;
+  text-align: center;
+  margin-right: 4px;
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.tree-item-name {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-children {
+  padding-left: 16px;
+}
+
+.tree-item-badge {
+  margin-left: auto;
+  padding-left: 8px;
+  font-size: 10px;
+  color: var(--accent-color, #f0c040);
+  border: 1px solid var(--accent-opacity-35, rgba(240, 192, 64, 0.35));
+  border-radius: 3px;
+  padding: 0 5px;
+  cursor: default;
+  flex-shrink: 0;
+  line-height: 18px;
+}
+
+.tree-badge-global-tooltip {
+  background: var(--bg-primary, #1e1e1e);
+  border: 1px solid var(--border-color, #444);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+}
+
+.tree-tooltip-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.tree-tooltip-item {
+  padding: 1px 0;
+  color: var(--text-secondary);
+}
+
+.tree-tooltip-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}

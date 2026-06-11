@@ -1,0 +1,262 @@
+.file-view-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.file-view-header {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+}
+
+.file-view-header .file-view-actions {
+  display: flex;
+  justify-content: flex-start;
+  padding: 8px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.file-view-header .file-view-search {
+  width: 100%;
+  padding: 8px 8px 8px 8px;
+}
+
+.file-view-header .file-view-sort {
+  width: 100%;
+  padding: 0 8px 8px 8px;
+}
+
+.sort-select {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.sort-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.sort-select:hover {
+  border-color: var(--text-muted);
+}
+
+.file-view {
+  flex: 1;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  overflow: visible; /* 移除 auto，让 Scrollbar 组件处理滚动 */
+}
+
+/* 紧凑按钮样式 */
+.tree-action-buttons-compact {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+  height: 24px;
+  white-space: nowrap;
+}
+
+.btn-compact:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
+.btn-compact:active {
+  transform: scale(0.98);
+}
+
+.btn-icon {
+  font-size: 12px;
+}
+
+.btn-text {
+  font-size: 11px;
+}
+
+/* 搜索框样式 */
+.tree-search-input {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tree-search-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.tree-search-input::placeholder {
+  color: var(--text-muted);
+}
+
+/* 使用统一滚动条样式，见 src/app/components/ui/Scrollbar.css */
+
+.file-view-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  color: var(--text-muted);
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.open-button {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.open-button:hover {
+  background-color: var(--accent-hover);
+}
+
+.selected-file {
+  padding: 16px;
+}
+
+.file-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.file-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.file-path {
+  font-size: 11px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.file-view-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.file-view-splitter {
+  height: 4px;
+  background: var(--border-color);
+  cursor: ns-resize;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.file-view-splitter:hover {
+  background: var(--accent-color);
+}
+
+.file-view-splitter-handle {
+  color: var(--text-muted);
+  font-size: 8px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.file-view-snippet-panel {
+  min-height: 80px;
+  overflow: hidden;
+  border-top: none;
+}
+
+.file-view-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+}
+
+.file-view-loading-spinner {
+  width: 60px;
+  height: 60px;
+  background-image: url(/logo.svg);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  animation: file-view-bounce 1.5s ease-in-out infinite;
+}
+
+.file-view-loading-text {
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 1px;
+  animation: file-view-pulse 2s ease-in-out infinite;
+}
+
+@keyframes file-view-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes file-view-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}

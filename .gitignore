@@ -1,18 +1,27 @@
 node_modules/
 plan/
-chrome-win64/
-chrome-win64.zip
-SKILL-v1-backup.md
-test-note-parser.js
 .DS_Store
 *.log
 dist/
 build/
+chrome-win64/
 editor/releases/
 editor/dist/
 editor/node_modules/
+editor-server/node_modules/
+editor-server/dist/
+editor-server/server/dist/
+editor-server/client/dist/
+editor-server/packages/*/dist/
+editor-server/packages/*/node_modules/
+editor-server/workspace/*
+!editor-server/workspace/.gitkeep
 .worktrees/
 swc-backup/
+coverage/
+*.tsbuildinfo
+*.tmp
+*.bak
 
 
 # 敏感信息和配置文件
@@ -32,6 +41,8 @@ secrets.json
 *.swo
 *~
 .lingma/
+.cursor/
+.claude/
 
 # 操作系统文件
 Thumbs.db

@@ -1,0 +1,30 @@
+.view-tabs-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.view-tabs {
+  display: flex;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* 使用统一 Tab 组件样式，见 src/app/components/ui/Tab.css */
+
+.view-content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.view-placeholder {
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: 13px;
+}

@@ -1,0 +1,89 @@
+.resizable-divider {
+  position: relative;
+  background-color: var(--border-color);
+  cursor: col-resize;
+  user-select: none;
+  transition: background-color 0.2s;
+  z-index: var(--z-resizable-divider);
+}
+
+.resizable-divider.vertical {
+  width: 4px;
+  height: 100%;
+  margin: 0;
+  background: var(--border-color);
+  cursor: col-resize;
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.resizable-divider.vertical:hover {
+  background: var(--accent-color);
+}
+
+.resizable-divider.vertical:active {
+  background: var(--accent-color);
+}
+
+.resizable-divider.vertical::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 20px;
+  background: var(--text-muted);
+  border-radius: 1px;
+  opacity: 0.5;
+}
+
+.resizable-divider.vertical:hover::before {
+  opacity: 1;
+  background: var(--accent-color);
+}
+
+.resizable-divider.vertical:active::before {
+  opacity: 1;
+  background: var(--accent-color);
+}
+
+.resizable-divider.horizontal {
+  width: 100%;
+  height: 2px;
+  margin: 0;
+  cursor: row-resize;
+}
+
+.resizable-divider:hover {
+  background-color: var(--accent-color);
+}
+
+.resizable-divider:active {
+  background-color: var(--accent-color);
+}
+
+.resizable-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0;
+}
+
+.resizable-divider.vertical:hover::before {
+  left: -5px;
+  right: -5px;
+  opacity: 0.3;
+  background-color: var(--accent-color);
+}
+
+.resizable-divider.horizontal:hover::before {
+  top: -5px;
+  bottom: -5px;
+  opacity: 0.3;
+  background-color: var(--accent-color);
+}

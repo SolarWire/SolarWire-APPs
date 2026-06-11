@@ -1,0 +1,15 @@
+{
+  "name": "solarwire-editor-server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --kill-others-on-fail --names \"server,client\" --prefix-colors \"yellow,cyan\" \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "build": "cd client && npm run build && cd ../server && npm run build",
+    "start": "cd server && npm run start",
+    "install:all": "cd client && npm install && cd ../server && npm install",
+    "docker:build": "docker build -t solarwire-server .",
+    "docker:run": "docker run -p 3000:3000 -v $(pwd)/workspace:/app/workspace solarwire-server"
+  }
+}

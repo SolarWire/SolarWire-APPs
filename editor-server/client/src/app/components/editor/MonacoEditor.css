@@ -1,0 +1,29 @@
+.monaco-editor {
+  height: 100%;
+  width: 100%;
+}
+
+/* 高亮行样式 - 使用 CSS 变量，由主题色控制 */
+.highlight-line {
+  background-color: var(--accent-opacity-15);
+  border-left: 3px solid var(--accent-color);
+}
+
+.highlight-line-inline {
+  background-color: var(--accent-opacity-10);
+}
+
+.highlight-line-glyph {
+  background-color: var(--accent-color);
+  width: 3px !important;
+}
+
+.error-line-highlight {
+  background-color: var(--error-bg) !important;
+  border-left: 3px solid var(--error-text) !important;
+}
+
+.error-line-glyph {
+  background-color: var(--error-text) !important;
+  width: 3px !important;
+}

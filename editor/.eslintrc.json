@@ -123,16 +123,6 @@
   },
   "overrides": [
     {
-      "files": ["*.test.ts", "*.test.tsx", "*.spec.ts", "*.spec.tsx"],
-      "env": {
-        "jest": true
-      },
-      "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": "off"
-      }
-    },
-    {
       "files": ["*.css"],
       "extends": ["plugin:sonarjs/recommended"],
       "rules": {

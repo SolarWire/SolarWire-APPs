@@ -1,0 +1,11 @@
+/* 滚动条组件样式 */
+.scrollbar {
+  height: 100%;
+  width: 100%;
+  min-width: 0;
+  overflow: auto;
+  position: relative;
+  z-index: var(--z-base);
+}
+
+

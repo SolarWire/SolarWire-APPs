@@ -1,0 +1,68 @@
+.property-tooltip-trigger {
+  display: inline-flex;
+  cursor: default;
+}
+
+.property-tooltip {
+  position: fixed;
+  width: 280px;
+  background: var(--bg-tooltip, #1e1e1e);
+  color: var(--text-tooltip, #d4d4d4);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 10px 12px;
+  z-index: 10000;
+  pointer-events: none;
+  animation: tooltipFadeIn 0.15s ease;
+}
+
+@keyframes tooltipFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.tooltip-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-tooltip, #d4d4d4);
+  margin-bottom: 2px;
+}
+
+.tooltip-code-attr {
+  font-size: 11px;
+  font-family: monospace;
+  color: var(--accent-color, #fca506);
+  margin-bottom: 6px;
+}
+
+.tooltip-section {
+  margin-bottom: 6px;
+}
+
+.tooltip-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted, #888);
+  margin-bottom: 2px;
+}
+
+.tooltip-code {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  color: var(--text-tooltip, #d4d4d4);
+}
+
+.tooltip-desc {
+  font-size: 12px;
+  color: var(--text-tooltip, #d4d4d4);
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.tooltip-supported {
+  font-size: 11px;
+  color: var(--text-muted, #888);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 6px;
+}

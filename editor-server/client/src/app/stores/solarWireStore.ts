@@ -1,0 +1,122 @@
+import { create } from 'zustand';
+
+// 选择工具类型
+type SelectionTool = 'select' | 'box-include' | 'box-intersect';
+
+interface DragState {
+  elementId: string;
+  startX: number;
+  startY: number;
+  elementX: number;
+  elementY: number;
+  elementX2?: number;
+  elementY2?: number;
+  elementW?: number;
+  elementH?: number;
+  isLine?: boolean;
+}
+
+interface ResizeState {
+  elementId: string;
+  handle: 'nw' | 'ne' | 'sw' | 'se' | 'n' | 'e' | 's' | 'w' | 'start' | 'end';
+  startX: number;
+  startY: number;
+  elementX: number;
+  elementY: number;
+  elementW?: number;
+  elementH?: number;
+  elementX2?: number;
+  elementY2?: number;
+  isLine?: boolean;
+}
+
+interface SolarWireState {
+  selectedElements: string[];
+  selectionTool: SelectionTool;
+  isPanMode: boolean;
+  dragState: DragState | null;
+  resizeState: ResizeState | null;
+  showNotes: boolean;
+  isSpacePressed: boolean;
+  isPreviewFocused: boolean;
+  selectElements: (ids: string[]) => void;
+  setSelectedElements: (ids: string[]) => void;
+  setSelectionTool: (tool: SelectionTool) => void;
+  setIsPanMode: (isPanMode: boolean) => void;
+  setDragState: (state: DragState | null) => void;
+  setResizeState: (state: ResizeState | null) => void;
+  setShowNotes: (show: boolean) => void;
+  setIsSpacePressed: (pressed: boolean) => void;
+  setIsPreviewFocused: (focused: boolean) => void;
+}
+
+/**
+ * SolarWire 状态管理 Store
+ * 管理 SolarWire 编辑器的选择、工具、视图等状态
+ */
+export const useSolarWireStore = create<SolarWireState>((set) => ({
+  selectedElements: [],
+  selectionTool: (() => {
+    try {
+      const saved = localStorage.getItem('solarwire-settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.selectionTool) return parsed.selectionTool;
+      }
+    } catch {}
+    return 'select';
+  })(),
+  isPanMode: false,
+  dragState: null,
+  resizeState: null,
+  showNotes: true,
+  isSpacePressed: false,
+  isPreviewFocused: false,
+
+  /**
+   * 选择元素
+   */
+  selectElements: (ids: string[]) => set({ selectedElements: ids }),
+  
+  /**
+   * 设置选中的元素
+   */
+  setSelectedElements: (ids: string[]) => set({ selectedElements: ids }),
+  
+  /**
+   * 设置选择工具
+   */
+  setSelectionTool: (tool: SelectionTool) => {
+    set({ selectionTool: tool });
+    try {
+      const saved = localStorage.getItem('solarwire-settings');
+      const parsed = saved ? JSON.parse(saved) : {};
+      parsed.selectionTool = tool;
+      localStorage.setItem('solarwire-settings', JSON.stringify(parsed));
+    } catch {}
+  },
+  
+  /**
+   * 设置平移模式
+   */
+  setIsPanMode: (isPanMode: boolean) => set({ isPanMode }),
+  
+  /**
+   * 设置拖拽状态
+   */
+  setDragState: (state) => set({ dragState: state }),
+  setResizeState: (state) => set({ resizeState: state }),
+  
+  /**
+   * 设置是否显示备注
+   */
+  setShowNotes: (show) => set({ showNotes: show }),
+  
+  /**
+   * 设置空格键按下状态
+   */
+  setIsSpacePressed: (pressed) => set({ isSpacePressed: pressed }),
+  setIsPreviewFocused: (focused) => set({ isPreviewFocused: focused }),
+}));
+
+export type { SelectionTool };

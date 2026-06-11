@@ -1,0 +1,92 @@
+.image-preview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.image-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  min-height: 40px;
+}
+
+.image-preview-title {
+  font-size: 13px;
+  font-weight: 500;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-preview-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.image-preview-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  min-width: 28px;
+  text-align: center;
+  transition: background 0.15s;
+}
+
+.image-preview-btn:hover {
+  background: var(--bg-hover);
+}
+
+.image-preview-zoom-level {
+  font-size: 11px;
+  color: var(--text-muted);
+  min-width: 40px;
+  text-align: center;
+}
+
+.image-preview-container {
+  flex: 1;
+  overflow: visible; /* 改为 visible，确保 ResizableDivider 可见 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  background: var(--bg-tertiary);
+}
+
+.image-preview-image {
+  max-width: none;
+  max-height: none;
+  transition: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.image-preview-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.image-preview-info {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  text-align: center;
+}

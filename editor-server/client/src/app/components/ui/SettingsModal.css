@@ -1,0 +1,244 @@
+.settings-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.settings-modal {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.settings-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.settings-modal-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+.settings-close-button {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.settings-close-button:hover {
+  background: var(--bg-tertiary);
+}
+
+.settings-modal-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
+}
+
+.settings-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-field {
+  margin-bottom: 16px;
+}
+
+.settings-field:last-child {
+  margin-bottom: 0;
+}
+
+.settings-field label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.language-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.language-select:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.language-select:hover {
+  border-color: var(--text-secondary);
+}
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 6px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.theme-option:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-hover);
+}
+
+.theme-option-active {
+  border-color: var(--accent-color);
+  background: var(--accent-opacity-10);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.theme-option-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.theme-option-label {
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+
+.settings-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border-color);
+}
+
+.settings-cancel-button,
+.settings-save-button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.settings-cancel-button {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.settings-cancel-button:hover {
+  background: var(--border-color);
+}
+
+.settings-save-button {
+  background: var(--accent-color);
+  color: var(--button-text, white);
+  font-weight: 500;
+}
+
+.settings-save-button:hover {
+  filter: brightness(1.1);
+}
+
+.settings-description {
+  margin: 0 0 12px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.settings-action-button {
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--accent-color);
+  color: var(--button-text, white);
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-action-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.settings-action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-about {
+  border-top: 1px solid var(--border-color);
+  padding-top: 20px;
+}
+
+.settings-about-content {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.settings-app-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.settings-version {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono, monospace);
+}

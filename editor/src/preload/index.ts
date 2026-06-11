@@ -53,12 +53,3 @@ contextBridge.exposeInMainWorld('api', {
   },
 });
 
-// 在测试环境中暴露额外 API
-if (process.env.NODE_ENV === 'test') {
-  contextBridge.exposeInMainWorld('testAPI', {
-    setTestDirectory: async (path: string) => {
-      return ipcRenderer.invoke('test:set-directory', path);
-    }
-  });
-}
-
