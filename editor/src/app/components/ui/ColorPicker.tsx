@@ -95,9 +95,10 @@ interface ColorPickerProps {
   value: string;
   onChange: (color: string) => void;
   codeAttr?: string;
+  mixed?: boolean;
 }
 
-const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeAttr }) => {
+const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeAttr, mixed }) => {
   const [presets, setPresets] = useState<string[]>(loadPresets);
   const [showPopup, setShowPopup] = useState(false);
   const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
@@ -222,7 +223,6 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
 
   const isTransparent = !value || value === 'none' || value === 'transparent';
   const supportsEyeDropper = typeof window !== 'undefined' && 'EyeDropper' in window;
-
   const contextMenuPortal = contextMenu.visible && createPortal(
     <div
       className="color-picker-context-menu"
@@ -356,14 +356,15 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
     <div className="color-picker" ref={containerRef}>
       <PropertyLabel codeAttr={codeAttr || ''} fallbackLabel={label} className="color-picker-label" />
       <button
-          className={`color-picker-swatch${isTransparent ? ' transparent' : ''}`}
-          style={{ backgroundColor: isTransparent ? undefined : value }}
+          className={`color-picker-swatch${isTransparent ? ' transparent' : ''}${mixed ? ' mixed' : ''}`}
+          style={{ backgroundColor: mixed ? undefined : (isTransparent ? undefined : value) }}
           onClick={handleSwatchClick}
-          title={isTransparent ? 'none' : value}
+          title={mixed ? '— (多种值)' : (isTransparent ? 'none' : value)}
         >
-          {isTransparent && <span className="color-picker-swatch-cross">╳</span>}
+          {mixed && <span className="color-picker-swatch-mixed">—</span>}
+          {!mixed && isTransparent && <span className="color-picker-swatch-cross">╳</span>}
         </button>
-        {!isTransparent ? (
+        {!mixed && !isTransparent ? (
           <HexColorInput
             color={value}
             onChange={onChange}
@@ -374,7 +375,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({ label, value, onChange, codeA
           <input
             type="text"
             className="color-picker-inline-hex"
-            placeholder="none"
+            placeholder={mixed ? '—' : 'none'}
             value=""
             readOnly
             onClick={handleSwatchClick}

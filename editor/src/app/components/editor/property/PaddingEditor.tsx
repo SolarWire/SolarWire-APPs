@@ -8,6 +8,7 @@ interface PaddingEditorProps {
   paddingBottom: string;
   paddingLeft: string;
   onChange: (attr: string, value: number | undefined) => void;
+  mixedFields?: Set<string>;
 }
 
 const parseVal = (v: string | undefined): number => {
@@ -23,20 +24,24 @@ const PADDING_FIELDS = [
 ] as const;
 
 const PaddingEditor: React.FC<PaddingEditorProps> = ({
-  paddingTop, paddingRight, paddingBottom, paddingLeft, onChange
+  paddingTop, paddingRight, paddingBottom, paddingLeft, onChange, mixedFields
 }) => {
   const values = { paddingTop, paddingRight, paddingBottom, paddingLeft };
 
   return (
     <div className="padding-grid">
-      {PADDING_FIELDS.map(({ attr, valueKey }) => (
-        <DraggableNumberInput
-          key={attr}
-          codeAttr={attr}
-          value={parseVal(values[valueKey])}
-          onChange={(v: number) => onChange(attr, v)}
-        />
-      ))}
+      {PADDING_FIELDS.map(({ attr, valueKey }) => {
+        const isMixed = mixedFields?.has(attr);
+        return (
+          <DraggableNumberInput
+            key={attr}
+            codeAttr={attr}
+            value={isMixed ? '' : parseVal(values[valueKey])}
+            onChange={(v: number) => onChange(attr, v)}
+            placeholder={isMixed ? '—' : undefined}
+          />
+        );
+      })}
     </div>
   );
 };

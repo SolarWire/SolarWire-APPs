@@ -53,7 +53,7 @@ function semanticCheck(blockContent, source, blockIndex) {
 
     const rectMatch = line.match(/^\["[^"]*"\]\s*@/);
     if (rectMatch && !line.includes('w=') && !line.startsWith('[') === false) {
-      if (line.includes('note=') || line.includes('align=') || line.includes('vertical-align=')) {
+      if (line.includes('note=') || line.includes('align=') || line.includes('v-align=')) {
         warnings.push({
           line: i + 1,
           code: 'RECT_SIZE',

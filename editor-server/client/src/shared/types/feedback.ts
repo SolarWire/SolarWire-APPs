@@ -52,5 +52,5 @@ export interface SyntaxError {
   column: number;
   message: string;
   severity: 'error' | 'warning';
-  source?: 'parser' | 'diagnostic';
+  source?: 'parser' | 'renderer' | 'diagnostic';
 }

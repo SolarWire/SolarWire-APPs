@@ -18,6 +18,7 @@ import ImageGroup from './property/ImageGroup';
 import NoteGroup from './property/NoteGroup';
 import { fileDialogService, IFileDialogService } from '../../services/file-dialog-service';
 import { useElementProps } from './hooks/useElementProps';
+import { useMultiElementProps } from './hooks/useMultiElementProps';
 import type { ElementProps } from './hooks/useElementProps';
 import './PropertyPanel.css';
 
@@ -60,14 +61,17 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     }
   }, [safeContent]);
 
-  const element = useMemo(() => {
-    if (selectedElements.length !== 1) return null;
-    const elementId = selectedElements[0];
-    return ast?.elements.find((el, index) => {
-      const id = (el as Element & { id?: string }).id || el.location?.line?.toString() || (index + 1).toString();
-      return id === elementId;
-    });
+  const elements = useMemo(() => {
+    if (selectedElements.length === 0) return [];
+    return selectedElements.map(elementId => {
+      return ast?.elements.find((el, index) => {
+        const id = (el as Element & { id?: string }).id || el.location?.line?.toString() || (index + 1).toString();
+        return id === elementId;
+      });
+    }).filter(Boolean) as Element[];
   }, [ast, selectedElements]);
+
+  const element = elements.length === 1 ? elements[0] : null;
 
   const handleChange = useCallback((property: string, value: string | number | boolean | undefined) => {
     if (!element) return;
@@ -85,6 +89,29 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
     }
   }, [element, effectiveSetContent]);
 
+  /**
+   * 多选批量更新：倒序遍历选中元素（按行号降序），
+   * 避免 note 等多行属性 splice 导致后续元素行号偏移。
+   */
+  const handleBatchChange = useCallback((property: string, value: string | number | boolean | undefined) => {
+    if (elements.length === 0) return;
+    const sortedElements = [...elements].sort((a, b) =>
+      (b.location?.line || 0) - (a.location?.line || 0)
+    );
+    let newContent = latestContentRef.current;
+    for (const el of sortedElements) {
+      const lineNum = el.location?.line;
+      if (!lineNum) continue;
+      if (value === undefined) {
+        newContent = deleteLineAttribute(newContent, lineNum, property);
+      } else {
+        newContent = updateLineAttribute(newContent, lineNum, property, value);
+      }
+    }
+    latestContentRef.current = newContent;
+    effectiveSetContent(newContent);
+  }, [elements, effectiveSetContent]);
+
   const handleGoToError = useCallback(() => {
     if (parseError) {
       const lineMatch = parseError.match(/line (\d+)/);
@@ -96,6 +123,7 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   }, [parseError, onErrorLineClick]);
 
   const elementProps = useElementProps({ element });
+  const multiElementProps = useMultiElementProps({ elements: elements.length > 1 ? elements : [] });
 
   const lineMatch = parseError ? parseError.match(/line (\d+)/) : null;
   const errorLine = lineMatch ? parseInt(lineMatch[1]) : null;
@@ -127,12 +155,54 @@ function PropertyPanel({ externalContent, onExternalContentChange, fileDialogSer
   }
 
   if (selectedElements.length > 1) {
+    if (!multiElementProps) {
+      return (
+        <div className="property-panel glass-panel">
+          <p className="empty-state">未找到元素</p>
+        </div>
+      );
+    }
+    const { props: multiProps, mixedFields } = multiElementProps;
+    const { type, size, appearance, line } = multiProps;
     return (
       <div className="property-panel glass-panel">
         <div className="property-panel-header">
           <span className="property-panel-type">{selectedElements.length} 个元素已选中</span>
         </div>
-        <p className="multi-select-hint">请选择单个元素以编辑其属性。</p>
+
+        {/* 多选时不渲染 PositionGroup（按决策）*/}
+
+        {size.show && (
+          <SizeGroup size={size} onChange={handleBatchChange} mixedFields={mixedFields} />
+        )}
+
+        {size.showPadding && (
+          <PropertyGroupTitle title="边距">
+            <PaddingEditor
+              paddingTop={multiProps.text.paddingTop}
+              paddingRight={multiProps.text.paddingRight}
+              paddingBottom={multiProps.text.paddingBottom}
+              paddingLeft={multiProps.text.paddingLeft}
+              onChange={handleBatchChange}
+              mixedFields={mixedFields}
+            />
+          </PropertyGroupTitle>
+        )}
+
+        {line ? (
+          <LineGroup line={line} appearance={appearance} onChange={handleBatchChange} mixedFields={mixedFields} />
+        ) : (appearance.showFill || appearance.showBorder) ? (
+          <AppearanceGroup type={type} appearance={appearance} onChange={handleBatchChange} mixedFields={mixedFields} />
+        ) : null}
+
+        {appearance.showShadow && (
+          <PropertyGroupTitle title="阴影" defaultCollapsed={true}>
+            <ShadowEditor attrs={multiProps.attrs} onChange={handleBatchChange} mixedFields={mixedFields} />
+          </PropertyGroupTitle>
+        )}
+
+        {/* 多选时渲染文字格式属性（隐藏文本内容），不渲染 NoteGroup */}
+        <TextGroup text={multiProps.text} appearance={appearance} type={type} onChange={handleBatchChange} multiSelect mixedFields={mixedFields} />
       </div>
     );
   }

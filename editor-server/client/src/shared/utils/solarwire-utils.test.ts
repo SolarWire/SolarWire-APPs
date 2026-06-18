@@ -1,8 +1,6 @@
 import {
   detectNoteBounds,
-  detectTableBounds,
-  hasDoubleQuoteNotes,
-  convertDoubleQuoteNotesToTriple
+  detectTableBounds
 } from './solarwire-utils';
 
 // 测试 detectNoteBounds 函数
@@ -56,59 +54,5 @@ describe('detectTableBounds', () => {
     const content = '## Table\n  - Row 1\n  # Comment\n  - Row 2\n\n"test"';
     const result = detectTableBounds(content, 1);
     expect(result).toEqual({ startLine: 1, endLine: 5 });
-  });
-});
-
-// 测试 hasDoubleQuoteNotes 函数
-describe('hasDoubleQuoteNotes', () => {
-  it('应该检测到双引号note', () => {
-    const content = '"test" note="This is a note"';
-    const result = hasDoubleQuoteNotes(content);
-    expect(result).toBe(true);
-  });
-
-  it('应该检测到单引号note', () => {
-    const content = '"test" note=\'This is a note\'';
-    const result = hasDoubleQuoteNotes(content);
-    expect(result).toBe(true);
-  });
-
-  it('应该忽略三引号note', () => {
-    const content = '"test" note="""This is a note"""';
-    const result = hasDoubleQuoteNotes(content);
-    expect(result).toBe(false);
-  });
-
-  it('应该返回false当没有note时', () => {
-    const content = '"test"';
-    const result = hasDoubleQuoteNotes(content);
-    expect(result).toBe(false);
-  });
-});
-
-// 测试 convertDoubleQuoteNotesToTriple 函数
-describe('convertDoubleQuoteNotesToTriple', () => {
-  it('应该将双引号note转换为三引号', () => {
-    const content = '"test" note="This is a note"';
-    const result = convertDoubleQuoteNotesToTriple(content);
-    expect(result).toBe('"test" note="""This is a note"""');
-  });
-
-  it('应该将单引号note转换为三引号', () => {
-    const content = '"test" note=\'This is a note\'';
-    const result = convertDoubleQuoteNotesToTriple(content);
-    expect(result).toBe('"test" note="""This is a note"""');
-  });
-
-  it('应该保持三引号note不变', () => {
-    const content = '"test" note="""This is a note"""';
-    const result = convertDoubleQuoteNotesToTriple(content);
-    expect(result).toBe('"test" note="""This is a note"""');
-  });
-
-  it('应该处理多个note', () => {
-    const content = '"test1" note="Note 1"\n"test2" note=\'Note 2\'';
-    const result = convertDoubleQuoteNotesToTriple(content);
-    expect(result).toBe('"test1" note="""Note 1"""\n"test2" note="""Note 2"""');
   });
 });

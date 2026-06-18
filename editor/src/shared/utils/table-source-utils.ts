@@ -12,8 +12,8 @@ export interface TableCell {
     size?: string;
     bold?: boolean;
     italic?: boolean;
-    align?: 'l' | 'c' | 'r';
-    'vertical-align'?: 't' | 'm' | 'b';
+    align?: 'l' | 'c' | 'r' | 'left' | 'center' | 'right';
+    'v-align'?: 't' | 'm' | 'b' | 'top' | 'middle' | 'bottom';
     'text-decoration'?: 'underline' | 'line-through';
     'padding-top'?: string;
     'padding-right'?: string;
@@ -31,8 +31,8 @@ export interface TableRow {
     italic?: boolean;
     'line-height'?: string;
     'letter-spacing'?: string;
-    align?: 'l' | 'c' | 'r';
-    'vertical-align'?: 't' | 'm' | 'b';
+    align?: 'l' | 'c' | 'r' | 'left' | 'center' | 'right';
+    'v-align'?: 't' | 'm' | 'b' | 'top' | 'middle' | 'bottom';
     'text-decoration'?: 'underline' | 'line-through';
     'padding-top'?: string;
     'padding-right'?: string;
@@ -83,8 +83,8 @@ export function parseTableFromSource(
             size: attrs.size,
             bold: !!attrs.bold,
             italic: !!attrs.italic,
-            align: attrs.align as 'l' | 'c' | 'r' | undefined,
-            'vertical-align': attrs['vertical-align'] as 't' | 'm' | 'b' | undefined,
+            align: attrs.align as 'l' | 'c' | 'r' | 'left' | 'center' | 'right' | undefined,
+            'v-align': attrs['v-align'] as 't' | 'm' | 'b' | 'top' | 'middle' | 'bottom' | undefined,
             'text-decoration': attrs['text-decoration'] as 'underline' | 'line-through' | undefined,
             'padding-top': attrs['padding-top'],
             'padding-right': attrs['padding-right'],
@@ -201,7 +201,7 @@ export function serializeTableToSource(
       if (cell.attrs.bold && cell.attrs.bold !== rowAttrs.bold) cellAttrParts.push(`bold`);
       if (cell.attrs.italic && cell.attrs.italic !== rowAttrs.italic) cellAttrParts.push(`italic`);
       if (cell.attrs.align && cell.attrs.align !== 'l') cellAttrParts.push(`align=${cell.attrs.align}`);
-      if (cell.attrs['vertical-align'] && cell.attrs['vertical-align'] !== 't') cellAttrParts.push(`vertical-align=${cell.attrs['vertical-align']}`);
+      if (cell.attrs['v-align'] && cell.attrs['v-align'] !== 't') cellAttrParts.push(`v-align=${cell.attrs['v-align']}`);
       if (cell.attrs['text-decoration']) cellAttrParts.push(`text-decoration=${cell.attrs['text-decoration']}`);
       if (cell.attrs['padding-top']) cellAttrParts.push(`padding-top=${cell.attrs['padding-top']}`);
       if (cell.attrs['padding-right']) cellAttrParts.push(`padding-right=${cell.attrs['padding-right']}`);

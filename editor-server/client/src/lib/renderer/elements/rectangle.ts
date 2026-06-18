@@ -1,5 +1,5 @@
 import { RectangleElement } from '../../parser';
-import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues, getLetterSpacingAttribute } from '../context';
+import { RenderContext, ValidationContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute, getShadowAttribute, generateShadowFilter, getVAlignAttribute, getTextDecorationAttribute, getPaddingValues, getLetterSpacingAttribute } from '../context';
 
 export interface RenderResult {
   svg: string;
@@ -35,7 +35,7 @@ export function renderRectangle(
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes, 'opacity', 1, vc);
   const shadow = getShadowAttribute(element.attributes, context.globalDefaults, vc);
-  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'top', vc);
+  const vAlign = getVAlignAttribute(element.attributes, 'top', vc);
   const textDecoration = getTextDecorationAttribute(element.attributes, vc);
   const padding = getPaddingValues(element.attributes, context.globalDefaults, 0, vc);
   const letterSpacing = getLetterSpacingAttribute(element.attributes, context.globalDefaults, 0, vc);
@@ -86,7 +86,7 @@ export function renderRectangle(
     const totalTextHeight = (lines.length - 1) * lineHeight + fontSize;
     const baselineOffset = fontSize * 0.82;
     let textY: number;
-    switch (verticalAlign) {
+    switch (vAlign) {
       case 'middle':
         textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + baselineOffset;
         break;

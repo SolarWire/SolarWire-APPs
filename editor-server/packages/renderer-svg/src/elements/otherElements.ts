@@ -1,5 +1,5 @@
 import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '@solarwire/parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, getVAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo } from '../context';
 import { RenderResult } from './rectangle';
 
 export function renderCircle(element: CircleElement, context: RenderContext): RenderResult {
@@ -24,6 +24,9 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes);
+  const vAlign = getVAlignAttribute(element.attributes, 'middle');
+  const declaredLineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 0);
+  const lineHeight = declaredLineHeight > 0 ? declaredLineHeight : fontSize * 1.5;
   
   const opacityAttr = opacity !== 1 ? ` opacity="${opacity}"` : '';
   
@@ -31,10 +34,37 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   svgParts.push(`<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${bg}" stroke="${b}" stroke-width="${s}"${opacityAttr}/>`);
   
   if (element.text) {
+    const lines = element.text.split('\n');
+    const totalTextHeight = (lines.length - 1) * lineHeight + fontSize;
+    const baselineOffset = fontSize * 0.82;
+
     let fontStyle = '';
     if (bold) fontStyle += 'font-weight="bold" ';
     if (italic) fontStyle += 'font-style="italic" ';
-    svgParts.push(`<text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${fontSize}" ${fontStyle}>${escapeHtml(element.text)}</text>`);
+
+    let textY: number;
+    switch (vAlign) {
+      case 'middle':
+        textY = pos.y + (h - totalTextHeight) / 2 + baselineOffset;
+        break;
+      case 'bottom':
+        textY = pos.y + h - totalTextHeight + baselineOffset;
+        break;
+      case 'top':
+      default:
+        textY = pos.y + baselineOffset;
+        break;
+    }
+
+    svgParts.push(`<text x="${cx}" y="${textY}" text-anchor="middle" fill="${c}" font-size="${fontSize}" ${fontStyle}>`);
+    lines.forEach((line, i) => {
+      if (i === 0) {
+        svgParts.push(escapeHtml(line));
+      } else {
+        svgParts.push(`<tspan x="${cx}" dy="${lineHeight}">${escapeHtml(line)}</tspan>`);
+      }
+    });
+    svgParts.push('</text>');
   }
   
   const bounds: ElementBounds = {
@@ -144,6 +174,9 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999');
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const note = element.attributes['note'];
+  const vAlign = getVAlignAttribute(element.attributes, 'middle');
+  const declaredLineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 0);
+  const lineHeight = declaredLineHeight > 0 ? declaredLineHeight : fontSize * 1.5;
   
   const svgParts: string[] = [];
   svgParts.push(`<rect x="${pos.x}" y="${pos.y}" width="${w}" height="${h}" fill="${bg}" stroke="${b}" stroke-width="${s}"/>`);
@@ -152,7 +185,33 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   svgParts.push(`<line x1="${pos.x + w}" y1="${pos.y}" x2="${pos.x}" y2="${pos.y + h}" stroke="${b}" stroke-width="${s}"/>`);
   
   const text = element.text || 'Placeholder';
-  svgParts.push(`<text x="${pos.x + w / 2}" y="${pos.y + h / 2}" text-anchor="middle" dominant-baseline="middle" fill="${c}" font-size="${fontSize}">${escapeHtml(text)}</text>`);
+  const lines = text.split('\n');
+  const totalTextHeight = (lines.length - 1) * lineHeight + fontSize;
+  const baselineOffset = fontSize * 0.82;
+
+  let textY: number;
+  switch (vAlign) {
+    case 'middle':
+      textY = pos.y + (h - totalTextHeight) / 2 + baselineOffset;
+      break;
+    case 'bottom':
+      textY = pos.y + h - totalTextHeight + baselineOffset;
+      break;
+    case 'top':
+    default:
+      textY = pos.y + baselineOffset;
+      break;
+  }
+
+  svgParts.push(`<text x="${pos.x + w / 2}" y="${textY}" text-anchor="middle" fill="${c}" font-size="${fontSize}">`);
+  lines.forEach((line, i) => {
+    if (i === 0) {
+      svgParts.push(escapeHtml(line));
+    } else {
+      svgParts.push(`<tspan x="${pos.x + w / 2}" dy="${lineHeight}">${escapeHtml(line)}</tspan>`);
+    }
+  });
+  svgParts.push('</text>');
   
   const bounds: ElementBounds = {
     x: pos.x,

@@ -308,8 +308,9 @@ export function getAlignAttribute(
   vc?: ValidationContext
 ): 'start' | 'middle' | 'end' {
   const align = attributes['align'];
-  const allowedValues = ['l', 'c', 'r'];
-  if (align !== undefined && !allowedValues.includes(align)) {
+  const normalized = align?.toLowerCase();
+  const allowedValues = ['l', 'c', 'r', 'left', 'center', 'right'];
+  if (align !== undefined && !allowedValues.includes(normalized)) {
     if (vc) {
       throw new Error(formatRenderError({
         title: `Invalid value for "align" attribute`,
@@ -322,12 +323,15 @@ export function getAlignAttribute(
     }
     return defaultValue;
   }
-  switch (align) {
+  switch (normalized) {
     case 'l':
+    case 'left':
       return 'start';
     case 'c':
+    case 'center':
       return 'middle';
     case 'r':
+    case 'right':
       return 'end';
     default:
       return defaultValue;
@@ -410,32 +414,36 @@ export function getLetterSpacingAttribute(
   return getNumberAttribute(attributes, globalDefaults, 'letter-spacing', defaultValue, vc);
 }
 
-export function getVerticalAlignAttribute(
+export function getVAlignAttribute(
   attributes: Record<string, string>,
   defaultValue: 'top' | 'middle' | 'bottom' = 'top',
   vc?: ValidationContext
 ): 'top' | 'middle' | 'bottom' {
-  const val = attributes['vertical-align'];
-  const allowedValues = ['t', 'm', 'b'];
-  if (val !== undefined && !allowedValues.includes(val)) {
+  const val = attributes['v-align'];
+  const normalized = val?.toLowerCase();
+  const allowedValues = ['t', 'm', 'b', 'top', 'middle', 'bottom'];
+  if (val !== undefined && !allowedValues.includes(normalized)) {
     if (vc) {
       throw new Error(formatRenderError({
-        title: `Invalid value for "vertical-align" attribute`,
+        title: `Invalid value for "v-align" attribute`,
         expected: `One of: ${allowedValues.join(', ')}`,
         found: `"${val}"`,
         location: getElementLocationInfo(vc.element),
-        reason: `"${val}" is not a valid value for the "vertical-align" attribute.`,
+        reason: `"${val}" is not a valid value for the "v-align" attribute.`,
         solution: `Use one of the allowed values: ${allowedValues.join(', ')}.`
       }, vc.sourceInput, vc.element.location));
     }
     return defaultValue;
   }
-  switch (val) {
+  switch (normalized) {
     case 't':
+    case 'top':
       return 'top';
     case 'm':
+    case 'middle':
       return 'middle';
     case 'b':
+    case 'bottom':
       return 'bottom';
     default:
       return defaultValue;
@@ -534,13 +542,13 @@ export const VALID_ATTRIBUTES: Record<ElementTypeName, Set<string>> = {
   rectangle: new Set([
     'r', 'w', 'h', 'bg', 'c', 'b', 's', 'size', 'text-size', 'align', 'bold', 'italic',
     'note', 'opacity', 'shadow-enabled', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
-    'vertical-align', 'text-decoration', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'v-align', 'text-decoration', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
     'letter-spacing', 'line-height',
   ]),
   circle: new Set([
     'w', 'h', 'bg', 'b', 's', 'c', 'size', 'text-size', 'bold', 'italic',
     'note', 'opacity', 'shadow-enabled', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
-    'vertical-align', 'text-decoration', 'line-height', 'letter-spacing', 'align',
+    'v-align', 'text-decoration', 'line-height', 'letter-spacing', 'align',
     'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
   ]),
   text: new Set([
@@ -548,7 +556,7 @@ export const VALID_ATTRIBUTES: Record<ElementTypeName, Set<string>> = {
   ]),
   placeholder: new Set([
     'w', 'h', 'bg', 'b', 's', 'c', 'size', 'text-size',
-    'note', 'vertical-align', 'align', 'line-height', 'letter-spacing', 'text-decoration',
+    'note', 'v-align', 'align', 'line-height', 'letter-spacing', 'text-decoration',
     'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'bold', 'italic',
   ]),
   image: new Set([
@@ -563,7 +571,7 @@ export const VALID_ATTRIBUTES: Record<ElementTypeName, Set<string>> = {
   ]),
   'table-row': new Set([
     'bg', 'c', 'b', 's', 'size', 'bold', 'italic', 'align', 'note',
-    'line-height', 'letter-spacing', 'vertical-align', 'text-decoration',
+    'line-height', 'letter-spacing', 'v-align', 'text-decoration',
     'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
   ]),
 };

@@ -1,12 +1,16 @@
 import React, { useRef, useCallback, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import Editor, { loader } from '@monaco-editor/react';
 import { useAppStore } from '../../stores/appStore';
 import { isDarkTheme } from '../../../shared/types/app';
-import { syntaxErrorService, SyntaxError } from '../../services/syntax-error-service';
+import { syntaxErrorService } from '../../services/syntax-error-service';
 import { useStatusStore } from '../../stores/statusStore';
 import { registerSolarWireLanguage, getThemeName } from '../../../shared/utils/solarwire-language';
 import { registerSolarWireCompletion } from '../../../shared/utils/solarwire-completion';
 import './MonacoEditor.css';
+
+// 配置 Monaco 从本地静态包加载，避免 CDN 依赖，支持离线场景
+// 使用相对路径，兼容 Vite dev server 和 Electron file:// 协议
+loader.config({ paths: { vs: './monaco/min/vs' } });
 
 // 全局保存的滚动位置记录
 let globalSavedScrollPosition: Record<string, number> = {};
@@ -39,6 +43,8 @@ interface MonacoEditorProps {
   scrollKey?: string;
   /** 错误来源标识，用于语法错误服务隔离 */
   errorSourceId?: string;
+  /** 滚动到指定行（用于点击错误项跳转） */
+  scrollToLine?: number | null;
 }
 
 /**
@@ -56,7 +62,8 @@ function MonacoEditor({
   highlightTrigger,
   preserveScrollPosition = false,
   scrollKey,
-  errorSourceId
+  errorSourceId,
+  scrollToLine
 }: MonacoEditorProps): React.ReactElement {
   // 主题
   const { theme } = useAppStore();
@@ -85,21 +92,6 @@ function MonacoEditor({
 
   // 始终同步 highlightLines 到 ref，确保滚动时使用最新值
   highlightLinesRef.current = highlightLines;
-
-  // 监听语法错误变化
-  useEffect(() => {
-    const listener = {
-      sourceId: errorSourceId || 'main-editor',
-      onErrorsChanged: (errors: SyntaxError[]) => {
-        const errorLines = errors.map(e => e.line);
-      }
-    };
-
-    syntaxErrorService.addListener(listener);
-    return () => {
-      syntaxErrorService.removeListener(listener);
-    };
-  }, [errorSourceId]);
 
   const handleBeforeMount = useCallback((monaco: any) => {
     registerSolarWireLanguage(monaco);
@@ -234,30 +226,29 @@ function MonacoEditor({
     prevScrollTriggerRef.current = scrollTrigger;
 
     if (!editorRef.current) {
-      pendingScrollRef.current = { scrollTrigger, line: 1 };
+      pendingScrollRef.current = { scrollTrigger, line: scrollToLine || 1 };
       return;
     }
 
     const editor = editorRef.current;
-    
-    // 优先跳转到错误行，如果没有错误行则跳转到高亮行
-    let targetLine = 1;
-    if (errorLines && errorLines.length > 0) {
+
+    // 优先使用 scrollToLine（点击具体错误项时传入）
+    let targetLine: number;
+    if (scrollToLine && scrollToLine > 0) {
+      targetLine = scrollToLine;
+    } else if (errorLines && errorLines.length > 0) {
       targetLine = errorLines[0];
     } else if (highlightLinesRef.current && highlightLinesRef.current.length > 0) {
       targetLine = highlightLinesRef.current[0];
     } else {
-      // 如果没有错误行或高亮行，尝试从语法错误服务获取最新的错误行
       const currentErrors = syntaxErrorService.getErrors(errorSourceId);
-      if (currentErrors.length > 0) {
-        targetLine = currentErrors[0].line;
-      }
+      targetLine = currentErrors.length > 0 ? currentErrors[0].line : 1;
     }
-    
+
     editor.revealLineInCenter(targetLine);
     editor.setPosition({ lineNumber: targetLine, column: 1 });
     pendingScrollRef.current = null;
-  }, [scrollTrigger, errorLines]);
+  }, [scrollTrigger, errorLines, scrollToLine]);
 
   // Effect 3: 处理高亮触发器
   useEffect(() => {

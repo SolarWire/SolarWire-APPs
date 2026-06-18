@@ -1,5 +1,5 @@
 import { CircleElement, TextElement, PlaceholderElement, ImageElement, TableElement, TableRowElement, Element } from '../../parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter, getVerticalAlignAttribute, getTextDecorationAttribute, getPaddingValues, ValidationContext } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, createChildContext, escapeHtml, getOpacityAttribute, formatRenderError, getElementLocationInfo, getLetterSpacingAttribute, getShadowAttribute, generateShadowFilter, getVAlignAttribute, getTextDecorationAttribute, getPaddingValues, ValidationContext } from '../context';
 import { RenderResult } from './rectangle';
 
 let _canvas: HTMLCanvasElement | null = null;
@@ -62,7 +62,7 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
   const note = element.attributes['note'];
   const opacity = getOpacityAttribute(element.attributes, 'opacity', 1, vc);
   const shadow = getShadowAttribute(element.attributes, context.globalDefaults, vc);
-  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle', vc);
+  const vAlign = getVAlignAttribute(element.attributes, 'middle', vc);
   const textDecoration = getTextDecorationAttribute(element.attributes, vc);
   const declaredLineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 0, vc);
   const lineHeight = declaredLineHeight > 0 ? declaredLineHeight : fontSize * 1.5;
@@ -107,7 +107,7 @@ export function renderCircle(element: CircleElement, context: RenderContext): Re
     }
 
     let textY: number;
-    switch (verticalAlign) {
+    switch (vAlign) {
       case 'middle':
         textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + baselineOffset;
         break;
@@ -276,7 +276,7 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   const c = getColorAttribute(element.attributes, context.globalDefaults, 'c', '#999999', vc);
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12, vc), vc);
   const note = element.attributes['note'];
-  const verticalAlign = getVerticalAlignAttribute(element.attributes, 'middle', vc);
+  const vAlign = getVAlignAttribute(element.attributes, 'middle', vc);
   const align = getAlignAttribute(element.attributes, 'middle', vc);
   const declaredLineHeight = getNumberAttribute(element.attributes, context.globalDefaults, 'line-height', 0, vc);
   const lineHeight = declaredLineHeight > 0 ? declaredLineHeight : fontSize * 1.5;
@@ -335,7 +335,7 @@ export function renderPlaceholder(element: PlaceholderElement, context: RenderCo
   }
 
   let textY: number;
-  switch (verticalAlign) {
+  switch (vAlign) {
     case 'middle':
       textY = pos.y + padding.top + (h - padding.top - padding.bottom - totalTextHeight) / 2 + baselineOffset;
       break;
@@ -663,7 +663,7 @@ function renderTableCells(
     const declaredCellLineHeight = getNumberAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 'line-height', 0);
     const cellLineHeight = declaredCellLineHeight > 0 ? declaredCellLineHeight : cellFontSize * 1.5;
     const cellLetterSpacing = getLetterSpacingAttribute({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 0);
-    const cellVerticalAlign = getVerticalAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'top');
+    const cellVAlign = getVAlignAttribute({ ...rowAttributes, ...data.cell.attributes }, 'top');
     const cellTextDecoration = getTextDecorationAttribute({ ...rowAttributes, ...data.cell.attributes });
     const cellPadding = getPaddingValues({ ...rowAttributes, ...data.cell.attributes }, context.globalDefaults, 0);
 
@@ -686,7 +686,7 @@ function renderTableCells(
     modifiedCell.attributes['align'] = cellAlign === 'start' ? 'l' : cellAlign === 'middle' ? 'c' : 'r';
     modifiedCell.attributes['line-height'] = cellLineHeight.toString();
     if (cellLetterSpacing !== 0) modifiedCell.attributes['letter-spacing'] = cellLetterSpacing.toString();
-    modifiedCell.attributes['vertical-align'] = cellVerticalAlign === 'top' ? 't' : cellVerticalAlign === 'middle' ? 'm' : 'b';
+    modifiedCell.attributes['v-align'] = cellVAlign === 'top' ? 't' : cellVAlign === 'middle' ? 'm' : 'b';
     if (cellTextDecoration !== 'none') modifiedCell.attributes['text-decoration'] = cellTextDecoration;
     if (cellPadding.top !== 0) modifiedCell.attributes['padding-top'] = cellPadding.top.toString();
     if (cellPadding.right !== 0) modifiedCell.attributes['padding-right'] = cellPadding.right.toString();
@@ -839,7 +839,7 @@ function renderTableRow(
   const rowAttributes = element.attributes;
   const rowDefaults: Record<string, string> = {};
   
-  const inheritableAttrs = ['c', 'bg', 'b', 's', 'size', 'bold', 'italic', 'align', 'line-height', 'letter-spacing', 'vertical-align', 'text-decoration', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
+  const inheritableAttrs = ['c', 'bg', 'b', 's', 'size', 'bold', 'italic', 'align', 'line-height', 'letter-spacing', 'v-align', 'text-decoration', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left'];
   inheritableAttrs.forEach(attr => {
     if (rowAttributes[attr] !== undefined) {
       rowDefaults[attr] = rowAttributes[attr];

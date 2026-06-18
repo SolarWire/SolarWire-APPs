@@ -99,15 +99,20 @@ function SolarWireVisualEditor({
   }, [effectiveContent, errorSourceId]);
 
   const handleJumpToError = useCallback(() => {
+    // 从语法错误服务获取第一个错误的 line/column
+    const errors = syntaxErrorService.getErrors(errorSourceId);
+    const line = errors.length > 0 ? errors[0].line : 1;
+    const column = errors.length > 0 ? errors[0].column : 1;
+
     if (onSwitchToCodeTab) {
-      onSwitchToCodeTab(1, 1);
+      onSwitchToCodeTab(line, column);
     } else {
       setTimeout(() => {
-        const event = new CustomEvent('jumpToError', { detail: { line: 1, column: 1 } });
+        const event = new CustomEvent('jumpToError', { detail: { line, column } });
         window.dispatchEvent(event);
       }, 100);
     }
-  }, [onSwitchToCodeTab]);
+  }, [onSwitchToCodeTab, errorSourceId]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     const previewEl = document.querySelector('.solarwire-preview');

@@ -18,6 +18,7 @@ function SolarWireMode(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<'visual' | 'code'>('visual');
   const [scrollTrigger, setScrollTrigger] = useState(0);
   const [highlightTrigger, setHighlightTrigger] = useState(0);
+  const [scrollToLine, setScrollToLine] = useState<number | null>(null);
   const [syntaxErrors, setSyntaxErrors] = useState<SyntaxError[]>([]);
   const mainErrorSourceId = useRef('main-editor').current;
 
@@ -40,6 +41,7 @@ function SolarWireMode(): React.ReactElement {
       const { line, column } = event.detail;
 
       setActiveTab('code');
+      setScrollToLine(line || 1);
 
       setTimeout(() => {
         setScrollTrigger(prev => prev + 1);
@@ -67,6 +69,7 @@ function SolarWireMode(): React.ReactElement {
 
   const handleJumpToError = useCallback((line: number, column: number) => {
     setActiveTab('code');
+    setScrollToLine(line);
 
     setTimeout(() => {
       setScrollTrigger(prev => prev + 1);
@@ -149,6 +152,7 @@ function SolarWireMode(): React.ReactElement {
                 scrollTrigger={scrollTrigger}
                 highlightTrigger={highlightTrigger}
                 errorSourceId={mainErrorSourceId}
+                scrollToLine={scrollToLine}
               />
               {syntaxErrors.length > 0 && (
                 <ErrorPanel

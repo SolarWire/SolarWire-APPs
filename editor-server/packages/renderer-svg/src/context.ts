@@ -348,13 +348,38 @@ export function getAlignAttribute(
   defaultValue: 'start' | 'middle' | 'end'
 ): 'start' | 'middle' | 'end' {
   const align = attributes['align'];
-  switch (align) {
+  const normalized = align?.toLowerCase();
+  switch (normalized) {
     case 'l':
+    case 'left':
       return 'start';
     case 'c':
+    case 'center':
       return 'middle';
     case 'r':
+    case 'right':
       return 'end';
+    default:
+      return defaultValue;
+  }
+}
+
+export function getVAlignAttribute(
+  attributes: Record<string, string>,
+  defaultValue: 'top' | 'middle' | 'bottom' = 'top'
+): 'top' | 'middle' | 'bottom' {
+  const val = attributes['v-align'];
+  const normalized = val?.toLowerCase();
+  switch (normalized) {
+    case 't':
+    case 'top':
+      return 'top';
+    case 'm':
+    case 'middle':
+      return 'middle';
+    case 'b':
+    case 'bottom':
+      return 'bottom';
     default:
       return defaultValue;
   }

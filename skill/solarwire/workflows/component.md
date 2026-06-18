@@ -20,8 +20,8 @@ A `.swc` file is a Markdown-like format. It contains:
 - Coordinates are relative to the component's top-left corner; base point is `@(0,0)`.
 - Avoid `<url>` image elements; use `[?"Image"]` placeholders instead.
 - Text for labels must use `"text"` (not `["text"]`). Text supports ONLY `c`, `size`, `bold`, `opacity`; do not attach layout attributes.
-- For inputs/displays: `align=l vertical-align=m`.
-- For buttons: `align=c vertical-align=m`.
+- For inputs/displays: `align=l v-align=m`.
+- For buttons: `align=c v-align=m`.
 
 ## 4. Validation
 

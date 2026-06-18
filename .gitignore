@@ -34,6 +34,11 @@ private.md
 credentials.json
 secrets.json
 
+# 私有内容（比赛报名、个人草稿、未发布的方案等）
+private/*
+!private/.gitkeep
+!private/**/.gitkeep
+
 # IDE 配置
 .vscode/
 .idea/

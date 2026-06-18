@@ -1,9 +1,12 @@
+import { parse } from '../../lib/parser';
+import { render } from '../../lib/renderer';
+
 export interface SyntaxError {
   line: number;
   column: number;
   message: string;
   severity: 'error' | 'warning';
-  source?: 'parser' | 'diagnostic';
+  source?: 'parser' | 'renderer' | 'diagnostic';
 }
 
 export interface SyntaxErrorListener {
@@ -130,11 +133,83 @@ class SyntaxErrorService {
     }, 300);
   }
 
-  private performRendererCheck(_content: string): void {
-    if (this.currentSourceId) {
-      this.errorsBySource.set(this.currentSourceId, []);
-      this.notifyListeners(this.currentSourceId);
+  private performRendererCheck(content: string): void {
+    if (!this.currentSourceId) return;
+
+    const errors: SyntaxError[] = [];
+
+    if (content && content.trim()) {
+      // 1. 解析检查
+      let ast: any = null;
+      try {
+        ast = parse(content);
+      } catch (parseErr: any) {
+        const error = this.extractErrorFromMessage(parseErr.message || String(parseErr), 'parser');
+        if (error) errors.push(error);
+      }
+
+      // 2. 渲染检查（仅当解析成功时）
+      if (ast) {
+        try {
+          render(ast, {
+            disableNotes: false,
+            selectedElementIds: [],
+            primaryColor: '#FCA506',
+            sourceInput: content,
+          }, true);
+        } catch (renderErr: any) {
+          const error = this.extractErrorFromMessage(renderErr.message || String(renderErr), 'renderer');
+          if (error) errors.push(error);
+        }
+      }
     }
+
+    this.errorsBySource.set(this.currentSourceId, errors);
+    this.notifyListeners(this.currentSourceId);
+  }
+
+  private extractErrorFromMessage(message: string, source: 'parser' | 'renderer'): SyntaxError | null {
+    let line = 1;
+    let column = 1;
+    let errorMessage = 'Unknown error';
+
+    // 提取 line/column
+    // 解析错误格式：Location: Line X, Column Y
+    const parseLocationMatch = message.match(/Location:\s*Line\s*(\d+),\s*Column\s*(\d+)/i);
+    if (parseLocationMatch) {
+      line = parseInt(parseLocationMatch[1]);
+      column = parseInt(parseLocationMatch[2]);
+    } else {
+      // 渲染错误格式：Position: line X
+      const renderPositionMatch = message.match(/Position:\s*line\s*(\d+)/i);
+      if (renderPositionMatch) {
+        line = parseInt(renderPositionMatch[1]);
+      } else {
+        // 回退：尝试匹配 "line N" 格式
+        const lineMatch = message.match(/line\s+(\d+)/i);
+        if (lineMatch) line = parseInt(lineMatch[1]);
+      }
+    }
+
+    // 提取错误消息
+    // 格式：═...═\n  <title>\n═...═\n\n  Location/Position: ...\n\n  <message/reason>\n
+    // 提取 ═ 之间的 title
+    const titleMatch = message.match(/═+\s*\n\s+(.+?)\n\s*═+/);
+    if (titleMatch) {
+      errorMessage = titleMatch[1].trim();
+    } else {
+      // 回退：提取第一行非空内容
+      const lines = message.split('\n').filter(l => l.trim());
+      errorMessage = lines[0]?.trim() || 'Unknown error';
+    }
+
+    return {
+      line,
+      column,
+      message: errorMessage,
+      severity: 'error',
+      source
+    };
   }
 
   private addError(error: SyntaxError): void {
@@ -143,7 +218,7 @@ class SyntaxErrorService {
 
     const errors = this.errorsBySource.get(sourceId) || [];
     const exists = errors.some(
-      e => e.line === error.line && e.column === error.column
+      e => e.line === error.line && e.column === error.column && e.message === error.message
     );
     
     if (!exists) {

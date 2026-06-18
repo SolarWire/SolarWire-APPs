@@ -341,8 +341,8 @@ function SolarWirePreview({ selectionTool, showNotes = true, isPanMode = false, 
           <div className="error-title-row">
             <div className="error-title">{isRenderErr ? '⚠️ Render Error' : '⚠️ Parse Error'}</div>
             {onJumpToError && (
-              <button className="error-fix-btn" onClick={onJumpToError} title="跳转到代码修复错误">
-                🔧 去修复
+              <button className="error-fix-btn" onClick={onJumpToError} title="跳转到错误位置">
+                🔧 定位错误
               </button>
             )}
           </div>

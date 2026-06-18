@@ -143,7 +143,7 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const commonColor = getCommonAttr('c');
   const commonSize = getCommonAttr('size');
   const commonAlign = getCommonAttr('align');
-  const commonVAlign = getCommonAttr('vertical-align');
+  const commonVAlign = getCommonAttr('v-align');
   const commonBold = getCommonAttr('bold');
   const commonItalic = getCommonAttr('italic');
   const commonTextDecoration = getCommonAttr('text-decoration');
@@ -167,7 +167,7 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
   const mixedColor = isMixed('c');
   const mixedSize = isMixed('size');
   const mixedAlign = isMixed('align');
-  const mixedVAlign = isMixed('vertical-align');
+  const mixedVAlign = isMixed('v-align');
   const mixedBold = isMixed('bold');
   const mixedItalic = isMixed('italic');
   const mixedTextDecoration = isMixed('text-decoration');
@@ -333,15 +333,15 @@ const CellProperties: React.FC<CellPropertiesProps> = ({
 
       {showVAlign && (
         <div className="property-row">
-          <PropertyLabel codeAttr="vertical-align" className="property-label-text" />
+          <PropertyLabel codeAttr="v-align" className="property-label-text" />
           <div className="align-buttons">
-            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 't' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 't')} title="Top">
+            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 't' ? ' active' : ''}`} onClick={() => handleBatchChange('v-align', 't')} title="Top">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
             </button>
-            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'm' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'm')} title="Middle">
+            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'm' ? ' active' : ''}`} onClick={() => handleBatchChange('v-align', 'm')} title="Middle">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="5.5" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
             </button>
-            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'b' ? ' active' : ''}`} onClick={() => handleBatchChange('vertical-align', 'b')} title="Bottom">
+            <button className={`align-btn ${!mixedVAlign && effectiveVAlign === 'b' ? ' active' : ''}`} onClick={() => handleBatchChange('v-align', 'b')} title="Bottom">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="2" y1="3" x2="12" y2="3" stroke="currentColor" strokeWidth="1.5"/><rect x="4" y="8" width="6" height="3" fill="currentColor" opacity="0.3"/><line x1="2" y1="11" x2="12" y2="11" stroke="currentColor" strokeWidth="1.5"/></svg>
             </button>
           </div>

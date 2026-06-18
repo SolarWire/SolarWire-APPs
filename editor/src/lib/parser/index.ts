@@ -312,9 +312,42 @@ export function parse(input: string): Document {
       }
     });
 
+    const elements = buildNestedStructure(elementsWithIndent, input, elementLines.map(e => e.lineNum));
+
+    // note 属性必须使用三引号，单引号/双引号报错
+    const noteQuoteRegex = /note\s*=\s*(?!""")["']/g;
+    let noteMatch;
+    while ((noteMatch = noteQuoteRegex.exec(input)) !== null) {
+      const lineNumber = input.substring(0, noteMatch.index).split('\n').length;
+      const column = noteMatch.index - input.lastIndexOf('\n', noteMatch.index);
+      throw new Error(formatError(
+        `note attribute must use triple quotes (note="""content"""). Single/double quotes are not allowed.`,
+        input,
+        lineNumber,
+        column,
+        'note="""...""" (triple quotes)',
+        'note="..." or note=\'...\' (single/double quotes)'
+      ));
+    }
+
+    // 多个 ## 声明一个表格报错（连续的 table 元素）
+    for (let i = 0; i < elements.length - 1; i++) {
+      if (elements[i].type === 'table' && elements[i + 1].type === 'table') {
+        const line = elements[i + 1].location?.line || 1;
+        throw new Error(formatError(
+          `Multiple table declarations (##) are not allowed. Use exactly one ## header, then # rows.`,
+          input,
+          line,
+          1,
+          'one ## header followed by # rows',
+          'multiple ## declarations'
+        ));
+      }
+    }
+
     return {
       declarations: rawResult.declarations,
-      elements: buildNestedStructure(elementsWithIndent, input, elementLines.map(e => e.lineNum))
+      elements
     };
   } catch (e: any) {
     if (e.location && e.location.start) {

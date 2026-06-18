@@ -154,6 +154,7 @@ function tokenizeSolarWire(lines: string[]): SemanticToken[] {
   scanComments(lines, mark);
   scanNoteContent(lines, mark, isOccupied);
   scanElementDeclarations(lines, mark, isOccupied);
+  scanStandaloneText(lines, mark, isOccupied);
   scanTableDeclarations(lines, mark, isOccupied);
   scanCoordinates(lines, mark, isOccupied);
   scanAttributes(lines, mark, isOccupied);
@@ -344,12 +345,29 @@ function scanElementDeclarations(
       }
     }
 
-    const linePattern = /--(?:\s*"([^"]*)")?/g;
+    // 支持 -- 和 -"label"- 两种线段语法
+    const linePattern = /--|-"([^"]*)"-/g;
     let lineMatch;
     while ((lineMatch = linePattern.exec(line)) !== null) {
       const dashStart = lineMatch.index;
-      if (isOccupied(i, dashStart, 2)) continue;
-      mark(i, dashStart, 2, DELIM);
+      if (lineMatch[0] === '--') {
+        if (isOccupied(i, dashStart, 2)) continue;
+        mark(i, dashStart, 2, DELIM);
+      } else {
+        // -"label"-
+        if (isOccupied(i, dashStart, 1)) continue;
+        mark(i, dashStart, 1, DELIM);  // 开头 -
+        const quoteStart = dashStart + 1;
+        if (!isOccupied(i, quoteStart, 1)) mark(i, quoteStart, 1, DELIM);  // "
+        const contentStart = quoteStart + 1;
+        const contentLen = lineMatch[1] ? lineMatch[1].length : 0;
+        if (contentLen > 0 && !isOccupied(i, contentStart, contentLen)) {
+          mark(i, contentStart, contentLen, CONTENT);
+        }
+        const quoteEnd = contentStart + contentLen;
+        if (!isOccupied(i, quoteEnd, 1)) mark(i, quoteEnd, 1, DELIM);  // "
+        if (!isOccupied(i, quoteEnd + 1, 1)) mark(i, quoteEnd + 1, 1, DELIM);  // 结尾 -
+      }
     }
   }
 }
@@ -373,6 +391,74 @@ function scanTableDeclarations(
     } else if (trimmed.startsWith('#') && !trimmed.startsWith('##')) {
       if (!isOccupied(i, indent, 1)) {
         mark(i, indent, 1, TABLE);
+      }
+    }
+  }
+}
+
+/**
+ * 扫描独立的文本元素：行首（允许缩进）以 " 或 """ 开头的文本，
+ * 不在 []、()、<> 内的。包括表格 cell 中的 "cell content"。
+ */
+function scanStandaloneText(
+  lines: string[],
+  mark: (line: number, col: number, length: number, typeIndex: number) => void,
+  isOccupied: (line: number, col: number, length: number) => boolean,
+): void {
+  const DELIM = TOKEN_TYPES.indexOf('elementDelimiter');
+  const CONTENT = TOKEN_TYPES.indexOf('elementContent');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trimStart();
+    const indent = line.length - trimmed.length;
+
+    // 跳过注释、声明、表格行（# 开头但不是文本）
+    if (trimmed.startsWith('//') || trimmed.startsWith('!')) continue;
+    // 跳过表格声明行（## 和 #），它们由 scanTableDeclarations 处理
+    if (trimmed.startsWith('#')) continue;
+
+    // 三引号多行文本
+    if (trimmed.startsWith('"""')) {
+      const startCol = indent;
+      if (isOccupied(i, startCol, 3)) continue;
+      mark(i, startCol, 3, DELIM);  // """
+
+      const contentStart = startCol + 3;
+      // 查找结束的 """
+      for (let li = i; li < lines.length; li++) {
+        const searchLine = li === i ? lines[li].substring(contentStart) : lines[li];
+        const searchOffset = li === i ? contentStart : 0;
+        const endIdx = searchLine.indexOf('"""');
+
+        if (endIdx !== -1) {
+          if (endIdx > 0 && !isOccupied(li, searchOffset, endIdx)) {
+            mark(li, searchOffset, endIdx, CONTENT);
+          }
+          if (!isOccupied(li, searchOffset + endIdx, 3)) {
+            mark(li, searchOffset + endIdx, 3, DELIM);  // """
+          }
+          break;
+        } else {
+          if (searchLine.length > 0 && !isOccupied(li, searchOffset, searchLine.length)) {
+            mark(li, searchOffset, searchLine.length, CONTENT);
+          }
+        }
+      }
+    } else if (trimmed.startsWith('"')) {
+      // 单行文本 "text"
+      const startCol = indent;
+      if (isOccupied(i, startCol, 1)) continue;
+      mark(i, startCol, 1, DELIM);  // "
+      const endQuote = line.indexOf('"', startCol + 1);
+      if (endQuote !== -1) {
+        const contentLen = endQuote - startCol - 1;
+        if (contentLen > 0 && !isOccupied(i, startCol + 1, contentLen)) {
+          mark(i, startCol + 1, contentLen, CONTENT);
+        }
+        if (!isOccupied(i, endQuote, 1)) {
+          mark(i, endQuote, 1, DELIM);  // "
+        }
       }
     }
   }
@@ -459,6 +545,9 @@ function scanAttributes(
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+    const trimmed = line.trimStart();
+    // 跳过声明行（!title= 等），声明键由 scanDeclarations 处理
+    if (trimmed.startsWith('!')) continue;
 
     const attrPattern = /([a-zA-Z_][-a-zA-Z0-9_]*)([ \t]*=[ \t]*)/g;
     let match;
@@ -529,8 +618,25 @@ function scanDeclarations(
     const indent = line.length - trimmed.length;
 
     if (trimmed.startsWith('!')) {
+      // 标记 !
       if (!isOccupied(i, indent, 1)) {
         mark(i, indent, 1, DECL);
+      }
+      // 标记声明键名（title, bold, c, size 等）和 =
+      const declMatch = trimmed.match(/^!([a-zA-Z_][-a-zA-Z0-9_]*)(=)?/);
+      if (declMatch) {
+        const keyStart = indent + 1;
+        const keyLen = declMatch[1].length;
+        if (!isOccupied(i, keyStart, keyLen)) {
+          mark(i, keyStart, keyLen, DECL);
+        }
+        // 标记 =（如果有）
+        if (declMatch[2] === '=') {
+          const equalsStart = keyStart + keyLen;
+          if (!isOccupied(i, equalsStart, 1)) {
+            mark(i, equalsStart, 1, DECL);
+          }
+        }
       }
     }
   }

@@ -27,17 +27,21 @@ interface PropertyPairProps {
   codeAttr1?: string;
   codeAttr2?: string;
   step?: number;
+  placeholder1?: string;
+  placeholder2?: string;
 }
 
 export const PropertyPair: React.FC<PropertyPairProps> = ({
   label1, value1, onChange1,
   label2, value2, onChange2,
   codeAttr1, codeAttr2,
-  step = 1
+  step = 1,
+  placeholder1,
+  placeholder2
 }) => (
   <div className="property-row">
-    <DraggableNumberInput label={label1} value={value1} onChange={onChange1} step={step} codeAttr={codeAttr1} />
-    <DraggableNumberInput label={label2} value={value2} onChange={onChange2} step={step} codeAttr={codeAttr2} />
+    <DraggableNumberInput label={label1} value={value1} onChange={onChange1} step={step} codeAttr={codeAttr1} placeholder={placeholder1} />
+    <DraggableNumberInput label={label2} value={value2} onChange={onChange2} step={step} codeAttr={codeAttr2} placeholder={placeholder2} />
   </div>
 );
 

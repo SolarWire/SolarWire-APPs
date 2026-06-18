@@ -37,8 +37,8 @@ const COMMON_COLORS = [
 const BOOLEAN_ATTRS = ['bold', 'italic'];
 
 const ENUM_VALUES: Record<string, string[]> = {
-  align: ['l', 'c', 'r'],
-  'vertical-align': ['t', 'm', 'b'],
+  align: ['l', 'c', 'r', 'left', 'center', 'right'],
+  'v-align': ['t', 'm', 'b', 'top', 'middle', 'bottom'],
   'text-decoration': ['underline', 'line-through'],
   style: ['dashed', 'dotted'],
 };
@@ -46,13 +46,13 @@ const ENUM_VALUES: Record<string, string[]> = {
 const ELEMENT_ATTRIBUTES: Record<ElementType, string[]> = {
   rectangle: [
     'w', 'h', 'bg', 'c', 'b', 's', 'r', 'size', 'bold', 'italic', 'align',
-    'opacity', 'line-height', 'note', 'letter-spacing', 'vertical-align',
+    'opacity', 'line-height', 'note', 'letter-spacing', 'v-align',
     'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
     'text-decoration', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
   ],
   circle: [
     'w', 'bg', 'c', 'b', 's', 'size', 'bold', 'italic', 'align',
-    'opacity', 'line-height', 'note', 'letter-spacing', 'vertical-align',
+    'opacity', 'line-height', 'note', 'letter-spacing', 'v-align',
     'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
     'text-decoration', 'shadow-x', 'shadow-y', 'shadow-blur', 'shadow-color',
   ],
@@ -62,7 +62,7 @@ const ELEMENT_ATTRIBUTES: Record<ElementType, string[]> = {
   ],
   placeholder: [
     'w', 'h', 'bg', 'c', 'b', 's', 'size', 'bold', 'italic', 'align',
-    'opacity', 'line-height', 'note', 'letter-spacing', 'vertical-align',
+    'opacity', 'line-height', 'note', 'letter-spacing', 'v-align',
     'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
     'text-decoration',
   ],
@@ -78,12 +78,12 @@ const ELEMENT_ATTRIBUTES: Record<ElementType, string[]> = {
   ],
   'table-row': [
     'h', 'bg', 'c', 'b', 's', 'size', 'bold', 'italic', 'align',
-    'line-height', 'letter-spacing', 'vertical-align', 'text-decoration',
+    'line-height', 'letter-spacing', 'v-align', 'text-decoration',
     'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
   ],
   'table-cell': [
     'bg', 'c', 'b', 's', 'size', 'bold', 'italic', 'align',
-    'line-height', 'letter-spacing', 'vertical-align', 'text-decoration',
+    'line-height', 'letter-spacing', 'v-align', 'text-decoration',
     'colspan', 'rowspan',
     'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
   ],

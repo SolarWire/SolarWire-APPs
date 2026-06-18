@@ -1,5 +1,5 @@
 import { RectangleElement, RoundedRectangleElement } from '@solarwire/parser';
-import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute } from '../context';
+import { RenderContext, AbsolutePosition, ElementBounds, calculatePosition, getNumberAttribute, getColorAttribute, getBooleanAttribute, getAlignAttribute, getVAlignAttribute, updateLastElementBounds, escapeHtml, getOpacityAttribute } from '../context';
 
 export interface RenderResult {
   svg: string;
@@ -28,6 +28,7 @@ export function renderRectangle(
   const r = isRounded ? getNumberAttribute(element.attributes, context.globalDefaults, 'r', 6) : 0;
   const fontSize = getNumberAttribute(element.attributes, context.globalDefaults, 'text-size', getNumberAttribute(element.attributes, context.globalDefaults, 'size', 12));
   const align = getAlignAttribute(element.attributes, 'start');
+  const vAlign = getVAlignAttribute(element.attributes, 'top');
   const bold = getBooleanAttribute(element.attributes, context.globalDefaults, 'bold');
   const italic = getBooleanAttribute(element.attributes, context.globalDefaults, 'italic');
   const note = element.attributes['note'];
@@ -67,7 +68,21 @@ export function renderRectangle(
         break;
     }
     
-    const textY = pos.y + h / 2 - ((lines.length - 1) * lineHeight) / 2 + fontSize / 2 - 2;
+    const totalTextHeight = (lines.length - 1) * lineHeight + fontSize;
+    const baselineOffset = fontSize * 0.82;
+    let textY: number;
+    switch (vAlign) {
+      case 'middle':
+        textY = pos.y + (h - totalTextHeight) / 2 + baselineOffset;
+        break;
+      case 'bottom':
+        textY = pos.y + h - totalTextHeight + baselineOffset;
+        break;
+      case 'top':
+      default:
+        textY = pos.y + baselineOffset;
+        break;
+    }
     
     let fontStyle = '';
     if (bold) fontStyle += 'font-weight="bold" ';
